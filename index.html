@@ -31,7 +31,8 @@ button,
 .d-x,
 .ci-rm,
 .d-wa,
-.d-clear{
+.d-clear,
+.qv{
   touch-action:manipulation;
 }
 .app{display:flex;flex-direction:column;height:100vh;max-width:980px;margin:0 auto;position:relative}
@@ -167,16 +168,14 @@ button,
 .card-price{font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:900;color:#fff;line-height:1}
 
 /* Fila cantidad */
-.qrow{display:flex;align-items:center;justify-content:center;gap:8px}
-.qb{width:30px;height:30px;border-radius:7px;border:none;font-size:19px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;user-select:none;transition:transform .1s}
+.qrow{display:flex;align-items:center;justify-content:center;gap:6px}
+.qb{width:30px;height:30px;border-radius:7px;border:none;font-size:19px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;user-select:none;transition:transform .1s;-webkit-user-select:none;-webkit-touch-callout:none}
 .qb:active{transform:scale(.9)}
 .qb-m{background:var(--cream2);color:var(--red)}
 .qb-p{background:var(--red);color:#fff}
-.qv{font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:800;min-width:24px;text-align:center;color:var(--text)}
+.qb-5{width:auto;min-width:34px;padding:0 8px;background:linear-gradient(135deg,#ffe27a,#ffc83d);color:#5C0000;font-size:12px;font-weight:800;letter-spacing:.2px}
+.qv{font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:800;min-width:34px;text-align:center;color:var(--text);background:var(--cream2);border:1px solid var(--cream3);border-radius:7px;height:30px;display:flex;align-items:center;justify-content:center;padding:0 8px;user-select:none;-webkit-user-select:none}
 .qsub{font-family:'Barlow Condensed',sans-serif;font-size:10px;color:var(--red2);font-weight:700;text-align:center;margin-top:3px}
-.qv-btn{appearance:none;-webkit-appearance:none;border:none;background:var(--cream2);border:1.5px dashed var(--cream3);border-radius:8px;padding:4px 10px;min-width:48px;cursor:pointer;line-height:1}
-.qv-btn:active{transform:scale(.97)}
-.qhint{font-size:10px;color:var(--text3);text-align:center;margin-top:4px}
 .qty-backdrop{position:absolute;inset:0;background:rgba(10,0,0,.58);z-index:210;display:none}
 .qty-backdrop.on{display:block}
 .qty-modal{position:absolute;left:14px;right:14px;top:50%;transform:translateY(-50%) scale(.96);background:#fff;border-radius:18px;z-index:220;display:none;box-shadow:0 18px 44px rgba(0,0,0,.28);padding:16px 16px 14px}
@@ -273,7 +272,7 @@ button,
   }
 }
 
-@media (max-width:768px){.qty-modal{left:10px;right:10px}.qty-input{font-size:30px}.qhint{font-size:10px}}
+@media (max-width:768px){.qty-modal{left:10px;right:10px}.qty-input{font-size:30px}}
 
 @media(min-width:580px){.sec-grid{grid-template-columns:repeat(3,1fr)}.card-img{height:170px}}
 @media(min-width:780px){.sec-grid{grid-template-columns:repeat(4,1fr)}.card-img{height:180px}}
@@ -384,10 +383,10 @@ function renderBody(){
         +'<div class="card-price-box"><div class="card-price">'+fmt(it.pr)+'</div></div>'
         +'<div class="qrow">'
         +'<button class="qb qb-m" onclick="chg(\''+key+'\','+si+','+ii+',-1)">&#8722;</button>'
-        +'<button class="qv qv-btn" onclick="openQtyModal(\''+key+'\','+si+','+ii+')" aria-label="Ingresar cantidad">'+q+'</button>'
+        +'<div class="qv" aria-label="Cantidad actual">'+q+'</div>'
         +'<button class="qb qb-p" onclick="chg(\''+key+'\','+si+','+ii+',1)" onmousedown="holdStart(event,\''+key+'\','+si+','+ii+')" ontouchstart="holdStart(event,\''+key+'\','+si+','+ii+')" onmouseup="holdEnd()" onmouseleave="holdEnd()" ontouchend="holdEnd()" ontouchcancel="holdEnd()" oncontextmenu="return false">+</button>'
+        +'<button class="qb qb-5" onclick="chg(\''+key+'\','+si+','+ii+',5)">+5</button>'
         +'</div>'
-        +'<div class="qhint">Tocá el número para escribir</div>'
         +qsub
         +'</div></div>';
     }).join('');
@@ -445,46 +444,9 @@ function renderDrawer(){
 
 function clearCart(){Object.keys(qty).forEach(k=>delete qty[k]);renderBody();updateBar();renderDrawer();}
 
-let qtyModalState=null;
 let holdTimeout=null;
 let holdInterval=null;
 let holdTriggered=false;
-
-function setQtyValue(key,val){
-  const n=Math.max(0,parseInt(val,10)||0);
-  qty[key]=n;
-  renderBody();updateBar();
-  if(document.getElementById('drawer').classList.contains('on'))renderDrawer();
-}
-
-function openQtyModal(key,si,ii){
-  const it=CAT[si].items[ii];
-  qtyModalState={key,si,ii};
-  document.getElementById('qty-name').textContent=it.n;
-  const input=document.getElementById('qty-input');
-  input.value=qty[key]||0;
-  document.getElementById('qty-backdrop').classList.add('on');
-  document.getElementById('qty-modal').classList.add('on');
-  setTimeout(()=>{input.focus(); input.select();},30);
-}
-
-function closeQtyModal(){
-  qtyModalState=null;
-  document.getElementById('qty-backdrop').classList.remove('on');
-  document.getElementById('qty-modal').classList.remove('on');
-}
-
-function saveQtyModal(){
-  if(!qtyModalState) return;
-  setQtyValue(qtyModalState.key, document.getElementById('qty-input').value);
-  closeQtyModal();
-}
-
-function setQtyInput(n){ document.getElementById('qty-input').value=Math.max(0,parseInt(n,10)||0); }
-function stepQtyInput(d){
-  const input=document.getElementById('qty-input');
-  input.value=Math.max(0,(parseInt(input.value,10)||0)+d);
-}
 
 function holdStart(ev,key,si,ii){
   holdEnd();
@@ -601,10 +563,6 @@ function sendWA(){
   L.push(sep,'','💰 *TOTAL FINAL*','👉 '+fmt(t),'',sep,'','✅ Confirmame y te lo reservo','🚚 Coordinamos entrega');
   window.open('https://wa.me/'+vActivo.wa+'?text='+encodeURIComponent(L.join('\n')),'_blank');
 }
-
-document.addEventListener('keydown',function(event){
-  if(event.key==='Escape') closeQtyModal();
-});
 
 renderVend();renderNav();renderBody();updateBar();
 </script>
