@@ -16,6 +16,24 @@
   --text:#1A0800;--text2:#5C3A1E;--text3:#9C7050;
 }
 html,body{height:100%;font-family:'Barlow',sans-serif;background:var(--cream);overflow:hidden}
+
+html{
+  -webkit-text-size-adjust:100%;
+}
+
+button,
+.qb,
+.btn-det,
+.btn-wa,
+.vchip,
+.catbtn,
+.sv-card,
+.d-x,
+.ci-rm,
+.d-wa,
+.d-clear{
+  touch-action:manipulation;
+}
 .app{display:flex;flex-direction:column;height:100vh;max-width:980px;margin:0 auto;position:relative}
 
 /* === PANTALLA VENDEDOR === */
@@ -419,5 +437,23 @@ function sendWA(){
 
 renderVend();renderNav();renderBody();updateBar();
 </script>
+
+<script>
+(function () {
+  let lastTouchEnd = 0;
+
+  document.addEventListener('touchend', function (event) {
+    const now = Date.now();
+    if (now - lastTouchEnd <= 300) {
+      const target = event.target.closest('button, .qb, .btn-det, .btn-wa, .vchip, .catbtn, .sv-card, .d-x, .ci-rm, .d-wa, .d-clear');
+      if (target) {
+        event.preventDefault();
+      }
+    }
+    lastTouchEnd = now;
+  }, { passive: false });
+})();
+</script>
+
 </body>
 </html>
