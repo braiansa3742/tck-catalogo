@@ -174,6 +174,25 @@ button,
 .qb-p{background:var(--red);color:#fff}
 .qv{font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:800;min-width:24px;text-align:center;color:var(--text)}
 .qsub{font-family:'Barlow Condensed',sans-serif;font-size:10px;color:var(--red2);font-weight:700;text-align:center;margin-top:3px}
+.qv-btn{appearance:none;-webkit-appearance:none;border:none;background:var(--cream2);border:1.5px dashed var(--cream3);border-radius:8px;padding:4px 10px;min-width:48px;cursor:pointer;line-height:1}
+.qv-btn:active{transform:scale(.97)}
+.qhint{font-size:10px;color:var(--text3);text-align:center;margin-top:4px}
+.qty-backdrop{position:absolute;inset:0;background:rgba(10,0,0,.58);z-index:210;display:none}
+.qty-backdrop.on{display:block}
+.qty-modal{position:absolute;left:14px;right:14px;top:50%;transform:translateY(-50%) scale(.96);background:#fff;border-radius:18px;z-index:220;display:none;box-shadow:0 18px 44px rgba(0,0,0,.28);padding:16px 16px 14px}
+.qty-modal.on{display:block;transform:translateY(-50%) scale(1)}
+.qty-title{font-family:'Barlow Condensed',sans-serif;font-size:24px;font-weight:900;color:var(--red);line-height:1}
+.qty-name{font-size:13px;color:var(--text2);margin-top:6px}
+.qty-help{font-size:12px;color:var(--text3);margin-top:8px;line-height:1.35}
+.qty-input-row{display:flex;align-items:center;gap:8px;margin-top:14px}
+.qty-mini{width:42px;height:42px;border:none;border-radius:10px;background:var(--cream2);font-family:'Barlow Condensed',sans-serif;font-size:24px;font-weight:800;color:var(--red);cursor:pointer;flex-shrink:0}
+.qty-input{flex:1;height:48px;border:1.5px solid var(--cream3);border-radius:12px;padding:0 14px;font-family:'Barlow Condensed',sans-serif;font-size:28px;font-weight:800;color:var(--text);text-align:center;outline:none}
+.qty-presets{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.qty-chip{border:none;background:var(--cream2);color:var(--text2);border-radius:999px;padding:8px 12px;font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;cursor:pointer}
+.qty-actions{display:flex;gap:10px;margin-top:14px}
+.qty-cancel,.qty-save{flex:1;height:46px;border:none;border-radius:12px;font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:800;cursor:pointer}
+.qty-cancel{background:var(--cream2);color:var(--text2)}
+.qty-save{background:linear-gradient(135deg,var(--red2),var(--red));color:#fff}
 
 /* === BARRA PEDIDO === */
 .orderbar{position:sticky;bottom:0;left:0;right:0;z-index:40;flex-shrink:0;background:#fff;padding:12px 13px calc(24px + env(safe-area-inset-bottom));display:flex;align-items:center;gap:8px;min-height:86px;border-top:3px solid var(--gold);box-shadow:0 -4px 18px rgba(0,0,0,.08)}
@@ -253,6 +272,8 @@ button,
     border-radius:10px;
   }
 }
+
+@media (max-width:768px){.qty-modal{left:10px;right:10px}.qty-input{font-size:30px}.qhint{font-size:10px}}
 
 @media(min-width:580px){.sec-grid{grid-template-columns:repeat(3,1fr)}.card-img{height:170px}}
 @media(min-width:780px){.sec-grid{grid-template-columns:repeat(4,1fr)}.card-img{height:180px}}
@@ -363,9 +384,10 @@ function renderBody(){
         +'<div class="card-price-box"><div class="card-price">'+fmt(it.pr)+'</div></div>'
         +'<div class="qrow">'
         +'<button class="qb qb-m" onclick="chg(\''+key+'\','+si+','+ii+',-1)">&#8722;</button>'
-        +'<div class="qv">'+q+'</div>'
-        +'<button class="qb qb-p" onclick="chg(\''+key+'\','+si+','+ii+',1)">+</button>'
+        +'<button class="qv qv-btn" onclick="openQtyModal(\''+key+'\','+si+','+ii+')" aria-label="Ingresar cantidad">'+q+'</button>'
+        +'<button class="qb qb-p" onclick="chg(\''+key+'\','+si+','+ii+',1)" onmousedown="holdStart(event,\''+key+'\','+si+','+ii+')" ontouchstart="holdStart(event,\''+key+'\','+si+','+ii+')" onmouseup="holdEnd()" onmouseleave="holdEnd()" ontouchend="holdEnd()" ontouchcancel="holdEnd()" oncontextmenu="return false">+</button>'
         +'</div>'
+        +'<div class="qhint">Tocá el número para escribir</div>'
         +qsub
         +'</div></div>';
     }).join('');
@@ -412,7 +434,7 @@ function renderDrawer(){
     const q=qty[si+'-'+ii]||0;
     if(q>0) html+='<div class="ci">'
       +'<img class="ci-img" src="'+it.imgdata+'" alt="">'
-      +'<div class="ci-inf"><div class="ci-n">'+it.n+'</div><div class="ci-q">x'+q+' &middot; '+it.p+'</div></div>'
+      +'<div class="ci-inf"><div class="ci-n">'+it.n+'</div><div class="ci-q">'+qtyLabel(s,it,q)+' x '+fmt(it.pr)+(it.p?(' &middot; '+presLabel(s,it,q)):'')+'</div></div>'
       +'<div class="ci-p">'+fmt(it.pr*q)+'</div>'
       +'<button class="ci-rm" onclick="chg(\''+(si+'-'+ii)+'\','+si+','+ii+',-'+q+')">&#x2715;</button></div>';
   }));
@@ -422,6 +444,62 @@ function renderDrawer(){
 }
 
 function clearCart(){Object.keys(qty).forEach(k=>delete qty[k]);renderBody();updateBar();renderDrawer();}
+
+let qtyModalState=null;
+let holdTimeout=null;
+let holdInterval=null;
+let holdTriggered=false;
+
+function setQtyValue(key,val){
+  const n=Math.max(0,parseInt(val,10)||0);
+  qty[key]=n;
+  renderBody();updateBar();
+  if(document.getElementById('drawer').classList.contains('on'))renderDrawer();
+}
+
+function openQtyModal(key,si,ii){
+  const it=CAT[si].items[ii];
+  qtyModalState={key,si,ii};
+  document.getElementById('qty-name').textContent=it.n;
+  const input=document.getElementById('qty-input');
+  input.value=qty[key]||0;
+  document.getElementById('qty-backdrop').classList.add('on');
+  document.getElementById('qty-modal').classList.add('on');
+  setTimeout(()=>{input.focus(); input.select();},30);
+}
+
+function closeQtyModal(){
+  qtyModalState=null;
+  document.getElementById('qty-backdrop').classList.remove('on');
+  document.getElementById('qty-modal').classList.remove('on');
+}
+
+function saveQtyModal(){
+  if(!qtyModalState) return;
+  setQtyValue(qtyModalState.key, document.getElementById('qty-input').value);
+  closeQtyModal();
+}
+
+function setQtyInput(n){ document.getElementById('qty-input').value=Math.max(0,parseInt(n,10)||0); }
+function stepQtyInput(d){
+  const input=document.getElementById('qty-input');
+  input.value=Math.max(0,(parseInt(input.value,10)||0)+d);
+}
+
+function holdStart(ev,key,si,ii){
+  holdEnd();
+  holdTriggered=false;
+  holdTimeout=setTimeout(()=>{
+    holdTriggered=true;
+    chg(key,si,ii,4);
+    holdInterval=setInterval(()=>chg(key,si,ii,5),120);
+  },320);
+}
+
+function holdEnd(){
+  if(holdTimeout){clearTimeout(holdTimeout); holdTimeout=null;}
+  if(holdInterval){clearInterval(holdInterval); holdInterval=null;}
+}
 
 function cleanPres(p){
   return String(p||'').replace(/^x\s*/i,'').trim();
@@ -504,7 +582,7 @@ function waProductLine(sec,it,q){
   const presPart=presTxt ? ' ('+presTxt+')' : '';
   return [
     meta.emoji+' *'+it.n+'*',
-    qtyTxt+presPart+' → '+fmt(it.pr*q)
+    qtyTxt+presPart+' x '+fmt(it.pr)+' → '+fmt(it.pr*q)
   ];
 }
 
@@ -523,6 +601,10 @@ function sendWA(){
   L.push(sep,'','💰 *TOTAL FINAL*','👉 '+fmt(t),'',sep,'','✅ Confirmame y te lo reservo','🚚 Coordinamos entrega');
   window.open('https://wa.me/'+vActivo.wa+'?text='+encodeURIComponent(L.join('\n')),'_blank');
 }
+
+document.addEventListener('keydown',function(event){
+  if(event.key==='Escape') closeQtyModal();
+});
 
 renderVend();renderNav();renderBody();updateBar();
 </script>
