@@ -423,15 +423,104 @@ function renderDrawer(){
 
 function clearCart(){Object.keys(qty).forEach(k=>delete qty[k]);renderBody();updateBar();renderDrawer();}
 
+function cleanPres(p){
+  return String(p||'').replace(/^x\s*/i,'').trim();
+}
+
+function unitMeta(sec,it){
+  const secId=String(sec.id||'').toLowerCase();
+  const secTxt=String(sec.sec||'').toLowerCase();
+  const name=String(it.n||'').toLowerCase();
+  const pres=cleanPres(it.p).toLowerCase();
+
+  if(name.includes('huevo') || secId.includes('huevo') || secTxt.includes('huevo')){
+    if(name.includes('cajita')) return {singular:'cajita',plural:'cajitas',emoji:'🥚'};
+    return {singular:'maple',plural:'maples',emoji:'🥚'};
+  }
+
+  if(name.includes('veggie') || secId.includes('veggie') || secTxt.includes('veggie')){
+    return {singular:'cajita',plural:'cajitas',emoji:'🌱'};
+  }
+
+  if(name.includes('pasta') || name.includes('raviol') || name.includes('sorrent') || name.includes('ñoqui') || name.includes('gnocchi') || secId.includes('pasta') || secTxt.includes('pasta')){
+    return {singular:'paquete',plural:'paquetes',emoji:'🍝'};
+  }
+
+  if((name.includes('verdura') || name.includes('arveja') || name.includes('brocoli') || name.includes('brócoli') || name.includes('espinaca') || name.includes('choclo') || name.includes('mix')) && !name.includes('veggie')){
+    return {singular:'paquete retail',plural:'paquetes retail',emoji:'🥦'};
+  }
+
+  if(secId.includes('verdura') || secTxt.includes('verdura')){
+    return {singular:'paquete retail',plural:'paquetes retail',emoji:'🥦'};
+  }
+
+  if(name.includes('papa') || name.includes('mccain') || name.includes('balcarce') || name.includes('palta') || secId.includes('papa') || secTxt.includes('papa') || secTxt.includes('palta')){
+    const emoji = (name.includes('palta') || secTxt.includes('palta')) ? '🥑' : '🍟';
+    return {singular:'bolsa',plural:'bolsas',emoji};
+  }
+
+  if(name.includes('suprema') && pres.includes('5 kg')){
+    return {singular:'bolsa',plural:'bolsas',emoji:'🍗'};
+  }
+
+  if(secId.includes('pollo') || secTxt.includes('pollo')){
+    return {singular:'caja',plural:'cajas',emoji:'🐔'};
+  }
+
+  if(secId.includes('trozado') || secTxt.includes('trozado') || name.includes('trozado') || name.includes('alita') || name.includes('pata') || name.includes('muslo')){
+    return {singular:'caja',plural:'cajas',emoji:'🍗'};
+  }
+
+  if(secTxt.includes('rebozado') || secTxt.includes('shaddai') || name.includes('rebozado') || name.includes('shaddai') || name.includes('medallón') || name.includes('medallon') || name.includes('nugget')){
+    return {singular:'caja',plural:'cajas',emoji:'🍽️'};
+  }
+
+  if(secTxt.includes('milanesa') || name.includes('milanesa')){
+    return {singular:'caja',plural:'cajas',emoji:'🍽️'};
+  }
+
+  if(secTxt.includes('hamburguesa') || name.includes('hamburguesa') || name.includes('burger')){
+    return {singular:'caja',plural:'cajas',emoji:'🍔'};
+  }
+
+  return {singular:'unidad',plural:'unidades',emoji:'📦'};
+}
+
+function qtyLabel(sec,it,q){
+  const meta=unitMeta(sec,it);
+  return q+' '+(q===1?meta.singular:meta.plural);
+}
+
+function presLabel(sec,it,q){
+  const pres=cleanPres(it.p);
+  if(!pres) return '';
+  return q>1 ? pres+' c/u' : pres;
+}
+
+function waProductLine(sec,it,q){
+  const meta=unitMeta(sec,it);
+  const qtyTxt=qtyLabel(sec,it,q);
+  const presTxt=presLabel(sec,it,q);
+  const presPart=presTxt ? ' ('+presTxt+')' : '';
+  return [
+    meta.emoji+' *'+it.n+'*',
+    qtyTxt+presPart+' → '+fmt(it.pr*q)
+  ];
+}
+
 function sendWA(){
   if(!vActivo)return;
   const{t,c}=T();if(!c)return;
-  let L=['*Pedido TCK - Abril 2026*',''];
+  const sep='━━━━━━━━━━━━━━━';
+  let L=['🛒 *TCK - The Chicken Kings*','',sep,''];
   CAT.forEach((s,si)=>s.items.forEach((it,ii)=>{
     const q=qty[si+'-'+ii]||0;
-    if(q>0) L.push(it.n+' x'+q+' - '+fmt(it.pr*q));
+    if(q>0){
+      L.push(...waProductLine(s,it,q));
+      L.push('');
+    }
   }));
-  L.push('','*Total: '+fmt(t)+'*');
+  L.push(sep,'','💰 *TOTAL FINAL*','👉 '+fmt(t),'',sep,'','✅ Confirmame y te lo reservo','🚚 Coordinamos entrega');
   window.open('https://wa.me/'+vActivo.wa+'?text='+encodeURIComponent(L.join('\n')),'_blank');
 }
 
