@@ -375,7 +375,7 @@ function renderBody(){
       const bdg=it.badge?('<div class="card-badge-wrap"><div class="badge-'+(it.badge_tipo||'red')+'">'+it.badge+'</div></div>'):'';
       const pkg=it.pu?('<div class="card-pkg">'+it.pu+'</div>'):'<div class="card-pkg hidden">-</div>';
       const qsub=q>0?'<div class="qsub">'+fmt(it.pr*q)+'</div>':'';
-      return '<div class="card'+(sec.shaddai?' shaddai':'')+(q>0?' has-qty':'')+'">'
+      return '<div class="card'+(sec.shaddai?' shaddai':'')+(q>0?' has-qty':'')+'" data-key="'+key+'">'
         +'<div class="card-img-area">'+bdg
         +'<img class="card-img" src="img/'+(_imgmap[it.n]||it.n+'.jpg')+'" alt="'+it.n+'" loading="lazy" decoding="async">'
         +'</div><div class="card-sep"></div>'
@@ -407,7 +407,23 @@ function renderBody(){
 
 function chg(key,si,ii,d){
   qty[key]=Math.max(0,(qty[key]||0)+d);
-  renderBody();updateBar();
+  const q=qty[key]||0;
+  const card=document.querySelector('.card[data-key="'+key+'"]');
+  if(card){
+    card.querySelector('.qv').textContent=q;
+    card.classList.toggle('has-qty',q>0);
+    let qsub=card.querySelector('.qsub');
+    const it=CAT[si].items[ii];
+    if(q>0){
+      if(!qsub){qsub=document.createElement('div');qsub.className='qsub';card.querySelector('.card-body').appendChild(qsub);}
+      qsub.textContent=fmt(it.pr*q);
+    } else {
+      if(qsub)qsub.remove();
+    }
+    const qb5=card.querySelector('.qb-5');
+    if(qb5)qb5.classList.toggle('show',q>0);
+  }
+  updateBar();
   if(document.getElementById('drawer').classList.contains('on'))renderDrawer();
 }
 
