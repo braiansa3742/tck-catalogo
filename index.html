@@ -194,7 +194,7 @@ button,
 .qty-save{background:linear-gradient(135deg,var(--red2),var(--red));color:#fff}
 
 /* === BARRA PEDIDO === */
-.orderbar{position:sticky;bottom:0;left:0;right:0;z-index:40;flex-shrink:0;background:#fff;padding:12px 13px calc(24px + env(safe-area-inset-bottom));display:flex;align-items:center;gap:8px;min-height:86px;border-top:3px solid var(--gold);box-shadow:0 -4px 18px rgba(0,0,0,.08)}
+.orderbar{position:sticky;bottom:0;left:0;right:0;z-index:40;flex-shrink:0;background:#fff;padding:8px 13px calc(16px + env(safe-area-inset-bottom));display:flex;align-items:center;gap:8px;min-height:60px;border-top:3px solid var(--gold);box-shadow:0 -4px 18px rgba(0,0,0,.08)}
 .ob-empty{flex:1}
 .ob-empty-t{font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;color:var(--text2)}
 .ob-empty-s{font-size:11px;color:var(--text3);margin-top:1px}
@@ -250,25 +250,25 @@ button,
 
 @media (max-width:768px){
   .body{
-    padding-bottom:170px;
+    padding-bottom:120px;
   }
 
   .orderbar{
-    min-height:92px;
-    padding:12px 13px calc(28px + env(safe-area-inset-bottom));
-    gap:10px;
+    min-height:64px;
+    padding:8px 12px calc(16px + env(safe-area-inset-bottom));
+    gap:8px;
   }
 
   .btn-det{
-    padding:12px 14px;
-    font-size:14px;
-    border-radius:10px;
+    padding:8px 12px;
+    font-size:13px;
+    border-radius:8px;
   }
 
   .btn-wa{
-    padding:14px 16px;
-    font-size:16px;
-    border-radius:10px;
+    padding:10px 14px;
+    font-size:15px;
+    border-radius:8px;
   }
 }
 
@@ -330,9 +330,9 @@ button,
 .tck-optional{font-size:11px;color:var(--text3);margin-left:4px;font-weight:400;text-transform:none;}
 
 /* ── BOTÓN AYUDA EN HEADER ── */
-.hdr-support{background:rgba(255,215,0,.18);border:1.5px solid rgba(255,215,0,.45);border-radius:20px;padding:5px 11px;font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;color:rgba(255,215,0,.95);cursor:pointer;transition:background .15s;white-space:nowrap;letter-spacing:.4px;text-transform:uppercase;display:none;align-items:center;gap:5px;-webkit-tap-highlight-color:transparent;}
+.hdr-support{background:rgba(255,215,0,.22);border:2px solid rgba(255,215,0,.6);border-radius:20px;padding:7px 14px;font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:800;color:#FFD700;cursor:pointer;transition:background .15s,border-color .15s,box-shadow .15s;white-space:nowrap;letter-spacing:.5px;text-transform:uppercase;display:none;align-items:center;gap:6px;-webkit-tap-highlight-color:transparent;box-shadow:0 0 12px rgba(255,215,0,.2);}
 .hdr-support.visible{display:flex;}
-.hdr-support:active{background:rgba(255,215,0,.32);}
+.hdr-support:active{background:rgba(255,215,0,.38);border-color:rgba(255,215,0,.9);}
 
 /* ── FAB MENU (dropdown desde header) ── */
 .fab-contact{display:none;}
