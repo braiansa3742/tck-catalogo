@@ -44,7 +44,7 @@ button,
 .sv-dots{position:absolute;top:-80px;right:-80px;width:320px;height:320px;border-radius:50%;background:rgba(255,255,255,.04)}
 .sv-dots2{position:absolute;bottom:-60px;left:-60px;width:240px;height:240px;border-radius:50%;background:rgba(255,255,255,.03)}
 .sv-inner{position:relative;z-index:1;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:18px 22px}
-.sv-logo-wrap{width:min(340px,85vw);height:auto;display:flex;align-items:center;justify-content:center;margin-bottom:2px;filter:drop-shadow(0 4px 22px rgba(0,0,0,.75))}
+.sv-logo-wrap{width:340px;height:auto;display:flex;align-items:center;justify-content:center;margin-bottom:2px;filter:drop-shadow(0 4px 22px rgba(0,0,0,.75))}
 .sv-logo-txt{font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:800;color:var(--gold);letter-spacing:3px;text-align:center;line-height:1.2}
 .sv-title{display:none}
 .sv-title span{color:rgba(255,255,255,.6);font-weight:300}
@@ -79,12 +79,9 @@ button,
 .cart-pill.show{display:block}
 
 /* CATNAV */
-.catnav{display:flex;gap:5px;overflow-x:auto;padding:0 13px 10px;scrollbar-width:none;-ms-overflow-style:none}
+.catnav{display:flex;gap:6px;overflow-x:auto;padding:6px 16px 12px;scrollbar-width:none}
 .catnav::-webkit-scrollbar{display:none}
-.catnav-wrap{position:relative}
-.catnav-wrap::after{content:'';position:absolute;top:0;right:0;bottom:10px;width:32px;background:linear-gradient(to right,transparent,var(--red));pointer-events:none;border-radius:0 0 0 0}
-.catnav::-webkit-scrollbar{display:none}
-.catbtn{flex:0 0 auto;background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.12);border-radius:20px;padding:5px 12px;font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;color:rgba(255,255,255,.55);cursor:pointer;white-space:nowrap;transition:all .14s;letter-spacing:.3px;text-transform:uppercase}
+.catbtn{flex:0 0 auto;background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.12);border-radius:20px;padding:7px 14px;font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;color:rgba(255,255,255,.55);cursor:pointer;white-space:nowrap;transition:all .14s;letter-spacing:.3px;text-transform:uppercase}
 .catbtn.on{background:var(--gold);border-color:var(--gold);color:#5C0000;font-weight:800}
 
 /* === SCROLL BODY === */
@@ -179,8 +176,6 @@ button,
 .qb-5{width:auto;min-width:0;max-width:0;padding:0;margin-left:0;overflow:hidden;background:linear-gradient(135deg,#ffe27a,#ffc83d);color:#5C0000;font-size:12px;font-weight:800;letter-spacing:.2px;opacity:0;transform:translateX(-4px);pointer-events:none;transition:max-width .22s ease, opacity .22s ease, transform .22s ease, margin-left .22s ease, padding .22s ease}.qb-5.show{min-width:34px;max-width:48px;padding:0 8px;margin-left:2px;opacity:1;transform:translateX(0);pointer-events:auto}
 .qv{font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:800;min-width:34px;text-align:center;color:var(--text);background:var(--cream2);border:1px solid var(--cream3);border-radius:7px;height:30px;display:flex;align-items:center;justify-content:center;padding:0 8px;user-select:none;-webkit-user-select:none}
 .qsub{font-family:'Barlow Condensed',sans-serif;font-size:10px;color:var(--red2);font-weight:700;text-align:center;margin-top:3px}
-.card-rm{position:absolute;top:5px;right:5px;width:20px;height:20px;border-radius:50%;background:var(--red3);color:#fff;border:none;font-size:13px;line-height:1;cursor:pointer;display:none;align-items:center;justify-content:center;z-index:10;padding:0;font-weight:700;box-shadow:0 1px 4px rgba(0,0,0,.25)}
-.card.has-qty .card-rm{display:flex}
 .qty-backdrop{position:absolute;inset:0;background:rgba(10,0,0,.58);z-index:210;display:none}
 .qty-backdrop.on{display:block}
 .qty-modal{position:absolute;left:14px;right:14px;top:50%;transform:translateY(-50%) scale(.96);background:#fff;border-radius:18px;z-index:220;display:none;box-shadow:0 18px 44px rgba(0,0,0,.28);padding:16px 16px 14px}
@@ -302,7 +297,7 @@ button,
 <div class="hdr"><div class="hdr-stripe"></div><div class="hdr-body">
 <div class="hdr-brand"><div class="hdr-brand-name">THE CHICKEN <span>KINGS</span></div><div class="hdr-brand-sub">Cat&aacute;logo Abril 2026 &middot; Trenque Lauquen</div></div>
 <div class="hdr-right"><div class="cart-pill" id="cart-pill"></div><div class="vchip" id="vchip" onclick="cambiarVendedor()"></div></div>
-</div><div class="catnav-wrap"><div class="catnav" id="catnav"></div></div></div>
+</div><div class="catnav" id="catnav"></div></div>
 <div class="body" id="body"></div>
 <div class="orderbar">
 <div class="ob-empty" id="ob-empty"><div class="ob-empty-t">Arm&aacute; tu pedido</div><div class="ob-empty-s">Sum&aacute; productos y envi&aacute;lo por WhatsApp</div></div>
@@ -373,7 +368,9 @@ function jump(id,btn){
   document.querySelectorAll('.catbtn').forEach(b=>b.classList.remove('on'));
   btn.classList.add('on');
   const el=document.getElementById('s-'+id);
-  if(el) document.getElementById('body').scrollTo({top:el.offsetTop-2,behavior:'smooth'});
+  if(el) el.scrollIntoView({behavior:'smooth',block:'start'});
+  // Centrar tab activa en el catnav
+  btn.scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'});
 }
 
 function renderBody(){
@@ -385,7 +382,6 @@ function renderBody(){
       const qsub=q>0?'<div class="qsub">'+fmt(it.pr*q)+'</div>':'';
       return '<div class="card'+(sec.shaddai?' shaddai':'')+(q>0?' has-qty':'')+'" data-key="'+key+'">'
         +'<div class="card-img-area">'+bdg
-        +'<button class="card-rm" onclick="resetProd(\''+key+'\','+si+','+ii+')" aria-label="Quitar">&#x2715;</button>'
         +'<img class="card-img" src="img/'+encodeURIComponent(_imgmap[it.n]||it.n+'.jpg').replace(/%25/g,'%').replace(/%2F/g,'/')+'" alt="'+it.n+'" loading="lazy" decoding="async">'
         +'</div><div class="card-sep"></div>'
         +'<div class="card-body">'
@@ -414,10 +410,6 @@ function renderBody(){
   }).join('');
 }
 
-function resetProd(key,si,ii){
-  const q=qty[key]||0;
-  if(q>0) chg(key,si,ii,-q);
-}
 function chg(key,si,ii,d){
   qty[key]=Math.max(0,(qty[key]||0)+d);
   const q=qty[key]||0;
@@ -532,7 +524,7 @@ function unitMeta(sec,it){
     return {singular:'bolsa',plural:'bolsas',emoji};
   }
 
-  if(name.includes('suprema') && pres.includes('5 kg')){
+  if(name.includes('suprema') && /^5\s*kg/i.test(pres)){
     return {singular:'bolsa',plural:'bolsas',emoji:'🍗'};
   }
 
