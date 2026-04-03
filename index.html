@@ -281,6 +281,58 @@ button,
   .app{height:calc(100vh - 40px);border-radius:18px;overflow:hidden;box-shadow:0 14px 50px rgba(0,0,0,.35)}
   .sv{border-radius:18px}
 }
+
+/* ── BANNER CLIENTE NUEVO ── */
+.sv-new-banner{width:100%;max-width:340px;background:linear-gradient(135deg,rgba(255,215,0,.18),rgba(255,165,0,.12));border:1.5px solid rgba(255,215,0,.4);border-radius:14px;padding:12px 16px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;transition:background .15s,border-color .15s;-webkit-tap-highlight-color:transparent;text-align:left;}
+.sv-new-banner:active{background:linear-gradient(135deg,rgba(255,215,0,.28),rgba(255,165,0,.2));border-color:rgba(255,215,0,.7);}
+.sv-new-banner-left{display:flex;flex-direction:column;gap:2px;}
+.sv-new-banner-title{font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:800;color:var(--gold);letter-spacing:.4px;text-transform:uppercase;}
+.sv-new-banner-sub{font-family:'Barlow',sans-serif;font-size:12px;color:rgba(255,215,0,.65);font-weight:400;}
+.sv-new-banner-arrow{font-size:22px;color:rgba(255,215,0,.6);font-weight:300;line-height:1;}
+
+/* ── INSTAGRAM PILL ── */
+.sv-bottom-row{width:100%;max-width:340px;margin-top:14px;display:flex;justify-content:center;}
+.sv-ig-pill{display:inline-flex;align-items:center;gap:10px;background:rgba(255,255,255,.07);border:1.5px solid rgba(255,255,255,.18);border-radius:30px;padding:8px 18px 8px 8px;cursor:pointer;transition:background .15s,border-color .15s;-webkit-tap-highlight-color:transparent;}
+.sv-ig-pill:active{background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.35);}
+.sv-ig-circle{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#833AB4,#C13584,#E1306C,#F77737,#FCAF45);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.sv-ig-pill span{font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;color:rgba(255,255,255,.8);letter-spacing:.3px;}
+
+/* ── MODAL GENÉRICO ── */
+.tck-modal{position:absolute;inset:0;z-index:400;display:flex;align-items:flex-end;background:rgba(0,0,0,.55);opacity:0;pointer-events:none;transition:opacity .25s;}
+.tck-modal.on{opacity:1;pointer-events:all;}
+.tck-modal-box{width:100%;background:var(--cream);border-radius:20px 20px 0 0;padding:22px 20px calc(24px + env(safe-area-inset-bottom));max-height:88vh;overflow-y:auto;transform:translateY(100%);transition:transform .28s cubic-bezier(.32,1.1,.7,1);}
+.tck-modal.on .tck-modal-box{transform:translateY(0);}
+.tck-modal-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;}
+.tck-modal-title{font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:800;color:var(--red);letter-spacing:.5px;text-transform:uppercase;}
+.tck-modal-close{background:none;border:none;font-size:22px;color:var(--text3);cursor:pointer;padding:0 4px;line-height:1;}
+.tck-field{margin-bottom:13px;}
+.tck-label{display:block;font-size:12px;font-weight:600;color:var(--text2);margin-bottom:5px;letter-spacing:.3px;text-transform:uppercase;}
+.tck-input,.tck-select,.tck-textarea{width:100%;border:1.5px solid var(--cream3);border-radius:10px;padding:10px 12px;font-family:'Barlow',sans-serif;font-size:15px;color:var(--text);background:#fff;box-sizing:border-box;outline:none;transition:border-color .15s;}
+.tck-input:focus,.tck-select:focus,.tck-textarea:focus{border-color:var(--red2);}
+.tck-select{appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%239C7050' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;}
+.tck-textarea{min-height:80px;resize:vertical;}
+.tck-submit{width:100%;background:linear-gradient(135deg,var(--red2),var(--red));color:#fff;border:none;border-radius:12px;padding:14px;font-family:'Barlow Condensed',sans-serif;font-size:17px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;cursor:pointer;margin-top:6px;transition:transform .12s;box-shadow:0 3px 12px rgba(139,0,0,.35);}
+.tck-submit:active{transform:scale(.97);}
+.tck-optional{font-size:11px;color:var(--text3);margin-left:4px;font-weight:400;text-transform:none;}
+
+/* ── BOTÓN AYUDA EN HEADER ── */
+.hdr-support{background:rgba(255,215,0,.18);border:1.5px solid rgba(255,215,0,.45);border-radius:20px;padding:6px 12px;font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;color:rgba(255,215,0,.95);cursor:pointer;transition:background .15s;white-space:nowrap;letter-spacing:.4px;text-transform:uppercase;display:none;align-items:center;gap:5px;-webkit-tap-highlight-color:transparent;}
+.hdr-support.visible{display:flex;}
+.hdr-support:active{background:rgba(255,215,0,.32);}
+
+/* ── FAB MENU ── */
+.fab-contact{display:none;}
+.fab-menu{position:absolute;top:52px;right:10px;z-index:150;display:flex;flex-direction:column;gap:0;opacity:0;pointer-events:none;transform:translateY(-4px);transition:opacity .2s,transform .2s;background:#fff;border-radius:16px;box-shadow:0 4px 20px rgba(0,0,0,.18);overflow:hidden;min-width:220px;}
+.fab-menu.on{opacity:1;pointer-events:all;transform:translateY(0);}
+.fab-menu-header{padding:10px 14px 8px;font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;color:#9C7050;letter-spacing:.8px;text-transform:uppercase;border-bottom:1px solid #F5EDE0;}
+.fab-menu-item{display:flex;align-items:center;gap:11px;background:#fff;border:none;border-bottom:1px solid #F5EDE0;padding:13px 16px;cursor:pointer;white-space:nowrap;transition:background .14s;width:100%;box-sizing:border-box;text-align:left;}
+.fab-menu-item:last-child{border-bottom:none;}
+.fab-menu-item:active{background:var(--cream2);}
+.fab-menu-emoji{font-size:18px;line-height:1;flex-shrink:0;}
+.fab-menu-label{font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;color:var(--text);letter-spacing:.3px;}
+.fab-overlay{position:absolute;inset:0;z-index:97;display:none;}
+.fab-overlay.on{display:block;}
+
 </style>
 </head>
 <body>
@@ -290,13 +342,28 @@ button,
 <div class="sv-title">THE CHICKEN <span>KINGS</span></div>
 <div class="sv-subtitle">Cat&aacute;logo Abril 2026 &middot; Trenque Lauquen</div>
 <div class="sv-line"><div class="sv-line-bar"></div><div class="sv-line-star">&#x2605;</div><div class="sv-line-bar"></div></div>
+<button class="sv-new-banner" onclick="abrirModal('modal-nuevo')">
+  <div class="sv-new-banner-left">
+    <div class="sv-new-banner-title">✨ ¿Sos cliente nuevo?</div>
+    <div class="sv-new-banner-sub">Registrate y te contactamos</div>
+  </div>
+  <div class="sv-new-banner-arrow">›</div>
+</button>
 <div class="sv-ask">&#128071; Presion&aacute; a tu vendedor</div>
 <div class="sv-cards" id="sv-cards"></div>
 <div class="sv-footer">Tu pedido ir&aacute; directo al WhatsApp de tu vendedor<br>Cat&aacute;logo Abril 2026 &middot; Precios sujetos a cambio sin previo aviso</div>
+<div class="sv-bottom-row">
+  <button class="sv-ig-pill" onclick="abrirIG()" aria-label="Instagram TCK">
+    <div class="sv-ig-circle">
+      <svg viewBox="0 0 24 24" width="14" height="14" fill="#fff"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+    </div>
+    <span>@tck.ok &middot; Instagram</span>
+  </button>
+</div>
 </div></div>
 <div class="hdr"><div class="hdr-stripe"></div><div class="hdr-body">
 <div class="hdr-brand"><div class="hdr-brand-name">THE CHICKEN <span>KINGS</span></div><div class="hdr-brand-sub">Cat&aacute;logo Abril 2026 &middot; Trenque Lauquen</div></div>
-<div class="hdr-right"><div class="cart-pill" id="cart-pill"></div><div class="vchip" id="vchip" onclick="cambiarVendedor()"></div></div>
+<div class="hdr-right"><div class="cart-pill" id="cart-pill"></div><button class="hdr-support" id="hdr-support" onclick="toggleFAB()" aria-label="Ayuda TCK"><svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor" style="opacity:.9"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z"/></svg> Ayuda</button><div class="vchip" id="vchip" onclick="cambiarVendedor()"></div></div>
 </div><div class="catnav" id="catnav"></div></div>
 <div class="body" id="body"></div>
 <div class="orderbar">
@@ -318,9 +385,7 @@ button,
 <script>
 const _imgmap = {"Pollo Ginosa": "Pollo ginosa.jpg", "Pollo Optimo": "pollo optimo.jpg", "Suprema": "suprema.jpg", "Suprema IQF": "suprema iqf.jpg", "Alita Congelada Granel": "alita congelada granel.jpg", "MDM - Carne Molida de Pollo": "MDM.jpg", "Cuarto Trasero IQF": "cuarto trasero IQF.jpg", "Medallon de Pollo Clasico": "medallon de pollo clasico.jpg", "Medallon Pollo c/Cheddar": "medallon de Pollo c cheddar.jpg", "Medallon Pollo JyQ": "Medallon Pollo JyQ.jpg", "Medallon Pollo y Espinaca": "Medallon Pollo y Espinaca.jpg", "Formita Clasica": "Formita Clasica.jpg", "Formitas Pollo JyQ": "Formitas Pollo JyQ.jpg", "Nuggets de Pollo Crocante": "Nuggets de Pollo Crocante.jpg", "Bocadito de Papa y Jamon": "Bocadito de Papa y Jamon.jpg", "Pechuguitas al Verdeo": "Pechuguitas al Verdeo.jpg", "Filet Merluza Finas Hierbas": "Filet Merluza Finas Hierbas.jpg", "Filet de Merluza Rebozado": "Filet de Merluza Rebozado.jpg", "Filet Merluza a Granel": "Filet Merluza a Granel.jpg", "Milanesa de Nalga": "Milanesa de Nalga.jpg", "Milanesa de Pollo": "Milanesa de Pollo.jpg", "Hamburguesa 100% Carne": "Hamburguesa Carne.jpg", "Papas Noisette": "Papas Noisette.jpg", "Pulpa de Palta": "Pulpa de Palta.jpg", "Papa Baston Balcarce": "Papa Baston Balcarce.jpg", "Maple N° 2": "Maple N° 2.jpg", "Maple N° 3": "Maple N° 3.jpg", "Cajita 1/2 Docena N° 2": "Cajita 12 Docena N° 2.jpg", "Cajita 1/2 Docena N° 3": "Cajita 12 Docena N° 2.jpg", "Arándanos Solimeno": "Arándanos Solimeno.jpg", "Brocoli": "Brocoli.jpg", "Espinacas": "Espinacas.jpg", "Morron": "Morron.jpg", "Primavera": "Primavera.jpg", "Frutos Rojos": "Frutos Rojos.jpg", "Cebolla": "Cebolla.jpg", "Ravioles de Calabaza": "Ravioles de Calabaza.jpg", "Raviolones Espinaca y Mozz": "Raviolones Espinaca y Mozz.jpg", "Gnoquis de Papa": "Gnoquis de Papa.jpg", "Gnoquis de Espinaca": "Gnoquis de Espinaca.jpg", "Sorrentinos Jamon y Queso": "Sorrentinos Jamon y Queso.jpg", "Sorrentinos Ricota 4 Quesos": "Sorrentinos Ricota 4 Quesos.jpg", "Hamburguesa de Garbanzos": "Hamburguesa de Garbanzos.jpg", "Hamburguesa de Lentejas": "Hamburguesa de Lentejas.jpg", "Hamburguesa de Quinoa": "Hamburguesa de Quinoa.jpg", "Hamburguesa de Arvejas": "Hamburguesa de Arvejas.jpg", "Hamburguesa de Hongos": "Hamburguesa de Hongos.jpg", "Hamburguesa de Espinaca": "Hamburguesa de Espinaca.jpg", "Hamburguesa Mexicana": "Hamburguesa Mexicana.jpg", "Hamburguesa 5 Vegetales": "Hamburguesa 5 Vegetales.jpg"};
 </script>
-<script>
-const _imgmap = {"Pollo Ginosa": "Pollo ginosa.jpg", "Pollo Optimo": "pollo optimo.jpg", "Suprema": "suprema.jpg", "Suprema IQF": "suprema iqf.jpg", "Alita Congelada Granel": "alita congelada granel.jpg", "MDM - Carne Molida de Pollo": "MDM.jpg", "Cuarto Trasero IQF": "cuarto trasero IQF.jpg", "Medallon de Pollo Clasico": "medallon de pollo clasico.jpg", "Medallon Pollo c/Cheddar": "medallon de Pollo c cheddar.jpg", "Medallon Pollo JyQ": "Medallon Pollo JyQ.jpg", "Medallon Pollo y Espinaca": "Medallon Pollo y Espinaca.jpg", "Formita Clasica": "Formita Clasica.jpg", "Formitas Pollo JyQ": "Formitas Pollo JyQ.jpg", "Nuggets de Pollo Crocante": "Nuggets de Pollo Crocante.jpg", "Bocadito de Papa y Jamon": "Bocadito de Papa y Jamon.jpg", "Pechuguitas al Verdeo": "Pechuguitas al Verdeo.jpg", "Filet Merluza Finas Hierbas": "Filet Merluza Finas Hierbas.jpg", "Filet de Merluza Rebozado": "Filet de Merluza Rebozado.jpg", "Filet Merluza a Granel": "Filet Merluza a Granel.jpg", "Milanesa de Nalga": "Milanesa de Nalga.jpg", "Milanesa de Pollo": "Milanesa de Pollo.jpg", "Hamburguesa 100% Carne": "Hamburguesa Carne.jpg", "Papas Noisette": "Papas Noisette.jpg", "Pulpa de Palta": "Pulpa de Palta.jpg", "Papa Baston Balcarce": "Papa Baston Balcarce.jpg", "Maple N° 2": "Maple N° 2.jpg", "Maple N° 3": "Maple N° 3.jpg", "Cajita 1/2 Docena N° 2": "Cajita 12 Docena N° 2.jpg", "Cajita 1/2 Docena N° 3": "Cajita 12 Docena N° 2.jpg", "Arándanos Solimeno": "Arándanos Solimeno.jpg", "Brocoli": "Brocoli.jpg", "Espinacas": "Espinacas.jpg", "Morron": "Morron.jpg", "Primavera": "Primavera.jpg", "Frutos Rojos": "Frutos Rojos.jpg", "Cebolla": "Cebolla.jpg", "Ravioles de Calabaza": "Ravioles de Calabaza.jpg", "Raviolones Espinaca y Mozz": "Raviolones Espinaca y Mozz.jpg", "Gnoquis de Papa": "Gnoquis de Papa.jpg", "Gnoquis de Espinaca": "Gnoquis de Espinaca.jpg", "Sorrentinos Jamon y Queso": "Sorrentinos Jamon y Queso.jpg", "Sorrentinos Ricota 4 Quesos": "Sorrentinos Ricota 4 Quesos.jpg", "Hamburguesa de Garbanzos": "Hamburguesa de Garbanzos.jpg", "Hamburguesa de Lentejas": "Hamburguesa de Lentejas.jpg", "Hamburguesa de Quinoa": "Hamburguesa de Quinoa.jpg", "Hamburguesa de Arvejas": "Hamburguesa de Arvejas.jpg", "Hamburguesa de Hongos": "Hamburguesa de Hongos.jpg", "Hamburguesa de Espinaca": "Hamburguesa de Espinaca.jpg", "Hamburguesa Mexicana": "Hamburguesa Mexicana.jpg", "Hamburguesa 5 Vegetales": "Hamburguesa 5 Vegetales.jpg"};
-</script>
+
 <script>
 const VEND=[{"nombre": "Miguel", "wa": "5492392449725"}, {"nombre": "Juan", "wa": "5492392458941"}, {"nombre": "Lisandro", "wa": "5492392548046"}];
 const CAT=[{"id": "pollos", "sec": "POLLOS CONGELADOS", "col1": "#B71C1C", "col2": "#7B0000", "shaddai": false, "items": [{"n": "Pollo Ginosa", "p": "x 20 Kg", "pr": 86000, "img": "pollo_ginosa", "badge": "POLLO PREMIUM", "badge_tipo": "gold", "pu": "&#x2248;$4,300 / kg"}, {"n": "Pollo Optimo", "p": "x 20 Kg", "pr": 72000, "img": "pollo_optimo", "badge": "&#x2605; MAS PEDIDO", "badge_tipo": "red", "pu": "&#x2248;$3,600 / kg"}, {"n": "Suprema", "p": "x 5 Kg", "pr": 33000, "img": "supremas_bolsa", "badge": "&#x2605; MAS PEDIDO", "badge_tipo": "red", "pu": "&#x2248;$6,600 / kg"}, {"n": "Suprema IQF", "p": "x 15 Kg", "pr": 102000, "img": "suprema_iqf", "pu": "&#x2248;$6,800 / kg"}]}, {"id": "trozados", "sec": "TROZADOS", "col1": "#6D2C00", "col2": "#3B1500", "shaddai": false, "items": [{"n": "Alita Congelada Granel", "p": "x 15 Kg", "pr": 44000, "img": "alas", "pu": "&#x2248;$2,933 / kg"}, {"n": "MDM - Carne Molida de Pollo", "p": "Ideal relleno empanadas · x 20 Kg", "pr": 34000, "img": "mdm", "badge": "&#x25BC; OPORTUNIDAD", "badge_tipo": "oport", "pu": "&#x2248;$1,700 / kg"}, {"n": "Cuarto Trasero IQF", "p": "x 15 Kg", "pr": 53000, "img": "patamuslo", "badge": "&#x2605; MAS PEDIDO", "badge_tipo": "red", "pu": "&#x2248;$3,533 / kg"}]}, {"id": "shaddai", "sec": "REBOZADOS EL SHADDAI", "col1": "#922B21", "col2": "#5C1A14", "shaddai": true, "items": [{"n": "Medallon de Pollo Clasico", "p": "x 6 Kg", "pr": 28500, "img": "merluza_hierbas", "pu": "&#x2248;$4,750 / kg"}, {"n": "Medallon Pollo c/Cheddar", "p": "x 6 Kg", "pr": 47800, "img": "formita_clasica", "pu": "&#x2248;$7,967 / kg"}, {"n": "Medallon Pollo JyQ", "p": "x 6 Kg", "pr": 33500, "img": "medallon_cheddar", "pu": "&#x2248;$5,583 / kg"}, {"n": "Medallon Pollo y Espinaca", "p": "x 6 Kg", "pr": 33000, "img": "medallon_espinaca", "pu": "&#x2248;$5,500 / kg"}, {"n": "Formita Clasica", "p": "x 6 Kg", "pr": 28500, "img": "nuggets", "pu": "&#x2248;$4,750 / kg"}, {"n": "Formitas Pollo JyQ", "p": "x 6 Kg", "pr": 33500, "img": "merluza_granel", "pu": "&#x2248;$5,583 / kg"}, {"n": "Nuggets de Pollo Crocante", "p": "x 6 Kg", "pr": 34500, "img": "nuggets2", "pu": "&#x2248;$5,750 / kg"}, {"n": "Bocadito de Papa y Jamon", "p": "x 6 Kg", "pr": 29000, "img": "bocadito", "pu": "&#x2248;$4,833 / kg"}, {"n": "Pechuguitas al Verdeo", "p": "x 6 Kg", "pr": 45500, "img": "formita_jyq", "pu": "&#x2248;$7,583 / kg"}, {"n": "Filet Merluza Finas Hierbas", "p": "x 6 Kg", "pr": 45600, "img": "merluza_hierbas", "pu": "&#x2248;$7,600 / kg"}, {"n": "Filet de Merluza Rebozado", "p": "x 6 Kg", "pr": 43700, "img": "merluza_rebozado", "pu": "&#x2248;$7,283 / kg"}, {"n": "Filet Merluza a Granel", "p": "Rupes Gelida · x 10 Kg", "pr": 80500, "img": "milanesa_pollo", "pu": "&#x2248;$8,050 / kg"}]}, {"id": "mila", "sec": "MILANESAS Y HAMBURGUESAS", "col1": "#7B241C", "col2": "#4A1510", "shaddai": false, "items": [{"n": "Milanesa de Nalga", "p": "x 5 Kg", "pr": 68000, "img": "medallon_clasico", "pu": "&#x2248;$13,600 / kg"}, {"n": "Milanesa de Pollo", "p": "x 5 Kg", "pr": 40500, "img": "medallon_jyq", "pu": "&#x2248;$5,300 / kg"}, {"n": "Hamburguesa 100% Carne", "p": "x 4 Kg (100g c/u)", "pr": 46600, "img": "hamburguesa_carne", "pu": "&#x2248;$1,165 / unidad"}]}, {"id": "papas_mccain", "sec": "PAPAS McCAIN", "col1": "#BA4A00", "col2": "#7A3000", "shaddai": false, "items": [{"n": "Papas Noisette", "p": "Bolsa 2,5 Kg / Caja 6x2Kg", "pr": 11531, "img": "papa_noisette", "pu": "&#x2248;$4,612 / kg"}, {"n": "Pulpa de Palta", "p": "Pickers by McCain · x 450 Grs", "pr": 12200, "img": "pulpa_palta", "pu": ""}]}, {"id": "papas_balcarce", "sec": "PAPAS BALCARCE", "col1": "#D4870A", "col2": "#8C5500", "shaddai": false, "items": [{"n": "Papa Baston Balcarce", "p": "x 2,5 Kg", "pr": 8000, "img": "papa_baston", "badge": "&#x2605; MAS PEDIDO", "badge_tipo": "red", "pu": "&#x2248;$3,200 / kg"}]}, {"id": "huevos", "sec": "HUEVOS", "col1": "#D4A000", "col2": "#8B6500", "shaddai": false, "items": [{"n": "Maple N° 2", "p": "30 unidades", "pr": 4800, "img": "huevos_maple", "pu": ""}, {"n": "Maple N° 3", "p": "30 unidades", "pr": 3600, "img": "huevos_maple", "pu": ""}, {"n": "Cajita 1/2 Docena N° 2", "p": "6 unidades", "pr": 1350, "img": "huevos_cajita", "pu": ""}, {"n": "Cajita 1/2 Docena N° 3", "p": "6 unidades", "pr": 1250, "img": "huevos_cajita", "pu": ""}]}, {"id": "verd", "sec": "VERDURAS CONGELADAS", "col1": "#1E8449", "col2": "#0E4D29", "shaddai": false, "items": [{"n": "Arándanos Solimeno", "p": "500 Grs", "pr": 9000, "img": "arandanos", "pu": ""}, {"n": "Brocoli", "p": "500 Grs", "pr": 5800, "img": "brocoli", "pu": ""}, {"n": "Espinacas", "p": "500 Grs", "pr": 4000, "img": "espinaca", "pu": ""}, {"n": "Morron", "p": "500 Grs", "pr": 7000, "img": "morron", "pu": ""}, {"n": "Primavera", "p": "500 Grs", "pr": 5000, "img": "primavera", "pu": ""}, {"n": "Frutos Rojos", "p": "500 Grs", "pr": 11000, "img": "frutos_rojos", "pu": ""}, {"n": "Cebolla", "p": "500 Grs", "pr": 4000, "img": "cebolla", "pu": ""}]}, {"id": "pastas", "sec": "PASTAS LA CASERIANA", "col1": "#1A5276", "col2": "#0D2B3E", "shaddai": false, "items": [{"n": "Ravioles de Calabaza", "p": "500 Grs", "pr": 2700, "img": "ravioles", "pu": ""}, {"n": "Raviolones Espinaca y Mozz", "p": "Masa Integral · 500 Grs", "pr": 3900, "img": "ravioles", "pu": ""}, {"n": "Gnoquis de Papa", "p": "500 Grs", "pr": 2100, "img": "gnoquis", "pu": ""}, {"n": "Gnoquis de Espinaca", "p": "500 Grs", "pr": 2100, "img": "gnoquis_espinaca", "pu": ""}, {"n": "Sorrentinos Jamon y Queso", "p": "500 Grs", "pr": 4200, "img": "sorrentinos", "pu": ""}, {"n": "Sorrentinos Ricota 4 Quesos", "p": "400 Grs", "pr": 2600, "img": "sorrentinos", "pu": ""}]}, {"id": "veggie", "sec": "VEGGIE LA CASERIANA", "col1": "#4A7C35", "col2": "#2A4D1A", "shaddai": false, "items": [{"n": "Hamburguesa de Garbanzos", "p": "x 400 g", "pr": 4200, "img": "veggie_garbanzos", "pu": "&#x2248;$1.050 / unidad"}, {"n": "Hamburguesa de Lentejas", "p": "x 400 g", "pr": 4200, "img": "veggie_lentejas", "pu": "&#x2248;$1.050 / unidad"}, {"n": "Hamburguesa de Quinoa", "p": "x 400 g", "pr": 4200, "img": "veggie_quinoa", "pu": "&#x2248;$1.050 / unidad"}, {"n": "Hamburguesa de Arvejas", "p": "x 400 g", "pr": 4200, "img": "arvejas", "pu": "&#x2248;$1.050 / unidad"}, {"n": "Hamburguesa de Hongos", "p": "x 400 g", "pr": 4200, "img": "veggie_hongos", "pu": "&#x2248;$1.050 / unidad"}, {"n": "Hamburguesa de Espinaca", "p": "x 400 g", "pr": 4200, "img": "veggie_espinaca", "pu": "&#x2248;$1.050 / unidad"}, {"n": "Hamburguesa Mexicana", "p": "x 400 g", "pr": 4200, "img": "veggie_mexicana", "pu": "&#x2248;$1.050 / unidad"}, {"n": "Hamburguesa 5 Vegetales", "p": "x 400 g", "pr": 4200, "img": "veggie_5veg", "pu": "&#x2248;$1.050 / unidad"}]}];
@@ -345,6 +410,8 @@ function elegir(i){
   sv.classList.add('gone');
   document.getElementById('vchip').textContent='👤 '+vActivo.nombre;
   document.getElementById('d-sub').textContent='Para: '+vActivo.nombre;
+  document.getElementById('hdr-support').classList.add('visible');
+  cerrarFAB();
   document.getElementById('d-wa-nom').textContent=vActivo.nombre;
   setTimeout(()=>sv.style.display='none',400);
 }
@@ -589,6 +656,65 @@ function sendWA(){
   window.open('https://wa.me/'+vActivo.wa+'?text='+encodeURIComponent(L.join('\n')),'_blank');
 }
 
+
+function abrirIG(){
+  const isMobile=/iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+  if(isMobile){
+    const t=setTimeout(()=>window.open('https://www.instagram.com/tck.ok/','_blank'),800);
+    window.location.href='instagram://user?username=tck.ok';
+    window.addEventListener('blur',()=>clearTimeout(t),{once:true});
+  }else window.open('https://www.instagram.com/tck.ok/','_blank');
+}
+function abrirModal(id){document.getElementById(id).classList.add('on');}
+function cerrarModal(id){document.getElementById(id).classList.remove('on');}
+function cerrarModalFondo(e,id){if(e.target===document.getElementById(id))cerrarModal(id);}
+function toggleFAB(){
+  const m=document.getElementById('fab-menu');
+  const o=document.getElementById('fab-overlay');
+  const on=m.classList.contains('on');
+  m.classList.toggle('on',!on);o.classList.toggle('on',!on);
+}
+function cerrarFAB(){
+  document.getElementById('fab-menu').classList.remove('on');
+  document.getElementById('fab-overlay').classList.remove('on');
+}
+function campoReq(id,label){
+  const v=(document.getElementById(id).value||'').trim();
+  if(!v){alert('Por favor completá: '+label);document.getElementById(id).focus();return null;}
+  return v;
+}
+function campoOpc(id){return(document.getElementById(id).value||'').trim()||'No indicado';}
+function abrirWA(msg){window.open('https://wa.me/5492314475357?text='+encodeURIComponent(msg),'_blank');}
+function enviarNuevoCliente(){
+  const neg=campoReq('nn-negocio','Nombre del negocio');if(!neg)return;
+  const con=campoReq('nn-contacto','Nombre y apellido');if(!con)return;
+  const rub=campoReq('nn-rubro','Rubro');if(!rub)return;
+  const loc=campoReq('nn-localidad','Localidad');if(!loc)return;
+  const dir=campoReq('nn-direccion','Dirección');if(!dir)return;
+  const tel=campoReq('nn-telefono','Teléfono');if(!tel)return;
+  cerrarModal('modal-nuevo');
+  abrirWA('🆕 *NUEVO CLIENTE - TCK*\n━━━━━━━━━━━━━━━\n🏪 Negocio: '+neg+'\n👤 Contacto: '+con+'\n🛒 Rubro: '+rub+'\n📍 Localidad: '+loc+'\n🏠 Dirección: '+dir+'\n📞 Teléfono: '+tel+'\n━━━━━━━━━━━━━━━\nSolicita incorporarse como cliente TCK.');
+}
+function enviarReclamo(){
+  const neg=campoReq('rc-negocio','Nombre del negocio');if(!neg)return;
+  const tip=campoReq('rc-tipo','Tipo de reclamo');if(!tip)return;
+  const det=campoReq('rc-detalle','Descripción');if(!det)return;
+  const num=campoOpc('rc-numero');
+  const vend=vActivo?vActivo.nombre:'No asignado';
+  cerrarModal('modal-reclamo');
+  abrirWA('⚠️ *RECLAMO - TCK*\n━━━━━━━━━━━━━━━\n🏪 Negocio: '+neg+'\n👤 Vendedor: '+vend+'\n📋 Tipo: '+tip+'\n📝 Detalle: '+det+'\n🧾 N° pedido/factura: '+num+'\n━━━━━━━━━━━━━━━');
+}
+function enviarVisita(){
+  const neg=campoReq('vi-negocio','Nombre del negocio');if(!neg)return;
+  const tip=campoReq('vi-tipo','Tipo de solicitud');if(!tip)return;
+  const loc=campoReq('vi-localidad','Localidad');if(!loc)return;
+  const tel=campoReq('vi-telefono','Teléfono');if(!tel)return;
+  const hor=campoReq('vi-horario','Horario preferido');if(!hor)return;
+  const vend=vActivo?vActivo.nombre:'No asignado';
+  cerrarModal('modal-visita');
+  abrirWA('🤝 *SOLICITUD - TCK*\n━━━━━━━━━━━━━━━\n🏪 Negocio: '+neg+'\n👤 Vendedor: '+vend+'\n📋 Tipo: '+tip+'\n📍 Localidad: '+loc+'\n📞 Teléfono: '+tel+'\n🕐 Horario: '+hor+'\n━━━━━━━━━━━━━━━');
+}
+
 renderVend();renderNav();renderBody();updateBar();
 </script>
 
@@ -608,6 +734,66 @@ renderVend();renderNav();renderBody();updateBar();
   }, { passive: false });
 })();
 </script>
+
+
+<!-- MODAL CLIENTE NUEVO -->
+<div class="tck-modal" id="modal-nuevo" onclick="cerrarModalFondo(event,'modal-nuevo')">
+  <div class="tck-modal-box">
+    <div class="tck-modal-hdr">
+      <div class="tck-modal-title">🆕 Quiero ser cliente</div>
+      <button class="tck-modal-close" onclick="cerrarModal('modal-nuevo')">&#x2715;</button>
+    </div>
+    <div class="tck-field"><label class="tck-label">Nombre del negocio</label><input class="tck-input" id="nn-negocio" type="text" placeholder="Ej: Rotisería El Rancho"></div>
+    <div class="tck-field"><label class="tck-label">Nombre y apellido del contacto</label><input class="tck-input" id="nn-contacto" type="text" placeholder="Ej: Juan García"></div>
+    <div class="tck-field"><label class="tck-label">Rubro</label><select class="tck-select" id="nn-rubro"><option value="">Seleccioná el rubro</option><option>Rotisería</option><option>Supermercado / Almacén</option><option>Carnicería</option><option>Restaurante / Parrilla</option><option>Dietética / Naturista</option><option>Verdulería</option><option>Otro</option></select></div>
+    <div class="tck-field"><label class="tck-label">Localidad</label><input class="tck-input" id="nn-localidad" type="text" placeholder="Ej: Trenque Lauquen"></div>
+    <div class="tck-field"><label class="tck-label">Dirección</label><input class="tck-input" id="nn-direccion" type="text" placeholder="Ej: Av. San Martín 450"></div>
+    <div class="tck-field"><label class="tck-label">Teléfono de contacto</label><input class="tck-input" id="nn-telefono" type="tel" placeholder="Ej: 2314-123456"></div>
+    <button class="tck-submit" onclick="enviarNuevoCliente()">📲 Enviar a administración</button>
+  </div>
+</div>
+
+<!-- MODAL RECLAMO -->
+<div class="tck-modal" id="modal-reclamo" onclick="cerrarModalFondo(event,'modal-reclamo')">
+  <div class="tck-modal-box">
+    <div class="tck-modal-hdr">
+      <div class="tck-modal-title">⚠️ Hacer un reclamo</div>
+      <button class="tck-modal-close" onclick="cerrarModal('modal-reclamo')">&#x2715;</button>
+    </div>
+    <div class="tck-field"><label class="tck-label">Nombre del negocio</label><input class="tck-input" id="rc-negocio" type="text" placeholder="Ej: Rotisería El Rancho"></div>
+    <div class="tck-field"><label class="tck-label">Tipo de reclamo</label><select class="tck-select" id="rc-tipo"><option value="">Seleccioná el tipo</option><option>Producto en mal estado</option><option>Faltante en el pedido</option><option>Error en la factura</option><option>Mala atención del vendedor</option><option>Otro</option></select></div>
+    <div class="tck-field"><label class="tck-label">Descripción del problema</label><textarea class="tck-textarea" id="rc-detalle" placeholder="Contanos qué pasó con el mayor detalle posible..."></textarea></div>
+    <div class="tck-field"><label class="tck-label">N° de pedido o factura <span class="tck-optional">(opcional)</span></label><input class="tck-input" id="rc-numero" type="text" placeholder="Ej: FAC-00123"></div>
+    <button class="tck-submit" onclick="enviarReclamo()">📲 Enviar reclamo</button>
+  </div>
+</div>
+
+<!-- MODAL VISITA -->
+<div class="tck-modal" id="modal-visita" onclick="cerrarModalFondo(event,'modal-visita')">
+  <div class="tck-modal-box">
+    <div class="tck-modal-hdr">
+      <div class="tck-modal-title">🤝 Solicitar visita</div>
+      <button class="tck-modal-close" onclick="cerrarModal('modal-visita')">&#x2715;</button>
+    </div>
+    <p style="font-size:13px;color:var(--text2);margin:0 0 16px;line-height:1.5;">Lo que más nos importa es la atención a nuestros clientes. Si necesitás una visita o hablar con un supervisor, estamos a disposición.</p>
+    <div class="tck-field"><label class="tck-label">Nombre del negocio</label><input class="tck-input" id="vi-negocio" type="text" placeholder="Ej: Rotisería El Rancho"></div>
+    <div class="tck-field"><label class="tck-label">¿Qué necesitás?</label><select class="tck-select" id="vi-tipo"><option value="">Seleccioná una opción</option><option>Visita de mi vendedor</option><option>Hablar con un supervisor</option></select></div>
+    <div class="tck-field"><label class="tck-label">Localidad</label><input class="tck-input" id="vi-localidad" type="text" placeholder="Ej: Trenque Lauquen"></div>
+    <div class="tck-field"><label class="tck-label">Teléfono de contacto</label><input class="tck-input" id="vi-telefono" type="tel" placeholder="Ej: 2314-123456"></div>
+    <div class="tck-field"><label class="tck-label">Mejor horario</label><input class="tck-input" id="vi-horario" type="text" placeholder="Ej: Lunes a viernes de 9 a 12 hs"></div>
+    <button class="tck-submit" onclick="enviarVisita()">📲 Enviar solicitud</button>
+  </div>
+</div>
+
+<!-- FAB MENU -->
+<div class="fab-overlay" id="fab-overlay" onclick="cerrarFAB()"></div>
+<div class="fab-menu" id="fab-menu">
+  <div class="fab-menu-header">Administración TCK</div>
+  <button class="fab-menu-item" onclick="cerrarFAB();abrirModal('modal-reclamo')"><span class="fab-menu-emoji">⚠️</span><span class="fab-menu-label">Hacer un reclamo</span></button>
+  <button class="fab-menu-item" onclick="cerrarFAB();abrirModal('modal-visita')"><span class="fab-menu-emoji">🤝</span><span class="fab-menu-label">Solicitar visita / supervisor</span></button>
+  <button class="fab-menu-item" onclick="cerrarFAB();abrirIG()"><div class="sv-ig-circle" style="width:22px;height:22px;"><svg viewBox="0 0 24 24" width="12" height="12" fill="#fff"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg></div><span class="fab-menu-label">@tck.ok · Instagram</span></button>
+</div>
+<button class="fab-contact" id="fab-contact"></button>
 
 </body>
 </html>
