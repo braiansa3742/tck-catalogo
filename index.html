@@ -282,20 +282,29 @@ button,
   .sv{border-radius:18px}
 }
 
+/* ── PORTADA: ajuste para que entre todo sin scroll visible ── */
+.sv-inner{overflow-y:auto;overflow-x:hidden;scrollbar-width:none;justify-content:flex-start;padding:14px 22px 20px;}
+.sv-inner::-webkit-scrollbar{display:none;}
+.sv-logo-wrap{width:min(200px,55vw);margin-bottom:0;}
+.sv-subtitle{font-size:11px;letter-spacing:3px;margin-top:2px;}
+.sv-line{margin:12px 0 10px;}
+.sv-ask{margin-bottom:10px;font-size:13px;}
+.sv-footer{margin-top:10px;font-size:10px;}
+
 /* ── BANNER CLIENTE NUEVO ── */
-.sv-new-banner{width:100%;max-width:340px;background:linear-gradient(135deg,rgba(255,215,0,.18),rgba(255,165,0,.12));border:1.5px solid rgba(255,215,0,.4);border-radius:14px;padding:12px 16px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;transition:background .15s,border-color .15s;-webkit-tap-highlight-color:transparent;text-align:left;}
-.sv-new-banner:active{background:linear-gradient(135deg,rgba(255,215,0,.28),rgba(255,165,0,.2));border-color:rgba(255,215,0,.7);}
-.sv-new-banner-left{display:flex;flex-direction:column;gap:2px;}
-.sv-new-banner-title{font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:800;color:var(--gold);letter-spacing:.4px;text-transform:uppercase;}
-.sv-new-banner-sub{font-family:'Barlow',sans-serif;font-size:12px;color:rgba(255,215,0,.65);font-weight:400;}
-.sv-new-banner-arrow{font-size:22px;color:rgba(255,215,0,.6);font-weight:300;line-height:1;}
+.sv-new-banner{width:100%;max-width:340px;background:linear-gradient(135deg,rgba(255,215,0,.2),rgba(255,165,0,.13));border:1.5px solid rgba(255,215,0,.45);border-radius:14px;padding:11px 14px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;transition:background .15s,border-color .15s;-webkit-tap-highlight-color:transparent;text-align:left;}
+.sv-new-banner:active{background:linear-gradient(135deg,rgba(255,215,0,.3),rgba(255,165,0,.22));border-color:rgba(255,215,0,.75);}
+.sv-new-banner-left{display:flex;flex-direction:column;gap:1px;}
+.sv-new-banner-title{font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:800;color:var(--gold);letter-spacing:.4px;text-transform:uppercase;}
+.sv-new-banner-sub{font-family:'Barlow',sans-serif;font-size:11px;color:rgba(255,215,0,.6);font-weight:400;}
+.sv-new-banner-arrow{font-size:20px;color:rgba(255,215,0,.6);line-height:1;}
 
 /* ── INSTAGRAM PILL ── */
-.sv-bottom-row{width:100%;max-width:340px;margin-top:14px;display:flex;justify-content:center;}
-.sv-ig-pill{display:inline-flex;align-items:center;gap:10px;background:rgba(255,255,255,.07);border:1.5px solid rgba(255,255,255,.18);border-radius:30px;padding:8px 18px 8px 8px;cursor:pointer;transition:background .15s,border-color .15s;-webkit-tap-highlight-color:transparent;}
-.sv-ig-pill:active{background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.35);}
-.sv-ig-circle{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#833AB4,#C13584,#E1306C,#F77737,#FCAF45);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
-.sv-ig-pill span{font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;color:rgba(255,255,255,.8);letter-spacing:.3px;}
+.sv-bottom-row{width:100%;max-width:340px;margin-top:12px;display:flex;justify-content:center;}
+.sv-ig-pill{display:inline-flex;align-items:center;gap:9px;background:rgba(255,255,255,.07);border:1.5px solid rgba(255,255,255,.18);border-radius:30px;padding:7px 16px 7px 7px;cursor:pointer;transition:background .15s;-webkit-tap-highlight-color:transparent;}
+.sv-ig-pill:active{background:rgba(255,255,255,.14);}
+.sv-ig-circle{width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,#833AB4,#C13584,#E1306C,#F77737,#FCAF45);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.sv-ig-pill span{font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;color:rgba(255,255,255,.75);letter-spacing:.3px;}
 
 /* ── MODAL GENÉRICO ── */
 .tck-modal{position:absolute;inset:0;z-index:400;display:flex;align-items:flex-end;background:rgba(0,0,0,.55);opacity:0;pointer-events:none;transition:opacity .25s;}
@@ -305,32 +314,32 @@ button,
 .tck-modal-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;}
 .tck-modal-title{font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:800;color:var(--red);letter-spacing:.5px;text-transform:uppercase;}
 .tck-modal-close{background:none;border:none;font-size:22px;color:var(--text3);cursor:pointer;padding:0 4px;line-height:1;}
-.tck-field{margin-bottom:13px;}
+.tck-field{margin-bottom:12px;}
 .tck-label{display:block;font-size:12px;font-weight:600;color:var(--text2);margin-bottom:5px;letter-spacing:.3px;text-transform:uppercase;}
 .tck-input,.tck-select,.tck-textarea{width:100%;border:1.5px solid var(--cream3);border-radius:10px;padding:10px 12px;font-family:'Barlow',sans-serif;font-size:15px;color:var(--text);background:#fff;box-sizing:border-box;outline:none;transition:border-color .15s;}
 .tck-input:focus,.tck-select:focus,.tck-textarea:focus{border-color:var(--red2);}
-.tck-select{appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%239C7050' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;}
+.tck-select{appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%239C7050' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:36px;}
 .tck-textarea{min-height:80px;resize:vertical;}
-.tck-submit{width:100%;background:linear-gradient(135deg,var(--red2),var(--red));color:#fff;border:none;border-radius:12px;padding:14px;font-family:'Barlow Condensed',sans-serif;font-size:17px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;cursor:pointer;margin-top:6px;transition:transform .12s;box-shadow:0 3px 12px rgba(139,0,0,.35);}
+.tck-submit{width:100%;background:linear-gradient(135deg,var(--red2),var(--red));color:#fff;border:none;border-radius:12px;padding:14px;font-family:'Barlow Condensed',sans-serif;font-size:17px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;cursor:pointer;margin-top:6px;box-shadow:0 3px 12px rgba(139,0,0,.35);transition:transform .12s;}
 .tck-submit:active{transform:scale(.97);}
 .tck-optional{font-size:11px;color:var(--text3);margin-left:4px;font-weight:400;text-transform:none;}
 
 /* ── BOTÓN AYUDA EN HEADER ── */
-.hdr-support{background:rgba(255,215,0,.18);border:1.5px solid rgba(255,215,0,.45);border-radius:20px;padding:6px 12px;font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;color:rgba(255,215,0,.95);cursor:pointer;transition:background .15s;white-space:nowrap;letter-spacing:.4px;text-transform:uppercase;display:none;align-items:center;gap:5px;-webkit-tap-highlight-color:transparent;}
+.hdr-support{background:rgba(255,215,0,.18);border:1.5px solid rgba(255,215,0,.45);border-radius:20px;padding:5px 11px;font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;color:rgba(255,215,0,.95);cursor:pointer;transition:background .15s;white-space:nowrap;letter-spacing:.4px;text-transform:uppercase;display:none;align-items:center;gap:5px;-webkit-tap-highlight-color:transparent;}
 .hdr-support.visible{display:flex;}
 .hdr-support:active{background:rgba(255,215,0,.32);}
 
-/* ── FAB MENU ── */
+/* ── FAB MENU (dropdown desde header) ── */
 .fab-contact{display:none;}
-.fab-menu{position:absolute;top:52px;right:10px;z-index:150;display:flex;flex-direction:column;gap:0;opacity:0;pointer-events:none;transform:translateY(-4px);transition:opacity .2s,transform .2s;background:#fff;border-radius:16px;box-shadow:0 4px 20px rgba(0,0,0,.18);overflow:hidden;min-width:220px;}
+.fab-menu{position:absolute;top:50px;right:10px;z-index:200;display:flex;flex-direction:column;gap:0;opacity:0;pointer-events:none;transform:translateY(-6px);transition:opacity .18s,transform .18s;background:#fff;border-radius:16px;box-shadow:0 6px 24px rgba(0,0,0,.18);overflow:hidden;min-width:230px;}
 .fab-menu.on{opacity:1;pointer-events:all;transform:translateY(0);}
-.fab-menu-header{padding:10px 14px 8px;font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;color:#9C7050;letter-spacing:.8px;text-transform:uppercase;border-bottom:1px solid #F5EDE0;}
-.fab-menu-item{display:flex;align-items:center;gap:11px;background:#fff;border:none;border-bottom:1px solid #F5EDE0;padding:13px 16px;cursor:pointer;white-space:nowrap;transition:background .14s;width:100%;box-sizing:border-box;text-align:left;}
+.fab-menu-header{padding:10px 16px 8px;font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;color:#9C7050;letter-spacing:.8px;text-transform:uppercase;border-bottom:1px solid #F5EDE0;}
+.fab-menu-item{display:flex;align-items:center;gap:12px;background:#fff;border:none;border-bottom:1px solid #F5EDE0;padding:13px 16px;cursor:pointer;width:100%;box-sizing:border-box;text-align:left;transition:background .12s;}
 .fab-menu-item:last-child{border-bottom:none;}
 .fab-menu-item:active{background:var(--cream2);}
-.fab-menu-emoji{font-size:18px;line-height:1;flex-shrink:0;}
-.fab-menu-label{font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;color:var(--text);letter-spacing:.3px;}
-.fab-overlay{position:absolute;inset:0;z-index:97;display:none;}
+.fab-menu-emoji{font-size:17px;line-height:1;flex-shrink:0;}
+.fab-menu-label{font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;color:var(--text);letter-spacing:.2px;}
+.fab-overlay{position:absolute;inset:0;z-index:199;display:none;}
 .fab-overlay.on{display:block;}
 
 </style>
@@ -353,9 +362,9 @@ button,
 <div class="sv-cards" id="sv-cards"></div>
 <div class="sv-footer">Tu pedido ir&aacute; directo al WhatsApp de tu vendedor<br>Cat&aacute;logo Abril 2026 &middot; Precios sujetos a cambio sin previo aviso</div>
 <div class="sv-bottom-row">
-  <button class="sv-ig-pill" onclick="abrirIG()" aria-label="Instagram TCK">
+  <button class="sv-ig-pill" onclick="abrirIG()">
     <div class="sv-ig-circle">
-      <svg viewBox="0 0 24 24" width="14" height="14" fill="#fff"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+      <svg viewBox="0 0 24 24" width="13" height="13" fill="#fff"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
     </div>
     <span>@tck.ok &middot; Instagram</span>
   </button>
@@ -363,7 +372,7 @@ button,
 </div></div>
 <div class="hdr"><div class="hdr-stripe"></div><div class="hdr-body">
 <div class="hdr-brand"><div class="hdr-brand-name">THE CHICKEN <span>KINGS</span></div><div class="hdr-brand-sub">Cat&aacute;logo Abril 2026 &middot; Trenque Lauquen</div></div>
-<div class="hdr-right"><div class="cart-pill" id="cart-pill"></div><button class="hdr-support" id="hdr-support" onclick="toggleFAB()" aria-label="Ayuda TCK"><svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor" style="opacity:.9"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z"/></svg> Ayuda</button><div class="vchip" id="vchip" onclick="cambiarVendedor()"></div></div>
+<div class="hdr-right"><div class="cart-pill" id="cart-pill"></div><button class="hdr-support" id="hdr-support" onclick="toggleFAB()" aria-label="Ayuda"><svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor" style="opacity:.85;flex-shrink:0"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z"/></svg> Ayuda</button><div class="vchip" id="vchip" onclick="cambiarVendedor()"></div></div>
 </div><div class="catnav" id="catnav"></div></div>
 <div class="body" id="body"></div>
 <div class="orderbar">
@@ -658,8 +667,8 @@ function sendWA(){
 
 
 function abrirIG(){
-  const isMobile=/iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-  if(isMobile){
+  const mob=/iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+  if(mob){
     const t=setTimeout(()=>window.open('https://www.instagram.com/tck.ok/','_blank'),800);
     window.location.href='instagram://user?username=tck.ok';
     window.addEventListener('blur',()=>clearTimeout(t),{once:true});
@@ -672,47 +681,81 @@ function toggleFAB(){
   const m=document.getElementById('fab-menu');
   const o=document.getElementById('fab-overlay');
   const on=m.classList.contains('on');
-  m.classList.toggle('on',!on);o.classList.toggle('on',!on);
+  m.classList.toggle('on',!on);
+  o.classList.toggle('on',!on);
 }
 function cerrarFAB(){
   document.getElementById('fab-menu').classList.remove('on');
   document.getElementById('fab-overlay').classList.remove('on');
 }
-function campoReq(id,label){
+function req(id,label){
   const v=(document.getElementById(id).value||'').trim();
   if(!v){alert('Por favor completá: '+label);document.getElementById(id).focus();return null;}
   return v;
 }
-function campoOpc(id){return(document.getElementById(id).value||'').trim()||'No indicado';}
-function abrirWA(msg){window.open('https://wa.me/5492314475357?text='+encodeURIComponent(msg),'_blank');}
+function opc(id){return(document.getElementById(id).value||'').trim()||'No indicado';}
+function waAdmin(msg){window.open('https://wa.me/5492314475357?text='+encodeURIComponent(msg),'_blank');}
+
 function enviarNuevoCliente(){
-  const neg=campoReq('nn-negocio','Nombre del negocio');if(!neg)return;
-  const con=campoReq('nn-contacto','Nombre y apellido');if(!con)return;
-  const rub=campoReq('nn-rubro','Rubro');if(!rub)return;
-  const loc=campoReq('nn-localidad','Localidad');if(!loc)return;
-  const dir=campoReq('nn-direccion','Dirección');if(!dir)return;
-  const tel=campoReq('nn-telefono','Teléfono');if(!tel)return;
+  const neg=req('nn-negocio','Nombre del negocio');if(!neg)return;
+  const con=req('nn-contacto','Nombre y apellido');if(!con)return;
+  const rub=req('nn-rubro','Rubro del negocio');if(!rub)return;
+  const loc=req('nn-localidad','Localidad');if(!loc)return;
+  const dir=req('nn-direccion','Dirección');if(!dir)return;
+  const tel=req('nn-telefono','Teléfono');if(!tel)return;
   cerrarModal('modal-nuevo');
-  abrirWA('🆕 *NUEVO CLIENTE - TCK*\n━━━━━━━━━━━━━━━\n🏪 Negocio: '+neg+'\n👤 Contacto: '+con+'\n🛒 Rubro: '+rub+'\n📍 Localidad: '+loc+'\n🏠 Dirección: '+dir+'\n📞 Teléfono: '+tel+'\n━━━━━━━━━━━━━━━\nSolicita incorporarse como cliente TCK.');
+  waAdmin(
+    '🆕 *NUEVO CLIENTE - TCK*\n'+
+    '━━━━━━━━━━━━━━━\n'+
+    '🏪 *Negocio:* '+neg+'\n'+
+    '👤 *Contacto:* '+con+'\n'+
+    '🛒 *Rubro:* '+rub+'\n'+
+    '📍 *Localidad:* '+loc+'\n'+
+    '🏠 *Dirección:* '+dir+'\n'+
+    '📞 *Teléfono:* '+tel+'\n'+
+    '━━━━━━━━━━━━━━━\n'+
+    '_Solicita incorporarse como cliente TCK._'
+  );
 }
+
 function enviarReclamo(){
-  const neg=campoReq('rc-negocio','Nombre del negocio');if(!neg)return;
-  const tip=campoReq('rc-tipo','Tipo de reclamo');if(!tip)return;
-  const det=campoReq('rc-detalle','Descripción');if(!det)return;
-  const num=campoOpc('rc-numero');
+  const neg=req('rc-negocio','Nombre del negocio');if(!neg)return;
+  const tip=req('rc-tipo','Tipo de reclamo');if(!tip)return;
+  const det=req('rc-detalle','Descripción del problema');if(!det)return;
+  const num=opc('rc-numero');
   const vend=vActivo?vActivo.nombre:'No asignado';
   cerrarModal('modal-reclamo');
-  abrirWA('⚠️ *RECLAMO - TCK*\n━━━━━━━━━━━━━━━\n🏪 Negocio: '+neg+'\n👤 Vendedor: '+vend+'\n📋 Tipo: '+tip+'\n📝 Detalle: '+det+'\n🧾 N° pedido/factura: '+num+'\n━━━━━━━━━━━━━━━');
+  waAdmin(
+    '⚠️ *RECLAMO - TCK*\n'+
+    '━━━━━━━━━━━━━━━\n'+
+    '🏪 *Negocio:* '+neg+'\n'+
+    '👤 *Vendedor asignado:* '+vend+'\n'+
+    '📋 *Tipo de reclamo:* '+tip+'\n'+
+    '📝 *Detalle:* '+det+'\n'+
+    '🧾 *N° pedido/factura:* '+num+'\n'+
+    '━━━━━━━━━━━━━━━'
+  );
 }
+
 function enviarVisita(){
-  const neg=campoReq('vi-negocio','Nombre del negocio');if(!neg)return;
-  const tip=campoReq('vi-tipo','Tipo de solicitud');if(!tip)return;
-  const loc=campoReq('vi-localidad','Localidad');if(!loc)return;
-  const tel=campoReq('vi-telefono','Teléfono');if(!tel)return;
-  const hor=campoReq('vi-horario','Horario preferido');if(!hor)return;
+  const neg=req('vi-negocio','Nombre del negocio');if(!neg)return;
+  const tip=req('vi-tipo','Tipo de solicitud');if(!tip)return;
+  const loc=req('vi-localidad','Localidad');if(!loc)return;
+  const tel=req('vi-telefono','Teléfono');if(!tel)return;
+  const hor=req('vi-horario','Horario preferido');if(!hor)return;
   const vend=vActivo?vActivo.nombre:'No asignado';
   cerrarModal('modal-visita');
-  abrirWA('🤝 *SOLICITUD - TCK*\n━━━━━━━━━━━━━━━\n🏪 Negocio: '+neg+'\n👤 Vendedor: '+vend+'\n📋 Tipo: '+tip+'\n📍 Localidad: '+loc+'\n📞 Teléfono: '+tel+'\n🕐 Horario: '+hor+'\n━━━━━━━━━━━━━━━');
+  waAdmin(
+    '🤝 *SOLICITUD DE ATENCIÓN - TCK*\n'+
+    '━━━━━━━━━━━━━━━\n'+
+    '🏪 *Negocio:* '+neg+'\n'+
+    '👤 *Vendedor asignado:* '+vend+'\n'+
+    '📋 *Solicitud:* '+tip+'\n'+
+    '📍 *Localidad:* '+loc+'\n'+
+    '📞 *Teléfono:* '+tel+'\n'+
+    '🕐 *Horario preferido:* '+hor+'\n'+
+    '━━━━━━━━━━━━━━━'
+  );
 }
 
 renderVend();renderNav();renderBody();updateBar();
@@ -740,15 +783,28 @@ renderVend();renderNav();renderBody();updateBar();
 <div class="tck-modal" id="modal-nuevo" onclick="cerrarModalFondo(event,'modal-nuevo')">
   <div class="tck-modal-box">
     <div class="tck-modal-hdr">
-      <div class="tck-modal-title">🆕 Quiero ser cliente</div>
+      <div class="tck-modal-title">✨ Quiero ser cliente</div>
       <button class="tck-modal-close" onclick="cerrarModal('modal-nuevo')">&#x2715;</button>
     </div>
-    <div class="tck-field"><label class="tck-label">Nombre del negocio</label><input class="tck-input" id="nn-negocio" type="text" placeholder="Ej: Rotisería El Rancho"></div>
-    <div class="tck-field"><label class="tck-label">Nombre y apellido del contacto</label><input class="tck-input" id="nn-contacto" type="text" placeholder="Ej: Juan García"></div>
-    <div class="tck-field"><label class="tck-label">Rubro</label><select class="tck-select" id="nn-rubro"><option value="">Seleccioná el rubro</option><option>Rotisería</option><option>Supermercado / Almacén</option><option>Carnicería</option><option>Restaurante / Parrilla</option><option>Dietética / Naturista</option><option>Verdulería</option><option>Otro</option></select></div>
-    <div class="tck-field"><label class="tck-label">Localidad</label><input class="tck-input" id="nn-localidad" type="text" placeholder="Ej: Trenque Lauquen"></div>
-    <div class="tck-field"><label class="tck-label">Dirección</label><input class="tck-input" id="nn-direccion" type="text" placeholder="Ej: Av. San Martín 450"></div>
-    <div class="tck-field"><label class="tck-label">Teléfono de contacto</label><input class="tck-input" id="nn-telefono" type="tel" placeholder="Ej: 2314-123456"></div>
+    <div class="tck-field"><label class="tck-label">Nombre del negocio</label><input class="tck-input" id="nn-negocio" type="text" placeholder="Ej: Rotisería El Rancho" autocomplete="organization"></div>
+    <div class="tck-field"><label class="tck-label">Nombre y apellido del contacto</label><input class="tck-input" id="nn-contacto" type="text" placeholder="Ej: Juan García" autocomplete="name"></div>
+    <div class="tck-field"><label class="tck-label">Rubro del negocio</label><select class="tck-select" id="nn-rubro"><option value="" disabled selected>Seleccioná el rubro</option>
+<option>Rotisería</option>
+<option>Supermercado / Almacén</option>
+<option>Carnicería</option>
+<option>Restaurante / Parrilla / Asadero</option>
+<option>Pizzería</option>
+<option>Sandwichería / Cafetería</option>
+<option>Hotel / Hostel</option>
+<option>Catering / Eventos</option>
+<option>Comedor / Cantina</option>
+<option>Dietética / Naturista</option>
+<option>Verdulería / Frutería</option>
+<option>Kiosco / Maxikiosco</option>
+<option>Otro</option></select></div>
+    <div class="tck-field"><label class="tck-label">Localidad</label><input class="tck-input" id="nn-localidad" type="text" placeholder="Ej: Trenque Lauquen" autocomplete="address-level2"></div>
+    <div class="tck-field"><label class="tck-label">Dirección</label><input class="tck-input" id="nn-direccion" type="text" placeholder="Ej: Av. San Martín 450" autocomplete="street-address"></div>
+    <div class="tck-field"><label class="tck-label">Teléfono de contacto</label><input class="tck-input" id="nn-telefono" type="tel" placeholder="Ej: 2314-123456" autocomplete="tel"></div>
     <button class="tck-submit" onclick="enviarNuevoCliente()">📲 Enviar a administración</button>
   </div>
 </div>
@@ -760,8 +816,16 @@ renderVend();renderNav();renderBody();updateBar();
       <div class="tck-modal-title">⚠️ Hacer un reclamo</div>
       <button class="tck-modal-close" onclick="cerrarModal('modal-reclamo')">&#x2715;</button>
     </div>
-    <div class="tck-field"><label class="tck-label">Nombre del negocio</label><input class="tck-input" id="rc-negocio" type="text" placeholder="Ej: Rotisería El Rancho"></div>
-    <div class="tck-field"><label class="tck-label">Tipo de reclamo</label><select class="tck-select" id="rc-tipo"><option value="">Seleccioná el tipo</option><option>Producto en mal estado</option><option>Faltante en el pedido</option><option>Error en la factura</option><option>Mala atención del vendedor</option><option>Otro</option></select></div>
+    <div class="tck-field"><label class="tck-label">Nombre del negocio</label><input class="tck-input" id="rc-negocio" type="text" placeholder="Ej: Rotisería El Rancho" autocomplete="organization"></div>
+    <div class="tck-field"><label class="tck-label">Tipo de reclamo</label><select class="tck-select" id="rc-tipo">
+      <option value="" disabled selected>Seleccioná el tipo</option>
+      <option>Producto en mal estado</option>
+      <option>Faltante en el pedido</option>
+      <option>Error en la factura</option>
+      <option>Mala atención del vendedor</option>
+      <option>Demora en la entrega</option>
+      <option>Otro</option>
+    </select></div>
     <div class="tck-field"><label class="tck-label">Descripción del problema</label><textarea class="tck-textarea" id="rc-detalle" placeholder="Contanos qué pasó con el mayor detalle posible..."></textarea></div>
     <div class="tck-field"><label class="tck-label">N° de pedido o factura <span class="tck-optional">(opcional)</span></label><input class="tck-input" id="rc-numero" type="text" placeholder="Ej: FAC-00123"></div>
     <button class="tck-submit" onclick="enviarReclamo()">📲 Enviar reclamo</button>
@@ -772,15 +836,19 @@ renderVend();renderNav();renderBody();updateBar();
 <div class="tck-modal" id="modal-visita" onclick="cerrarModalFondo(event,'modal-visita')">
   <div class="tck-modal-box">
     <div class="tck-modal-hdr">
-      <div class="tck-modal-title">🤝 Solicitar visita</div>
+      <div class="tck-modal-title">🤝 Solicitar atención</div>
       <button class="tck-modal-close" onclick="cerrarModal('modal-visita')">&#x2715;</button>
     </div>
-    <p style="font-size:13px;color:var(--text2);margin:0 0 16px;line-height:1.5;">Lo que más nos importa es la atención a nuestros clientes. Si necesitás una visita o hablar con un supervisor, estamos a disposición.</p>
-    <div class="tck-field"><label class="tck-label">Nombre del negocio</label><input class="tck-input" id="vi-negocio" type="text" placeholder="Ej: Rotisería El Rancho"></div>
-    <div class="tck-field"><label class="tck-label">¿Qué necesitás?</label><select class="tck-select" id="vi-tipo"><option value="">Seleccioná una opción</option><option>Visita de mi vendedor</option><option>Hablar con un supervisor</option></select></div>
-    <div class="tck-field"><label class="tck-label">Localidad</label><input class="tck-input" id="vi-localidad" type="text" placeholder="Ej: Trenque Lauquen"></div>
-    <div class="tck-field"><label class="tck-label">Teléfono de contacto</label><input class="tck-input" id="vi-telefono" type="tel" placeholder="Ej: 2314-123456"></div>
-    <div class="tck-field"><label class="tck-label">Mejor horario</label><input class="tck-input" id="vi-horario" type="text" placeholder="Ej: Lunes a viernes de 9 a 12 hs"></div>
+    <p style="font-size:13px;color:var(--text2);margin:0 0 16px;line-height:1.6;background:var(--cream2);border-radius:10px;padding:10px 12px;">Lo que más nos importa es la atención a nuestros clientes. Si necesitás una visita o hablar con un supervisor, estamos a disposición.</p>
+    <div class="tck-field"><label class="tck-label">Nombre del negocio</label><input class="tck-input" id="vi-negocio" type="text" placeholder="Ej: Rotisería El Rancho" autocomplete="organization"></div>
+    <div class="tck-field"><label class="tck-label">¿Qué necesitás?</label><select class="tck-select" id="vi-tipo">
+      <option value="" disabled selected>Seleccioná una opción</option>
+      <option>Visita de mi vendedor</option>
+      <option>Hablar con un supervisor</option>
+    </select></div>
+    <div class="tck-field"><label class="tck-label">Localidad</label><input class="tck-input" id="vi-localidad" type="text" placeholder="Ej: Trenque Lauquen" autocomplete="address-level2"></div>
+    <div class="tck-field"><label class="tck-label">Teléfono de contacto</label><input class="tck-input" id="vi-telefono" type="tel" placeholder="Ej: 2314-123456" autocomplete="tel"></div>
+    <div class="tck-field"><label class="tck-label">Mejor horario para contactarte</label><input class="tck-input" id="vi-horario" type="text" placeholder="Ej: Lunes a viernes de 9 a 12 hs"></div>
     <button class="tck-submit" onclick="enviarVisita()">📲 Enviar solicitud</button>
   </div>
 </div>
@@ -789,9 +857,16 @@ renderVend();renderNav();renderBody();updateBar();
 <div class="fab-overlay" id="fab-overlay" onclick="cerrarFAB()"></div>
 <div class="fab-menu" id="fab-menu">
   <div class="fab-menu-header">Administración TCK</div>
-  <button class="fab-menu-item" onclick="cerrarFAB();abrirModal('modal-reclamo')"><span class="fab-menu-emoji">⚠️</span><span class="fab-menu-label">Hacer un reclamo</span></button>
-  <button class="fab-menu-item" onclick="cerrarFAB();abrirModal('modal-visita')"><span class="fab-menu-emoji">🤝</span><span class="fab-menu-label">Solicitar visita / supervisor</span></button>
-  <button class="fab-menu-item" onclick="cerrarFAB();abrirIG()"><div class="sv-ig-circle" style="width:22px;height:22px;"><svg viewBox="0 0 24 24" width="12" height="12" fill="#fff"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg></div><span class="fab-menu-label">@tck.ok · Instagram</span></button>
+  <button class="fab-menu-item" onclick="cerrarFAB();abrirModal('modal-reclamo')">
+    <span class="fab-menu-emoji">⚠️</span><span class="fab-menu-label">Hacer un reclamo</span>
+  </button>
+  <button class="fab-menu-item" onclick="cerrarFAB();abrirModal('modal-visita')">
+    <span class="fab-menu-emoji">🤝</span><span class="fab-menu-label">Solicitar visita / supervisor</span>
+  </button>
+  <button class="fab-menu-item" onclick="cerrarFAB();abrirIG()">
+    <div class="sv-ig-circle" style="width:22px;height:22px;flex-shrink:0;"><svg viewBox="0 0 24 24" width="12" height="12" fill="#fff"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg></div>
+    <span class="fab-menu-label">@tck.ok &middot; Instagram</span>
+  </button>
 </div>
 <button class="fab-contact" id="fab-contact"></button>
 
