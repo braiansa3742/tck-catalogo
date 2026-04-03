@@ -100,9 +100,9 @@ button,
 .sec-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:12px 10px 16px;background:var(--cream)}
 
 /* === CARDS — réplica del PDF === */
-.card{background:#fff;border-radius:10px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 1px 3px rgba(0,0,0,.08),0 3px 10px rgba(0,0,0,.06);position:relative}
+.card{background:#fff;border-radius:10px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 1px 3px rgba(0,0,0,.08),0 3px 10px rgba(0,0,0,.06);position:relative;border:2.5px solid transparent;box-sizing:border-box}
 .card.shaddai{border:2px solid var(--gold2)}
-.card.has-qty{box-shadow:0 0 0 2.5px var(--red3) inset,0 1px 3px rgba(0,0,0,.08),0 3px 10px rgba(0,0,0,.06)}
+.card.has-qty{border-color:var(--red3)}
 
 /* Área imagen */
 .card-img-area{position:relative;background:#fff;overflow:hidden;flex-shrink:0}
@@ -380,7 +380,7 @@ function renderBody(){
       const qsub=q>0?'<div class="qsub">'+fmt(it.pr*q)+'</div>':'';
       return '<div class="card'+(sec.shaddai?' shaddai':'')+(q>0?' has-qty':'')+'" data-key="'+key+'">'
         +'<div class="card-img-area">'+bdg
-        +'<img class="card-img" src="img/'+(_imgmap[it.n]||it.n+'.jpg')+'" alt="'+it.n+'" loading="lazy" decoding="async">'
+        +'<img class="card-img" src="img/'+encodeURIComponent(_imgmap[it.n]||it.n+'.jpg').replace(/%25/g,'%').replace(/%2F/g,'/')+'" alt="'+it.n+'" loading="lazy" decoding="async">'
         +'</div><div class="card-sep"></div>'
         +'<div class="card-body">'
         +'<div class="card-name">'+it.n+'</div>'
@@ -454,7 +454,7 @@ function renderDrawer(){
   CAT.forEach((s,si)=>s.items.forEach((it,ii)=>{
     const q=qty[si+'-'+ii]||0;
     if(q>0) html+='<div class="ci">'
-      +'<img class="ci-img" src="img/'+(_imgmap[it.n]||it.n+'.jpg')+'" alt="" loading="lazy" decoding="async">'
+      +'<img class="ci-img" src="img/'+encodeURIComponent(_imgmap[it.n]||it.n+'.jpg').replace(/%25/g,'%').replace(/%2F/g,'/')+'" alt="" loading="lazy" decoding="async">'
       +'<div class="ci-inf"><div class="ci-n">'+it.n+'</div><div class="ci-q">'+qtyLabel(s,it,q)+' x '+fmt(it.pr)+(it.p?(' &middot; '+presLabel(s,it,q)):'')+'</div></div>'
       +'<div class="ci-p">'+fmt(it.pr*q)+'</div>'
       +'<button class="ci-rm" onclick="chg(\''+(si+'-'+ii)+'\','+si+','+ii+',-'+q+')">&#x2715;</button></div>';
@@ -502,7 +502,7 @@ function unitMeta(sec,it){
   }
 
   if(name.includes('veggie') || secId.includes('veggie') || secTxt.includes('veggie')){
-    return {singular:'cajita',plural:'cajitas',emoji:'🌱'};
+    return {singular:'hamburguesa',plural:'hamburguesas',emoji:'🍔'};
   }
 
   if(name.includes('pasta') || name.includes('raviol') || name.includes('sorrent') || name.includes('ñoqui') || name.includes('gnocchi') || secId.includes('pasta') || secTxt.includes('pasta')){
