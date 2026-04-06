@@ -973,9 +973,23 @@ function confirmarYEnviarWA() {
 
   // ── Guardar en Google Sheets (no bloquea el flujo) ──────────
   const detalleSinHeader = lineasProductos.filter(l => l !== '').join(' | ');
+  const arNow = new Date().toLocaleString('en-US', {timeZone:'America/Argentina/Buenos_Aires'});
+  const arDate = new Date(arNow);
+  const pad = n => String(n).padStart(2,'0');
+  const fechaAR = arDate.getFullYear()+'-'+pad(arDate.getMonth()+1)+'-'+pad(arDate.getDate())+' '+pad(arDate.getHours())+':'+pad(arDate.getMinutes())+':'+pad(arDate.getSeconds());
+  // ID legible: TCK-YYYYMMDD-HHMM-VEN-xxxx
+  const _vNombre = vActivo ? vActivo.nombre.substring(0,3).toUpperCase() : 'ADM';
+  const _rand = Math.random().toString(36).substr(2,4).toUpperCase();
+  const _dd = pad(arDate.getDate());
+  const _mm = pad(arDate.getMonth()+1);
+  const _yy = arDate.getFullYear();
+  const _hh = pad(arDate.getHours());
+  const _min = pad(arDate.getMinutes());
+  const pedidoId = 'TCK-'+_yy+_mm+_dd+'-'+_hh+_min+'-'+_vNombre+'-'+_rand;
+
   const payload = {
-    pedidoId:      Date.now() + '-' + Math.random().toString(36).substr(2,6),
-    fechaHora:      new Date().toISOString(),
+    pedidoId:      pedidoId,
+    fechaHora:     fechaAR,
     vendedor:       vActivo ? vActivo.nombre : 'Desconocido',
     cliente:        nombre,
     comercio:       comercio || '',
