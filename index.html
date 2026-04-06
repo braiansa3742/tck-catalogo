@@ -15,7 +15,7 @@
   --gold:#FFD700;--gold2:#FFA500;--gold3:#E6A800;
   --text:#1A0800;--text2:#5C3A1E;--text3:#9C7050;
 }
-html,body{height:100%;font-family:'Barlow',sans-serif;background:var(--cream);overflow:hidden}
+html,body{height:100%;font-family:'Barlow',sans-serif;background:var(--cream);overflow:hidden;position:fixed;width:100%}
 
 html{
   -webkit-text-size-adjust:100%;
@@ -35,7 +35,7 @@ button,
 .qv{
   touch-action:manipulation;
 }
-.app{display:flex;flex-direction:column;height:100vh;height:calc(var(--vh,1vh)*100);max-width:980px;margin:0 auto;position:relative}
+.app{display:flex;flex-direction:column;height:100vh;height:100dvh;max-width:980px;margin:0 auto;position:relative}
 
 /* === PANTALLA VENDEDOR === */
 .sv{position:absolute;inset:0;z-index:300;overflow:hidden;transition:opacity .38s,transform .38s}
@@ -1025,41 +1025,16 @@ renderVend();renderNav();renderBody();updateBar();
   }, { passive: false });
 })();
 
-// ── FIX VIEWPORT HEIGHT (iOS Safari / Android) ─────────────────
-function setVH() {
-  // Usa visualViewport si está disponible (más preciso en iOS Safari)
-  const h = (window.visualViewport ? window.visualViewport.height : window.innerHeight);
-  document.documentElement.style.setProperty('--vh', (h * 0.01) + 'px');
-}
+// Viewport: usa 100dvh con fallback a 100vh (ver CSS)
 
-// Ejecutar inmediatamente y en cada cambio de tamaño
-setVH();
-window.addEventListener('resize', setVH);
-if (window.visualViewport) {
-  window.visualViewport.addEventListener('resize', setVH);
-  window.visualViewport.addEventListener('scroll', setVH);
-}
 
-// Al volver de WhatsApp u otra app
+// Al volver de WhatsApp — solo resetear scroll del contenedor interno
 document.addEventListener('visibilitychange', function() {
   if (document.visibilityState === 'visible') {
-    setVH();
-    setTimeout(setVH, 150);
-    setTimeout(setVH, 400);
+    const bodyEl = document.getElementById('body');
+    if (bodyEl) bodyEl.scrollTop = bodyEl.scrollTop; // fuerza repaint sin mover
   }
 });
-
-// Cuando se cierra el teclado virtual
-window.addEventListener('focusout', function() {
-  setTimeout(setVH, 150);
-});
-
-// Al cargar la página completamente
-window.addEventListener('load', function() {
-  setVH();
-  setTimeout(setVH, 200);
-});
-
 </script>
 
 
