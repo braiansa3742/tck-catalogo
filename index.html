@@ -408,6 +408,39 @@ button,
 .tck-submit-wa:active{transform:scale(.97);}
 .tck-campo-opcional{font-size:11px;color:var(--text3);margin-left:4px;font-weight:400;text-transform:none;font-style:italic;}
 
+
+/* ── PANTALLA PEDIDO ENVIADO ── */
+.pedido-ok{position:absolute;inset:0;z-index:500;background:var(--cream);display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:0;text-align:center;opacity:0;pointer-events:none;transition:opacity .35s;overflow-y:auto;}
+.pedido-ok.on{opacity:1;pointer-events:all;}
+.pedido-ok-inner{display:flex;flex-direction:column;align-items:center;width:100%;padding:24px 20px 28px;}
+.pedido-ok-logo{height:48px;object-fit:contain;margin-bottom:20px;opacity:.92;}
+.pedido-ok-logo-fallback{font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:900;color:var(--red);letter-spacing:2px;margin-bottom:20px;display:none;}
+.pedido-ok-icon{width:64px;height:64px;margin-bottom:14px;animation:bounceIn .55s cubic-bezier(.36,.07,.19,.97);}
+@keyframes bounceIn{0%{transform:scale(0) rotate(-15deg)}60%{transform:scale(1.18) rotate(3deg)}80%{transform:scale(.95)}100%{transform:scale(1) rotate(0)}}
+.pedido-ok-titulo{font-family:'Barlow Condensed',sans-serif;font-size:40px;font-weight:900;color:var(--red);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:4px;line-height:1;}
+.pedido-ok-divider{width:48px;height:3px;background:var(--gold);border-radius:2px;margin:10px auto 14px;}
+.pedido-ok-sub{font-family:'Barlow',sans-serif;font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:20px;max-width:260px;}
+.pedido-ok-card{background:#fff;border-radius:16px;padding:0;margin-bottom:16px;width:100%;max-width:320px;text-align:left;overflow:hidden;border:1.5px solid rgba(255,215,0,.5);box-shadow:0 2px 12px rgba(139,0,0,.08);}
+.pod-row{font-family:'Barlow',sans-serif;font-size:13.5px;color:var(--text);padding:10px 16px;display:flex;align-items:center;justify-content:space-between;gap:8px;border-bottom:1px solid rgba(0,0,0,.06);}
+.pod-row:last-child{border-bottom:none;}
+.pod-label{color:var(--red2);font-weight:700;font-size:11.5px;text-transform:uppercase;letter-spacing:.4px;flex-shrink:0;}
+.pod-val{color:var(--text);font-weight:500;text-align:right;}
+.pod-row.pod-total{background:var(--cream2);}
+.pod-row.pod-total .pod-val{font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:900;color:var(--red);}
+/* Acordeón de productos */
+.pod-productos-toggle{width:100%;max-width:320px;background:transparent;border:1.5px solid rgba(139,0,0,.2);border-radius:10px;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;margin-bottom:20px;font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;color:var(--red2);letter-spacing:.3px;text-transform:uppercase;transition:background .15s;}
+.pod-productos-toggle:active{background:var(--cream2);}
+.pod-productos-toggle .pod-arrow{font-size:13px;transition:transform .25s;color:var(--red2);}
+.pod-productos-toggle.open .pod-arrow{transform:rotate(180deg);}
+.pod-productos-lista{width:100%;max-width:320px;background:#fff;border-radius:12px;border:1.5px solid rgba(255,215,0,.4);overflow:hidden;margin-bottom:20px;display:none;}
+.pod-productos-lista.open{display:block;}
+.pod-prod-item{padding:10px 16px;border-bottom:1px solid rgba(0,0,0,.06);font-family:'Barlow',sans-serif;}
+.pod-prod-item:last-child{border-bottom:none;}
+.pod-prod-nombre{font-size:13px;font-weight:700;color:var(--text);margin-bottom:2px;}
+.pod-prod-detalle{font-size:12px;color:var(--text2);}
+.pedido-ok-btn{background:var(--red);color:#fff;border:none;border-radius:14px;padding:15px 40px;font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:900;letter-spacing:.8px;text-transform:uppercase;cursor:pointer;box-shadow:0 4px 16px rgba(139,0,0,.22);transition:transform .12s,box-shadow .12s;width:100%;max-width:320px;}
+.pedido-ok-btn:active{transform:scale(.97);box-shadow:0 2px 8px rgba(139,0,0,.18);}
+
 </style>
 </head>
 <body>
@@ -1008,6 +1041,50 @@ function confirmarYEnviarWA() {
   // ── Abrir WhatsApp ──────────────────────────────────────────
   window.open('https://wa.me/' + vActivo.wa + '?text=' + encodeURIComponent(mensajeCompleto), '_blank');
 
+  // Mostrar pantalla de confirmación
+  const detalle = document.getElementById('pedido-ok-detalle');
+  if (detalle) {
+    detalle.innerHTML =
+      '<div class="pod-row"><span class="pod-label">Cliente</span><span class="pod-val">' + nombre + '</span></div>' +
+      (comercio ? '<div class="pod-row"><span class="pod-label">Comercio</span><span class="pod-val">' + comercio + '</span></div>' : '') +
+      '<div class="pod-row"><span class="pod-label">Localidad</span><span class="pod-val">' + localidad + '</span></div>' +
+      '<div class="pod-row"><span class="pod-label">Vendedor</span><span class="pod-val">' + (vActivo ? vActivo.nombre : '') + '</span></div>' +
+      '<div class="pod-row"><span class="pod-label">Cant. productos</span><span class="pod-val">' + productosCount + ' (' + itemsTotales + ' uds.)</span></div>' +
+      '<div class="pod-row pod-total"><span class="pod-label">Total</span><span class="pod-val">' + fmt(t) + '</span></div>';
+
+  // Mensaje personalizado por vendedor
+  const subEl = document.getElementById('pedido-ok-sub');
+  if (subEl && vActivo) {
+    subEl.textContent = vActivo.nombre + ' va a confirmar tu pedido en breve. Revisá WhatsApp.';
+  }
+
+  // Construir lista de productos para el acordeón
+  const prodLista = document.getElementById('pod-productos-lista');
+  if (prodLista) {
+    let prodHtml = '';
+    CAT.forEach((s, si) => s.items.forEach((it, ii) => {
+      const q = qty[si+'-'+ii] || 0;
+      if (q > 0) {
+        const meta = unitMeta(s, it);
+        const qLabel = qtyLabel(s, it, q);
+        const pLabel = presLabel(s, it, q);
+        prodHtml += '<div class="pod-prod-item">' +
+          '<div class="pod-prod-nombre">' + meta.emoji + ' ' + it.n + '</div>' +
+          '<div class="pod-prod-detalle">' + qLabel + (pLabel ? ' · ' + pLabel : '') + ' · ' + fmt(it.pr * q) + '</div>' +
+          '</div>';
+      }
+    }));
+    prodLista.innerHTML = prodHtml;
+    const toggleBtn = document.getElementById('pod-toggle');
+    const toggleLabel = document.getElementById('pod-toggle-label');
+    if (toggleLabel) toggleLabel.textContent = 'Ver ' + productosCount + ' producto' + (productosCount !== 1 ? 's' : '');
+  }
+  }
+  document.getElementById('pedido-ok').classList.add('on');
+
+  // Vaciar carrito
+  clearCart();
+
   // Resetear flag después de 3 segundos para permitir nuevo pedido
   setTimeout(function() {
     _enviandoPedido = false;
@@ -1081,7 +1158,35 @@ function parseCsvLine(line) {
 
 // Cargar precios desde Sheets y luego renderizar
 cargarPrecios().finally(() => {
-  renderVend();renderNav();renderBody();updateBar();
+  
+
+function toggleProductosOk() {
+  const lista = document.getElementById('pod-productos-lista');
+  const btn = document.getElementById('pod-toggle');
+  const label = document.getElementById('pod-toggle-label');
+  if (!lista || !btn) return;
+  const isOpen = lista.classList.toggle('open');
+  btn.classList.toggle('open', isOpen);
+}
+function cerrarPedidoOk() {
+  const el = document.getElementById('pedido-ok');
+  el.style.transition = 'opacity .3s';
+  el.style.opacity = '0';
+  setTimeout(function() {
+    el.classList.remove('on');
+    el.style.opacity = '';
+    // Cerrar acordeón para próxima vez
+    const lista = document.getElementById('pod-productos-lista');
+    const btn = document.getElementById('pod-toggle');
+    if (lista) lista.classList.remove('open');
+    if (btn) btn.classList.remove('open');
+    // Scroll al top del catálogo
+    const bodyEl = document.getElementById('body');
+    if (bodyEl) bodyEl.scrollTop = 0;
+  }, 300);
+}
+
+renderVend();renderNav();renderBody();updateBar();
 });
 </script>
 
@@ -1233,6 +1338,31 @@ document.addEventListener('visibilitychange', function() {
       <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.2 1.36.172 1.872.104.571-.074 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.122.553 4.112 1.522 5.84L.057 23.882a.5.5 0 00.612.612l6.042-1.465A11.952 11.952 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.891 0-3.659-.52-5.168-1.426l-.37-.217-3.835.929.929-3.835-.217-.37A9.952 9.952 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
       Enviar pedido por WhatsApp
     </button>
+  </div>
+</div>
+
+
+<!-- PANTALLA PEDIDO ENVIADO -->
+<div class="pedido-ok" id="pedido-ok">
+  <div class="pedido-ok-inner">
+    <img class="pedido-ok-logo" src="img/logo.png" alt="TCK"
+         onerror="this.style.display='none';document.querySelector('.pedido-ok-logo-fallback').style.display='block'">
+    <div class="pedido-ok-logo-fallback">THE CHICKEN KINGS</div>
+    <svg class="pedido-ok-icon" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="32" cy="32" r="32" fill="#8B0000"/>
+      <circle cx="32" cy="32" r="27" fill="#A00000"/>
+      <polyline points="17,33 28,44 48,22" stroke="#FFD700" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+    </svg>
+    <div class="pedido-ok-titulo">¡Pedido enviado!</div>
+    <div class="pedido-ok-divider"></div>
+    <div class="pedido-ok-sub" id="pedido-ok-sub">Tu pedido fue enviado por WhatsApp a tu vendedor. En breve te van a confirmar.</div>
+    <div class="pedido-ok-card" id="pedido-ok-detalle"></div>
+    <button class="pod-productos-toggle" id="pod-toggle" onclick="toggleProductosOk()">
+      <span id="pod-toggle-label">Ver productos</span>
+      <span class="pod-arrow">⌄</span>
+    </button>
+    <div class="pod-productos-lista" id="pod-productos-lista"></div>
+    <button class="pedido-ok-btn" onclick="cerrarPedidoOk()">Hacer otro pedido</button>
   </div>
 </div>
 
