@@ -878,18 +878,27 @@ function sendWA(){
 
 // Confirmar datos y enviar WA
 // ── GOOGLE SHEETS ENDPOINT ─────────────────────────────────────
-const SHEETS_ENDPOINT = 'https://script.google.com/macros/s/AKfycbyIircLCWHSuJuyBfPSnUr0PLDO-9d2pY0Ey3lGir-6gLMVNy5xPjCGapmmI13-wnDnbA/exec';
+const SHEETS_ENDPOINT = 'https://script.google.com/macros/s/AKfycbxbx9ma8S5wcuRqFXjRyFYvIo_kLwc5Px4eE4Y7-CqPmIfJbI3VBEP4I9qSV8s0owMMYg/exec';
 
 async function saveOrderToSheets(payload) {
   try {
-    await fetch(SHEETS_ENDPOINT, {
-      method: 'POST',
-      mode: 'no-cors',
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify(payload),
-      keepalive: true
+    // GET con parámetros en URL — evita CORS preflight 100%
+    const params = new URLSearchParams({
+      fechaHora:      payload.fechaHora,
+      vendedor:       payload.vendedor,
+      cliente:        payload.cliente,
+      comercio:       payload.comercio || '',
+      localidad:      payload.localidad,
+      total:          String(payload.total),
+      itemsTotales:   String(payload.itemsTotales),
+      resumenPedido:  payload.resumenPedido,
+      detallePedido:  payload.detallePedido,
+      estado:         payload.estado,
+      origen:         payload.origen
     });
-    console.log('[TCK Sheets] Pedido enviado (no-cors)');
+    const url = SHEETS_ENDPOINT + '?' + params.toString();
+    await fetch(url, { method: 'GET', mode: 'no-cors' });
+    console.log('[TCK Sheets] Pedido enviado via GET');
   } catch(e) {
     console.error('[TCK Sheets] Error al guardar pedido:', e);
   }
