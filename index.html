@@ -35,7 +35,7 @@ button,
 .qv{
   touch-action:manipulation;
 }
-.app{display:flex;flex-direction:column;height:100vh;max-width:980px;margin:0 auto;position:relative}
+.app{display:flex;flex-direction:column;height:100vh;height:calc(var(--vh,1vh)*100);max-width:980px;margin:0 auto;position:relative}
 
 /* === PANTALLA VENDEDOR === */
 .sv{position:absolute;inset:0;z-index:300;overflow:hidden;transition:opacity .38s,transform .38s}
@@ -1001,6 +1001,32 @@ renderVend();renderNav();renderBody();updateBar();
     lastTouchEnd = now;
   }, { passive: false });
 })();
+
+// ── FIX VIEWPORT HEIGHT (iOS/Android al volver de WhatsApp) ────
+function setVH() {
+  const vh = window.innerHeight * 0.01;
+  document.documentElement.style.setProperty('--vh', vh + 'px');
+}
+setVH();
+window.addEventListener('resize', setVH);
+
+// Cuando el usuario vuelve de WhatsApp u otra app
+document.addEventListener('visibilitychange', function() {
+  if (document.visibilityState === 'visible') {
+    // Pequeño delay para que el browser termine de recalcular el viewport
+    setTimeout(setVH, 100);
+    setTimeout(setVH, 300);
+  }
+});
+
+// Fix adicional para iOS: el teclado virtual puede dejar el scroll corrido
+window.addEventListener('focusout', function() {
+  setTimeout(function() {
+    window.scrollTo(0, 0);
+    setVH();
+  }, 100);
+});
+
 </script>
 
 
