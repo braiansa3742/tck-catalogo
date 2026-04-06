@@ -398,6 +398,16 @@ button,
 .sv-new-banner{display:none;}
 .sv-bottom-row{display:none;}
 
+
+/* ── MODAL IDENTIFICACIÓN CLIENTE ── */
+#modal-cliente-id .tck-modal-box{max-height:80vh;}
+#modal-cliente-id .tck-modal-title{color:var(--red);}
+.modal-wa-preview{background:var(--cream2);border-radius:10px;padding:10px 12px;margin-bottom:14px;font-size:12px;color:var(--text2);line-height:1.5;}
+.modal-wa-preview strong{color:var(--text);font-size:13px;}
+.tck-submit-wa{width:100%;background:linear-gradient(135deg,#25D366,#1a9e4e);color:#fff;border:none;border-radius:12px;padding:14px;font-family:'Barlow Condensed',sans-serif;font-size:17px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;cursor:pointer;margin-top:6px;box-shadow:0 3px 12px rgba(37,211,102,.3);transition:transform .12s;display:flex;align-items:center;justify-content:center;gap:8px;}
+.tck-submit-wa:active{transform:scale(.97);}
+.tck-campo-opcional{font-size:11px;color:var(--text3);margin-left:4px;font-weight:400;text-transform:none;font-style:italic;}
+
 </style>
 </head>
 <body>
@@ -731,21 +741,7 @@ function waProductLine(sec,it,q){
   ];
 }
 
-function sendWA(){
-  if(!vActivo)return;
-  const{t,c}=T();if(!c)return;
-  const sep='━━━━━━━━━━━━━━━';
-  let L=['🛒 *TCK - The Chicken Kings*','',sep,''];
-  CAT.forEach((s,si)=>s.items.forEach((it,ii)=>{
-    const q=qty[si+'-'+ii]||0;
-    if(q>0){
-      L.push(...waProductLine(s,it,q));
-      L.push('');
-    }
-  }));
-  L.push(sep,'','💰 *TOTAL FINAL*','👉 '+fmt(t),'',sep,'','📋 ¿Podés confirmarme si el pedido está tomado?','🚚 ¿Cuándo me llegará la entrega?');
-  window.open('https://wa.me/'+vActivo.wa+'?text='+encodeURIComponent(L.join('\n')),'_blank');
-}
+
 
 
 function abrirIG(){
@@ -847,6 +843,89 @@ const ADMIN_NO_VENDOR_WA = '5492314475357';
 function noSeMiVendedor(){
   const msg = '👋 *Hola TCK!*\nNo sé quién es mi vendedor asignado.\n¿Me pueden ayudar a ingresar al catálogo?';
   window.open('https://wa.me/'+ADMIN_NO_VENDOR_WA+'?text='+encodeURIComponent(msg),'_blank');
+}
+
+
+// ── IDENTIFICACIÓN CLIENTE ANTES DE WA ─────────────────────────
+const LS_KEY = 'tck_cliente_id';
+
+function cargarDatosCliente(){
+  try{
+    const d = JSON.parse(localStorage.getItem(LS_KEY)||'{}');
+    if(d.nombre)   document.getElementById('ci-nombre').value   = d.nombre;
+    if(d.comercio) document.getElementById('ci-comercio').value = d.comercio;
+    if(d.localidad)document.getElementById('ci-localidad').value= d.localidad;
+  }catch(e){}
+}
+
+function guardarDatosCliente(nombre, comercio, localidad){
+  try{
+    localStorage.setItem(LS_KEY, JSON.stringify({nombre, comercio, localidad}));
+  }catch(e){}
+}
+
+// Reemplaza el sendWA directo — abre modal primero
+function sendWA(){
+  if(!vActivo) return;
+  const{t,c}=T(); if(!c) return;
+  // Actualizar preview del vendedor en el modal
+  document.getElementById('wa-preview-vendedor').textContent = vActivo.nombre;
+  // Cargar datos guardados
+  cargarDatosCliente();
+  // Abrir modal
+  abrirModal('modal-cliente-id');
+}
+
+// Confirmar datos y enviar WA
+function confirmarYEnviarWA(){
+  const nombre   = (document.getElementById('ci-nombre').value||'').trim();
+  const comercio = (document.getElementById('ci-comercio').value||'').trim();
+  const localidad= (document.getElementById('ci-localidad').value||'').trim();
+
+  if(!nombre){
+    alert('Por favor ingresá tu nombre o razón social.');
+    document.getElementById('ci-nombre').focus();
+    return;
+  }
+  if(!localidad){
+    alert('Por favor ingresá tu localidad.');
+    document.getElementById('ci-localidad').focus();
+    return;
+  }
+
+  // Guardar para próxima vez
+  guardarDatosCliente(nombre, comercio, localidad);
+
+  // Cerrar modal
+  cerrarModal('modal-cliente-id');
+
+  // Construir mensaje WA con datos del cliente al inicio
+  const sep = '━━━━━━━━━━━━━━━';
+  let L = [
+    '🛒 *TCK - The Chicken Kings*',
+    '',sep,'',
+    '👤 *Cliente:* ' + nombre,
+  ];
+  if(comercio) L.push('🏪 *Comercio:* ' + comercio);
+  L.push('📍 *Localidad:* ' + localidad);
+  L.push('',sep,'');
+
+  // Agregar productos (lógica existente)
+  const{t}=T();
+  CAT.forEach((s,si)=>s.items.forEach((it,ii)=>{
+    const q=qty[si+'-'+ii]||0;
+    if(q>0){
+      L.push(...waProductLine(s,it,q));
+      L.push('');
+    }
+  }));
+
+  L.push(sep,'','💰 *TOTAL FINAL*','👉 '+fmt(t),'',sep,'',
+    '📋 ¿Podés confirmarme si el pedido está tomado?',
+    '🚚 ¿Cuándo me llegará la entrega?'
+  );
+
+  window.open('https://wa.me/'+vActivo.wa+'?text='+encodeURIComponent(L.join('\n')),'_blank');
 }
 
 renderVend();renderNav();renderBody();updateBar();
@@ -960,6 +1039,37 @@ renderVend();renderNav();renderBody();updateBar();
   </button>
 </div>
 <button class="fab-contact" id="fab-contact"></button>
+
+
+<!-- MODAL IDENTIFICACIÓN CLIENTE ANTES DE ENVIAR WA -->
+<div class="tck-modal" id="modal-cliente-id" onclick="cerrarModalFondo(event,'modal-cliente-id')">
+  <div class="tck-modal-box">
+    <div class="tck-modal-hdr">
+      <div class="tck-modal-title">📋 Antes de enviar tu pedido</div>
+      <button class="tck-modal-close" onclick="cerrarModal('modal-cliente-id')">&#x2715;</button>
+    </div>
+    <div class="modal-wa-preview">
+      <strong>Tu pedido se enviará a: </strong><span id="wa-preview-vendedor">tu vendedor</span><br>
+      Complet&aacute; tus datos para procesar tu pedido correctamente.
+    </div>
+    <div class="tck-field">
+      <label class="tck-label">Nombre o raz&oacute;n social <span style="font-weight:400;font-size:11px;color:var(--text3);text-transform:none;">(quien realiza el pedido)</span> <span style="color:var(--red2)">*</span></label>
+      <input class="tck-input" id="ci-nombre" type="text" placeholder="Ej: Juan García o Rotisería El Rancho" autocomplete="name">
+    </div>
+    <div class="tck-field">
+      <label class="tck-label">Nombre del local / comercio <span class="tck-campo-opcional">(opcional)</span></label>
+      <input class="tck-input" id="ci-comercio" type="text" placeholder="Ej: Rotisería El Rancho" autocomplete="organization">
+    </div>
+    <div class="tck-field">
+      <label class="tck-label">Localidad <span style="color:var(--red2)">*</span></label>
+      <input class="tck-input" id="ci-localidad" type="text" placeholder="Ej: Trenque Lauquen" autocomplete="address-level2">
+    </div>
+    <button class="tck-submit-wa" onclick="confirmarYEnviarWA()">
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.2 1.36.172 1.872.104.571-.074 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.122.553 4.112 1.522 5.84L.057 23.882a.5.5 0 00.612.612l6.042-1.465A11.952 11.952 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.891 0-3.659-.52-5.168-1.426l-.37-.217-3.835.929.929-3.835-.217-.37A9.952 9.952 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
+      Enviar pedido por WhatsApp
+    </button>
+  </div>
+</div>
 
 </body>
 </html>
