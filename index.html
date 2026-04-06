@@ -877,55 +877,100 @@ function sendWA(){
 }
 
 // Confirmar datos y enviar WA
-function confirmarYEnviarWA(){
-  const nombre   = (document.getElementById('ci-nombre').value||'').trim();
-  const comercio = (document.getElementById('ci-comercio').value||'').trim();
-  const localidad= (document.getElementById('ci-localidad').value||'').trim();
+// ── GOOGLE SHEETS ENDPOINT ─────────────────────────────────────
+const SHEETS_ENDPOINT = 'https://script.google.com/macros/s/AKfycbyIircLCWHSuJuyBfPSnUr0PLDO-9d2pY0Ey3lGir-6gLMVNy5xPjCGapmmI13-wnDnbA/exec';
 
-  if(!nombre){
+async function saveOrderToSheets(payload) {
+  try {
+    const res = await fetch(SHEETS_ENDPOINT, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    console.log('[TCK Sheets] Pedido guardado:', data);
+  } catch(e) {
+    console.error('[TCK Sheets] Error al guardar pedido:', e);
+  }
+}
+
+function confirmarYEnviarWA() {
+  const nombre    = (document.getElementById('ci-nombre').value||'').trim();
+  const comercio  = (document.getElementById('ci-comercio').value||'').trim();
+  const localidad = (document.getElementById('ci-localidad').value||'').trim();
+
+  if(!nombre) {
     alert('Por favor ingresá tu nombre o razón social.');
     document.getElementById('ci-nombre').focus();
     return;
   }
-  if(!localidad){
+  if(!localidad) {
     alert('Por favor ingresá tu localidad.');
     document.getElementById('ci-localidad').focus();
     return;
   }
 
-  // Guardar para próxima vez
+  // Guardar datos para próxima vez
   guardarDatosCliente(nombre, comercio, localidad);
 
   // Cerrar modal
   cerrarModal('modal-cliente-id');
 
-  // Construir mensaje WA con datos del cliente al inicio
+  // ── Construir detalle del pedido ────────────────────────────
   const sep = '━━━━━━━━━━━━━━━';
+  const {t, c} = T();
+  let lineasProductos = [];
+  let itemsTotales = 0;
+  let productosCount = 0;
+
+  CAT.forEach((s,si) => s.items.forEach((it,ii) => {
+    const q = qty[si+'-'+ii] || 0;
+    if(q > 0) {
+      lineasProductos.push(...waProductLine(s, it, q));
+      lineasProductos.push('');
+      itemsTotales += q;
+      productosCount++;
+    }
+  }));
+
+  // ── Mensaje WhatsApp ────────────────────────────────────────
   let L = [
     '🛒 *TCK - The Chicken Kings*',
-    '',sep,'',
+    '', sep, '',
     '👤 *Cliente:* ' + nombre,
   ];
   if(comercio) L.push('🏪 *Comercio:* ' + comercio);
   L.push('📍 *Localidad:* ' + localidad);
-  L.push('',sep,'');
-
-  // Agregar productos (lógica existente)
-  const{t}=T();
-  CAT.forEach((s,si)=>s.items.forEach((it,ii)=>{
-    const q=qty[si+'-'+ii]||0;
-    if(q>0){
-      L.push(...waProductLine(s,it,q));
-      L.push('');
-    }
-  }));
-
-  L.push(sep,'','💰 *TOTAL FINAL*','👉 '+fmt(t),'',sep,'',
+  L.push('', sep, '');
+  L = L.concat(lineasProductos);
+  L.push(sep, '', '💰 *TOTAL FINAL*', '👉 ' + fmt(t), '', sep, '',
     '📋 ¿Podés confirmarme si el pedido está tomado?',
     '🚚 ¿Cuándo me llegará la entrega?'
   );
 
-  window.open('https://wa.me/'+vActivo.wa+'?text='+encodeURIComponent(L.join('\n')),'_blank');
+  const mensajeCompleto = L.join('\n');
+
+  // ── Guardar en Google Sheets (no bloquea el flujo) ──────────
+  const detalleSinHeader = lineasProductos.filter(l => l !== '').join(' | ');
+  const payload = {
+    fechaHora:      new Date().toISOString(),
+    vendedor:       vActivo ? vActivo.nombre : 'Desconocido',
+    cliente:        nombre,
+    comercio:       comercio || '',
+    localidad:      localidad,
+    total:          t,
+    itemsTotales:   itemsTotales,
+    resumenPedido:  productosCount + ' producto' + (productosCount !== 1 ? 's' : '') + ' / ' + itemsTotales + ' unidad' + (itemsTotales !== 1 ? 'es' : ''),
+    detallePedido:  detalleSinHeader,
+    estado:         'Pendiente',
+    origen:         'Catalogo Web TCK'
+  };
+
+  // Fire-and-forget: no await, WhatsApp se abre siempre
+  saveOrderToSheets(payload);
+
+  // ── Abrir WhatsApp ──────────────────────────────────────────
+  window.open('https://wa.me/' + vActivo.wa + '?text=' + encodeURIComponent(mensajeCompleto), '_blank');
 }
 
 renderVend();renderNav();renderBody();updateBar();
