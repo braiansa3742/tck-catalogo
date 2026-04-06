@@ -421,10 +421,10 @@ button,
 .pedido-ok-divider{width:48px;height:3px;background:var(--gold);border-radius:2px;margin:10px auto 14px;}
 .pedido-ok-sub{font-family:'Barlow',sans-serif;font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:20px;max-width:260px;}
 .pedido-ok-card{background:#fff;border-radius:16px;padding:0;margin-bottom:16px;width:100%;max-width:320px;text-align:left;overflow:hidden;border:1.5px solid rgba(255,215,0,.5);box-shadow:0 2px 12px rgba(139,0,0,.08);}
-.pod-row{font-family:'Barlow',sans-serif;font-size:13.5px;color:var(--text);padding:10px 16px;display:flex;align-items:center;justify-content:space-between;gap:8px;border-bottom:1px solid rgba(0,0,0,.06);}
+.pod-row{font-family:'Barlow',sans-serif;font-size:13.5px;color:var(--text);padding:10px 16px;display:flex;align-items:center;justify-content:space-between;gap:8px;border-bottom:1px solid rgba(0,0,0,.06);min-width:0;}
 .pod-row:last-child{border-bottom:none;}
 .pod-label{color:var(--red2);font-weight:700;font-size:11.5px;text-transform:uppercase;letter-spacing:.4px;flex-shrink:0;}
-.pod-val{color:var(--text);font-weight:500;text-align:right;}
+.pod-val{color:var(--text);font-weight:500;text-align:right;word-break:break-word;}
 .pod-row.pod-total{background:var(--cream2);}
 .pod-row.pod-total .pod-val{font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:900;color:var(--red);}
 /* Acordeón de productos */
@@ -1049,7 +1049,7 @@ function confirmarYEnviarWA() {
       (comercio ? '<div class="pod-row"><span class="pod-label">Comercio</span><span class="pod-val">' + comercio + '</span></div>' : '') +
       '<div class="pod-row"><span class="pod-label">Localidad</span><span class="pod-val">' + localidad + '</span></div>' +
       '<div class="pod-row"><span class="pod-label">Vendedor</span><span class="pod-val">' + (vActivo ? vActivo.nombre : '') + '</span></div>' +
-      '<div class="pod-row"><span class="pod-label">Cant. productos</span><span class="pod-val">' + productosCount + ' (' + itemsTotales + ' uds.)</span></div>' +
+      '<div class="pod-row"><span class="pod-label">Productos</span><span class="pod-val">' + productosCount + ' (' + itemsTotales + ' uds.)</span></div>' +
       '<div class="pod-row pod-total"><span class="pod-label">Total</span><span class="pod-val">' + fmt(t) + '</span></div>';
 
   // Mensaje personalizado por vendedor
@@ -1058,12 +1058,18 @@ function confirmarYEnviarWA() {
     subEl.textContent = vActivo.nombre + ' va a confirmar tu pedido en breve. Revisá WhatsApp.';
   }
 
-  // Construir lista de productos para el acordeón
+  // Snapshot del carrito ANTES de vaciarlo
+  const qtySnapshot = Object.assign({}, qty);
+
+  // Vaciar carrito
+  clearCart();
+
+  // Construir lista de productos para el acordeón (usa snapshot)
   const prodLista = document.getElementById('pod-productos-lista');
   if (prodLista) {
     let prodHtml = '';
     CAT.forEach((s, si) => s.items.forEach((it, ii) => {
-      const q = qty[si+'-'+ii] || 0;
+      const q = qtySnapshot[si+'-'+ii] || 0;
       if (q > 0) {
         const meta = unitMeta(s, it);
         const qLabel = qtyLabel(s, it, q);
@@ -1075,15 +1081,11 @@ function confirmarYEnviarWA() {
       }
     }));
     prodLista.innerHTML = prodHtml;
-    const toggleBtn = document.getElementById('pod-toggle');
     const toggleLabel = document.getElementById('pod-toggle-label');
     if (toggleLabel) toggleLabel.textContent = 'Ver ' + productosCount + ' producto' + (productosCount !== 1 ? 's' : '');
   }
   }
   document.getElementById('pedido-ok').classList.add('on');
-
-  // Vaciar carrito
-  clearCart();
 
   // Resetear flag después de 3 segundos para permitir nuevo pedido
   setTimeout(function() {
