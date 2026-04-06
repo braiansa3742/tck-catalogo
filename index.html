@@ -412,9 +412,9 @@ button,
 /* ── PANTALLA PEDIDO ENVIADO ── */
 .pedido-ok{position:absolute;inset:0;z-index:500;background:var(--cream);display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:0;text-align:center;opacity:0;pointer-events:none;transition:opacity .35s;overflow-y:auto;}
 .pedido-ok.on{opacity:1;pointer-events:all;}
-.pedido-ok-inner{display:flex;flex-direction:column;align-items:center;width:100%;padding:24px 20px 28px;}
-.pedido-ok-logo{height:48px;object-fit:contain;margin-bottom:20px;opacity:.92;}
-.pedido-ok-logo-fallback{font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:900;color:var(--red);letter-spacing:2px;margin-bottom:20px;display:none;}
+.pedido-ok-inner{display:flex;flex-direction:column;align-items:center;width:100%;padding:20px 20px 28px;justify-content:center;min-height:100%;}
+.pedido-ok-logo{height:76px;object-fit:contain;margin-bottom:16px;opacity:1;}
+.pedido-ok-logo-fallback{font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:900;color:var(--red);letter-spacing:2px;margin-bottom:16px;display:none;}
 .pedido-ok-icon{width:64px;height:64px;margin-bottom:14px;animation:bounceIn .55s cubic-bezier(.36,.07,.19,.97);}
 @keyframes bounceIn{0%{transform:scale(0) rotate(-15deg)}60%{transform:scale(1.18) rotate(3deg)}80%{transform:scale(.95)}100%{transform:scale(1) rotate(0)}}
 .pedido-ok-titulo{font-family:'Barlow Condensed',sans-serif;font-size:40px;font-weight:900;color:var(--red);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:4px;line-height:1;}
@@ -1160,34 +1160,36 @@ function parseCsvLine(line) {
 cargarPrecios().finally(() => {
   
 
+
+
+renderVend();renderNav();renderBody();updateBar();
+});
+</script>
+<script>
 function toggleProductosOk() {
-  const lista = document.getElementById('pod-productos-lista');
-  const btn = document.getElementById('pod-toggle');
-  const label = document.getElementById('pod-toggle-label');
+  var lista = document.getElementById('pod-productos-lista');
+  var btn = document.getElementById('pod-toggle');
   if (!lista || !btn) return;
-  const isOpen = lista.classList.toggle('open');
+  var isOpen = lista.classList.toggle('open');
   btn.classList.toggle('open', isOpen);
 }
+
 function cerrarPedidoOk() {
-  const el = document.getElementById('pedido-ok');
+  var el = document.getElementById('pedido-ok');
+  if (!el) return;
   el.style.transition = 'opacity .3s';
   el.style.opacity = '0';
   setTimeout(function() {
     el.classList.remove('on');
     el.style.opacity = '';
-    // Cerrar acordeón para próxima vez
-    const lista = document.getElementById('pod-productos-lista');
-    const btn = document.getElementById('pod-toggle');
+    var lista = document.getElementById('pod-productos-lista');
+    var btn = document.getElementById('pod-toggle');
     if (lista) lista.classList.remove('open');
     if (btn) btn.classList.remove('open');
-    // Scroll al top del catálogo
-    const bodyEl = document.getElementById('body');
+    var bodyEl = document.getElementById('body');
     if (bodyEl) bodyEl.scrollTop = 0;
   }, 300);
 }
-
-renderVend();renderNav();renderBody();updateBar();
-});
 </script>
 
 <script>
