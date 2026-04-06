@@ -347,25 +347,102 @@ button,
 .fab-overlay{position:absolute;inset:0;z-index:199;display:none;}
 .fab-overlay.on{display:block;}
 
+
+/* ── NUEVA ESTRUCTURA PORTADA ── */
+.sv-inner{overflow-y:auto;overflow-x:hidden;scrollbar-width:none;justify-content:flex-start;padding:16px 18px 16px;}
+.sv-inner::-webkit-scrollbar{display:none;}
+
+/* Logo compacto */
+.sv-logo-wrap{width:min(130px,38vw);margin-bottom:2px;}
+
+/* Título principal */
+.sv-main-title{font-family:'Barlow Condensed',sans-serif;font-size:24px;font-weight:900;color:#fff;text-align:center;letter-spacing:.3px;margin:8px 0 5px;line-height:1.1;}
+.sv-main-sub{font-family:'Barlow',sans-serif;font-size:13px;color:rgba(255,255,255,.65);text-align:center;line-height:1.5;max-width:300px;margin:0 auto 8px;}
+
+/* Bloque cliente existente */
+.sv-block{width:100%;max-width:340px;margin-bottom:6px;}
+.sv-block-title{font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:800;color:rgba(255,215,0,.8);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:6px;padding-left:2px;}
+.sv-block-hint{font-family:'Barlow',sans-serif;font-size:11px;color:rgba(255,255,255,.4);text-align:center;margin-top:5px;line-height:1.4;}
+
+/* Botón "no sé mi vendedor" */
+.sv-no-vendor{width:100%;background:none;border:1px dashed rgba(255,215,0,.3);border-radius:10px;padding:7px 14px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;margin-top:5px;transition:background .15s,border-color .15s;-webkit-tap-highlight-color:transparent;}
+.sv-no-vendor:active{background:rgba(255,215,0,.08);border-color:rgba(255,215,0,.5);}
+.sv-no-vendor span{font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;color:rgba(255,215,0,.6);letter-spacing:.3px;}
+
+/* Divisor */
+.sv-divider{width:100%;max-width:340px;display:flex;align-items:center;gap:10px;margin:5px 0;}
+.sv-divider-bar{flex:1;height:1px;background:rgba(255,255,255,.1);}
+.sv-divider-txt{font-family:'Barlow Condensed',sans-serif;font-size:10px;color:rgba(255,255,255,.2);letter-spacing:1px;text-transform:uppercase;white-space:nowrap;}
+
+/* Bloque cliente nuevo */
+.sv-new-block{width:100%;max-width:340px;background:rgba(255,215,0,.07);border:1.5px solid rgba(255,215,0,.25);border-radius:14px;padding:12px 16px;margin-bottom:8px;}
+.sv-new-block-title{font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:800;color:rgba(255,215,0,.9);letter-spacing:.4px;text-transform:uppercase;margin-bottom:3px;}
+.sv-new-block-sub{font-family:'Barlow',sans-serif;font-size:11px;color:rgba(255,255,255,.45);line-height:1.4;margin-bottom:10px;}
+.sv-new-block-btn{width:100%;background:linear-gradient(135deg,rgba(255,215,0,.25),rgba(255,165,0,.2));border:1.5px solid rgba(255,215,0,.5);border-radius:10px;padding:10px;cursor:pointer;font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:800;color:var(--gold);letter-spacing:.4px;text-transform:uppercase;transition:background .15s;-webkit-tap-highlight-color:transparent;display:flex;align-items:center;justify-content:center;gap:6px;}
+.sv-new-block-btn:active{background:linear-gradient(135deg,rgba(255,215,0,.38),rgba(255,165,0,.3));}
+
+/* Footer final */
+.sv-footer-new{font-size:10px;color:rgba(255,255,255,.3);text-align:center;line-height:1.6;letter-spacing:.2px;max-width:300px;padding-bottom:4px;}
+
+/* Cards compactas */
+.sv-cards{gap:6px;}
+.sv-card{padding:9px 14px;}
+.sv-av{width:38px;height:38px;font-size:17px;}
+.sv-name{font-size:20px;}
+
+/* Ocultar elementos viejos reemplazados */
+.sv-subtitle{display:none;}
+.sv-line{display:none;}
+.sv-ask{display:none;}
+.sv-footer{display:none;}
+.sv-new-banner{display:none;}
+.sv-bottom-row{display:none;}
+
 </style>
 </head>
 <body>
 <div class="app">
 <div class="sv" id="sv"><div class="sv-bg"></div><div class="sv-dots"></div><div class="sv-dots2"></div><div class="sv-inner">
-<div class="sv-logo-wrap"><img style="width:100%;height:auto;display:block;" src="img/logo.png" loading="lazy" decoding="async" alt="TCK Logo" style="width:100px;height:100px;object-fit:contain;"></div>
-<div class="sv-title">THE CHICKEN <span>KINGS</span></div>
-<div class="sv-subtitle">Cat&aacute;logo Abril 2026 &middot; Trenque Lauquen</div>
-<div class="sv-line"><div class="sv-line-bar"></div><div class="sv-line-star">&#x2605;</div><div class="sv-line-bar"></div></div>
-<button class="sv-new-banner" onclick="abrirModal('modal-nuevo')">
-  <div class="sv-new-banner-left">
-    <div class="sv-new-banner-title">✨ ¿Sos cliente nuevo?</div>
-    <div class="sv-new-banner-sub">Registrate y te contactamos</div>
-  </div>
-  <div class="sv-new-banner-arrow">›</div>
-</button>
-<div class="sv-ask">&#128071; Presion&aacute; a tu vendedor</div>
-<div class="sv-cards" id="sv-cards"></div>
-<div class="sv-footer">Tu pedido ir&aacute; directo al WhatsApp de tu vendedor<br>Cat&aacute;logo Abril 2026 &middot; Precios sujetos a cambio sin previo aviso</div>
+
+<!-- Logo -->
+<div class="sv-logo-wrap"><img style="width:100%;height:auto;display:block;" src="img/logo.png" alt="TCK Logo" decoding="async" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><div style="display:none;align-items:center;justify-content:center;width:100%;padding:8px 0;"><span style="font-family:'Barlow Condensed',sans-serif;font-size:28px;font-weight:900;color:var(--gold);letter-spacing:2px;">THE CHICKEN KINGS</span></div></div>
+
+<!-- Título principal -->
+<div class="sv-main-title">Ingres&aacute; al cat&aacute;logo TCK</div>
+<div class="sv-main-sub">Si ya sos cliente, eleg&iacute; tu vendedor. Si no, registrate.</div>
+
+<!-- BLOQUE 1: Cliente existente -->
+<div class="sv-block">
+  <div class="sv-block-title">Ya soy cliente</div>
+  <div class="sv-cards" id="sv-cards"></div>
+  <button class="sv-no-vendor" onclick="noSeMiVendedor()">
+    <span>&#x1F4AC; No s&eacute; qu&eacute; vendedor me corresponde &rarr;</span>
+  </button>
+  <div class="sv-block-hint">Eleg&iacute; tu vendedor habitual. Si no sab&eacute;s cu&aacute;l te corresponde, us&aacute; el bot&oacute;n de arriba.</div>
+</div>
+
+<!-- Divisor -->
+<div class="sv-divider">
+  <div class="sv-divider-bar"></div>
+  <div class="sv-divider-txt">o si sos nuevo</div>
+  <div class="sv-divider-bar"></div>
+</div>
+
+<!-- BLOQUE 2: Cliente nuevo -->
+<div class="sv-new-block">
+  <div class="sv-new-block-title">&#x1F195; Soy cliente nuevo</div>
+  <div class="sv-new-block-sub">Dej&aacute;nos tus datos y administraci&oacute;n te asigna un vendedor para que puedas comprar.</div>
+  <button class="sv-new-block-btn" onclick="abrirModal('modal-nuevo')">&#x1F4DD; Quiero ser cliente</button>
+</div>
+
+<!-- Footer -->
+<div class="sv-footer-new">Tu pedido se enviar&aacute; por WhatsApp a tu vendedor o a administraci&oacute;n.<br>Precios sujetos a cambio sin previo aviso.</div>
+
+<!-- Elementos heredados (ocultos por CSS pero necesarios para compatibilidad) -->
+<div class="sv-subtitle" style="display:none">Cat&aacute;logo Abril 2026 &middot; Trenque Lauquen</div>
+<div class="sv-line" style="display:none"><div class="sv-line-bar"></div><div class="sv-line-star">&#x2605;</div><div class="sv-line-bar"></div></div>
+<div class="sv-ask" style="display:none">Presion&aacute; a tu vendedor</div>
+<div class="sv-footer" style="display:none">Tu pedido ir&aacute; directo al WhatsApp de tu vendedor</div>
 <div class="sv-bottom-row">
   <button class="sv-ig-pill" onclick="abrirIG()">
     <div class="sv-ig-circle">
@@ -761,6 +838,15 @@ function enviarVisita(){
     '🕐 *Horario preferido:* '+hor+'\n'+
     '━━━━━━━━━━━━━━━'
   );
+}
+
+
+// ── NO SÉ MI VENDEDOR ─────────────────────────────────────────
+// Para cambiar el destino, modificar ADMIN_NO_VENDOR_WA:
+const ADMIN_NO_VENDOR_WA = '5492314475357';
+function noSeMiVendedor(){
+  const msg = '👋 *Hola TCK!*\nNo sé quién es mi vendedor asignado.\n¿Me pueden ayudar a ingresar al catálogo?';
+  window.open('https://wa.me/'+ADMIN_NO_VENDOR_WA+'?text='+encodeURIComponent(msg),'_blank');
 }
 
 renderVend();renderNav();renderBody();updateBar();
