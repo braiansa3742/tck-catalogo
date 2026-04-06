@@ -810,6 +810,7 @@ function waAdmin(msg){window.open('https://wa.me/5492314475357?text='+encodeURIC
 function enviarNuevoCliente(){
   const neg=req('nn-negocio','Nombre del negocio');if(!neg)return;
   const con=req('nn-contacto','Nombre y apellido');if(!con)return;
+  const cui=req('nn-cuit','CUIT / DNI');if(!cui)return;
   const rub=req('nn-rubro','Rubro del negocio');if(!rub)return;
   const loc=req('nn-localidad','Localidad');if(!loc)return;
   const dir=req('nn-direccion','Dirección');if(!dir)return;
@@ -820,6 +821,7 @@ function enviarNuevoCliente(){
     '━━━━━━━━━━━━━━━\n'+
     '🏪 *Negocio:* '+neg+'\n'+
     '👤 *Contacto:* '+con+'\n'+
+    '🪪 *CUIT/DNI:* '+cui+'\n'+
     '🛒 *Rubro:* '+rub+'\n'+
     '📍 *Localidad:* '+loc+'\n'+
     '🏠 *Dirección:* '+dir+'\n'+
@@ -1232,6 +1234,7 @@ document.addEventListener('visibilitychange', function() {
     </div>
     <div class="tck-field"><label class="tck-label">Nombre del negocio</label><input class="tck-input" id="nn-negocio" type="text" placeholder="Ej: Rotisería El Rancho" autocomplete="organization"></div>
     <div class="tck-field"><label class="tck-label">Nombre y apellido del contacto</label><input class="tck-input" id="nn-contacto" type="text" placeholder="Ej: Juan García" autocomplete="name"></div>
+    <div class="tck-field"><label class="tck-label">CUIT / DNI <span style="color:var(--red2);font-size:11px;margin-left:4px;">obligatorio</span></label><input class="tck-input" id="nn-cuit" type="text" inputmode="numeric" placeholder="Ej: 20-12345678-9" autocomplete="off" maxlength="20"></div>
     <div class="tck-field"><label class="tck-label">Rubro del negocio</label><select class="tck-select" id="nn-rubro"><option value="" disabled selected>Seleccioná el rubro</option>
 <option>Rotisería</option>
 <option>Supermercado / Almacén</option>
