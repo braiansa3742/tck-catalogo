@@ -1020,7 +1020,69 @@ function confirmarYEnviarWA() {
   }, 3000);
 }
 
-renderVend();renderNav();renderBody();updateBar();
+
+// ── PRECIOS DESDE GOOGLE SHEETS ─────────────────────────────────
+const PRICES_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQDZk6Z5pejrI_djbUYBLEvh-X7H_sLF5ZCW2RQr0Bc03r8LOL17_C3pCmwwyLe2iXf3Fan0tgl7IJG/pub?gid=1658103892&single=true&output=csv';
+
+async function cargarPrecios() {
+  try {
+    const res = await fetch(PRICES_CSV_URL, { cache: 'no-cache' });
+    const csv = await res.text();
+    const lines = csv.trim().split('\n');
+    // Saltar header (fila 1)
+    const priceMap = {};
+    for (let i = 1; i < lines.length; i++) {
+      // Parsear CSV correctamente (campos pueden tener comas dentro de comillas)
+      const cols = parseCsvLine(lines[i]);
+      if (cols.length < 2) continue;
+      const nombre   = cols[0].trim().replace(/^"|"$/g, '');
+      const precio   = parseInt(cols[1].trim().replace(/^"|"$/g, '').replace(/[^\d]/g, ''));
+      const precioKg = cols[2] ? parseInt(cols[2].trim().replace(/^"|"$/g, '').replace(/[^\d]/g, '')) : 0;
+      const activo   = cols[5] ? cols[5].trim().replace(/^"|"$/g, '').toUpperCase() : 'SI';
+      if (nombre && !isNaN(precio) && activo !== 'NO') {
+        priceMap[nombre] = { precio, precioKg };
+      }
+    }
+    // Aplicar precios al CAT
+    let actualizados = 0;
+    CAT.forEach(sec => sec.items.forEach(it => {
+      if (priceMap[it.n]) {
+        it.pr = priceMap[it.n].precio;
+        if (priceMap[it.n].precioKg > 0) {
+          it.pu = '&#x2248;$' + priceMap[it.n].precioKg.toLocaleString('es-AR') + ' / kg';
+        }
+        actualizados++;
+      }
+    }));
+    console.log('[TCK Precios] ' + actualizados + ' productos actualizados desde Sheets');
+  } catch(e) {
+    console.warn('[TCK Precios] Usando precios del HTML (fallback):', e.message);
+  }
+}
+
+function parseCsvLine(line) {
+  const result = [];
+  let current = '';
+  let inQuotes = false;
+  for (let i = 0; i < line.length; i++) {
+    const ch = line[i];
+    if (ch === '"') {
+      inQuotes = !inQuotes;
+    } else if (ch === ',' && !inQuotes) {
+      result.push(current);
+      current = '';
+    } else {
+      current += ch;
+    }
+  }
+  result.push(current);
+  return result;
+}
+
+// Cargar precios desde Sheets y luego renderizar
+cargarPrecios().finally(() => {
+  renderVend();renderNav();renderBody();updateBar();
+});
 </script>
 
 <script>
