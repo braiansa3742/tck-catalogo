@@ -410,17 +410,17 @@ button,
 
 
 /* ── PANTALLA PEDIDO ENVIADO ── */
-.pedido-ok{position:absolute;inset:0;z-index:500;background:var(--cream);display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:0;text-align:center;opacity:0;pointer-events:none;transition:opacity .35s;overflow-y:auto;}
+.pedido-ok{position:absolute;inset:0;z-index:500;background:var(--cream);display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:0;text-align:center;opacity:0;pointer-events:none;transition:opacity .35s;overflow-y:auto;-webkit-overflow-scrolling:touch;}
 .pedido-ok.on{opacity:1;pointer-events:all;}
-.pedido-ok-inner{display:flex;flex-direction:column;align-items:center;width:100%;padding:20px 20px 28px;justify-content:center;min-height:100%;}
-.pedido-ok-logo{height:76px;object-fit:contain;margin-bottom:16px;opacity:1;}
+.pedido-ok-inner{display:flex;flex-direction:column;align-items:center;width:100%;padding:20px 20px 36px;}
+.pedido-ok-logo{height:96px;object-fit:contain;margin-bottom:16px;opacity:1;}
 .pedido-ok-logo-fallback{font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:900;color:var(--red);letter-spacing:2px;margin-bottom:16px;display:none;}
 .pedido-ok-icon{width:64px;height:64px;margin-bottom:14px;animation:bounceIn .55s cubic-bezier(.36,.07,.19,.97);}
 @keyframes bounceIn{0%{transform:scale(0) rotate(-15deg)}60%{transform:scale(1.18) rotate(3deg)}80%{transform:scale(.95)}100%{transform:scale(1) rotate(0)}}
 .pedido-ok-titulo{font-family:'Barlow Condensed',sans-serif;font-size:40px;font-weight:900;color:var(--red);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:4px;line-height:1;}
 .pedido-ok-divider{width:48px;height:3px;background:var(--gold);border-radius:2px;margin:10px auto 14px;}
 .pedido-ok-sub{font-family:'Barlow',sans-serif;font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:20px;max-width:260px;}
-.pedido-ok-card{background:#fff;border-radius:16px;padding:0;margin-bottom:16px;width:100%;max-width:320px;text-align:left;overflow:hidden;border:1.5px solid rgba(255,215,0,.5);box-shadow:0 2px 12px rgba(139,0,0,.08);}
+.pedido-ok-card{background:#fff;border-radius:16px;padding:0;margin-bottom:16px;width:100%;max-width:320px;text-align:left;overflow:visible;border:1.5px solid rgba(255,215,0,.5);box-shadow:0 2px 12px rgba(139,0,0,.08);}
 .pod-row{font-family:'Barlow',sans-serif;font-size:13.5px;color:var(--text);padding:10px 16px;display:flex;align-items:center;justify-content:space-between;gap:8px;border-bottom:1px solid rgba(0,0,0,.06);min-width:0;}
 .pod-row:last-child{border-bottom:none;}
 .pod-label{color:var(--red2);font-weight:700;font-size:11.5px;text-transform:uppercase;letter-spacing:.4px;flex-shrink:0;}
@@ -432,7 +432,7 @@ button,
 .pod-productos-toggle:active{background:var(--cream2);}
 .pod-productos-toggle .pod-arrow{font-size:13px;transition:transform .25s;color:var(--red2);}
 .pod-productos-toggle.open .pod-arrow{transform:rotate(180deg);}
-.pod-productos-lista{width:100%;max-width:320px;background:#fff;border-radius:12px;border:1.5px solid rgba(255,215,0,.4);overflow:hidden;margin-bottom:20px;display:none;}
+.pod-productos-lista{width:100%;max-width:320px;background:#fff;border-radius:12px;border:1.5px solid rgba(255,215,0,.4);overflow:visible;margin-bottom:20px;display:none;}
 .pod-productos-lista.open{display:block;}
 .pod-prod-item{padding:10px 16px;border-bottom:1px solid rgba(0,0,0,.06);font-family:'Barlow',sans-serif;}
 .pod-prod-item:last-child{border-bottom:none;}
