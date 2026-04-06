@@ -1002,29 +1002,42 @@ renderVend();renderNav();renderBody();updateBar();
   }, { passive: false });
 })();
 
-// ── FIX VIEWPORT HEIGHT (iOS/Android al volver de WhatsApp) ────
+// ── FIX VIEWPORT HEIGHT (iOS Safari / Android) ─────────────────
 function setVH() {
-  const vh = window.innerHeight * 0.01;
-  document.documentElement.style.setProperty('--vh', vh + 'px');
+  // Usa visualViewport si está disponible (más preciso en iOS)
+  const h = (window.visualViewport ? window.visualViewport.height : window.innerHeight);
+  document.documentElement.style.setProperty('--vh', (h * 0.01) + 'px');
+  // Fuerza el app a la altura correcta
+  const app = document.querySelector('.app');
+  if (app) app.style.height = h + 'px';
 }
+
+// Ejecutar inmediatamente y en cada cambio de tamaño
 setVH();
 window.addEventListener('resize', setVH);
+if (window.visualViewport) {
+  window.visualViewport.addEventListener('resize', setVH);
+  window.visualViewport.addEventListener('scroll', setVH);
+}
 
-// Cuando el usuario vuelve de WhatsApp u otra app
+// Al volver de WhatsApp u otra app
 document.addEventListener('visibilitychange', function() {
   if (document.visibilityState === 'visible') {
-    // Pequeño delay para que el browser termine de recalcular el viewport
-    setTimeout(setVH, 100);
-    setTimeout(setVH, 300);
+    setVH();
+    setTimeout(setVH, 150);
+    setTimeout(setVH, 400);
   }
 });
 
-// Fix adicional para iOS: el teclado virtual puede dejar el scroll corrido
+// Cuando se cierra el teclado virtual
 window.addEventListener('focusout', function() {
-  setTimeout(function() {
-    window.scrollTo(0, 0);
-    setVH();
-  }, 100);
+  setTimeout(setVH, 150);
+});
+
+// Al cargar la página completamente
+window.addEventListener('load', function() {
+  setVH();
+  setTimeout(setVH, 200);
 });
 
 </script>
