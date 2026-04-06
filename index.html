@@ -884,6 +884,7 @@ async function saveOrderToSheets(payload) {
   try {
     // GET con parámetros en URL — evita CORS preflight 100%
     const params = new URLSearchParams({
+      pedidoId:       payload.pedidoId,
       fechaHora:      payload.fechaHora,
       vendedor:       payload.vendedor,
       cliente:        payload.cliente,
@@ -1026,12 +1027,9 @@ renderVend();renderNav();renderBody();updateBar();
 
 // ── FIX VIEWPORT HEIGHT (iOS Safari / Android) ─────────────────
 function setVH() {
-  // Usa visualViewport si está disponible (más preciso en iOS)
+  // Usa visualViewport si está disponible (más preciso en iOS Safari)
   const h = (window.visualViewport ? window.visualViewport.height : window.innerHeight);
   document.documentElement.style.setProperty('--vh', (h * 0.01) + 'px');
-  // Fuerza el app a la altura correcta
-  const app = document.querySelector('.app');
-  if (app) app.style.height = h + 'px';
 }
 
 // Ejecutar inmediatamente y en cada cambio de tamaño
