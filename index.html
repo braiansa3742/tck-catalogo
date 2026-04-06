@@ -625,7 +625,7 @@ function renderDrawer(){
     const q=qty[si+'-'+ii]||0;
     if(q>0) html+='<div class="ci">'
       +'<img class="ci-img" src="img/'+encodeURIComponent(_imgmap[it.n]||it.n+'.jpg').replace(/%25/g,'%').replace(/%2F/g,'/')+'" alt="" loading="lazy" decoding="async">'
-      +'<div class="ci-inf"><div class="ci-n">'+it.n+'</div><div class="ci-q">'+qtyLabel(s,it,q)+' x '+fmt(it.pr)+(it.p?(' &middot; '+presLabel(s,it,q)):'')+'</div></div>'
+      +'<div class="ci-inf"><div class="ci-n">'+it.n+'</div><div class="ci-q">'+qtyLabel(s,it,q)+' x '+fmt(it.pr)+(it.p?(' · '+presLabel(s,it,q)):'')+'</div></div>'
       +'<div class="ci-p">'+fmt(it.pr*q)+'</div>'
       +'<button class="ci-rm" onclick="chg(\''+(si+'-'+ii)+'\','+si+','+ii+',-'+q+')">&#x2715;</button></div>';
   }));
@@ -882,13 +882,14 @@ const SHEETS_ENDPOINT = 'https://script.google.com/macros/s/AKfycbyIircLCWHSuJuy
 
 async function saveOrderToSheets(payload) {
   try {
-    const res = await fetch(SHEETS_ENDPOINT, {
+    await fetch(SHEETS_ENDPOINT, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(payload),
+      keepalive: true
     });
-    const data = await res.json();
-    console.log('[TCK Sheets] Pedido guardado:', data);
+    console.log('[TCK Sheets] Pedido enviado (no-cors)');
   } catch(e) {
     console.error('[TCK Sheets] Error al guardar pedido:', e);
   }
