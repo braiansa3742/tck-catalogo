@@ -25,7 +25,7 @@ color-scheme: only light;
   --border: rgba(139,0,0,.15);
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: 'Barlow', sans-serif; background: var(--cream); color: var(--text); min-height: 100vh; }
+body { font-family: 'Barlow', sans-serif; background: #FFF8F0 !important; color: #1A0800 !important; min-height: 100vh; }
 .hdr { background: var(--red); padding: 14px 20px; padding-top: max(14px, env(safe-area-inset-top)); display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 12px rgba(0,0,0,.3); }
 .hdr-logo { font-family: 'Barlow Condensed', sans-serif; font-size: 22px; font-weight: 900; color: var(--gold); letter-spacing: 1px; }
 .hdr-sub { font-size: 11px; color: rgba(255,215,0,.7); letter-spacing: 1px; text-transform: uppercase; }
@@ -136,6 +136,26 @@ body { font-family: 'Barlow', sans-serif; background: var(--cream); color: var(-
   input[type="date"] { background: #2A1F18 !important; color: var(--text) !important; }
   .bienvenida { background: linear-gradient(135deg, #6B0000 0%, #8B0000 100%) !important; }
 }
+
+
+/* ── FORZAR MODO CLARO SIEMPRE ── */
+html, body,
+.login-wrap, .login-box, .panel,
+.stat-card, .pedido-card, .pedido-body,
+.pedido-productos, .buscador, .nota-input,
+.pin-key, .filtro-btn, .btn-refresh {
+  background-color: revert !important;
+  color: revert !important;
+}
+html { background: #FFF8F0 !important; }
+body { background: #FFF8F0 !important; color: #1A0800 !important; }
+.login-box { background: #ffffff !important; }
+.stat-card { background: #ffffff !important; }
+.pedido-card { background: #ffffff !important; }
+.pedido-body { background: #FFF8F0 !important; }
+.buscador, .nota-input, .pin-key { background: #ffffff !important; color: #1A0800 !important; }
+.filtro-btn { background: #ffffff !important; color: #5C3A1E !important; }
+.btn-refresh { background: #ffffff !important; color: #5C3A1E !important; }
 
 </style>
 </head>
@@ -939,9 +959,15 @@ function _iosPedInst() {
 }
 
 // ── SERVICE WORKER ────────────────────────────────────────────────
+// Desregistrar SW y borrar caché para forzar carga fresca
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load', function() {
-    navigator.serviceWorker.register('/sw.js').catch(function(){});
+  navigator.serviceWorker.getRegistrations().then(function(regs) {
+    regs.forEach(function(r){ r.unregister(); });
+  });
+}
+if (window.caches) {
+  caches.keys().then(function(keys){
+    keys.forEach(function(k){ caches.delete(k); });
   });
 }
 </script>
