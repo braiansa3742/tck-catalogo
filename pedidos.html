@@ -956,29 +956,31 @@ body {
 }
 .export-opcion {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 14px;
-  padding: 13px 14px;
+  padding: 14px 14px 13px;
   border-radius: 14px;
   border: 1.5px solid var(--cream3);
   background: #fff;
   margin-bottom: 8px;
   cursor: pointer;
-  transition: border-color .14s, background .14s;
+  transition: border-color .14s, background .14s, transform .1s;
   width: 100%;
   text-align: left;
   -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
 }
-.export-opcion:active { background: var(--cream2); border-color: var(--red); }
+.export-opcion:active { background: var(--cream2); border-color: var(--red); transform: scale(.99); }
 .export-opcion-icon {
-  font-size: 22px;
+  font-size: 24px;
   flex-shrink: 0;
-  width: 40px;
-  height: 40px;
-  border-radius: 10px;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
+  margin-top: 1px;
 }
 .icon-bg-green  { background: var(--green3); }
 .icon-bg-blue   { background: var(--blue2); }
@@ -987,21 +989,32 @@ body {
 .export-opcion-info { flex: 1; min-width: 0; }
 .export-opcion-title {
   font-family: 'Barlow Condensed', sans-serif;
-  font-size: 17px;
-  font-weight: 800;
+  font-size: 18px;
+  font-weight: 900;
   color: var(--text);
   line-height: 1.1;
+  letter-spacing: .2px;
+}
+.export-opcion-para {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .6px;
+  margin-bottom: 3px;
+  font-family: 'Barlow Condensed', sans-serif;
 }
 .export-opcion-desc {
   font-size: 12px;
   color: var(--text3);
-  margin-top: 2px;
-  line-height: 1.3;
+  margin-top: 3px;
+  line-height: 1.4;
 }
 .export-opcion-arrow {
-  font-size: 18px;
+  font-size: 20px;
   color: var(--cream3);
   flex-shrink: 0;
+  align-self: center;
+  margin-left: 4px;
 }
 .export-cancelar {
   display: block;
@@ -1016,6 +1029,7 @@ body {
   cursor: pointer;
   letter-spacing: .3px;
   text-align: center;
+  touch-action: manipulation;
 }
 
 .toast {
@@ -1299,34 +1313,37 @@ input[type="date"] {
   <div class="export-sheet" id="export-sheet">
     <div class="export-pill"></div>
     <div class="export-hdr">
-      <div class="export-hdr-title">📤 Enviar por WhatsApp</div>
-      <div class="export-hdr-sub" id="export-hdr-sub">¿Qué querés exportar?</div>
+      <div class="export-hdr-title">📲 Compartir por WhatsApp</div>
+      <div class="export-hdr-sub" id="export-hdr-sub">Elegí qué querés mandar</div>
     </div>
     <div class="export-opciones">
 
       <button class="export-opcion" onclick="ejecutarExport('ejecutivo')">
         <div class="export-opcion-icon icon-bg-green">📊</div>
         <div class="export-opcion-info">
-          <div class="export-opcion-title">Resumen ejecutivo</div>
-          <div class="export-opcion-desc">Solo totales: pedidos, monto y estados. Mensaje corto.</div>
+          <div class="export-opcion-para" style="color:var(--green2);">Para el grupo o el dueño</div>
+          <div class="export-opcion-title">Cómo va el día</div>
+          <div class="export-opcion-desc">Totales del día: cuántos pedidos, el monto y cuántos están pendientes. Mensaje corto.</div>
         </div>
         <div class="export-opcion-arrow">›</div>
       </button>
 
       <button class="export-opcion" onclick="ejecutarExport('lista')">
-        <div class="export-opcion-icon icon-bg-blue">📋</div>
+        <div class="export-opcion-icon icon-bg-blue">👥</div>
         <div class="export-opcion-info">
-          <div class="export-opcion-title">Lista de pedidos</div>
-          <div class="export-opcion-desc">Cada cliente con hora, localidad y total. Sin productos.</div>
+          <div class="export-opcion-para" style="color:var(--blue);">Para coordinar visitas</div>
+          <div class="export-opcion-title">Quién compró y a qué hora</div>
+          <div class="export-opcion-desc">Lista de clientes con horario, localidad y total. Sin el detalle de productos.</div>
         </div>
         <div class="export-opcion-arrow">›</div>
       </button>
 
       <button class="export-opcion" onclick="ejecutarExport('detalle')">
-        <div class="export-opcion-icon icon-bg-orange">🛒</div>
+        <div class="export-opcion-icon icon-bg-orange">🧾</div>
         <div class="export-opcion-info">
-          <div class="export-opcion-title">Pedidos con productos</div>
-          <div class="export-opcion-desc">Lista completa con los productos de cada pedido.</div>
+          <div class="export-opcion-para" style="color:var(--orange);">Para confirmar con el cliente</div>
+          <div class="export-opcion-title">Pedido completo con productos</div>
+          <div class="export-opcion-desc">Cada cliente con todos sus productos, cantidades y el total. Para mandar a depósito o confirmar con el comprador.</div>
         </div>
         <div class="export-opcion-arrow">›</div>
       </button>
@@ -1334,8 +1351,9 @@ input[type="date"] {
       <button class="export-opcion" id="export-camion-btn" onclick="ejecutarExport('camion')">
         <div class="export-opcion-icon icon-bg-red">🚚</div>
         <div class="export-opcion-info">
-          <div class="export-opcion-title">Preparar camión</div>
-          <div class="export-opcion-desc">Totales por producto: cuántas cajas de cada cosa. Sin nombres.</div>
+          <div class="export-opcion-para" style="color:#C62828;">Para armar el camión</div>
+          <div class="export-opcion-title">Qué hay que cargar hoy</div>
+          <div class="export-opcion-desc">Cuántas cajas de cada producto en total. Sin nombres de clientes. Para el depósito o el chofer.</div>
         </div>
         <div class="export-opcion-arrow">›</div>
       </button>
@@ -1917,7 +1935,8 @@ function abrirExport() {
   else if (filtroFecha === 'ayer') filtroLabel = 'Ayer' + filtroLabel;
   else if (filtroFecha === 'semana') filtroLabel = 'Esta semana' + filtroLabel;
   var sub = document.getElementById('export-hdr-sub');
-  if (sub) sub.textContent = activos.length + ' pedidos · $' + activos.reduce(function(a,p){ return a+(parseInt((p.total||'').replace(/[^\d]/g,''))||0); },0).toLocaleString('es-AR') + (filtroLabel ? ' (' + filtroLabel + ')' : '');
+  var montoActivos = activos.reduce(function(a,p){ return a+(parseInt((p.total||'').replace(/[^\d]/g,''))||0); },0);
+  if (sub) sub.textContent = activos.length + ' pedidos · $' + montoActivos.toLocaleString('es-AR') + (filtroLabel ? ' · ' + filtroLabel : '');
 
   // Mostrar/ocultar opción camión según si es admin o tiene filtro todos
   var camionBtn = document.getElementById('export-camion-btn');
