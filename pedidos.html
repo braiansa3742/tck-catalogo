@@ -459,58 +459,134 @@ body {
 .mi-dia-body.on { display: block; }
 
 .mi-dia-seccion {
-  margin-bottom: 14px;
+  margin-bottom: 18px;
 }
 .mi-dia-seccion-title {
   font-family: 'Barlow Condensed', sans-serif;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
   color: var(--text3);
   text-transform: uppercase;
   letter-spacing: .8px;
-  margin-bottom: 6px;
+  margin-bottom: 8px;
+  padding-bottom: 5px;
+  border-bottom: 1.5px solid var(--cream2);
 }
+/* Mini stat cards (monto + ticket) */
+.mi-dia-mini-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+.mi-dia-mini-card {
+  background: var(--cream2);
+  border-radius: 10px;
+  padding: 10px 12px;
+  text-align: center;
+}
+.mi-dia-mini-label {
+  font-size: 10px;
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: .6px;
+  font-weight: 600;
+  font-family: 'Barlow Condensed', sans-serif;
+  margin-bottom: 4px;
+}
+.mi-dia-mini-val {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 20px;
+  font-weight: 900;
+  color: var(--red);
+  line-height: 1;
+}
+.mi-dia-mini-val.naranja { color: var(--orange); }
+/* Estado chips */
+.mi-dia-estado-chips {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 4px;
+}
+.mi-dia-chip {
+  flex: 1;
+  min-width: 70px;
+  text-align: center;
+  border-radius: 10px;
+  padding: 8px 6px;
+  font-family: 'Barlow Condensed', sans-serif;
+}
+.mi-dia-chip-num {
+  font-size: 22px;
+  font-weight: 900;
+  line-height: 1;
+}
+.mi-dia-chip-lbl {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .4px;
+  margin-top: 2px;
+}
+.chip-pend  { background: var(--orange2); color: var(--orange); }
+.chip-conf  { background: var(--green3);  color: var(--green2); }
+.chip-entr  { background: var(--blue2);   color: var(--blue);   }
+/* Ranking items */
 .ranking-item {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 5px 0;
+  padding: 7px 0;
   border-bottom: 1px solid var(--cream2);
-  gap: 8px;
+  gap: 10px;
 }
 .ranking-item:last-child { border-bottom: none; }
+.ranking-pos {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 13px;
+  font-weight: 900;
+  color: var(--text3);
+  width: 16px;
+  flex-shrink: 0;
+  text-align: center;
+}
 .ranking-nombre {
   font-family: 'Barlow Condensed', sans-serif;
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 700;
   color: var(--text);
   flex: 1;
   min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  white-space: normal;
+  word-break: break-word;
+  line-height: 1.2;
 }
-.ranking-cantidad {
-  font-family: 'Barlow Condensed', sans-serif;
-  font-size: 14px;
-  font-weight: 700;
-  color: var(--text2);
+.ranking-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
   flex-shrink: 0;
-  min-width: 60px;
-  text-align: right;
 }
 .ranking-bar-wrap {
-  width: 70px;
-  height: 5px;
+  width: 60px;
+  height: 4px;
   background: var(--cream2);
-  border-radius: 3px;
-  flex-shrink: 0;
+  border-radius: 2px;
   overflow: hidden;
 }
 .ranking-bar {
   height: 100%;
   background: linear-gradient(90deg, var(--red), var(--gold2));
-  border-radius: 3px;
+  border-radius: 2px;
+}
+.ranking-cantidad {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text2);
+  text-align: right;
+  white-space: nowrap;
 }
 .mi-dia-total-row {
   display: flex;
@@ -1152,12 +1228,7 @@ async function cargarPedidos(silencioso) {
         fila:      i + 1
       });
     }
-    pedidos.sort(function(a, b) {
-      var da = new Date((a.fechaHora||'').replace(' ','T'));
-      var db = new Date((b.fechaHora||'').replace(' ','T'));
-      if (!isNaN(db) && !isNaN(da)) return db - da;
-      return (b.fechaHora||'').localeCompare(a.fechaHora||'');
-    });
+    sortPedidos(pedidos);
 
     // Actualizar timestamp de última carga
     var ahoraEl = document.getElementById('ultima-actualizacion');
@@ -1300,6 +1371,23 @@ function fechaPedido(p) {
   return isNaN(d.getTime()) ? new Date() : d;
 }
 
+function sortPedidos(lista) {
+  return lista.sort(function(a, b) {
+    // Primary: extract YYYYMMDDHHMM from pedidoId (always reliable)
+    var ma = (a.pedidoId||'').match(/TCK-(\d{8})-(\d{4})/);
+    var mb = (b.pedidoId||'').match(/TCK-(\d{8})-(\d{4})/);
+    if (ma && mb) {
+      var ka = ma[1] + ma[2];  // "202604071747"
+      var kb = mb[1] + mb[2];  // "202604070852"
+      if (ka !== kb) return kb > ka ? 1 : -1;  // descending
+    }
+    // Fallback: fechaHora string compare (YYYY-MM-DD HH:MM:SS)
+    var fa = (a.fechaHora||'');
+    var fb = (b.fechaHora||'');
+    return fb > fa ? 1 : fb < fa ? -1 : 0;
+  });
+}
+
 function pedidosFiltrados() {
   var lista = pedidosVisibles();
   var q = document.getElementById('buscador').value.toLowerCase();
@@ -1331,13 +1419,7 @@ function pedidosFiltrados() {
            p.localidad.toLowerCase().includes(q) || p.pedidoId.toLowerCase().includes(q);
   });
   // Siempre devolver ordenado por fecha descendente
-  lista.sort(function(a, b) {
-    var da = new Date((a.fechaHora||'').replace(' ','T'));
-    var db = new Date((b.fechaHora||'').replace(' ','T'));
-    if (!isNaN(db) && !isNaN(da)) return db - da;
-    return (b.fechaHora||'').localeCompare(a.fechaHora||'');
-  });
-  return lista;
+  return sortPedidos(lista);
 }
 
 // ── RENDER ────────────────────────────────────────────────────────
@@ -1499,6 +1581,16 @@ function exportarResumen() {
     if (p.comercio) nombre += ' (' + p.comercio + ')';
     var linea = ic + ' ' + nombre + '\n';
     linea += '     🕐 ' + (hora||'—') + '  📍 ' + p.localidad + '  💰 ' + fmtTotal(p.total) + '\n';
+    // Agregar productos si están disponibles
+    if (p.detalle) {
+      var prods = parseProds(p.detalle);
+      if (prods.length) {
+        prods.forEach(function(pr) {
+          linea += '     ' + (pr.emoji || '•') + ' ' + pr.name + ' ×' + pr.qty + '\n';
+        });
+      }
+    }
+    linea += '\n';
     return linea;
   }
 
@@ -1658,40 +1750,59 @@ function renderMiDia() {
 
   var html = '';
 
-  html += '<div class="mi-dia-seccion">';
-  html += '<div class="mi-dia-seccion-title">📋 Estado del día</div>';
-  html += '<div class="mi-dia-total-row"><span class="mi-dia-total-label">Total pedidos</span><span class="mi-dia-total-val">' + activos.length + '</span></div>';
-  html += '<div class="mi-dia-total-row"><span class="mi-dia-total-label">Monto total</span><span class="mi-dia-total-val">$' + totalMonto.toLocaleString('es-AR') + '</span></div>';
-  html += '<div class="mi-dia-total-row"><span class="mi-dia-total-label">Ticket promedio</span><span class="mi-dia-total-val naranja">$' + ticket.toLocaleString('es-AR') + '</span></div>';
-  html += '<div class="mi-dia-total-row"><span class="mi-dia-total-label">⏳ Pendientes</span><span class="mi-dia-total-val naranja">' + pend + '</span></div>';
-  html += '<div class="mi-dia-total-row"><span class="mi-dia-total-label">✅ Confirmados</span><span class="mi-dia-total-val verde">' + conf + '</span></div>';
-  html += '<div class="mi-dia-total-row"><span class="mi-dia-total-label">📦 Entregados</span><span class="mi-dia-total-val" style="color:var(--blue)">' + entr + '</span></div>';
+  // ── Monto + Ticket como mini cards ──────────────────────────────
+  html += '<div class="mi-dia-mini-stats">';
+  html += '<div class="mi-dia-mini-card"><div class="mi-dia-mini-label">💰 Facturado</div><div class="mi-dia-mini-val">$' + totalMonto.toLocaleString('es-AR') + '</div></div>';
+  html += '<div class="mi-dia-mini-card"><div class="mi-dia-mini-label">🎯 Ticket prom.</div><div class="mi-dia-mini-val naranja">$' + ticket.toLocaleString('es-AR') + '</div></div>';
   html += '</div>';
 
+  // ── Estado chips ─────────────────────────────────────────────────
+  html += '<div class="mi-dia-seccion">';
+  html += '<div class="mi-dia-seccion-title">Estado de los ' + activos.length + ' pedidos</div>';
+  html += '<div class="mi-dia-estado-chips">';
+  html += '<div class="mi-dia-chip chip-pend"><div class="mi-dia-chip-num">' + pend + '</div><div class="mi-dia-chip-lbl">⏳ Pendientes</div></div>';
+  html += '<div class="mi-dia-chip chip-conf"><div class="mi-dia-chip-num">' + conf + '</div><div class="mi-dia-chip-lbl">✅ Confirmados</div></div>';
+  html += '<div class="mi-dia-chip chip-entr"><div class="mi-dia-chip-num">' + entr + '</div><div class="mi-dia-chip-lbl">📦 Entregados</div></div>';
+  html += '</div>';
+  html += '</div>';
+
+  // ── Ranking de productos ─────────────────────────────────────────
   if (ranking.length) {
     html += '<div class="mi-dia-seccion">';
-    html += '<div class="mi-dia-seccion-title">🏆 Productos más pedidos hoy</div>';
-    ranking.slice(0, 8).forEach(function(pr) {
+    html += '<div class="mi-dia-seccion-title">🏆 Productos pedidos hoy</div>';
+    ranking.slice(0, 8).forEach(function(pr, i) {
       var pct = Math.round((pr.total / maxQty) * 100);
+      var medalPos = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : (i+1) + '.';
+      // Label: "×7 en 7 pedidos" or "×1 en 1 pedido"
+      var pedLabel = pr.pedidos === 1 ? '1 pedido' : pr.pedidos + ' pedidos';
+      var cantLabel = '×' + pr.total + ' en ' + pedLabel;
       html += '<div class="ranking-item">';
+      html += '<div class="ranking-pos">' + medalPos + '</div>';
       html += '<div class="ranking-nombre">' + (pr.emoji ? pr.emoji + ' ' : '') + pr.name + '</div>';
+      html += '<div class="ranking-right">';
       html += '<div class="ranking-bar-wrap"><div class="ranking-bar" style="width:' + pct + '%"></div></div>';
-      html += '<div class="ranking-cantidad">' + pr.total + ' uds · ' + pr.pedidos + ' ped</div>';
+      html += '<div class="ranking-cantidad">' + cantLabel + '</div>';
+      html += '</div>';
       html += '</div>';
     });
     html += '</div>';
   }
 
+  // ── Localidades ──────────────────────────────────────────────────
   if (locs.length) {
     html += '<div class="mi-dia-seccion">';
-    html += '<div class="mi-dia-seccion-title">📍 Localidades del día</div>';
+    html += '<div class="mi-dia-seccion-title">📍 Localidades</div>';
     locs.forEach(function(entry) {
       var loc = entry[0], data = entry[1];
       var pct = Math.round((data.pedidos / maxLoc) * 100);
+      var pedLabel = data.pedidos === 1 ? '1 pedido' : data.pedidos + ' pedidos';
       html += '<div class="ranking-item">';
+      html += '<div class="ranking-pos"></div>';
       html += '<div class="ranking-nombre">' + loc + '</div>';
+      html += '<div class="ranking-right">';
       html += '<div class="ranking-bar-wrap"><div class="ranking-bar" style="width:' + pct + '%"></div></div>';
-      html += '<div class="ranking-cantidad">' + data.pedidos + ' ped · $' + Math.round(data.monto/1000) + 'K</div>';
+      html += '<div class="ranking-cantidad">' + pedLabel + ' · $' + data.monto.toLocaleString('es-AR') + '</div>';
+      html += '</div>';
       html += '</div>';
     });
     html += '</div>';
