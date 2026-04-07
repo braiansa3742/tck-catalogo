@@ -255,7 +255,9 @@ body {
   transition: box-shadow .15s;
 }
 .pedido-card:hover { box-shadow: 0 2px 12px rgba(139,0,0,.08); }
-.pedido-card.duplicado { border-color: #E65100; border-width: 2px; }
+.pedido-card.duplicado { border-color: #E65100; border-width: 2.5px; background: #FFFBF0; }
+.pedido-card.duplicado .pedido-cliente { color: #E65100; }
+.pedido-card.duplicado .pedido-head { background: #FFF8F0; }
 
 .pedido-head {
   padding: 12px 16px;
@@ -325,7 +327,8 @@ body {
 .badge-confirmado { background: var(--green3); color: var(--green2); }
 .badge-entregado { background: var(--blue2); color: var(--blue); }
 .badge-cancelado { background: #FFEBEE; color: #C62828; }
-.badge-duplicado { background: #FFF3E0; color: #E65100; }
+.badge-duplicado { background: #E65100; color: #fff; font-size:12px; animation: pulse 1.5s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.7} }
 
 /* ── DETALLE EXPANDIDO ── */
 .pedido-body {
@@ -523,19 +526,19 @@ body {
     <div class="login-sub" id="login-sub">Seleccioná tu nombre</div>
 
     <div id="paso1">
-      <button class="login-btn" onclick="seleccionarVendedor('Miguel','M','#8B0000')">
+      <button class="login-btn" onclick="seleccionarVendedor('Miguel','M','#8B0000',event)" ontouchend="seleccionarVendedor('Miguel','M','#8B0000',event)">
         <div class="login-av">M</div>
         <div class="login-btn-name">Miguel Martínez<div class="login-btn-role">Vendedor</div></div>
       </button>
-      <button class="login-btn" onclick="seleccionarVendedor('Juan','J','#8B0000')">
+      <button class="login-btn" onclick="seleccionarVendedor('Juan','J','#8B0000',event)" ontouchend="seleccionarVendedor('Juan','J','#8B0000',event)">
         <div class="login-av">J</div>
         <div class="login-btn-name">Juan Cruz<div class="login-btn-role">Vendedor</div></div>
       </button>
-      <button class="login-btn" onclick="seleccionarVendedor('Lisandro','L','#5C3A1E')">
+      <button class="login-btn" onclick="seleccionarVendedor('Lisandro','L','#5C3A1E',event)" ontouchend="seleccionarVendedor('Lisandro','L','#5C3A1E',event)">
         <div class="login-av" style="background:var(--text2);">L</div>
         <div class="login-btn-name">Lisandro<div class="login-btn-role">Vendedor</div></div>
       </button>
-      <button class="login-btn" onclick="seleccionarVendedor('ADMIN','A','#B8860B')" style="margin-top:8px;border-color:var(--gold);background:var(--cream2);">
+      <button class="login-btn" onclick="seleccionarVendedor('ADMIN','A','#B8860B',event)" ontouchend="seleccionarVendedor('ADMIN','A','#B8860B',event)" style="margin-top:8px;border-color:var(--gold);background:var(--cream2);">
         <div class="login-av" style="background:var(--gold);color:var(--text);">A</div>
         <div class="login-btn-name">Administración<div class="login-btn-role">Ver todos los pedidos</div></div>
       </button>
@@ -555,18 +558,18 @@ body {
       </div>
       <div id="pin-error" style="color:#C62828;font-size:13px;text-align:center;margin-bottom:12px;min-height:18px;"></div>
       <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">
-        <button class="pin-key" onclick="pinPress('1')">1</button>
-        <button class="pin-key" onclick="pinPress('2')">2</button>
-        <button class="pin-key" onclick="pinPress('3')">3</button>
-        <button class="pin-key" onclick="pinPress('4')">4</button>
-        <button class="pin-key" onclick="pinPress('5')">5</button>
-        <button class="pin-key" onclick="pinPress('6')">6</button>
-        <button class="pin-key" onclick="pinPress('7')">7</button>
-        <button class="pin-key" onclick="pinPress('8')">8</button>
-        <button class="pin-key" onclick="pinPress('9')">9</button>
-        <button class="pin-key pin-back" onclick="pinVolver()">← Volver</button>
-        <button class="pin-key" onclick="pinPress('0')">0</button>
-        <button class="pin-key pin-del" onclick="pinBorrar()">⌫</button>
+        <button class="pin-key" onclick=\"pinPress('1',event)\" ontouchend=\"pinPress('1',event)\">1</button>
+        <button class="pin-key" onclick=\"pinPress('2',event)\" ontouchend=\"pinPress('2',event)\">2</button>
+        <button class="pin-key" onclick=\"pinPress('3',event)\" ontouchend=\"pinPress('3',event)\">3</button>
+        <button class="pin-key" onclick=\"pinPress('4',event)\" ontouchend=\"pinPress('4',event)\">4</button>
+        <button class="pin-key" onclick=\"pinPress('5',event)\" ontouchend=\"pinPress('5',event)\">5</button>
+        <button class="pin-key" onclick=\"pinPress('6',event)\" ontouchend=\"pinPress('6',event)\">6</button>
+        <button class="pin-key" onclick=\"pinPress('7',event)\" ontouchend=\"pinPress('7',event)\">7</button>
+        <button class="pin-key" onclick=\"pinPress('8',event)\" ontouchend=\"pinPress('8',event)\">8</button>
+        <button class="pin-key" onclick=\"pinPress('9',event)\" ontouchend=\"pinPress('9',event)\">9</button>
+        <button class="pin-key pin-back" onclick="pinVolver()" ontouchend="pinVolver()">← Volver</button>
+        <button class="pin-key" onclick=\"pinPress('0',event)\" ontouchend=\"pinPress('0',event)\">0</button>
+        <button class="pin-key pin-del" onclick="pinBorrar()" ontouchend="pinBorrar()">⌫</button>
       </div>
     </div>
   </div>
@@ -811,7 +814,8 @@ const PINS = {
 let pinVendedorTemp = null;
 let pinActual = '';
 
-function seleccionarVendedor(nombre, inicial, color) {
+function seleccionarVendedor(nombre, inicial, color, e) {
+  if (e) { e.preventDefault(); e.stopPropagation(); }
   pinVendedorTemp = nombre;
   pinActual = '';
   document.getElementById('paso1').style.display = 'none';
@@ -824,7 +828,8 @@ function seleccionarVendedor(nombre, inicial, color) {
   actualizarDots();
 }
 
-function pinPress(n) {
+function pinPress(n, e) {
+  if (e) { e.preventDefault(); e.stopPropagation(); }
   if (pinActual.length >= 4) return;
   pinActual += n;
   actualizarDots();
