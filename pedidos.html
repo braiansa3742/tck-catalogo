@@ -1310,5 +1310,111 @@ function toast(msg, tipo) {
 }
 </script>
 
+
+<script>
+(function() {
+  var _prompt = null;
+
+  window.addEventListener('beforeinstallprompt', function(e) {
+    e.preventDefault();
+    _prompt = e;
+    setTimeout(function() {
+      if (_prompt) _showPedBanner();
+    }, 4000);
+  });
+
+  window.addEventListener('appinstalled', function() {
+    _prompt = null;
+    _hidePedBanner();
+  });
+
+  function _showPedBanner() {
+    if (window.matchMedia('(display-mode: standalone)').matches) return;
+    try { if (localStorage.getItem('tck_ped_no_inst')) return; } catch(e) {}
+    if (document.getElementById('_ped_inst')) return;
+
+    var b = document.createElement('div');
+    b.id = '_ped_inst';
+    b.style.cssText = [
+      'position:fixed',
+      'top:0',
+      'left:0',
+      'right:0',
+      'z-index:9999',
+      'transform:translateY(-100%)',
+      'transition:transform .4s cubic-bezier(.34,1.56,.64,1)'
+    ].join(';');
+
+    b.innerHTML = '<div style="background:linear-gradient(135deg,#1A0800,#8B0000);' +
+      'border-bottom:2px solid #FFD700;padding:10px 16px;' +
+      'display:flex;align-items:center;gap:10px;box-shadow:0 4px 16px rgba(0,0,0,.4);">' +
+      '<img src="/img/logo.png" style="width:32px;height:32px;border-radius:8px;' +
+      'border:1.5px solid #FFD700;object-fit:cover;flex-shrink:0;" id="_ped_logo">' +
+      '<div style="flex:1;min-width:0;">' +
+        '<div style="font-family:Barlow Condensed,sans-serif;font-size:14px;' +
+        'font-weight:900;color:#FFD700;letter-spacing:.5px;">Instalá TCK Pedidos</div>' +
+        '<div style="font-size:11px;color:rgba(255,255,255,.7);">Acceso rápido desde tu pantalla de inicio</div>' +
+      '</div>' +
+      '<button id="_ped_inst_btn" style="background:#FFD700;color:#1A0800;border:none;' +
+      'border-radius:8px;padding:7px 14px;font-family:Barlow Condensed,sans-serif;' +
+      'font-size:14px;font-weight:900;cursor:pointer;flex-shrink:0;' +
+      'touch-action:manipulation;">Instalar</button>' +
+      '<button id="_ped_inst_x" style="background:rgba(255,255,255,.1);color:rgba(255,255,255,.6);' +
+      'border:none;border-radius:6px;padding:7px 10px;font-size:14px;cursor:pointer;' +
+      'flex-shrink:0;touch-action:manipulation;">✕</button>' +
+    '</div>';
+
+    document.body.appendChild(b);
+    setTimeout(function() { b.style.transform = 'translateY(0)'; }, 50);
+
+    document.getElementById('_ped_inst_btn').addEventListener('click', function() {
+      if (_prompt) {
+        _prompt.prompt();
+        _prompt.userChoice.then(function() { _prompt = null; });
+      } else {
+        _showPedIOS();
+      }
+      _hidePedBanner();
+    });
+
+    document.getElementById('_ped_inst_x').addEventListener('click', function() {
+      _hidePedBanner();
+      try { localStorage.setItem('tck_ped_no_inst', '1'); } catch(e) {}
+    });
+  }
+
+  function _hidePedBanner() {
+    var b = document.getElementById('_ped_inst');
+    if (!b) return;
+    b.style.transform = 'translateY(-100%)';
+    setTimeout(function() { if (b.parentNode) b.parentNode.removeChild(b); }, 400);
+  }
+
+  function _showPedIOS() {
+    var m = document.createElement('div');
+    m.style.cssText = 'position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,.7);display:flex;align-items:flex-end;';
+    m.innerHTML = '<div style="background:#fff;width:100%;border-radius:20px 20px 0 0;padding:28px 24px;">' +
+      '<div style="font-family:Barlow Condensed,sans-serif;font-size:22px;font-weight:900;color:#8B0000;margin-bottom:4px;">🐔 TCK Pedidos</div>' +
+      '<div style="font-size:13px;color:#888;margin-bottom:20px;">Instalalo en tu pantalla de inicio</div>' +
+      '<div style="font-size:14px;color:#333;line-height:2.2;">' +
+        '<div>1️⃣ Tocá <strong>Compartir ⬆️</strong> en Safari</div>' +
+        '<div>2️⃣ Tocá <strong>"Agregar a pantalla de inicio"</strong></div>' +
+        '<div>3️⃣ Tocá <strong>Agregar</strong> — ¡listo!</div>' +
+      '</div>' +
+      '<button id="_ped_ios_ok" style="width:100%;margin-top:20px;background:#8B0000;color:#fff;border:none;border-radius:12px;padding:14px;font-family:Barlow Condensed,sans-serif;font-size:16px;font-weight:700;cursor:pointer;">Entendido</button>' +
+    '</div>';
+    document.body.appendChild(m);
+    document.getElementById('_ped_ios_ok').addEventListener('click', function() {
+      if (m.parentNode) m.parentNode.removeChild(m);
+    });
+  }
+
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function() {
+      navigator.serviceWorker.register('/sw.js').catch(function() {});
+    });
+  }
+})();
+</script>
 </body>
 </html>
