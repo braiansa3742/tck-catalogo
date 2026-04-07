@@ -8,385 +8,77 @@
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;700;900&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 :root {
-  --red: #8B0000;
-  --red2: #B71C1C;
-  --gold: #FFD700;
-  --cream: #FFF8F0;
-  --cream2: #F5EDE0;
-  --text: #1A0800;
-  --text2: #5C3A1E;
-  --text3: #9C7050;
-  --green: #1B5E20;
-  --green2: #2E7D32;
-  --green3: #E8F5E9;
-  --orange: #E65100;
-  --orange2: #FFF3E0;
-  --blue: #0D47A1;
-  --blue2: #E3F2FD;
-  --gray: #F5F5F5;
+  --red: #8B0000; --red2: #B71C1C; --gold: #FFD700;
+  --cream: #FFF8F0; --cream2: #F5EDE0;
+  --text: #1A0800; --text2: #5C3A1E; --text3: #9C7050;
+  --green: #1B5E20; --green2: #2E7D32; --green3: #E8F5E9;
+  --orange: #E65100; --orange2: #FFF3E0;
+  --blue: #0D47A1; --blue2: #E3F2FD;
   --border: rgba(139,0,0,.15);
 }
-
 * { box-sizing: border-box; margin: 0; padding: 0; }
-
-body {
-  font-family: 'Barlow', sans-serif;
-  background: var(--cream);
-  color: var(--text);
-  min-height: 100vh;
-}
-
-/* ── HEADER ── */
-.hdr {
-  background: var(--red);
-  padding: 14px 20px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  box-shadow: 0 2px 12px rgba(0,0,0,.3);
-}
-.hdr-logo {
-  font-family: 'Barlow Condensed', sans-serif;
-  font-size: 22px;
-  font-weight: 900;
-  color: var(--gold);
-  letter-spacing: 1px;
-}
-.hdr-sub {
-  font-size: 11px;
-  color: rgba(255,215,0,.7);
-  letter-spacing: 1px;
-  text-transform: uppercase;
-}
-.hdr-fecha {
-  font-family: 'Barlow Condensed', sans-serif;
-  font-size: 14px;
-  color: rgba(255,255,255,.8);
-  text-align: right;
-}
-
-/* ── LOGIN ── */
-.login-wrap {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: calc(100vh - 60px);
-  padding: 24px;
-}
-.login-box {
-  background: #fff;
-  border-radius: 18px;
-  padding: 36px 28px;
-  width: 100%;
-  max-width: 340px;
-  box-shadow: 0 4px 24px rgba(139,0,0,.12);
-  text-align: center;
-}
-.login-titulo {
-  font-family: 'Barlow Condensed', sans-serif;
-  font-size: 26px;
-  font-weight: 900;
-  color: var(--red);
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  margin-bottom: 6px;
-}
-.login-sub {
-  font-size: 13px;
-  color: var(--text2);
-  margin-bottom: 28px;
-}
-.login-btn {
-  -webkit-tap-highlight-color: transparent;
-  touch-action: manipulation;
-  width: 100%;
-  background: var(--cream2);
-  border: 2px solid var(--border);
-  border-radius: 12px;
-  padding: 14px 16px;
-  margin-bottom: 10px;
-  font-family: 'Barlow Condensed', sans-serif;
-  font-size: 18px;
-  font-weight: 700;
-  color: var(--text);
-  cursor: pointer;
-  transition: all .15s;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  letter-spacing: .3px;
-}
+body { font-family: 'Barlow', sans-serif; background: var(--cream); color: var(--text); min-height: 100vh; }
+.hdr { background: var(--red); padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 12px rgba(0,0,0,.3); }
+.hdr-logo { font-family: 'Barlow Condensed', sans-serif; font-size: 22px; font-weight: 900; color: var(--gold); letter-spacing: 1px; }
+.hdr-sub { font-size: 11px; color: rgba(255,215,0,.7); letter-spacing: 1px; text-transform: uppercase; }
+.hdr-fecha { font-family: 'Barlow Condensed', sans-serif; font-size: 14px; color: rgba(255,255,255,.8); text-align: right; }
+.login-wrap { display: flex; align-items: center; justify-content: center; min-height: calc(100vh - 60px); padding: 24px; }
+.login-box { background: #fff; border-radius: 18px; padding: 36px 28px; width: 100%; max-width: 340px; box-shadow: 0 4px 24px rgba(139,0,0,.12); text-align: center; }
+.login-titulo { font-family: 'Barlow Condensed', sans-serif; font-size: 26px; font-weight: 900; color: var(--red); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+.login-sub { font-size: 13px; color: var(--text2); margin-bottom: 28px; }
+.login-btn { width: 100%; background: var(--cream2); border: 2px solid var(--border); border-radius: 12px; padding: 14px 16px; margin-bottom: 10px; font-family: 'Barlow Condensed', sans-serif; font-size: 18px; font-weight: 700; color: var(--text); cursor: pointer; transition: all .15s; display: flex; align-items: center; gap: 12px; letter-spacing: .3px; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
 .login-btn:hover { background: var(--red); color: #fff; border-color: var(--red); }
-.login-btn:hover .login-av { background: rgba(255,255,255,.2); color: #fff; }
-.login-av {
-  width: 38px;
-  height: 38px;
-  border-radius: 50%;
-  background: var(--red);
-  color: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 16px;
-  font-weight: 900;
-  flex-shrink: 0;
-}
+.login-av { width: 38px; height: 38px; border-radius: 50%; background: var(--red); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 900; flex-shrink: 0; }
 .login-btn-name { flex: 1; text-align: left; }
 .login-btn-role { font-size: 11px; color: var(--text3); font-weight: 400; font-family: 'Barlow', sans-serif; }
-
-/* ── PANEL PRINCIPAL ── */
 .panel { display: none; padding: 16px; max-width: 900px; margin: 0 auto; }
 .panel.on { display: block; }
-
-/* ── BIENVENIDA ── */
-.bienvenida {
-  background: linear-gradient(135deg, var(--red) 0%, var(--red2) 100%);
-  border-radius: 14px;
-  padding: 16px 20px;
-  margin-bottom: 16px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-.bienvenida-nombre {
-  font-family: 'Barlow Condensed', sans-serif;
-  font-size: 22px;
-  font-weight: 900;
-  color: #fff;
-  letter-spacing: .5px;
-}
+.bienvenida { background: linear-gradient(135deg, var(--red) 0%, var(--red2) 100%); border-radius: 14px; padding: 16px 20px; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between; }
+.bienvenida-nombre { font-family: 'Barlow Condensed', sans-serif; font-size: 22px; font-weight: 900; color: #fff; }
 .bienvenida-sub { font-size: 12px; color: rgba(255,255,255,.75); margin-top: 2px; }
-.btn-salir {
-  background: rgba(255,255,255,.15);
-  border: 1px solid rgba(255,255,255,.3);
-  border-radius: 8px;
-  padding: 7px 14px;
-  color: #fff;
-  font-family: 'Barlow Condensed', sans-serif;
-  font-size: 13px;
-  font-weight: 700;
-  cursor: pointer;
-  letter-spacing: .3px;
-}
-
-/* ── STATS ── */
-.stats {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
-  margin-bottom: 16px;
-}
-.stat-card {
-  background: #fff;
-  border-radius: 12px;
-  padding: 14px 16px;
-  text-align: center;
-  border: 1.5px solid var(--border);
-}
-.stat-num {
-  font-family: 'Barlow Condensed', sans-serif;
-  font-size: 32px;
-  font-weight: 900;
-  color: var(--red);
-  line-height: 1;
-}
-.stat-label {
-  font-size: 11px;
-  color: var(--text2);
-  text-transform: uppercase;
-  letter-spacing: .5px;
-  margin-top: 4px;
-}
-
-/* ── FILTROS ── */
-.filtros {
-  display: flex;
-  gap: 8px;
-  margin-bottom: 14px;
-  flex-wrap: wrap;
-}
-.filtro-btn {
-  padding: 7px 14px;
-  border-radius: 20px;
-  border: 1.5px solid var(--border);
-  background: #fff;
-  font-family: 'Barlow Condensed', sans-serif;
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--text2);
-  cursor: pointer;
-  letter-spacing: .3px;
-  transition: all .15s;
-}
+.btn-salir { background: rgba(255,255,255,.15); border: 1px solid rgba(255,255,255,.3); border-radius: 8px; padding: 7px 14px; color: #fff; font-family: 'Barlow Condensed', sans-serif; font-size: 13px; font-weight: 700; cursor: pointer; }
+.stats { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin-bottom: 16px; }
+.stat-card { background: #fff; border-radius: 12px; padding: 14px 16px; text-align: center; border: 1.5px solid var(--border); }
+.stat-num { font-family: 'Barlow Condensed', sans-serif; font-size: 32px; font-weight: 900; color: var(--red); line-height: 1; }
+.stat-label { font-size: 11px; color: var(--text2); text-transform: uppercase; letter-spacing: .5px; margin-top: 4px; }
+.filtros { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
+.filtro-btn { padding: 7px 14px; border-radius: 20px; border: 1.5px solid var(--border); background: #fff; font-family: 'Barlow Condensed', sans-serif; font-size: 13px; font-weight: 700; color: var(--text2); cursor: pointer; transition: all .15s; }
 .filtro-btn.on { background: var(--red); color: #fff; border-color: var(--red); }
 .filtro-btn:hover:not(.on) { border-color: var(--red); color: var(--red); }
-
-/* ── BUSCADOR ── */
 .buscador-wrap { margin-bottom: 14px; position: relative; }
-.buscador {
-  width: 100%;
-  padding: 11px 16px 11px 40px;
-  border: 1.5px solid var(--border);
-  border-radius: 10px;
-  font-family: 'Barlow', sans-serif;
-  font-size: 14px;
-  background: #fff;
-  color: var(--text);
-  outline: none;
-}
+.buscador { width: 100%; padding: 11px 16px 11px 40px; border: 1.5px solid var(--border); border-radius: 10px; font-family: 'Barlow', sans-serif; font-size: 14px; background: #fff; color: var(--text); outline: none; }
 .buscador:focus { border-color: var(--red); }
-.buscador-icon {
-  position: absolute;
-  left: 13px;
-  top: 50%;
-  transform: translateY(-50%);
-  font-size: 16px;
-  color: var(--text3);
-}
-
-/* ── LISTA DE PEDIDOS ── */
-.pedido-card {
-  background: #fff;
-  border-radius: 14px;
-  border: 1.5px solid var(--border);
-  margin-bottom: 10px;
-  overflow: hidden;
-  transition: box-shadow .15s;
-}
+.buscador-icon { position: absolute; left: 13px; top: 50%; transform: translateY(-50%); font-size: 16px; color: var(--text3); }
+.pedido-card { background: #fff; border-radius: 14px; border: 1.5px solid var(--border); margin-bottom: 10px; overflow: hidden; transition: box-shadow .15s; }
 .pedido-card:hover { box-shadow: 0 2px 12px rgba(139,0,0,.08); }
-.pedido-card.duplicado { border-color: #E65100; border-width: 2.5px; background: #FFFBF0; }
-.pedido-card.duplicado .pedido-cliente { color: #E65100; }
-.pedido-card.duplicado .pedido-head { background: #FFF8F0; }
-
-.pedido-head {
-  padding: 12px 16px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  cursor: pointer;
-  user-select: none;
-}
+.pedido-card.dup-exacto { border-color: #C62828; border-width: 3px; background: #FFF5F5; }
+.pedido-card.dup-exacto .pedido-cliente { color: #C62828; }
+.pedido-card.dup-parcial { border-color: #E65100; border-width: 2.5px; background: #FFFBF0; }
+.pedido-card.dup-parcial .pedido-cliente { color: #E65100; }
+.pedido-head { padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; gap: 8px; cursor: pointer; user-select: none; }
 .pedido-head-left { flex: 1; min-width: 0; }
-.pedido-id {
-  font-family: 'Barlow Condensed', sans-serif;
-  font-size: 11px;
-  color: var(--text3);
-  letter-spacing: .5px;
-  margin-bottom: 2px;
-}
-.pedido-cliente {
-  font-family: 'Barlow Condensed', sans-serif;
-  font-size: 18px;
-  font-weight: 900;
-  color: var(--text);
-  line-height: 1.1;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.pedido-comercio {
-  font-size: 12px;
-  color: var(--text2);
-  margin-top: 1px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.pedido-head-right {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 6px;
-  flex-shrink: 0;
-}
-.pedido-total {
-  font-family: 'Barlow Condensed', sans-serif;
-  font-size: 20px;
-  font-weight: 900;
-  color: var(--red);
-}
-.pedido-hora {
-  font-size: 11px;
-  color: var(--text3);
-}
-
-/* ── BADGES DE ESTADO ── */
-.badge {
-  font-family: 'Barlow Condensed', sans-serif;
-  font-size: 11px;
-  font-weight: 700;
-  padding: 3px 10px;
-  border-radius: 20px;
-  letter-spacing: .3px;
-  text-transform: uppercase;
-  white-space: nowrap;
-}
+.pedido-id { font-family: 'Barlow Condensed', sans-serif; font-size: 11px; color: var(--text3); letter-spacing: .5px; margin-bottom: 2px; }
+.pedido-cliente { font-family: 'Barlow Condensed', sans-serif; font-size: 18px; font-weight: 900; color: var(--text); line-height: 1.1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pedido-comercio { font-size: 12px; color: var(--text2); margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pedido-head-right { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; flex-shrink: 0; }
+.pedido-total { font-family: 'Barlow Condensed', sans-serif; font-size: 20px; font-weight: 900; color: var(--red); }
+.pedido-hora { font-size: 11px; color: var(--text3); }
+.badge { font-family: 'Barlow Condensed', sans-serif; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px; letter-spacing: .3px; text-transform: uppercase; white-space: nowrap; }
 .badge-pendiente { background: var(--orange2); color: var(--orange); }
 .badge-confirmado { background: var(--green3); color: var(--green2); }
 .badge-entregado { background: var(--blue2); color: var(--blue); }
 .badge-cancelado { background: #FFEBEE; color: #C62828; }
-.badge-duplicado { background: #E65100; color: #fff; font-size:12px; animation: pulse 1.5s infinite; }
-@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.7} }
-
-/* ── DETALLE EXPANDIDO ── */
-.pedido-body {
-  display: none;
-  border-top: 1px solid var(--border);
-  padding: 14px 16px;
-  background: var(--cream);
-}
+.badge-dup-exacto { background: #C62828; color: #fff; animation: pulse 1s infinite; }
+.badge-dup-parcial { background: #E65100; color: #fff; animation: pulse 1.5s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.6} }
+.pedido-body { display: none; border-top: 1px solid var(--border); padding: 14px 16px; background: var(--cream); }
 .pedido-body.on { display: block; }
-.pedido-detalle-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 13px;
-  padding: 5px 0;
-  border-bottom: 1px solid rgba(0,0,0,.05);
-  gap: 8px;
-}
-.pedido-detalle-row:last-child { border-bottom: none; }
+.pedido-detalle-row { display: flex; justify-content: space-between; align-items: center; font-size: 13px; padding: 5px 0; border-bottom: 1px solid rgba(0,0,0,.05); gap: 8px; }
 .pdr-label { color: var(--text2); font-size: 11.5px; text-transform: uppercase; letter-spacing: .3px; font-weight: 600; }
 .pdr-val { color: var(--text); font-weight: 500; text-align: right; }
-
-.pedido-productos {
-  background: #fff;
-  border-radius: 10px;
-  padding: 10px 14px;
-  margin: 10px 0;
-  font-size: 12.5px;
-  color: var(--text2);
-  line-height: 1.8;
-  border: 1px solid var(--border);
-  white-space: pre-wrap;
-  word-break: break-word;
-}
-
-/* ── ACCIONES ── */
-.pedido-acciones {
-  display: flex;
-  gap: 8px;
-  margin-top: 12px;
-  flex-wrap: wrap;
-}
-.btn-estado {
-  flex: 1;
-  min-width: 120px;
-  padding: 10px 14px;
-  border-radius: 10px;
-  border: 1.5px solid;
-  font-family: 'Barlow Condensed', sans-serif;
-  font-size: 14px;
-  font-weight: 700;
-  cursor: pointer;
-  letter-spacing: .3px;
-  transition: all .15s;
-  text-align: center;
-}
+.pedido-productos { background: #fff; border-radius: 10px; padding: 10px 14px; margin: 10px 0; font-size: 12.5px; color: var(--text2); line-height: 1.8; border: 1px solid var(--border); white-space: pre-wrap; word-break: break-word; }
+.pedido-acciones { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+.btn-estado { flex: 1; min-width: 120px; padding: 10px 14px; border-radius: 10px; border: 1.5px solid; font-family: 'Barlow Condensed', sans-serif; font-size: 14px; font-weight: 700; cursor: pointer; transition: all .15s; text-align: center; }
 .btn-confirmar { background: var(--green3); color: var(--green2); border-color: var(--green2); }
 .btn-confirmar:hover { background: var(--green2); color: #fff; }
 .btn-entregar { background: var(--blue2); color: var(--blue); border-color: var(--blue); }
@@ -395,124 +87,31 @@ body {
 .btn-cancelar:hover { background: #C62828; color: #fff; }
 .btn-pendiente-again { background: var(--orange2); color: var(--orange); border-color: var(--orange); }
 .btn-pendiente-again:hover { background: var(--orange); color: #fff; }
-
-/* ── ALERTA DUPLICADO ── */
-.duplicado-alert {
-  background: #FFF3E0;
-  border: 1.5px solid var(--orange);
-  border-radius: 10px;
-  padding: 10px 14px;
-  margin-top: 10px;
-  font-size: 12.5px;
-  color: var(--orange);
-  font-weight: 600;
-}
-
-/* ── LOADING / EMPTY ── */
-.loading, .empty {
-  text-align: center;
-  padding: 48px 24px;
-  color: var(--text2);
-  font-size: 14px;
-}
-.loading-spinner {
-  width: 36px;
-  height: 36px;
-  border: 3px solid var(--cream2);
-  border-top-color: var(--red);
-  border-radius: 50%;
-  animation: spin .8s linear infinite;
-  margin: 0 auto 16px;
-}
+.dup-alert-exacto { background: #FFEBEE; border: 2px solid #C62828; border-radius: 10px; padding: 12px 14px; margin-top: 10px; }
+.dup-alert-exacto-title { font-family: 'Barlow Condensed', sans-serif; font-size: 16px; font-weight: 900; color: #C62828; margin-bottom: 4px; }
+.dup-alert-exacto-body { font-size: 13px; color: #B71C1C; }
+.dup-alert-parcial { background: #FFF3E0; border: 2px solid #E65100; border-radius: 10px; padding: 12px 14px; margin-top: 10px; }
+.dup-alert-parcial-title { font-family: 'Barlow Condensed', sans-serif; font-size: 16px; font-weight: 900; color: #E65100; margin-bottom: 4px; }
+.dup-alert-parcial-body { font-size: 13px; color: #BF360C; }
+.loading, .empty { text-align: center; padding: 48px 24px; color: var(--text2); font-size: 14px; }
+.loading-spinner { width: 36px; height: 36px; border: 3px solid var(--cream2); border-top-color: var(--red); border-radius: 50%; animation: spin .8s linear infinite; margin: 0 auto 16px; }
 @keyframes spin { to { transform: rotate(360deg); } }
-
-.btn-refresh {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background: #fff;
-  border: 1.5px solid var(--border);
-  border-radius: 10px;
-  padding: 9px 16px;
-  font-family: 'Barlow Condensed', sans-serif;
-  font-size: 14px;
-  font-weight: 700;
-  color: var(--text2);
-  cursor: pointer;
-  margin-left: auto;
-  margin-bottom: 14px;
-}
+.btn-refresh { display: flex; align-items: center; gap: 8px; background: #fff; border: 1.5px solid var(--border); border-radius: 10px; padding: 9px 16px; font-family: 'Barlow Condensed', sans-serif; font-size: 14px; font-weight: 700; color: var(--text2); cursor: pointer; }
 .btn-refresh:hover { border-color: var(--red); color: var(--red); }
-
-/* ── TOAST ── */
-.toast {
-  position: fixed;
-  bottom: 24px;
-  left: 50%;
-  transform: translateX(-50%) translateY(80px);
-  background: var(--text);
-  color: #fff;
-  padding: 12px 24px;
-  border-radius: 12px;
-  font-family: 'Barlow Condensed', sans-serif;
-  font-size: 15px;
-  font-weight: 700;
-  z-index: 999;
-  transition: transform .3s;
-  white-space: nowrap;
-}
+.toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px); background: var(--text); color: #fff; padding: 12px 24px; border-radius: 12px; font-family: 'Barlow Condensed', sans-serif; font-size: 15px; font-weight: 700; z-index: 9999; transition: transform .3s; white-space: nowrap; }
 .toast.on { transform: translateX(-50%) translateY(0); }
 .toast.ok { background: var(--green2); }
 .toast.err { background: #C62828; }
-
-/* ── PIN ── */
-.pin-dot {
-  width: 16px; height: 16px;
-  border-radius: 50%;
-  background: var(--cream2);
-  border: 2px solid var(--border);
-  transition: background .15s;
-}
+.pin-dot { width: 16px; height: 16px; border-radius: 50%; background: var(--cream2); border: 2px solid var(--border); transition: background .15s; }
 .pin-dot.on { background: var(--red); border-color: var(--red); }
-.login-btn, .pin-key {
-  -webkit-tap-highlight-color: transparent;
-  touch-action: manipulation;
-}
-.pin-key {
-  padding: 14px;
-  border-radius: 12px;
-  border: 1.5px solid var(--border);
-  background: #fff;
-  font-family: 'Barlow Condensed', sans-serif;
-  font-size: 22px;
-  font-weight: 700;
-  color: var(--text);
-  cursor: pointer;
-  transition: all .1s;
-}
+.pin-key { padding: 14px; border-radius: 12px; border: 1.5px solid var(--border); background: #fff; font-family: 'Barlow Condensed', sans-serif; font-size: 22px; font-weight: 700; color: var(--text); cursor: pointer; transition: all .1s; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
 .pin-key:active { background: var(--cream2); transform: scale(.95); }
 .pin-back { font-size: 13px; color: var(--text2); }
 .pin-del { font-size: 18px; color: var(--red2); }
-
-
-/* ── NOTAS ── */
 .nota-wrap { margin-top: 10px; }
-.nota-input {
-  width: 100%;
-  padding: 10px 14px;
-  border: 1.5px solid var(--border);
-  border-radius: 10px;
-  font-family: 'Barlow', sans-serif;
-  font-size: 13px;
-  color: var(--text);
-  background: #fff;
-  resize: none;
-  outline: none;
-  min-height: 60px;
-}
+.nota-input { width: 100%; padding: 10px 14px; border: 1.5px solid var(--border); border-radius: 10px; font-family: 'Barlow', sans-serif; font-size: 13px; color: var(--text); background: #fff; resize: none; outline: none; min-height: 60px; }
 .nota-input:focus { border-color: var(--gold); }
 .nota-guardada { font-size: 12px; color: var(--green2); margin-top: 4px; display: none; }
-
 </style>
 </head>
 <body>
@@ -530,7 +129,6 @@ body {
   <div class="login-box">
     <div class="login-titulo">Ingresá</div>
     <div class="login-sub" id="login-sub">Seleccioná tu nombre</div>
-
     <div id="paso1">
       <button class="login-btn" onclick="seleccionarVendedor('Miguel','M','#8B0000')">
         <div class="login-av">M</div>
@@ -549,9 +147,8 @@ body {
         <div class="login-btn-name">Administración<div class="login-btn-role">Ver todos los pedidos</div></div>
       </button>
     </div>
-
     <div id="paso2" style="display:none;">
-      <div id="pin-vendedor-info" style="display:flex;align-items:center;gap:12px;margin-bottom:20px;padding:12px 16px;background:var(--cream2);border-radius:12px;">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;padding:12px 16px;background:var(--cream2);border-radius:12px;">
         <div id="pin-av" style="width:44px;height:44px;border-radius:50%;background:var(--red);color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:900;flex-shrink:0;"></div>
         <div>
           <div id="pin-nombre" style="font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:900;color:var(--text);"></div>
@@ -559,8 +156,7 @@ body {
         </div>
       </div>
       <div id="pin-dots" style="display:flex;justify-content:center;gap:12px;margin-bottom:20px;">
-        <div class="pin-dot"></div><div class="pin-dot"></div>
-        <div class="pin-dot"></div><div class="pin-dot"></div>
+        <div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div>
       </div>
       <div id="pin-error" style="color:#C62828;font-size:13px;text-align:center;margin-bottom:12px;min-height:18px;"></div>
       <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">
@@ -590,8 +186,6 @@ body {
     </div>
     <button class="btn-salir" onclick="salir()">Salir</button>
   </div>
-
-  <!-- STATS -->
   <div class="stats" style="grid-template-columns:repeat(2,1fr)">
     <div class="stat-card">
       <div class="stat-num" id="stat-total">—</div>
@@ -616,62 +210,46 @@ body {
       <div class="stat-label">Entregados</div>
     </div>
   </div>
-
-  <!-- REFRESH -->
   <div style="display:flex;gap:8px;margin-bottom:14px;">
-    <button class="btn-refresh" style="margin-bottom:0;flex:1" onclick="cargarPedidos()">
-      <span>🔄</span> Actualizar
-    </button>
-    <button class="btn-refresh" style="margin-bottom:0;flex:1;color:var(--green2);border-color:var(--green2)" onclick="exportarResumen()">
-      <span>📤</span> Enviar resumen
-    </button>
+    <button class="btn-refresh" style="flex:1" onclick="cargarPedidos()">🔄 Actualizar</button>
+    <button class="btn-refresh" style="flex:1;color:var(--green2);border-color:var(--green2)" onclick="exportarResumen()">📤 Enviar resumen</button>
   </div>
-
-  <!-- BUSCADOR -->
   <div class="buscador-wrap">
     <span class="buscador-icon">🔍</span>
     <input class="buscador" id="buscador" placeholder="Buscar cliente, comercio, localidad..." oninput="filtrar()">
   </div>
-
-  <!-- FILTROS -->
-  <!-- Filtros de fecha -->
   <div class="filtros" id="filtros-fecha">
-    <button class="filtro-btn on" onclick="setFiltroFecha('hoy', this)">📅 Hoy</button>
-    <button class="filtro-btn" onclick="setFiltroFecha('ayer', this)">Ayer</button>
-    <button class="filtro-btn" onclick="setFiltroFecha('semana', this)">Esta semana</button>
-    <button class="filtro-btn" onclick="setFiltroFecha('todos', this)">Todos</button>
-    <button class="filtro-btn" onclick="setFiltroFecha('personalizado', this)">📆 Rango</button>
+    <button class="filtro-btn on" onclick="setFiltroFecha('hoy',this)">📅 Hoy</button>
+    <button class="filtro-btn" onclick="setFiltroFecha('ayer',this)">Ayer</button>
+    <button class="filtro-btn" onclick="setFiltroFecha('semana',this)">Esta semana</button>
+    <button class="filtro-btn" onclick="setFiltroFecha('todos',this)">Todos</button>
+    <button class="filtro-btn" onclick="setFiltroFecha('personalizado',this)">📆 Rango</button>
   </div>
-  <!-- Selector de rango personalizado -->
   <div id="rango-fechas" style="display:none;background:#fff;border-radius:12px;border:1.5px solid var(--border);padding:14px 16px;margin-bottom:10px;">
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;align-items:end;">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
       <div>
-        <div style="font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:.3px;margin-bottom:4px;font-weight:600;">Desde</div>
-        <input type="date" id="fecha-desde" style="width:100%;padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;font-family:'Barlow',sans-serif;font-size:14px;color:var(--text);" onchange="filtrar()">
+        <div style="font-size:11px;color:var(--text2);text-transform:uppercase;margin-bottom:4px;font-weight:600;">Desde</div>
+        <input type="date" id="fecha-desde" style="width:100%;padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:14px;" onchange="filtrar()">
       </div>
       <div>
-        <div style="font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:.3px;margin-bottom:4px;font-weight:600;">Hasta</div>
-        <input type="date" id="fecha-hasta" style="width:100%;padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;font-family:'Barlow',sans-serif;font-size:14px;color:var(--text);" onchange="filtrar()">
+        <div style="font-size:11px;color:var(--text2);text-transform:uppercase;margin-bottom:4px;font-weight:600;">Hasta</div>
+        <input type="date" id="fecha-hasta" style="width:100%;padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:14px;" onchange="filtrar()">
       </div>
     </div>
   </div>
-  <!-- Filtro por vendedor (solo admin) -->
   <div class="filtros" id="filtros-vendedor" style="display:none">
-    <button class="filtro-btn on" onclick="setFiltroVendedor('todos', this)">👥 Todos</button>
-    <button class="filtro-btn" onclick="setFiltroVendedor('Miguel', this)">Miguel</button>
-    <button class="filtro-btn" onclick="setFiltroVendedor('Juan', this)">Juan</button>
-    <button class="filtro-btn" onclick="setFiltroVendedor('Lisandro', this)">Lisandro</button>
+    <button class="filtro-btn on" onclick="setFiltroVendedor('todos',this)">👥 Todos</button>
+    <button class="filtro-btn" onclick="setFiltroVendedor('Miguel',this)">Miguel</button>
+    <button class="filtro-btn" onclick="setFiltroVendedor('Juan',this)">Juan</button>
+    <button class="filtro-btn" onclick="setFiltroVendedor('Lisandro',this)">Lisandro</button>
   </div>
-  <!-- Filtros de estado -->
-  <div class="filtros">
-    <button class="filtro-btn on" onclick="setFiltro('todos', this)">Todos</button>
-    <button class="filtro-btn" onclick="setFiltro('Pendiente', this)">⏳ Pendientes</button>
-    <button class="filtro-btn" onclick="setFiltro('Confirmado', this)">✅ Confirmados</button>
-    <button class="filtro-btn" onclick="setFiltro('Entregado', this)">📦 Entregados</button>
-    <button class="filtro-btn" onclick="setFiltro('duplicado', this)">⚠️ Duplicados</button>
+  <div class="filtros" id="filtros-estado">
+    <button class="filtro-btn on" onclick="setFiltro('todos',this)">Todos</button>
+    <button class="filtro-btn" onclick="setFiltro('Pendiente',this)">⏳ Pendientes</button>
+    <button class="filtro-btn" onclick="setFiltro('Confirmado',this)">✅ Confirmados</button>
+    <button class="filtro-btn" onclick="setFiltro('Entregado',this)">📦 Entregados</button>
+    <button class="filtro-btn" onclick="setFiltro('duplicado',this)">⚠️ Duplicados</button>
   </div>
-
-  <!-- LISTA -->
   <div id="lista-pedidos"></div>
 </div>
 
@@ -679,130 +257,103 @@ body {
 
 <script>
 const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxbx9ma8S5wcuRqFXjRyFYvIo_kLwc5Px4eE4Y7-CqPmIfJbI3VBEP4I9qSV8s0owMMYg/exec';
+const SHEET_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQDZk6Z5pejrI_djbUYBLEvh-X7H_sLF5ZCW2RQr0Bc03r8LOL17_C3pCmwwyLe2iXf3Fan0tgl7IJG/pub?gid=0&single=true&output=csv';
+const NUM_ADMIN = '5492314475357';
+const PINS = { 'Miguel':'3356', 'Juan':'4256', 'Lisandro':'8020', 'ADMIN':'3050' };
 
 let vendedorActual = null;
 let todosLosPedidos = [];
 let filtroActual = 'todos';
 let filtroFecha = 'hoy';
 let filtroVendedor = 'todos';
+let pinVendedorTemp = null;
+let pinActual = '';
+const duplicadosNotificados = new Set();
 
-// ── FECHA EN HEADER ──────────────────────────────────────────────
+// ── FECHA HEADER ─────────────────────────────────────────────────
 function actualizarFecha() {
   const d = new Date();
   const dias = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
   const meses = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
-  // Ajuste a Argentina (UTC-3)
-  const ar = new Date(d.getTime() - (d.getTimezoneOffset() * 60000) - (d.getTimezoneOffset() === 180 ? 0 : (d.getTimezoneOffset() + 180) * 60000));
-  const local = new Date();
-  const h = local.getHours().toString().padStart(2,'0');
-  const m = local.getMinutes().toString().padStart(2,'0');
+  const h = d.getHours().toString().padStart(2,'0');
+  const m = d.getMinutes().toString().padStart(2,'0');
   document.getElementById('hdr-fecha').innerHTML =
-    dias[local.getDay()] + ' ' + local.getDate() + ' de ' + meses[local.getMonth()] +
-    '<br>' + h + ':' + m;
+    dias[d.getDay()] + ' ' + d.getDate() + ' de ' + meses[d.getMonth()] + '<br>' + h + ':' + m;
 }
 actualizarFecha();
 setInterval(actualizarFecha, 60000);
 
-// Auto-refresh cada 30 segundos cuando el panel está abierto
+// ── AUTO-REFRESH 30s ─────────────────────────────────────────────
 setInterval(function() {
-  if (vendedorActual) {
-    const antes = todosLosPedidos.length;
-    const dupAntes = new Set(todosLosPedidos.filter(p => p.esDuplicado).map(p => p.pedidoId));
-
-    cargarPedidos(true).then(function() {
-      // Avisar pedidos nuevos
-      const despues = todosLosPedidos.length;
-      if (despues > antes) {
-        notificarNuevoPedido(despues - antes);
-      }
-
-      // Detectar duplicados nuevos que no estaban antes
-      const dupDespues = todosLosPedidos.filter(p => p.esDuplicado);
-      const dupNuevosAuto = dupDespues.filter(p => !dupAntes.has(p.pedidoId));
-      if (dupNuevosAuto.length > 0) {
-        notificarDuplicados(dupNuevosAuto);
-      }
-    });
-  }
+  if (!vendedorActual) return;
+  const antes = todosLosPedidos.length;
+  const dupAntes = new Set(todosLosPedidos.filter(p => p.esDuplicado).map(p => p.pedidoId));
+  cargarPedidos(true).then(function() {
+    if (todosLosPedidos.length > antes) notificarNuevoPedido(todosLosPedidos.length - antes);
+    const dupNuevos = todosLosPedidos.filter(p => p.esDuplicado && !dupAntes.has(p.pedidoId));
+    if (dupNuevos.length > 0) notificarDuplicados(dupNuevos);
+  });
 }, 30000);
 
+// ── SONIDOS ──────────────────────────────────────────────────────
 function sonarTono(frecuencias, duracion) {
   try {
     const ctx = new (window.AudioContext || window.webkitAudioContext)();
     frecuencias.forEach((freq, i) => {
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.connect(gain);
-      gain.connect(ctx.destination);
+      const osc = ctx.createOscillator(), gain = ctx.createGain();
+      osc.connect(gain); gain.connect(ctx.destination);
       osc.frequency.value = freq;
-      gain.gain.setValueAtTime(0.3, ctx.currentTime + i * duracion);
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i * duracion + duracion);
-      osc.start(ctx.currentTime + i * duracion);
-      osc.stop(ctx.currentTime + i * duracion + duracion);
+      gain.gain.setValueAtTime(0.3, ctx.currentTime + i*duracion);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i*duracion + duracion);
+      osc.start(ctx.currentTime + i*duracion);
+      osc.stop(ctx.currentTime + i*duracion + duracion);
     });
   } catch(e) {}
 }
 
 function notificarNuevoPedido(cantidad) {
-  // Tono suave ascendente
   sonarTono([800, 1000], 0.2);
   if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
   toast('🔔 ' + cantidad + ' pedido' + (cantidad > 1 ? 's' : '') + ' nuevo' + (cantidad > 1 ? 's' : '') + '!', 'ok');
 }
 
-// Track de duplicados ya notificados para no repetir
-const duplicadosNotificados = new Set();
-
 function notificarDuplicados(dups) {
-  // Solo notificar los que no avisamos antes
   const nuevos = dups.filter(p => !duplicadosNotificados.has(p.pedidoId));
-  if (nuevos.length === 0) return;
+  if (!nuevos.length) return;
   nuevos.forEach(p => duplicadosNotificados.add(p.pedidoId));
-
-  // Tono de alerta — descendente y más urgente
   sonarTono([1200, 800, 1200, 600], 0.15);
   if (navigator.vibrate) navigator.vibrate([300, 100, 300, 100, 300]);
-
-  // Toast de alerta
-  toast('⚠️ ' + nuevos.length + ' pedido' + (nuevos.length > 1 ? 's' : '') + ' duplicado' + (nuevos.length > 1 ? 's' : '') + ' detectado' + (nuevos.length > 1 ? 's' : '') + '!', 'err');
-
-  // Armar mensaje de WhatsApp para admin
-  setTimeout(() => {
-    const hoy = new Date();
-    const hora = hoy.getHours().toString().padStart(2,'0') + ':' + hoy.getMinutes().toString().padStart(2,'0');
-    let msg = '⚠️ *TCK — Pedidos duplicados detectados*\n';
-    msg += '🕐 ' + hora + '\n\n';
-    nuevos.forEach(p => {
+  toast('⚠️ ' + nuevos.length + ' duplicado' + (nuevos.length > 1 ? 's' : '') + ' detectado' + (nuevos.length > 1 ? 's' : '') + '!', 'err');
+  setTimeout(function() {
+    const hora = new Date().toLocaleTimeString('es-AR', {hour:'2-digit', minute:'2-digit'});
+    let msg = '⚠️ *TCK — Pedidos duplicados detectados*\n🕐 ' + hora + '\n\n';
+    nuevos.forEach(function(p) {
       msg += '👤 *' + p.cliente + '*';
       if (p.comercio) msg += ' (' + p.comercio + ')';
-      msg += '\n';
-      msg += '💰 $' + parseInt((p.total||'0').toString().replace(/[^\d]/g,'')).toLocaleString('es-AR') + ' · ' + p.localidad + '\n';
-      msg += '📋 ' + p.pedidoId + '\n';
-      msg += '⚠️ También en: ' + (p.duplicadoCon || 'otro vendedor') + '\n\n';
+      msg += '\n💰 ' + fmtTotal(p.total) + ' · ' + p.localidad;
+      msg += '\n📋 ' + p.pedidoId;
+      msg += '\n⚠️ También en: ' + (p.duplicadoCon || 'otro vendedor') + '\n\n';
     });
     msg += '_Verificar antes de remitir_';
-
-    // Mostrar botón de aviso al admin
     mostrarBotonAlertaAdmin(msg);
   }, 1000);
 }
 
 function mostrarBotonAlertaAdmin(msg) {
-  // Crear o actualizar banner de duplicado
   let banner = document.getElementById('dup-banner');
   if (!banner) {
     banner = document.createElement('div');
     banner.id = 'dup-banner';
-    banner.style.cssText = 'position:fixed;bottom:0;left:0;right:0;z-index:999;background:#E65100;color:#fff;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px;box-shadow:0 -4px 16px rgba(0,0,0,.3);';
+    banner.style.cssText = 'position:fixed;bottom:0;left:0;right:0;z-index:9999;background:#C62828;color:#fff;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px;box-shadow:0 -4px 16px rgba(0,0,0,.3);';
     document.body.appendChild(banner);
   }
-  const msgEnc = encodeURIComponent(msg);
-  banner.innerHTML = '<div style="font-family:Barlow Condensed,sans-serif;font-size:15px;font-weight:700;">⚠️ Pedidos duplicados detectados</div>' +
-    '<div style="display:flex;gap:8px;">' +
-    '<button onclick="avisarAdmin()" style="background:#fff;color:#E65100;border:none;border-radius:8px;padding:8px 14px;font-family:Barlow Condensed,sans-serif;font-size:14px;font-weight:700;cursor:pointer;">📲 Avisar admin</button>' +
-    '<button onclick="cerrarBanner()" style="background:rgba(255,255,255,.2);color:#fff;border:none;border-radius:8px;padding:8px 12px;font-size:14px;cursor:pointer;">✕</button>' +
-    '</div>';
   banner._msg = msg;
+  banner.innerHTML =
+    '<div style="font-family:Barlow Condensed,sans-serif;font-size:15px;font-weight:700;">⚠️ Pedidos duplicados detectados</div>' +
+    '<div style="display:flex;gap:8px;">' +
+    '<button style="background:#fff;color:#C62828;border:none;border-radius:8px;padding:8px 14px;font-weight:700;cursor:pointer;font-size:13px;" onclick="avisarAdmin()">📲 Avisar admin</button>' +
+    '<button style="background:rgba(255,255,255,.2);color:#fff;border:none;border-radius:8px;padding:8px 12px;font-size:14px;cursor:pointer;" onclick="cerrarBanner()">✕</button>' +
+    '</div>';
 }
 
 function cerrarBanner() {
@@ -812,27 +363,10 @@ function cerrarBanner() {
 
 function avisarAdmin() {
   const b = document.getElementById('dup-banner');
-  const msg = b ? b._msg : '';
-  avisoWA(msg);
+  if (b && b._msg) window.open('https://wa.me/' + NUM_ADMIN + '?text=' + encodeURIComponent(b._msg), '_blank');
 }
 
-function avisoWA(msg) {
-  // Número de admin — Chan
-  const numAdmin = '5492314475357';
-  window.open('https://wa.me/' + numAdmin + '?text=' + encodeURIComponent(msg), '_blank');
-}
-
-// ── PIN / LOGIN ──────────────────────────────────────────────────
-const PINS = {
-  'Miguel':   '3356',
-  'Juan':     '4256',
-  'Lisandro': '8020',
-  'ADMIN':    '3050'
-};
-
-let pinVendedorTemp = null;
-let pinActual = '';
-
+// ── PIN / LOGIN ───────────────────────────────────────────────────
 function seleccionarVendedor(nombre, inicial, color) {
   pinVendedorTemp = nombre;
   pinActual = '';
@@ -850,26 +384,20 @@ function pinPress(n) {
   if (pinActual.length >= 4) return;
   pinActual += n;
   actualizarDots();
-  if (pinActual.length === 4) {
-    setTimeout(verificarPin, 150);
-  }
+  if (pinActual.length === 4) setTimeout(verificarPin, 150);
 }
 
-function pinBorrar() {
-  pinActual = pinActual.slice(0, -1);
-  actualizarDots();
-}
+function pinBorrar() { pinActual = pinActual.slice(0,-1); actualizarDots(); }
 
 function pinVolver() {
-  pinActual = '';
-  pinVendedorTemp = null;
+  pinActual = ''; pinVendedorTemp = null;
   document.getElementById('paso1').style.display = 'block';
   document.getElementById('paso2').style.display = 'none';
   document.getElementById('login-sub').textContent = 'Seleccioná tu nombre';
 }
 
 function actualizarDots() {
-  document.querySelectorAll('.pin-dot').forEach((d, i) => {
+  document.querySelectorAll('.pin-dot').forEach(function(d, i) {
     d.classList.toggle('on', i < pinActual.length);
   });
 }
@@ -888,469 +416,344 @@ function login(nombre) {
   vendedorActual = nombre;
   document.getElementById('login-wrap').style.display = 'none';
   document.getElementById('panel').classList.add('on');
-  // Reset pin UI para próximo login
   document.getElementById('paso1').style.display = 'block';
   document.getElementById('paso2').style.display = 'none';
-
-  const esAdmin = nombre === 'ADMIN';
+  var esAdmin = nombre === 'ADMIN';
   document.getElementById('bienvenida-nombre').textContent = esAdmin ? '👑 Administración' : '👤 ' + nombre;
   document.getElementById('bienvenida-sub').textContent = esAdmin
     ? 'Viendo todos los pedidos del día'
     : 'Tus pedidos de hoy — ' + new Date().toLocaleDateString('es-AR');
-  // Mostrar filtro de vendedor solo para admin
   document.getElementById('filtros-vendedor').style.display = esAdmin ? 'flex' : 'none';
   cargarPedidos();
 }
 
 function salir() {
-  vendedorActual = null;
-  pinActual = '';
-  pinVendedorTemp = null;
-  todosLosPedidos = [];
+  vendedorActual = null; pinActual = ''; pinVendedorTemp = null; todosLosPedidos = [];
   document.getElementById('login-wrap').style.display = 'flex';
   document.getElementById('panel').classList.remove('on');
   document.getElementById('lista-pedidos').innerHTML = '';
   document.getElementById('buscador').value = '';
   document.getElementById('login-sub').textContent = 'Seleccioná tu nombre';
-  setFiltro('todos', document.querySelector('.filtro-btn'));
+  setFiltro('todos', document.querySelector('#filtros-estado .filtro-btn'));
 }
 
-// ── CARGAR PEDIDOS DESDE SHEET ───────────────────────────────────
-async function cargarPedidos(silencioso = false) {
+// ── CARGAR PEDIDOS ───────────────────────────────────────────────
+async function cargarPedidos(silencioso) {
+  silencioso = silencioso || false;
   if (!silencioso) document.getElementById('lista-pedidos').innerHTML =
     '<div class="loading"><div class="loading-spinner"></div>Cargando pedidos...</div>';
-
   try {
-    // Leer el Sheet via CSV publicado (hoja Pedidos, gid=0)
-    const url = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQDZk6Z5pejrI_djbUYBLEvh-X7H_sLF5ZCW2RQr0Bc03r8LOL17_C3pCmwwyLe2iXf3Fan0tgl7IJG/pub?gid=0&single=true&output=csv&t=' + Date.now();
-    const res = await fetch(url + '&t=' + Date.now());
-    const csv = await res.text();
-    const lines = csv.trim().split('\n');
-
-    // Parsear filas (skip header fila 1)
-    const pedidos = [];
-    for (let i = 1; i < lines.length; i++) {
-      const cols = parseCsv(lines[i]);
-      if (!cols[0] || cols[0].trim().replace(/"/g,'') === '') continue;
+    var res = await fetch(SHEET_CSV + '&t=' + Date.now());
+    var csv = await res.text();
+    var lines = csv.trim().split('\n');
+    var pedidos = [];
+    for (var i = 1; i < lines.length; i++) {
+      var cols = parseCsv(lines[i]);
+      if (!cols[0] || limpiar(cols[0]) === '') continue;
       pedidos.push({
-        pedidoId:      limpiar(cols[0]),
-        fechaHora:     limpiar(cols[1]),
-        vendedor:      limpiar(cols[2]),
-        cliente:       limpiar(cols[3]),
-        comercio:      limpiar(cols[4]),
-        localidad:     limpiar(cols[5]),
-        total:         limpiar(cols[6]),
-        items:         limpiar(cols[7]),
-        resumen:       limpiar(cols[8]),
-        detalle:       limpiar(cols[9]),
-        estado:        limpiar(cols[10]) || 'Pendiente',
-        origen:        limpiar(cols[11]),
-        fila:          i + 1  // fila real en el sheet (header = fila 1)
+        pedidoId:  limpiar(cols[0]),
+        fechaHora: limpiar(cols[1]),
+        vendedor:  limpiar(cols[2]),
+        cliente:   limpiar(cols[3]),
+        comercio:  limpiar(cols[4]),
+        localidad: limpiar(cols[5]),
+        total:     limpiar(cols[6]),
+        items:     limpiar(cols[7]),
+        resumen:   limpiar(cols[8]),
+        detalle:   limpiar(cols[9]),
+        estado:    limpiar(cols[10]) || 'Pendiente',
+        fila:      i + 1
       });
     }
+    pedidos.sort(function(a, b) { return b.fechaHora.localeCompare(a.fechaHora); });
 
-    // Filtrar por vendedor si no es admin
-    // Y filtrar solo HOY
-    const hoy = new Date().toLocaleDateString('es-AR', { timeZone: 'America/Argentina/Buenos_Aires' });
-    let filtrados = pedidos.filter(p => {
-      const esHoy = p.fechaHora.includes(new Date().toISOString().slice(0,10)) ||
-                    p.fechaHora.startsWith(hoy.split('/').reverse().join('-'));
-      return true; // Mostrar todos por ahora (sin filtro de fecha estricto)
+    // Detectar duplicados — dos niveles
+    var mapTotal = {}, mapCliente = {};
+    pedidos.forEach(function(p) {
+      var kT = (p.cliente + p.total).toLowerCase().replace(/\s/g,'');
+      var kC = p.cliente.toLowerCase().trim();
+      if (!mapTotal[kT]) mapTotal[kT] = [];
+      if (!mapCliente[kC]) mapCliente[kC] = [];
+      mapTotal[kT].push(p);
+      mapCliente[kC].push(p);
     });
-
-    // Ordenar: más recientes primero
-    filtrados.sort((a, b) => b.fechaHora.localeCompare(a.fechaHora));
-
-    // Detectar duplicados — dos niveles:
-    // 1) Exacto: mismo cliente + mismo total
-    // 2) Parcial: mismo cliente + distinto total (pedido doble)
-    const clienteMapTotal = {};
-    const clienteMapSolo  = {};
-    filtrados.forEach(p => {
-      const keyT = (p.cliente + p.total).toLowerCase().replace(/\s/g,'');
-      const keyC = p.cliente.toLowerCase().trim();
-      if (!clienteMapTotal[keyT]) clienteMapTotal[keyT] = [];
-      if (!clienteMapSolo[keyC])  clienteMapSolo[keyC]  = [];
-      clienteMapTotal[keyT].push(p);
-      clienteMapSolo[keyC].push(p);
-    });
-    filtrados.forEach(p => {
-      const keyT = (p.cliente + p.total).toLowerCase().replace(/\s/g,'');
-      const keyC = p.cliente.toLowerCase().trim();
-      const grupoT = clienteMapTotal[keyT];
-      const grupoC = clienteMapSolo[keyC];
-      if (grupoT.length > 1) {
-        p.esDuplicado = true;
-        p.tipoDuplicado = 'exacto';
-        p.duplicadoCon = grupoT.filter(x => x.pedidoId !== p.pedidoId)
-          .map(x => x.vendedor || 'otro vendedor')
-          .filter((v,i,arr) => arr.indexOf(v) === i).join(', ');
-      } else if (grupoC.length > 1) {
-        p.esDuplicado = true;
-        p.tipoDuplicado = 'parcial';
-        p.duplicadoCon = grupoC.filter(x => x.pedidoId !== p.pedidoId)
-          .map(x => x.vendedor || 'otro vendedor')
-          .filter((v,i,arr) => arr.indexOf(v) === i).join(', ');
+    pedidos.forEach(function(p) {
+      var kT = (p.cliente + p.total).toLowerCase().replace(/\s/g,'');
+      var kC = p.cliente.toLowerCase().trim();
+      var gT = mapTotal[kT], gC = mapCliente[kC];
+      if (gT.length > 1) {
+        p.esDuplicado = true; p.tipoDuplicado = 'exacto';
+        p.duplicadoCon = gT.filter(function(x){return x.pedidoId!==p.pedidoId;})
+          .map(function(x){return x.vendedor||'otro vendedor';})
+          .filter(function(v,i,a){return a.indexOf(v)===i;}).join(', ');
+      } else if (gC.length > 1) {
+        p.esDuplicado = true; p.tipoDuplicado = 'parcial';
+        p.duplicadoCon = gC.filter(function(x){return x.pedidoId!==p.pedidoId;})
+          .map(function(x){return x.vendedor||'otro vendedor';})
+          .filter(function(v,i,a){return a.indexOf(v)===i;}).join(', ');
       } else {
-        p.esDuplicado = false;
-        p.tipoDuplicado = null;
-        p.duplicadoCon = '';
+        p.esDuplicado = false; p.tipoDuplicado = null; p.duplicadoCon = '';
       }
     });
-    // Notificar solo en carga inicial
+
+    cargarNotas(pedidos);
+    todosLosPedidos = pedidos;
+
     if (!silencioso) {
-      const dupNuevos = filtrados.filter(p => p.esDuplicado);
-      if (dupNuevos.length > 0) notificarDuplicados(dupNuevos);
+      var dups = pedidos.filter(function(p){return p.esDuplicado;});
+      if (dups.length > 0) notificarDuplicados(dups);
     }
-        cargarNotas(filtrados);
-    todosLosPedidos = filtrados;
     actualizarStats();
     renderPedidos();
-
   } catch(e) {
-    if (!silencioso) {
-      document.getElementById('lista-pedidos').innerHTML =
-        '<div class="empty">❌ Error al cargar pedidos.<br>Verificá tu conexión.</div>';
-    }
+    if (!silencioso) document.getElementById('lista-pedidos').innerHTML =
+      '<div class="empty">❌ Error al cargar pedidos.<br>Verificá tu conexión.</div>';
   }
 }
 
-function limpiar(s) {
-  if (!s) return '';
-  return s.trim().replace(/^"|"$/g, '').trim();
-}
+function limpiar(s) { return s ? s.trim().replace(/^"|"$/g,'').trim() : ''; }
 
 function parseCsv(line) {
-  const result = [];
-  let current = '';
-  let inQuotes = false;
-  for (let i = 0; i < line.length; i++) {
-    const c = line[i];
+  var result = [], current = '', inQuotes = false;
+  for (var i = 0; i < line.length; i++) {
+    var c = line[i];
     if (c === '"') {
-      if (inQuotes && line[i+1] === '"') { current += '"'; i++; }
-      else inQuotes = !inQuotes;
-    } else if (c === ',' && !inQuotes) {
-      result.push(current);
-      current = '';
-    } else {
-      current += c;
-    }
+      if (inQuotes && line[i+1]==='"') { current+='"'; i++; } else inQuotes=!inQuotes;
+    } else if (c === ',' && !inQuotes) { result.push(current); current=''; }
+    else current += c;
   }
   result.push(current);
   return result;
 }
 
-// ── STATS ────────────────────────────────────────────────────────
+// ── STATS ─────────────────────────────────────────────────────────
 function actualizarStats() {
-  const mis = pedidosVisibles();
-  const cancelados = mis.filter(p => p.estado === 'Cancelado');
-  const activos = mis.filter(p => p.estado !== 'Cancelado');
-  const total = activos.reduce((acc, p) => {
-    const n = parseInt((p.total || '0').toString().replace(/[^\d]/g, ''));
-    return acc + (isNaN(n) ? 0 : n);
+  var mis = pedidosVisibles();
+  var activos = mis.filter(function(p){return p.estado!=='Cancelado';});
+  var total = activos.reduce(function(acc,p){
+    var n = parseInt((p.total||'0').replace(/[^\d]/g,''));
+    return acc + (isNaN(n)?0:n);
   }, 0);
   document.getElementById('stat-total').textContent = activos.length;
   document.getElementById('stat-monto').textContent = '$' + total.toLocaleString('es-AR');
-  document.getElementById('stat-pend').textContent = mis.filter(p => p.estado === 'Pendiente').length;
-  document.getElementById('stat-conf').textContent = mis.filter(p => p.estado === 'Confirmado').length;
-  document.getElementById('stat-entregado').textContent = mis.filter(p => p.estado === 'Entregado').length;
+  document.getElementById('stat-pend').textContent = mis.filter(function(p){return p.estado==='Pendiente';}).length;
+  document.getElementById('stat-conf').textContent = mis.filter(function(p){return p.estado==='Confirmado';}).length;
+  document.getElementById('stat-entregado').textContent = mis.filter(function(p){return p.estado==='Entregado';}).length;
 }
 
 function pedidosVisibles() {
   if (vendedorActual === 'ADMIN') return todosLosPedidos;
-  return todosLosPedidos.filter(p =>
-    p.vendedor.toLowerCase().includes(vendedorActual.toLowerCase())
-  );
+  return todosLosPedidos.filter(function(p){
+    return p.vendedor.toLowerCase().includes(vendedorActual.toLowerCase());
+  });
 }
 
-// ── FILTROS Y BÚSQUEDA ───────────────────────────────────────────
+// ── FILTROS ───────────────────────────────────────────────────────
 function setFiltroFecha(f, btn) {
   filtroFecha = f;
-  document.querySelectorAll('#filtros-fecha .filtro-btn').forEach(b => b.classList.remove('on'));
+  document.querySelectorAll('#filtros-fecha .filtro-btn').forEach(function(b){b.classList.remove('on');});
   btn.classList.add('on');
-  // Mostrar/ocultar selector de rango
-  const rango = document.getElementById('rango-fechas');
+  var rango = document.getElementById('rango-fechas');
   if (f === 'personalizado') {
     rango.style.display = 'block';
-    // Setear fechas por defecto: hoy
-    const hoy = new Date();
-    const yyyy = hoy.getFullYear();
-    const mm = String(hoy.getMonth()+1).padStart(2,'0');
-    const dd = String(hoy.getDate()).padStart(2,'0');
-    const hoyStr = yyyy + '-' + mm + '-' + dd;
-    if (!document.getElementById('fecha-desde').value) document.getElementById('fecha-desde').value = hoyStr;
-    if (!document.getElementById('fecha-hasta').value) document.getElementById('fecha-hasta').value = hoyStr;
-  } else {
-    rango.style.display = 'none';
-  }
+    var hoy = new Date(), y=hoy.getFullYear(), m=String(hoy.getMonth()+1).padStart(2,'0'), d=String(hoy.getDate()).padStart(2,'0');
+    var s = y+'-'+m+'-'+d;
+    if (!document.getElementById('fecha-desde').value) document.getElementById('fecha-desde').value = s;
+    if (!document.getElementById('fecha-hasta').value) document.getElementById('fecha-hasta').value = s;
+  } else { rango.style.display = 'none'; }
   filtrar();
 }
 
 function setFiltroVendedor(v, btn) {
   filtroVendedor = v;
-  document.querySelectorAll('#filtros-vendedor .filtro-btn').forEach(b => b.classList.remove('on'));
-  btn.classList.add('on');
-  filtrar();
+  document.querySelectorAll('#filtros-vendedor .filtro-btn').forEach(function(b){b.classList.remove('on');});
+  btn.classList.add('on'); filtrar();
 }
 
 function setFiltro(f, btn) {
   filtroActual = f;
-  document.querySelectorAll('.filtro-btn').forEach(b => b.classList.remove('on'));
-  btn.classList.add('on');
-  filtrar();
+  document.querySelectorAll('#filtros-estado .filtro-btn').forEach(function(b){b.classList.remove('on');});
+  btn.classList.add('on'); filtrar();
 }
 
-function filtrar() {
-  renderPedidos();
-}
+function filtrar() { renderPedidos(); }
 
 function fechaPedido(p) {
-  // Extraer fecha del pedidoId: TCK-YYYYMMDD-...
-  const m = p.pedidoId.match(/TCK-(\d{4})(\d{2})(\d{2})/);
-  if (m) return new Date(parseInt(m[1]), parseInt(m[2])-1, parseInt(m[3]));
-  // Fallback: usar fechaHora — iOS requiere T en vez de espacio
-  const fh = (p.fechaHora || '').replace(' ', 'T');
-  const d = new Date(fh);
+  var m = p.pedidoId.match(/TCK-(\d{4})(\d{2})(\d{2})/);
+  if (m) return new Date(+m[1], +m[2]-1, +m[3]);
+  var d = new Date((p.fechaHora||'').replace(' ','T'));
   return isNaN(d.getTime()) ? new Date() : d;
 }
 
 function pedidosFiltrados() {
-  let lista = pedidosVisibles();
-  const q = document.getElementById('buscador').value.toLowerCase();
-  const hoy = new Date();
-  hoy.setHours(0,0,0,0);
+  var lista = pedidosVisibles();
+  var q = document.getElementById('buscador').value.toLowerCase();
+  var hoy = new Date(); hoy.setHours(0,0,0,0);
 
-  // Filtro por fecha
   if (filtroFecha === 'hoy') {
-    lista = lista.filter(p => {
-      const f = fechaPedido(p); f.setHours(0,0,0,0);
-      return f.getTime() === hoy.getTime();
-    });
+    lista = lista.filter(function(p){ var f=fechaPedido(p); f.setHours(0,0,0,0); return f.getTime()===hoy.getTime(); });
   } else if (filtroFecha === 'ayer') {
-    const ayer = new Date(hoy); ayer.setDate(ayer.getDate()-1);
-    lista = lista.filter(p => {
-      const f = fechaPedido(p); f.setHours(0,0,0,0);
-      return f.getTime() === ayer.getTime();
-    });
+    var ayer = new Date(hoy); ayer.setDate(ayer.getDate()-1);
+    lista = lista.filter(function(p){ var f=fechaPedido(p); f.setHours(0,0,0,0); return f.getTime()===ayer.getTime(); });
   } else if (filtroFecha === 'semana') {
-    const semana = new Date(hoy); semana.setDate(semana.getDate()-7);
-    lista = lista.filter(p => fechaPedido(p) >= semana);
+    var sem = new Date(hoy); sem.setDate(sem.getDate()-7);
+    lista = lista.filter(function(p){ return fechaPedido(p) >= sem; });
   } else if (filtroFecha === 'personalizado') {
-    const desdeStr = document.getElementById('fecha-desde').value;
-    const hastaStr = document.getElementById('fecha-hasta').value;
-    if (desdeStr) {
-      const desde = new Date(desdeStr + 'T00:00:00');
-      lista = lista.filter(p => fechaPedido(p) >= desde);
-    }
-    if (hastaStr) {
-      const hasta = new Date(hastaStr + 'T23:59:59');
-      lista = lista.filter(p => fechaPedido(p) <= hasta);
-    }
+    var ds = document.getElementById('fecha-desde').value;
+    var hs = document.getElementById('fecha-hasta').value;
+    if (ds) { var desde = new Date(ds+'T00:00:00'); lista = lista.filter(function(p){return fechaPedido(p)>=desde;}); }
+    if (hs) { var hasta = new Date(hs+'T23:59:59'); lista = lista.filter(function(p){return fechaPedido(p)<=hasta;}); }
   }
 
-  // Filtro por vendedor (solo admin)
-  if (vendedorActual === 'ADMIN' && filtroVendedor !== 'todos') {
-    lista = lista.filter(p => p.vendedor.toLowerCase().includes(filtroVendedor.toLowerCase()));
-  }
+  if (vendedorActual === 'ADMIN' && filtroVendedor !== 'todos')
+    lista = lista.filter(function(p){ return p.vendedor.toLowerCase().includes(filtroVendedor.toLowerCase()); });
 
-  // Filtro por estado
-  if (filtroActual === 'duplicado') {
-    lista = lista.filter(p => p.esDuplicado);
-  } else if (filtroActual !== 'todos') {
-    lista = lista.filter(p => p.estado === filtroActual);
-  }
+  if (filtroActual === 'duplicado') lista = lista.filter(function(p){return p.esDuplicado;});
+  else if (filtroActual !== 'todos') lista = lista.filter(function(p){return p.estado===filtroActual;});
 
-  // Búsqueda
-  if (q) {
-    lista = lista.filter(p =>
-      p.cliente.toLowerCase().includes(q) ||
-      p.comercio.toLowerCase().includes(q) ||
-      p.localidad.toLowerCase().includes(q) ||
-      p.pedidoId.toLowerCase().includes(q)
-    );
-  }
-
+  if (q) lista = lista.filter(function(p){
+    return p.cliente.toLowerCase().includes(q) || p.comercio.toLowerCase().includes(q) ||
+           p.localidad.toLowerCase().includes(q) || p.pedidoId.toLowerCase().includes(q);
+  });
   return lista;
 }
 
-// ── RENDER PEDIDOS ───────────────────────────────────────────────
+// ── RENDER ────────────────────────────────────────────────────────
 function renderPedidos() {
   actualizarStats();
-  const lista = pedidosFiltrados();
-  const cont = document.getElementById('lista-pedidos');
-
-  if (lista.length === 0) {
-    cont.innerHTML = '<div class="empty">📭 No hay pedidos para mostrar</div>';
-    return;
-  }
-
-  cont.innerHTML = lista.map(p => renderCard(p)).join('');
-}
-
-function badgeHtml(estado, esDuplicado, tipoDuplicado) {
-  const badges = {
-    'Pendiente': '<span class="badge badge-pendiente">⏳ Pendiente</span>',
-    'Confirmado': '<span class="badge badge-confirmado">✅ Confirmado</span>',
-    'Entregado': '<span class="badge badge-entregado">📦 Entregado</span>',
-    'Cancelado': '<span class="badge badge-cancelado">❌ Cancelado</span>',
-  };
-  let b = badges[estado] || `<span class="badge badge-pendiente">${estado}</span>`;
-  if (esDuplicado && tipoDuplicado === 'exacto') b += ' <span class="badge badge-duplicado" style="background:#FFEBEE;color:#C62828;">🔴 DUPLICADO</span>';
-  else if (esDuplicado) b += ' <span class="badge badge-duplicado">🟠 PEDIDO DOBLE</span>';
-  return b;
+  var lista = pedidosFiltrados();
+  var cont = document.getElementById('lista-pedidos');
+  if (!lista.length) { cont.innerHTML = '<div class="empty">📭 No hay pedidos para mostrar</div>'; return; }
+  cont.innerHTML = lista.map(function(p){ return renderCard(p); }).join('');
 }
 
 function fmtTotal(t) {
-  const n = parseInt(t.replace(/[^\d]/g,''));
-  if (isNaN(n)) return t;
-  return '$' + n.toLocaleString('es-AR');
+  var n = parseInt((t||'').replace(/[^\d]/g,''));
+  return isNaN(n) ? (t||'') : '$' + n.toLocaleString('es-AR');
 }
 
-function botonesEstado(p) {
-  const id = p.pedidoId;
-  const fila = p.fila;
-  const esAdmin = vendedorActual === 'ADMIN';
-  let btns = '';
-
-  if (p.estado !== 'Confirmado')
-    btns += `<button class="btn-estado btn-confirmar" onclick="cambiarEstado('${id}',${fila},'Confirmado',event)">✅ Confirmar</button>`;
-  if (p.estado !== 'Entregado')
-    btns += `<button class="btn-estado btn-entregar" onclick="cambiarEstado('${id}',${fila},'Entregado',event)">📦 Entregado</button>`;
-  if (p.estado !== 'Pendiente' && esAdmin)
-    btns += `<button class="btn-estado btn-pendiente-again" onclick="cambiarEstado('${id}',${fila},'Pendiente',event)">⏳ Pendiente</button>`;
-  if (p.estado !== 'Cancelado' && esAdmin)
-    btns += `<button class="btn-estado btn-cancelar" onclick="confirmarCancelar('${id}',${fila},event)">❌ Cancelar</button>`;
-
-  return btns;
+function badgeHtml(p) {
+  var bs = {
+    'Pendiente': '<span class="badge badge-pendiente">⏳ Pendiente</span>',
+    'Confirmado': '<span class="badge badge-confirmado">✅ Confirmado</span>',
+    'Entregado':  '<span class="badge badge-entregado">📦 Entregado</span>',
+    'Cancelado':  '<span class="badge badge-cancelado">❌ Cancelado</span>'
+  };
+  var b = bs[p.estado] || '<span class="badge badge-pendiente">' + p.estado + '</span>';
+  if (p.esDuplicado && p.tipoDuplicado === 'exacto') b += ' <span class="badge badge-dup-exacto">🔴 DUPLICADO</span>';
+  else if (p.esDuplicado) b += ' <span class="badge badge-dup-parcial">🟠 PEDIDO DOBLE</span>';
+  return b;
 }
 
 function renderCard(p) {
-  let dupAlert = '';
-  if (p.esDuplicado && p.tipoDuplicado === 'exacto') {
-    dupAlert = `<div class="duplicado-alert" style="background:#FFEBEE;border-color:#C62828;color:#C62828;">
-      🔴 <strong>PEDIDO DUPLICADO EXACTO</strong> — Este mismo pedido (mismo cliente y mismo total) también lo tiene <strong>${p.duplicadoCon || 'otro vendedor'}</strong>.
-      Uno de los dos debe cancelar. Coordiná con tu equipo antes de remitir.
-    </div>`;
-  } else if (p.esDuplicado && p.tipoDuplicado === 'parcial') {
-    dupAlert = `<div class="duplicado-alert">
-      🟠 <strong>CLIENTE CON PEDIDO DOBLE</strong> — <strong>${p.cliente}</strong> tiene otro pedido con <strong>${p.duplicadoCon || 'otro vendedor'}</strong> por un monto diferente.
-      Recordá que cada cliente debe pedir siempre al mismo vendedor. Verificar manualmente.
-    </div>`;
+  var id = p.pedidoId.replace(/[^a-zA-Z0-9]/g,'-');
+  var esAdmin = vendedorActual === 'ADMIN';
+  var claseCard = p.tipoDuplicado === 'exacto' ? ' dup-exacto' : p.esDuplicado ? ' dup-parcial' : '';
+
+  var dupAlert = '';
+  if (p.tipoDuplicado === 'exacto') {
+    dupAlert = '<div class="dup-alert-exacto">' +
+      '<div class="dup-alert-exacto-title">🔴 PEDIDO DUPLICADO EXACTO</div>' +
+      '<div class="dup-alert-exacto-body">Este mismo pedido también lo tiene <strong>' + (p.duplicadoCon||'otro vendedor') + '</strong>. Uno debe cancelar antes de remitir.</div>' +
+      '</div>';
+  } else if (p.tipoDuplicado === 'parcial') {
+    dupAlert = '<div class="dup-alert-parcial">' +
+      '<div class="dup-alert-parcial-title">🟠 CLIENTE CON PEDIDO DOBLE</div>' +
+      '<div class="dup-alert-parcial-body"><strong>' + p.cliente + '</strong> tiene otro pedido con <strong>' + (p.duplicadoCon||'otro vendedor') + '</strong> por monto diferente. Verificar manualmente.</div>' +
+      '</div>';
   }
 
-  const vendedorRow = vendedorActual === 'ADMIN'
-    ? `<div class="pedido-detalle-row"><span class="pdr-label">Vendedor</span><span class="pdr-val">${p.vendedor}</span></div>`
-    : '';
+  var btns = '';
+  if (p.estado !== 'Confirmado') btns += '<button class="btn-estado btn-confirmar" onclick="cambiarEstado(\'' + p.pedidoId + '\',' + p.fila + ',\'Confirmado\',event)">✅ Confirmar</button>';
+  if (p.estado !== 'Entregado')  btns += '<button class="btn-estado btn-entregar" onclick="cambiarEstado(\'' + p.pedidoId + '\',' + p.fila + ',\'Entregado\',event)">📦 Entregado</button>';
+  if (esAdmin && p.estado !== 'Pendiente') btns += '<button class="btn-estado btn-pendiente-again" onclick="cambiarEstado(\'' + p.pedidoId + '\',' + p.fila + ',\'Pendiente\',event)">⏳ Pendiente</button>';
+  if (esAdmin && p.estado !== 'Cancelado') btns += '<button class="btn-estado btn-cancelar" onclick="confirmarCancelar(\'' + p.pedidoId + '\',' + p.fila + ',event)">❌ Cancelar</button>';
 
-  return `
-<div class="pedido-card${p.esDuplicado ? ' duplicado' : ''}" id="card-${p.pedidoId.replace(/[^a-zA-Z0-9]/g,'-')}">
-  <div class="pedido-head" onclick="toggleCard('${p.pedidoId.replace(/[^a-zA-Z0-9]/g,'-')}')">
-    <div class="pedido-head-left">
-      <div class="pedido-id">${p.pedidoId}</div>
-      <div class="pedido-cliente">${p.cliente || '(sin nombre)'}</div>
-      ${p.comercio ? `<div class="pedido-comercio">🏪 ${p.comercio} · 📍 ${p.localidad}</div>` : `<div class="pedido-comercio">📍 ${p.localidad}</div>`}
-    </div>
-    <div class="pedido-head-right">
-      <div class="pedido-total">${fmtTotal(p.total)}</div>
-      ${badgeHtml(p.estado, p.esDuplicado, p.tipoDuplicado)}
-      <div class="pedido-hora">${(p.fechaHora || '').split(' ')[1] || (p.fechaHora || '').split('T')[1] || p.fechaHora || ''}</div>
-    </div>
-  </div>
-  <div class="pedido-body" id="body-${p.pedidoId.replace(/[^a-zA-Z0-9]/g,'-')}">
-    ${vendedorRow}
-    <div class="pedido-detalle-row"><span class="pdr-label">Localidad</span><span class="pdr-val">${p.localidad}</span></div>
-    <div class="pedido-detalle-row"><span class="pdr-label">Productos</span><span class="pdr-val">${p.items} unidades</span></div>
-    <div class="pedido-detalle-row"><span class="pdr-label">Total</span><span class="pdr-val" style="color:var(--red);font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:900;">${fmtTotal(p.total)}</span></div>
-    <div class="pedido-detalle-row"><span class="pdr-label">Fecha/Hora</span><span class="pdr-val">${p.fechaHora}</span></div>
-    ${p.detalle ? `<div class="pedido-productos">${p.detalle.replace(/\|/g,'\n').replace(/ · /g,' — ')}</div>` : p.resumen ? `<div class="pedido-productos">${p.resumen}</div>` : ''}
-    ${dupAlert}
-    <div class="pedido-acciones">${botonesEstado(p)}</div>
-    <div class="nota-wrap">
-      <textarea class="nota-input" id="nota-${p.pedidoId.replace(/[^a-zA-Z0-9]/g,'-')}" placeholder="📝 Nota interna (ej: entregar a la tarde, cliente confirmó...)" onblur="guardarNota('${p.pedidoId}')">${p.nota || ''}</textarea>
-      <div class="nota-guardada" id="nota-ok-${p.pedidoId.replace(/[^a-zA-Z0-9]/g,'-')}">✅ Nota guardada</div>
-    </div>
-  </div>
-</div>`; 
+  var vendedorRow = esAdmin ? '<div class="pedido-detalle-row"><span class="pdr-label">Vendedor</span><span class="pdr-val">' + p.vendedor + '</span></div>' : '';
+  var detalle = p.detalle ? p.detalle.replace(/\|/g,'\n').replace(/ · /g,' — ') : (p.resumen || '');
+  var hora = (p.fechaHora||'').split(' ')[1] || (p.fechaHora||'').split('T')[1] || '';
+
+  return '<div class="pedido-card' + claseCard + '" id="card-' + id + '">' +
+    '<div class="pedido-head" onclick="toggleCard(\'' + id + '\')">' +
+      '<div class="pedido-head-left">' +
+        '<div class="pedido-id">' + p.pedidoId + '</div>' +
+        '<div class="pedido-cliente">' + (p.cliente||'(sin nombre)') + '</div>' +
+        '<div class="pedido-comercio">' + (p.comercio ? '🏪 '+p.comercio+' · ' : '') + '📍 ' + p.localidad + '</div>' +
+      '</div>' +
+      '<div class="pedido-head-right">' +
+        '<div class="pedido-total">' + fmtTotal(p.total) + '</div>' +
+        badgeHtml(p) +
+        '<div class="pedido-hora">' + hora + '</div>' +
+      '</div>' +
+    '</div>' +
+    '<div class="pedido-body" id="body-' + id + '">' +
+      vendedorRow +
+      '<div class="pedido-detalle-row"><span class="pdr-label">Localidad</span><span class="pdr-val">' + p.localidad + '</span></div>' +
+      '<div class="pedido-detalle-row"><span class="pdr-label">Productos</span><span class="pdr-val">' + p.items + ' unidades</span></div>' +
+      '<div class="pedido-detalle-row"><span class="pdr-label">Total</span><span class="pdr-val" style="color:var(--red);font-family:\'Barlow Condensed\',sans-serif;font-size:18px;font-weight:900;">' + fmtTotal(p.total) + '</span></div>' +
+      '<div class="pedido-detalle-row"><span class="pdr-label">Fecha/Hora</span><span class="pdr-val">' + p.fechaHora + '</span></div>' +
+      (detalle ? '<div class="pedido-productos">' + detalle + '</div>' : '') +
+      dupAlert +
+      '<div class="pedido-acciones">' + btns + '</div>' +
+      '<div class="nota-wrap">' +
+        '<textarea class="nota-input" id="nota-' + id + '" placeholder="📝 Nota interna..." onblur="guardarNota(\'' + p.pedidoId + '\')">' + (p.nota||'') + '</textarea>' +
+        '<div class="nota-guardada" id="nota-ok-' + id + '">✅ Nota guardada</div>' +
+      '</div>' +
+    '</div>' +
+  '</div>';
 }
 
 function toggleCard(id) {
-  const body = document.getElementById('body-' + id);
-  if (body) body.classList.toggle('on');
+  var b = document.getElementById('body-'+id);
+  if (b) b.classList.toggle('on');
 }
 
-
-// ── NOTAS INTERNAS ───────────────────────────────────────────────
+// ── NOTAS ─────────────────────────────────────────────────────────
 function guardarNota(pedidoId) {
-  const key = 'nota-' + pedidoId.replace(/[^a-zA-Z0-9]/g,'-');
-  const el = document.getElementById('nota-' + pedidoId.replace(/[^a-zA-Z0-9]/g,'-'));
+  var id = pedidoId.replace(/[^a-zA-Z0-9]/g,'-');
+  var el = document.getElementById('nota-'+id);
   if (!el) return;
-  const texto = el.value.trim();
   try {
-    localStorage.setItem('tck_nota_' + pedidoId, texto);
-    const ok = document.getElementById('nota-ok-' + pedidoId.replace(/[^a-zA-Z0-9]/g,'-'));
-    if (ok) { ok.style.display = 'block'; setTimeout(() => ok.style.display = 'none', 2000); }
-    // Actualizar en memoria
-    const p = todosLosPedidos.find(x => x.pedidoId === pedidoId);
-    if (p) p.nota = texto;
+    localStorage.setItem('tck_nota_'+pedidoId, el.value.trim());
+    var ok = document.getElementById('nota-ok-'+id);
+    if (ok) { ok.style.display='block'; setTimeout(function(){ok.style.display='none';},2000); }
+    var p = todosLosPedidos.find(function(x){return x.pedidoId===pedidoId;});
+    if (p) p.nota = el.value.trim();
   } catch(e) {}
 }
 
 function cargarNotas(pedidos) {
-  pedidos.forEach(p => {
-    try {
-      p.nota = localStorage.getItem('tck_nota_' + p.pedidoId) || '';
-    } catch(e) { p.nota = ''; }
+  pedidos.forEach(function(p) {
+    try { p.nota = localStorage.getItem('tck_nota_'+p.pedidoId)||''; } catch(e) { p.nota=''; }
   });
 }
 
-
-// ── EXPORTAR RESUMEN DEL DÍA ─────────────────────────────────────
+// ── EXPORTAR ──────────────────────────────────────────────────────
 function exportarResumen() {
-  const lista = pedidosFiltrados();
-  if (lista.length === 0) { toast('No hay pedidos para exportar', ''); return; }
-
-  const hoy = new Date().toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long' });
-  const nombre = vendedorActual === 'ADMIN' ? 'Todos los vendedores' : vendedorActual;
-
-  const cancelados = lista.filter(p => p.estado === 'Cancelado');
-  const activos = lista.filter(p => p.estado !== 'Cancelado');
-  const total = activos.reduce((acc, p) => {
-    const n = parseInt((p.total || '0').toString().replace(/[^\d]/g, ''));
-    return acc + (isNaN(n) ? 0 : n);
-  }, 0);
-
-  const pendientes = activos.filter(p => p.estado === 'Pendiente');
-  const confirmados = activos.filter(p => p.estado === 'Confirmado');
-  const entregados = activos.filter(p => p.estado === 'Entregado');
-
-  let msg = '🐔 *TCK — Resumen de pedidos*\n';
-  msg += '📅 ' + hoy + '\n';
-  msg += '👤 ' + nombre + '\n';
-  msg += '━━━━━━━━━━━━━━━\n\n';
-  msg += '📦 *Total pedidos:* ' + activos.length + '\n';
-  msg += '💰 *Monto total:* $' + total.toLocaleString('es-AR') + '\n\n';
-  msg += '⏳ Pendientes: ' + pendientes.length + '\n';
-  msg += '✅ Confirmados: ' + confirmados.length + '\n';
-  msg += '📦 Entregados: ' + entregados.length + '\n';
-  if (cancelados.length > 0) msg += '❌ Cancelados: ' + cancelados.length + '\n';
-  msg += '\n━━━━━━━━━━━━━━━\n';
-  msg += '*Detalle:*\n';
-
-  activos.forEach(p => {
-    const icon = p.estado === 'Confirmado' ? '✅' : p.estado === 'Entregado' ? '📦' : '⏳';
-    msg += icon + ' ' + p.cliente;
-    if (p.comercio) msg += ' (' + p.comercio + ')';
-    msg += ' — $' + parseInt((p.total||'0').toString().replace(/[^\d]/g,'')).toLocaleString('es-AR');
-    msg += ' · ' + p.localidad + '\n';
+  var lista = pedidosFiltrados();
+  if (!lista.length) { toast('No hay pedidos para exportar',''); return; }
+  var nombre = vendedorActual==='ADMIN' ? 'Todos los vendedores' : vendedorActual;
+  var activos = lista.filter(function(p){return p.estado!=='Cancelado';});
+  var total = activos.reduce(function(acc,p){return acc+(parseInt((p.total||'').replace(/[^\d]/g,''))||0);},0);
+  var pend = activos.filter(function(p){return p.estado==='Pendiente';});
+  var conf = activos.filter(function(p){return p.estado==='Confirmado';});
+  var entr = activos.filter(function(p){return p.estado==='Entregado';});
+  var canc = lista.filter(function(p){return p.estado==='Cancelado';});
+  var hoy = new Date().toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long'});
+  var msg = '🐔 *TCK — Resumen de pedidos*\n📅 '+hoy+'\n👤 '+nombre+'\n━━━━━━━━━━━━━━━\n\n';
+  msg += '📦 *Total:* '+activos.length+'\n💰 *Monto:* $'+total.toLocaleString('es-AR')+'\n\n';
+  msg += '⏳ Pendientes: '+pend.length+'\n✅ Confirmados: '+conf.length+'\n📦 Entregados: '+entr.length+'\n';
+  if (canc.length) msg += '❌ Cancelados: '+canc.length+'\n';
+  msg += '\n━━━━━━━━━━━━━━━\n*Detalle:*\n';
+  activos.forEach(function(p){
+    var ic = p.estado==='Confirmado'?'✅':p.estado==='Entregado'?'📦':'⏳';
+    msg += ic+' '+p.cliente+(p.comercio?' ('+p.comercio+')':'')+' — '+fmtTotal(p.total)+' · '+p.localidad+'\n';
   });
-
   msg += '\n_Generado desde TCK Pedidos_';
-
-  const url = 'https://wa.me/?text=' + encodeURIComponent(msg);
-  window.open(url, '_blank');
+  window.open('https://wa.me/?text='+encodeURIComponent(msg),'_blank');
 }
 
-// ── CONFIRMAR CANCELACIÓN ────────────────────────────────────────
+// ── CAMBIAR ESTADO ────────────────────────────────────────────────
 function confirmarCancelar(pedidoId, fila, event) {
   event.stopPropagation();
   if (confirm('⚠️ ¿Seguro que querés cancelar este pedido?\nEsta acción quedará registrada.')) {
@@ -1358,41 +761,30 @@ function confirmarCancelar(pedidoId, fila, event) {
   }
 }
 
-// ── CAMBIAR ESTADO ───────────────────────────────────────────────
 async function cambiarEstado(pedidoId, fila, nuevoEstado, event) {
   event.stopPropagation();
-  const btn = event.target;
-  btn.disabled = true;
-  btn.textContent = 'Guardando...';
-
+  var btn = event.target;
+  var txtOrig = btn.textContent;
+  btn.disabled = true; btn.textContent = 'Guardando...';
   try {
-    const params = new URLSearchParams({
-      accion: 'cambiarEstado',
-      pedidoId: pedidoId,
-      fila: fila,
-      estado: nuevoEstado
-    });
-    await fetch(APPS_SCRIPT_URL + '?' + params.toString(), { mode: 'no-cors' });
-
-    // Actualizar localmente sin recargar todo
-    const p = todosLosPedidos.find(x => x.pedidoId === pedidoId);
+    var params = new URLSearchParams({accion:'cambiarEstado', pedidoId:pedidoId, fila:fila, estado:nuevoEstado});
+    await fetch(APPS_SCRIPT_URL+'?'+params.toString(), {mode:'no-cors'});
+    var p = todosLosPedidos.find(function(x){return x.pedidoId===pedidoId;});
     if (p) p.estado = nuevoEstado;
     renderPedidos();
-    toast('Estado actualizado: ' + nuevoEstado, 'ok');
-
+    toast('Estado: '+nuevoEstado, 'ok');
   } catch(e) {
-    btn.disabled = false;
-    btn.textContent = 'Error — reintentar';
-    toast('Error al guardar', 'err');
+    btn.disabled=false; btn.textContent=txtOrig;
+    toast('Error al guardar','err');
   }
 }
 
-// ── TOAST ────────────────────────────────────────────────────────
+// ── TOAST ─────────────────────────────────────────────────────────
 function toast(msg, tipo) {
-  const el = document.getElementById('toast');
+  var el = document.getElementById('toast');
   el.textContent = msg;
-  el.className = 'toast on ' + (tipo || '');
-  setTimeout(() => el.classList.remove('on'), 2500);
+  el.className = 'toast on '+(tipo||'');
+  setTimeout(function(){el.classList.remove('on');},2500);
 }
 </script>
 </body>
