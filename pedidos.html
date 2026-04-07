@@ -163,8 +163,8 @@ body {
 }
 
 /* ── PANEL ── */
-.panel { display: none; padding: 16px; max-width: 900px; margin: 0 auto; }
-.panel.on { display: block; }
+.panel { display: none; max-width: 900px; margin: 0 auto; }
+.panel.on { display: block; min-height: calc(100vh - 56px); }
 
 /* ── BIENVENIDA ── */
 .bienvenida {
@@ -751,6 +751,163 @@ body {
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 
+/* ── TAB NAV ── */
+.tab-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 200;
+  background: #fff;
+  border-top: 1.5px solid var(--cream3);
+  display: none;
+  grid-template-columns: repeat(4, 1fr);
+  box-shadow: 0 -4px 20px rgba(0,0,0,.08);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+.tab-nav.visible { display: grid; }
+.tab-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 9px 4px 8px;
+  gap: 3px;
+  cursor: pointer;
+  background: none;
+  border: none;
+  position: relative;
+  transition: background .12s;
+  -webkit-tap-highlight-color: transparent;
+}
+.tab-btn:active { background: var(--cream2); }
+.tab-btn.active .tab-icon { filter: none; opacity: 1; }
+.tab-btn.active .tab-label { color: var(--red); font-weight: 800; }
+.tab-btn.active::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 20%; right: 20%;
+  height: 2.5px;
+  background: var(--red);
+  border-radius: 0 0 3px 3px;
+}
+.tab-icon {
+  font-size: 20px;
+  line-height: 1;
+  opacity: .5;
+}
+.tab-btn.active .tab-icon { opacity: 1; }
+.tab-label {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text3);
+  letter-spacing: .3px;
+  text-transform: uppercase;
+}
+.tab-badge {
+  position: absolute;
+  top: 6px;
+  right: calc(50% - 20px);
+  background: var(--red);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 900;
+  font-family: 'Barlow Condensed', sans-serif;
+  min-width: 16px;
+  height: 16px;
+  border-radius: 8px;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 0 4px;
+}
+.tab-badge.on { display: flex; }
+
+/* ── VIEWS (secciones) ── */
+.view {
+  display: none;
+  padding-bottom: calc(72px + env(safe-area-inset-bottom));
+}
+.view.active { display: block; }
+
+/* ── VIEW: MI DÍA (ahora vista completa, no colapsable) ── */
+.midia-view-inner {
+  padding: 12px 16px 0;
+}
+.midia-section-card {
+  background: #fff;
+  border-radius: 14px;
+  border: 1.5px solid var(--cream3);
+  margin-bottom: 12px;
+  overflow: hidden;
+  box-shadow: var(--shadow);
+}
+.midia-section-hdr {
+  padding: 12px 16px 10px;
+  border-bottom: 1.5px solid var(--cream2);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.midia-section-hdr-icon {
+  font-size: 16px;
+}
+.midia-section-hdr-title {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 13px;
+  font-weight: 900;
+  color: var(--text);
+  text-transform: uppercase;
+  letter-spacing: .8px;
+}
+.midia-section-body {
+  padding: 12px 16px;
+}
+
+/* ── VIEW: CLIENTES ── */
+.coming-soon {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 32px;
+  text-align: center;
+  gap: 14px;
+}
+.coming-soon-icon {
+  font-size: 48px;
+  opacity: .35;
+}
+.coming-soon-title {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 22px;
+  font-weight: 900;
+  color: var(--text2);
+  letter-spacing: .5px;
+}
+.coming-soon-sub {
+  font-size: 13px;
+  color: var(--text3);
+  line-height: 1.6;
+  max-width: 260px;
+}
+.coming-soon-badge {
+  background: var(--cream2);
+  border: 1.5px solid var(--cream3);
+  border-radius: 20px;
+  padding: 5px 14px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text3);
+  letter-spacing: .5px;
+  text-transform: uppercase;
+}
+
+/* ── AJUSTE: cuando hay tabs, el panel tiene más padding abajo ── */
+.panel.on { padding-bottom: 0; }
+
 /* ── TOAST ── */
 .export-backdrop {
   position: fixed;
@@ -1002,6 +1159,8 @@ input[type="date"] {
 
 <!-- PANEL -->
 <div class="panel" id="panel">
+
+  <!-- ── BIENVENIDA (siempre visible dentro del panel) ── -->
   <div class="bienvenida">
     <div>
       <div class="bienvenida-nombre" id="bienvenida-nombre"></div>
@@ -1009,85 +1168,129 @@ input[type="date"] {
     </div>
     <button class="btn-salir" onclick="salir()">Salir</button>
   </div>
-  <div class="stats" style="grid-template-columns:repeat(2,1fr)">
-    <div class="stat-card">
-      <div class="stat-num" id="stat-total">—</div>
-      <div class="stat-label">Pedidos hoy</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-num" id="stat-monto" style="font-size:22px">—</div>
-      <div class="stat-label">Total del día</div>
-    </div>
-  </div>
-  <div class="stats" style="margin-top:0;margin-bottom:16px">
-    <div class="stat-card">
-      <div class="stat-num" id="stat-pend" style="color:var(--orange)">—</div>
-      <div class="stat-label">Pendientes</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-num" id="stat-conf" style="color:var(--green2)">—</div>
-      <div class="stat-label">Confirmados</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-num" id="stat-entregado" style="color:var(--blue)">—</div>
-      <div class="stat-label">Entregados</div>
-    </div>
-  </div>
-  <div style="display:flex;gap:8px;margin-bottom:6px;">
-    <button class="btn-refresh" style="flex:1" onclick="cargarPedidos()">🔄 Actualizar</button>
-    <button class="btn-refresh" style="flex:1;color:var(--green2);border-color:var(--green2)" onclick="abrirExport()">📤 Enviar resumen</button>
-  </div>
-  <div class="refresh-bar-wrap"><div class="refresh-bar" id="refresh-bar"></div></div>
 
-  <!-- MI DÍA -->
-  <div class="mi-dia" id="mi-dia-panel" style="display:none">
-    <div class="mi-dia-hdr" onclick="toggleMiDia()">
-      <div>
-        <div class="mi-dia-hdr-title">📊 Mi día</div>
-        <div class="mi-dia-hdr-sub" id="mi-dia-sub">Resumen de tu actividad</div>
+  <!-- ══ VIEW: PEDIDOS ══ -->
+  <div class="view active" id="view-pedidos">
+    <div style="padding:14px 16px 0;">
+      <div class="stats" style="grid-template-columns:repeat(2,1fr);margin-bottom:10px;">
+        <div class="stat-card">
+          <div class="stat-num" id="stat-total">—</div>
+          <div class="stat-label">Pedidos hoy</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num" id="stat-monto" style="font-size:22px">—</div>
+          <div class="stat-label">Total del día</div>
+        </div>
       </div>
-      <div class="mi-dia-chevron" id="mi-dia-chevron">⌄</div>
+      <div class="stats" style="margin-top:0;margin-bottom:10px;">
+        <div class="stat-card">
+          <div class="stat-num" id="stat-pend" style="color:var(--orange)">—</div>
+          <div class="stat-label">Pendientes</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num" id="stat-conf" style="color:var(--green2)">—</div>
+          <div class="stat-label">Confirmados</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num" id="stat-entregado" style="color:var(--blue)">—</div>
+          <div class="stat-label">Entregados</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;margin-bottom:6px;">
+        <button class="btn-refresh" style="flex:1" onclick="cargarPedidos()">🔄 Actualizar</button>
+        <button class="btn-refresh" style="flex:1;color:var(--green2);border-color:var(--green2)" onclick="abrirExport()">📤 Enviar</button>
+      </div>
+      <div class="refresh-bar-wrap"><div class="refresh-bar" id="refresh-bar"></div></div>
+      <div class="buscador-wrap">
+        <span class="buscador-icon">🔍</span>
+        <input class="buscador" id="buscador" placeholder="Buscar cliente, comercio, localidad..." oninput="filtrar()">
+      </div>
+      <div class="filtros" id="filtros-fecha">
+        <button class="filtro-btn on" onclick="setFiltroFecha('hoy',this)">📅 Hoy</button>
+        <button class="filtro-btn" onclick="setFiltroFecha('ayer',this)">Ayer</button>
+        <button class="filtro-btn" onclick="setFiltroFecha('semana',this)">Esta semana</button>
+        <button class="filtro-btn" onclick="setFiltroFecha('todos',this)">Todos</button>
+        <button class="filtro-btn" onclick="setFiltroFecha('personalizado',this)">📆 Rango</button>
+      </div>
+      <div id="rango-fechas" style="display:none;background:#fff;border-radius:12px;border:1.5px solid var(--border);padding:14px 16px;margin-bottom:10px;">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+          <div>
+            <div style="font-size:11px;color:var(--text2);text-transform:uppercase;margin-bottom:4px;font-weight:600;">Desde</div>
+            <input type="date" id="fecha-desde" style="width:100%;padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:14px;" onchange="filtrar()">
+          </div>
+          <div>
+            <div style="font-size:11px;color:var(--text2);text-transform:uppercase;margin-bottom:4px;font-weight:600;">Hasta</div>
+            <input type="date" id="fecha-hasta" style="width:100%;padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:14px;" onchange="filtrar()">
+          </div>
+        </div>
+      </div>
+      <div class="filtros" id="filtros-vendedor" style="display:none">
+        <button class="filtro-btn on" onclick="setFiltroVendedor('todos',this)">👥 Todos</button>
+        <button class="filtro-btn" onclick="setFiltroVendedor('Miguel',this)">Miguel</button>
+        <button class="filtro-btn" onclick="setFiltroVendedor('Juan',this)">Juan</button>
+        <button class="filtro-btn" onclick="setFiltroVendedor('Lisandro',this)">Lisandro</button>
+      </div>
+      <div class="filtros" id="filtros-estado">
+        <button class="filtro-btn on" onclick="setFiltro('todos',this)">Todos</button>
+        <button class="filtro-btn" onclick="setFiltro('Pendiente',this)">⏳ Pendientes</button>
+        <button class="filtro-btn" onclick="setFiltro('Confirmado',this)">✅ Confirmados</button>
+        <button class="filtro-btn" onclick="setFiltro('Entregado',this)">📦 Entregados</button>
+        <button class="filtro-btn" onclick="setFiltro('duplicado',this)">⚠️ Duplicados</button>
+      </div>
     </div>
-    <div class="mi-dia-body" id="mi-dia-body"></div>
+    <div id="lista-pedidos"></div>
   </div>
-  <div class="buscador-wrap">
-    <span class="buscador-icon">🔍</span>
-    <input class="buscador" id="buscador" placeholder="Buscar cliente, comercio, localidad..." oninput="filtrar()">
-  </div>
-  <div class="filtros" id="filtros-fecha">
-    <button class="filtro-btn on" onclick="setFiltroFecha('hoy',this)">📅 Hoy</button>
-    <button class="filtro-btn" onclick="setFiltroFecha('ayer',this)">Ayer</button>
-    <button class="filtro-btn" onclick="setFiltroFecha('semana',this)">Esta semana</button>
-    <button class="filtro-btn" onclick="setFiltroFecha('todos',this)">Todos</button>
-    <button class="filtro-btn" onclick="setFiltroFecha('personalizado',this)">📆 Rango</button>
-  </div>
-  <div id="rango-fechas" style="display:none;background:#fff;border-radius:12px;border:1.5px solid var(--border);padding:14px 16px;margin-bottom:10px;">
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-      <div>
-        <div style="font-size:11px;color:var(--text2);text-transform:uppercase;margin-bottom:4px;font-weight:600;">Desde</div>
-        <input type="date" id="fecha-desde" style="width:100%;padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:14px;" onchange="filtrar()">
-      </div>
-      <div>
-        <div style="font-size:11px;color:var(--text2);text-transform:uppercase;margin-bottom:4px;font-weight:600;">Hasta</div>
-        <input type="date" id="fecha-hasta" style="width:100%;padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:14px;" onchange="filtrar()">
-      </div>
+
+  <!-- ══ VIEW: MI DÍA ══ -->
+  <div class="view" id="view-midia">
+    <div class="midia-view-inner" id="mi-dia-body-outer">
+      <!-- Renderizado por renderMiDia() en tarjetas separadas -->
+      <div id="mi-dia-body" style="padding-top:4px;"></div>
     </div>
   </div>
-  <div class="filtros" id="filtros-vendedor" style="display:none">
-    <button class="filtro-btn on" onclick="setFiltroVendedor('todos',this)">👥 Todos</button>
-    <button class="filtro-btn" onclick="setFiltroVendedor('Miguel',this)">Miguel</button>
-    <button class="filtro-btn" onclick="setFiltroVendedor('Juan',this)">Juan</button>
-    <button class="filtro-btn" onclick="setFiltroVendedor('Lisandro',this)">Lisandro</button>
+
+  <!-- ══ VIEW: CLIENTES ══ -->
+  <div class="view" id="view-clientes">
+    <div class="coming-soon">
+      <div class="coming-soon-icon">⭐</div>
+      <div class="coming-soon-title">Análisis de clientes</div>
+      <div class="coming-soon-sub">Acá vas a ver los mejores clientes, frecuencia de compra, ticket promedio y clientes inactivos.</div>
+      <div class="coming-soon-badge">Próximamente</div>
+    </div>
   </div>
-  <div class="filtros" id="filtros-estado">
-    <button class="filtro-btn on" onclick="setFiltro('todos',this)">Todos</button>
-    <button class="filtro-btn" onclick="setFiltro('Pendiente',this)">⏳ Pendientes</button>
-    <button class="filtro-btn" onclick="setFiltro('Confirmado',this)">✅ Confirmados</button>
-    <button class="filtro-btn" onclick="setFiltro('Entregado',this)">📦 Entregados</button>
-    <button class="filtro-btn" onclick="setFiltro('duplicado',this)">⚠️ Duplicados</button>
+
+  <!-- ══ VIEW: REPORTES ══ -->
+  <div class="view" id="view-reportes">
+    <div class="coming-soon">
+      <div class="coming-soon-icon">📈</div>
+      <div class="coming-soon-title">Reportes y tendencias</div>
+      <div class="coming-soon-sub">Comparativo semanal, ranking de vendedores, productos más rentables y evolución del negocio.</div>
+      <div class="coming-soon-badge">Próximamente</div>
+    </div>
   </div>
-  <div id="lista-pedidos"></div>
+
 </div>
+
+<!-- TAB NAV -->
+<nav class="tab-nav" id="tab-nav">
+  <button class="tab-btn active" id="tab-btn-pedidos" onclick="cambiarTab('pedidos')">
+    <span class="tab-icon">📋</span>
+    <span class="tab-label">Pedidos</span>
+    <span class="tab-badge" id="tab-badge-pend"></span>
+  </button>
+  <button class="tab-btn" id="tab-btn-midia" onclick="cambiarTab('midia')">
+    <span class="tab-icon">📊</span>
+    <span class="tab-label">Mi día</span>
+  </button>
+  <button class="tab-btn" id="tab-btn-clientes" onclick="cambiarTab('clientes')">
+    <span class="tab-icon">⭐</span>
+    <span class="tab-label">Clientes</span>
+  </button>
+  <button class="tab-btn" id="tab-btn-reportes" onclick="cambiarTab('reportes')">
+    <span class="tab-icon">📈</span>
+    <span class="tab-label">Reportes</span>
+  </button>
+</nav>
 
 <div class="toast" id="toast"></div>
 
@@ -1347,7 +1550,7 @@ function login(nombre) {
     : 'Tus pedidos de hoy — ' + new Date().toLocaleDateString('es-AR');
   document.getElementById('filtros-vendedor').style.display = esAdmin ? 'flex' : 'none';
   cargarPedidos();
-  var p = document.getElementById('mi-dia-panel'); if (p) p.style.display='block';
+  mostrarTabs();
 }
 
 function salir() {
@@ -1360,6 +1563,7 @@ function salir() {
   document.getElementById('buscador').value = '';
   document.getElementById('login-sub').textContent = 'Seleccioná tu nombre';
   setFiltro('todos', document.querySelector('#filtros-estado .filtro-btn'));
+  ocultarTabs();
 }
 
 // ── CARGAR PEDIDOS ───────────────────────────────────────────────
@@ -1588,6 +1792,7 @@ function pedidosFiltrados() {
 function renderPedidos() {
   actualizarStats();
   actualizarTitle();
+  actualizarBadgePendientes();
   var lista = pedidosFiltrados();
   var cont = document.getElementById('lista-pedidos');
   if (!lista.length) { cont.innerHTML = '<div class="empty">📭 No hay pedidos para mostrar</div>'; return; }
@@ -1963,15 +2168,10 @@ function buildProdsPreview(p) {
 }
 
 // ── MI DÍA ────────────────────────────────────────────────────────
-var _miDiaOpen = false;
+var _miDiaOpen = false;  // kept for compatibility, use _tabActual === "midia" for tab check
 
 function toggleMiDia() {
-  _miDiaOpen = !_miDiaOpen;
-  var body = document.getElementById('mi-dia-body');
-  var chev = document.getElementById('mi-dia-chevron');
-  if (body) body.classList.toggle('on', _miDiaOpen);
-  if (chev) chev.classList.toggle('open', _miDiaOpen);
-  if (_miDiaOpen) renderMiDia();
+  // No-op: Mi Día is now always visible in its own tab
 }
 
 function renderMiDia() {
@@ -2161,11 +2361,66 @@ function renderMiDia() {
 
 // Actualizar Mi Día cuando está abierto después de recargar pedidos
 function actualizarMiDiaSiAbierto() {
-  if (_miDiaOpen) renderMiDia();
-  // Mostrar/ocultar panel según si hay sesión
-  var panel = document.getElementById('mi-dia-panel');
-  if (panel) panel.style.display = vendedorActual ? 'block' : 'none';
+  // Re-render Mi Día si su tab está activa
+  if (_tabActual === 'midia') renderMiDia();
+  // Actualizar badge de pendientes
+  actualizarBadgePendientes();
 }
+
+// ── NAVEGACIÓN POR TABS ───────────────────────────────────────────
+var _tabActual = 'pedidos';
+
+function cambiarTab(tab) {
+  if (_tabActual === tab) return;
+  _tabActual = tab;
+
+  // Views
+  ['pedidos','midia','clientes','reportes'].forEach(function(t) {
+    var v = document.getElementById('view-' + t);
+    var b = document.getElementById('tab-btn-' + t);
+    if (v) v.classList.toggle('active', t === tab);
+    if (b) b.classList.toggle('active', t === tab);
+  });
+
+  // Cuando se abre Mi Día, renderizar
+  if (tab === 'midia') {
+    renderMiDia();
+    // Scroll to top
+    var v = document.getElementById('view-midia');
+    if (v) v.scrollTop = 0;
+  }
+
+  // Scroll pedidos view to top when switching back
+  if (tab === 'pedidos') {
+    var v = document.getElementById('view-pedidos');
+    if (v) v.scrollTop = 0;
+  }
+}
+
+function mostrarTabs() {
+  var nav = document.getElementById('tab-nav');
+  if (nav) nav.classList.add('visible');
+}
+
+function ocultarTabs() {
+  var nav = document.getElementById('tab-nav');
+  if (nav) nav.classList.remove('visible');
+  // Reset to pedidos tab
+  cambiarTab('pedidos');
+  _tabActual = 'pedidos';
+}
+
+function actualizarBadgePendientes() {
+  var badge = document.getElementById('tab-badge-pend');
+  if (!badge) return;
+  var pend = todosLosPedidos.filter(function(p) {
+    return p.estado === 'Pendiente' &&
+      (vendedorActual === 'ADMIN' || p.vendedor.toLowerCase().includes(vendedorActual.toLowerCase()));
+  }).length;
+  badge.textContent = pend > 0 ? (pend > 99 ? '99+' : pend) : '';
+  badge.classList.toggle('on', pend > 0);
+}
+
 
 // ── BARRA DE PROGRESO DE REFRESH ─────────────────────────────────
 var _refreshTotal = 20000;
