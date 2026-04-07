@@ -2,8 +2,14 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TCK — Panel de Pedidos</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>TCK Pedidos</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="TCK Pedidos">
+<meta name="theme-color" content="#8B0000">
+<link rel="apple-touch-icon" href="https://tckcatalogo.com/img/logo-tck.png">
+<link rel="manifest" href="/manifest.json">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;700;900&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -112,6 +118,28 @@ body { font-family: 'Barlow', sans-serif; background: var(--cream); color: var(-
 .nota-input { width: 100%; padding: 10px 14px; border: 1.5px solid var(--border); border-radius: 10px; font-family: 'Barlow', sans-serif; font-size: 13px; color: var(--text); background: #fff; resize: none; outline: none; min-height: 60px; }
 .nota-input:focus { border-color: var(--gold); }
 .nota-guardada { font-size: 12px; color: var(--green2); margin-top: 4px; display: none; }
+
+/* ── MODO OSCURO ── */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --cream: #1A1008;
+    --cream2: #2A1A0E;
+    --text: #F5EDE0;
+    --text2: #D4A97A;
+    --text3: #8B6A4A;
+    --border: rgba(255,215,0,.12);
+  }
+  body { background: #120A04; }
+  .login-box, .stat-card, .pedido-card, .pedido-productos,
+  .buscador, .filtro-btn, .btn-refresh, .nota-input,
+  .pin-key { background: #1E0F06 !important; color: var(--text) !important; }
+  .pedido-body { background: #150B04 !important; }
+  .filtro-btn.on { background: var(--red) !important; color: #fff !important; }
+  .pedido-card.dup-exacto { background: #2A0A0A !important; }
+  .pedido-card.dup-parcial { background: #2A1500 !important; }
+  input[type="date"] { background: #1E0F06; color: var(--text); border-color: var(--border); }
+}
+
 </style>
 </head>
 <body>
@@ -260,6 +288,31 @@ const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxbx9ma8S5wcuRq
 const SHEET_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQDZk6Z5pejrI_djbUYBLEvh-X7H_sLF5ZCW2RQr0Bc03r8LOL17_C3pCmwwyLe2iXf3Fan0tgl7IJG/pub?gid=0&single=true&output=csv';
 const NUM_ADMIN = '5492314475357';
 const PINS = { 'Miguel':'3356', 'Juan':'4256', 'Lisandro':'8020', 'ADMIN':'3050' };
+const SESSION_KEY = 'tck_session';
+const SESSION_HORAS = 24;
+
+function guardarSesion(nombre) {
+  try {
+    localStorage.setItem(SESSION_KEY, JSON.stringify({
+      vendedor: nombre,
+      expira: Date.now() + SESSION_HORAS * 3600 * 1000
+    }));
+  } catch(e) {}
+}
+
+function recuperarSesion() {
+  try {
+    var raw = localStorage.getItem(SESSION_KEY);
+    if (!raw) return null;
+    var data = JSON.parse(raw);
+    if (Date.now() > data.expira) { localStorage.removeItem(SESSION_KEY); return null; }
+    return data.vendedor;
+  } catch(e) { return null; }
+}
+
+function limpiarSesion() {
+  try { localStorage.removeItem(SESSION_KEY); } catch(e) {}
+}
 
 let vendedorActual = null;
 let todosLosPedidos = [];
@@ -282,6 +335,14 @@ function actualizarFecha() {
 }
 actualizarFecha();
 setInterval(actualizarFecha, 60000);
+
+// Recuperar sesión si existe
+(function() {
+  var sesion = recuperarSesion();
+  if (sesion && PINS[sesion]) {
+    login(sesion);
+  }
+})();
 
 // ── AUTO-REFRESH 30s ─────────────────────────────────────────────
 setInterval(function() {
@@ -413,6 +474,7 @@ function verificarPin() {
 }
 
 function login(nombre) {
+  guardarSesion(nombre);
   vendedorActual = nombre;
   document.getElementById('login-wrap').style.display = 'none';
   document.getElementById('panel').classList.add('on');
@@ -428,6 +490,8 @@ function login(nombre) {
 }
 
 function salir() {
+  limpiarSesion();
+  document.title = 'TCK Pedidos';
   vendedorActual = null; pinActual = ''; pinVendedorTemp = null; todosLosPedidos = [];
   document.getElementById('login-wrap').style.display = 'flex';
   document.getElementById('panel').classList.remove('on');
@@ -527,6 +591,17 @@ function parseCsv(line) {
 }
 
 // ── STATS ─────────────────────────────────────────────────────────
+function actualizarTitle() {
+  var pend = todosLosPedidos.filter(function(p){
+    return p.estado === 'Pendiente' && (vendedorActual === 'ADMIN' || p.vendedor.toLowerCase().includes(vendedorActual.toLowerCase()));
+  }).length;
+  if (pend > 0) {
+    document.title = '⏳ ' + pend + ' — TCK Pedidos';
+  } else {
+    document.title = '✅ TCK Pedidos';
+  }
+}
+
 function actualizarStats() {
   var mis = pedidosVisibles();
   var activos = mis.filter(function(p){return p.estado!=='Cancelado';});
@@ -621,6 +696,7 @@ function pedidosFiltrados() {
 // ── RENDER ────────────────────────────────────────────────────────
 function renderPedidos() {
   actualizarStats();
+  actualizarTitle();
   var lista = pedidosFiltrados();
   var cont = document.getElementById('lista-pedidos');
   if (!lista.length) { cont.innerHTML = '<div class="empty">📭 No hay pedidos para mostrar</div>'; return; }
