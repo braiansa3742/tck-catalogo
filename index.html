@@ -682,7 +682,7 @@ function renderDrawer(){
   CAT.forEach((s,si)=>s.items.forEach((it,ii)=>{
     const q=qty[si+'-'+ii]||0;
     if(q>0) html+='<div class="ci">'
-      +'<img class="ci-img" src="img/'+encodeURIComponent(_imgmap[it.n]||it.n+'.jpg').replace(/%25/g,'%').replace(/%2F/g,'/')+'" alt="" loading="lazy" decoding="async">'
+      +'<img class="ci-img" src="'+(it.img2 ? it.img2 : ('img/'+encodeURIComponent(_imgmap[it.n]||it.n+'.jpg').replace(/%25/g,'%').replace(/%2F/g,'/')))+'" alt="" loading="lazy" decoding="async">'
       +'<div class="ci-inf"><div class="ci-n">'+it.n+'</div><div class="ci-q">'+qtyLabel(s,it,q)+' x '+fmt(it.pr)+(it.p?(' · '+presLabel(s,it,q)):'')+'</div></div>'
       +'<div class="ci-p">'+fmt(it.pr*q)+'</div>'
       +'<button class="ci-rm" onclick="chg(\''+(si+'-'+ii)+'\','+si+','+ii+',-'+q+')">&#x2715;</button></div>';
@@ -1189,14 +1189,13 @@ function parseCsvLine(line) {
 
 // Cargar precios desde Sheets y luego renderizar
 
-// ── LOCALSTORAGE: guardar y recuperar carrito ────────────────────
+// ── LOCALSTORAGE ─────────────────────────────────────────────────
 function saveCartLS() {
   try {
-    const data = {
+    localStorage.setItem('tck_cart', JSON.stringify({
       qty: qty,
       vActivo: vActivo ? VEND.indexOf(vActivo) : -1
-    };
-    localStorage.setItem('tck_cart', JSON.stringify(data));
+    }));
   } catch(e) {}
 }
 
@@ -1205,16 +1204,10 @@ function loadCartLS() {
     const raw = localStorage.getItem('tck_cart');
     if (!raw) return;
     const data = JSON.parse(raw);
-    if (data.vActivo !== undefined && data.vActivo >= 0 && VEND[data.vActivo]) {
-      elegir(data.vActivo);
-    }
+    if (data.vActivo !== undefined && data.vActivo >= 0 && VEND[data.vActivo]) elegir(data.vActivo);
     if (data.qty) {
-      Object.keys(data.qty).forEach(function(k) {
-        if (data.qty[k] > 0) qty[k] = data.qty[k];
-      });
-      renderBody();
-      updateBar();
-      renderDrawer();
+      Object.keys(data.qty).forEach(function(k) { if (data.qty[k] > 0) qty[k] = data.qty[k]; });
+      renderBody(); updateBar(); renderDrawer();
     }
   } catch(e) {}
 }
