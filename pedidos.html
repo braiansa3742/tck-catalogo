@@ -565,7 +565,6 @@ body {
 
 <script>
 const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxbx9ma8S5wcuRqFXjRyFYvIo_kLwc5Px4eE4Y7-CqPmIfJbI3VBEP4I9qSV8s0owMMYg/exec';
-const SHEET_ID = '1zHgDHdsouB3Ausxob2rMIWXllY4Ir7fcdZEHHfzf2rA';
 
 let vendedorActual = null;
 let todosLosPedidos = [];
@@ -614,7 +613,7 @@ async function cargarPedidos() {
 
   try {
     // Leer el Sheet via CSV publicado (hoja Pedidos, gid=0)
-    const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=Pedidos`;
+    const url = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQDZk6Z5pejrI_djbUYBLEvh-X7H_sLF5ZCW2RQr0Bc03r8LOL17_C3pCmwwyLe2iXf3Fan0tgl7IJG/pub?gid=0&single=true&output=csv&t=' + Date.now();
     const res = await fetch(url + '&t=' + Date.now());
     const csv = await res.text();
     const lines = csv.trim().split('\n');
