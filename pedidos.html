@@ -2194,10 +2194,8 @@ function toggleMiDia() {
 }
 
 function renderMiDia() {
-  var panel = document.getElementById('mi-dia-panel');
   var body = document.getElementById('mi-dia-body');
-  var sub = document.getElementById('mi-dia-sub');
-  if (!panel || !body) return;
+  if (!body) return;
 
   var mis = pedidosVisibles();
   var activos = mis.filter(function(p){ return p.estado !== 'Cancelado'; });
@@ -2235,8 +2233,6 @@ function renderMiDia() {
   });
   var locs = Object.entries(locMap).sort(function(a,b){ return b[1].pedidos - a[1].pedidos; }).slice(0, 5);
   var maxLoc = locs.length ? locs[0][1].pedidos : 1;
-
-  if (sub) sub.textContent = activos.length + ' pedidos · $' + totalMonto.toLocaleString('es-AR');
 
   var html = '';
 
