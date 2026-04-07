@@ -796,11 +796,24 @@ function mostrarBotonAlertaAdmin(msg) {
     banner.style.cssText = 'position:fixed;bottom:0;left:0;right:0;z-index:999;background:#E65100;color:#fff;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px;box-shadow:0 -4px 16px rgba(0,0,0,.3);';
     document.body.appendChild(banner);
   }
+  const msgEnc = encodeURIComponent(msg);
   banner.innerHTML = '<div style="font-family:Barlow Condensed,sans-serif;font-size:15px;font-weight:700;">⚠️ Pedidos duplicados detectados</div>' +
     '<div style="display:flex;gap:8px;">' +
-    '<button onclick="avisoWA(' + JSON.stringify(msg).replace(/'/g,"\'") + ')" style="background:#fff;color:#E65100;border:none;border-radius:8px;padding:8px 14px;font-family:Barlow Condensed,sans-serif;font-size:14px;font-weight:700;cursor:pointer;">📲 Avisar admin</button>' +
-    '<button onclick="document.getElementById('dup-banner').remove()" style="background:rgba(255,255,255,.2);color:#fff;border:none;border-radius:8px;padding:8px 12px;font-size:14px;cursor:pointer;">✕</button>' +
+    '<button onclick="avisarAdmin()" style="background:#fff;color:#E65100;border:none;border-radius:8px;padding:8px 14px;font-family:Barlow Condensed,sans-serif;font-size:14px;font-weight:700;cursor:pointer;">📲 Avisar admin</button>' +
+    '<button onclick="cerrarBanner()" style="background:rgba(255,255,255,.2);color:#fff;border:none;border-radius:8px;padding:8px 12px;font-size:14px;cursor:pointer;">✕</button>' +
     '</div>';
+  banner._msg = msg;
+}
+
+function cerrarBanner() {
+  const b = document.getElementById('dup-banner');
+  if (b) b.remove();
+}
+
+function avisarAdmin() {
+  const b = document.getElementById('dup-banner');
+  const msg = b ? b._msg : '';
+  avisoWA(msg);
 }
 
 function avisoWA(msg) {
