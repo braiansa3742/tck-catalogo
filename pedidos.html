@@ -459,6 +459,32 @@ body {
 .toast.on { transform: translateX(-50%) translateY(0); }
 .toast.ok { background: var(--green2); }
 .toast.err { background: #C62828; }
+
+/* ── PIN ── */
+.pin-dot {
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  background: var(--cream2);
+  border: 2px solid var(--border);
+  transition: background .15s;
+}
+.pin-dot.on { background: var(--red); border-color: var(--red); }
+.pin-key {
+  padding: 14px;
+  border-radius: 12px;
+  border: 1.5px solid var(--border);
+  background: #fff;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text);
+  cursor: pointer;
+  transition: all .1s;
+}
+.pin-key:active { background: var(--cream2); transform: scale(.95); }
+.pin-back { font-size: 13px; color: var(--text2); }
+.pin-del { font-size: 18px; color: var(--red2); }
+
 </style>
 </head>
 <body>
@@ -475,39 +501,55 @@ body {
 <div class="login-wrap" id="login-wrap">
   <div class="login-box">
     <div class="login-titulo">Ingresá</div>
-    <div class="login-sub">Seleccioná tu nombre para ver tus pedidos del día</div>
+    <div class="login-sub" id="login-sub">Seleccioná tu nombre</div>
 
-    <button class="login-btn" onclick="login('Miguel')">
-      <div class="login-av">M</div>
-      <div class="login-btn-name">
-        Miguel Martínez
-        <div class="login-btn-role">Vendedor</div>
-      </div>
-    </button>
+    <div id="paso1">
+      <button class="login-btn" onclick="seleccionarVendedor('Miguel','M','#8B0000')">
+        <div class="login-av">M</div>
+        <div class="login-btn-name">Miguel Martínez<div class="login-btn-role">Vendedor</div></div>
+      </button>
+      <button class="login-btn" onclick="seleccionarVendedor('Juan','J','#8B0000')">
+        <div class="login-av">J</div>
+        <div class="login-btn-name">Juan Cruz<div class="login-btn-role">Vendedor</div></div>
+      </button>
+      <button class="login-btn" onclick="seleccionarVendedor('Lisandro','L','#5C3A1E')">
+        <div class="login-av" style="background:var(--text2);">L</div>
+        <div class="login-btn-name">Lisandro<div class="login-btn-role">Vendedor</div></div>
+      </button>
+      <button class="login-btn" onclick="seleccionarVendedor('ADMIN','A','#B8860B')" style="margin-top:8px;border-color:var(--gold);background:var(--cream2);">
+        <div class="login-av" style="background:var(--gold);color:var(--text);">A</div>
+        <div class="login-btn-name">Administración<div class="login-btn-role">Ver todos los pedidos</div></div>
+      </button>
+    </div>
 
-    <button class="login-btn" onclick="login('Juan')">
-      <div class="login-av">J</div>
-      <div class="login-btn-name">
-        Juan Cruz
-        <div class="login-btn-role">Vendedor</div>
+    <div id="paso2" style="display:none;">
+      <div id="pin-vendedor-info" style="display:flex;align-items:center;gap:12px;margin-bottom:20px;padding:12px 16px;background:var(--cream2);border-radius:12px;">
+        <div id="pin-av" style="width:44px;height:44px;border-radius:50%;background:var(--red);color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:900;flex-shrink:0;"></div>
+        <div>
+          <div id="pin-nombre" style="font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:900;color:var(--text);"></div>
+          <div style="font-size:12px;color:var(--text2);">Ingresá tu PIN</div>
+        </div>
       </div>
-    </button>
-
-    <button class="login-btn" onclick="login('Lisandro')">
-      <div class="login-av" style="background:var(--text2);">L</div>
-      <div class="login-btn-name">
-        Lisandro
-        <div class="login-btn-role">Vendedor</div>
+      <div id="pin-dots" style="display:flex;justify-content:center;gap:12px;margin-bottom:20px;">
+        <div class="pin-dot"></div><div class="pin-dot"></div>
+        <div class="pin-dot"></div><div class="pin-dot"></div>
       </div>
-    </button>
-
-    <button class="login-btn" onclick="login('ADMIN')" style="margin-top:8px;border-color:var(--gold);background:var(--cream2);">
-      <div class="login-av" style="background:var(--gold);color:var(--text);">A</div>
-      <div class="login-btn-name">
-        Administración
-        <div class="login-btn-role">Ver todos los pedidos</div>
+      <div id="pin-error" style="color:#C62828;font-size:13px;text-align:center;margin-bottom:12px;min-height:18px;"></div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">
+        <button class="pin-key" onclick="pinPress('1')">1</button>
+        <button class="pin-key" onclick="pinPress('2')">2</button>
+        <button class="pin-key" onclick="pinPress('3')">3</button>
+        <button class="pin-key" onclick="pinPress('4')">4</button>
+        <button class="pin-key" onclick="pinPress('5')">5</button>
+        <button class="pin-key" onclick="pinPress('6')">6</button>
+        <button class="pin-key" onclick="pinPress('7')">7</button>
+        <button class="pin-key" onclick="pinPress('8')">8</button>
+        <button class="pin-key" onclick="pinPress('9')">9</button>
+        <button class="pin-key pin-back" onclick="pinVolver()">← Volver</button>
+        <button class="pin-key" onclick="pinPress('0')">0</button>
+        <button class="pin-key pin-del" onclick="pinBorrar()">⌫</button>
       </div>
-    </button>
+    </div>
   </div>
 </div>
 
@@ -581,11 +623,75 @@ function actualizarFecha() {
 actualizarFecha();
 setInterval(actualizarFecha, 60000);
 
-// ── LOGIN ────────────────────────────────────────────────────────
+// ── PIN / LOGIN ──────────────────────────────────────────────────
+const PINS = {
+  'Miguel':   '3356',
+  'Juan':     '4256',
+  'Lisandro': '8020',
+  'ADMIN':    '3050'
+};
+
+let pinVendedorTemp = null;
+let pinActual = '';
+
+function seleccionarVendedor(nombre, inicial, color) {
+  pinVendedorTemp = nombre;
+  pinActual = '';
+  document.getElementById('paso1').style.display = 'none';
+  document.getElementById('paso2').style.display = 'block';
+  document.getElementById('login-sub').textContent = 'Ingresá tu PIN de 4 dígitos';
+  document.getElementById('pin-nombre').textContent = nombre === 'ADMIN' ? 'Administración' : nombre;
+  document.getElementById('pin-av').textContent = inicial;
+  document.getElementById('pin-av').style.background = color;
+  document.getElementById('pin-error').textContent = '';
+  actualizarDots();
+}
+
+function pinPress(n) {
+  if (pinActual.length >= 4) return;
+  pinActual += n;
+  actualizarDots();
+  if (pinActual.length === 4) {
+    setTimeout(verificarPin, 150);
+  }
+}
+
+function pinBorrar() {
+  pinActual = pinActual.slice(0, -1);
+  actualizarDots();
+}
+
+function pinVolver() {
+  pinActual = '';
+  pinVendedorTemp = null;
+  document.getElementById('paso1').style.display = 'block';
+  document.getElementById('paso2').style.display = 'none';
+  document.getElementById('login-sub').textContent = 'Seleccioná tu nombre';
+}
+
+function actualizarDots() {
+  document.querySelectorAll('.pin-dot').forEach((d, i) => {
+    d.classList.toggle('on', i < pinActual.length);
+  });
+}
+
+function verificarPin() {
+  if (pinActual === PINS[pinVendedorTemp]) {
+    login(pinVendedorTemp);
+  } else {
+    document.getElementById('pin-error').textContent = 'PIN incorrecto. Intentá de nuevo.';
+    pinActual = '';
+    actualizarDots();
+  }
+}
+
 function login(nombre) {
   vendedorActual = nombre;
   document.getElementById('login-wrap').style.display = 'none';
   document.getElementById('panel').classList.add('on');
+  // Reset pin UI para próximo login
+  document.getElementById('paso1').style.display = 'block';
+  document.getElementById('paso2').style.display = 'none';
 
   const esAdmin = nombre === 'ADMIN';
   document.getElementById('bienvenida-nombre').textContent = esAdmin ? '👑 Administración' : '👤 ' + nombre;
@@ -598,11 +704,14 @@ function login(nombre) {
 
 function salir() {
   vendedorActual = null;
+  pinActual = '';
+  pinVendedorTemp = null;
   todosLosPedidos = [];
   document.getElementById('login-wrap').style.display = 'flex';
   document.getElementById('panel').classList.remove('on');
   document.getElementById('lista-pedidos').innerHTML = '';
   document.getElementById('buscador').value = '';
+  document.getElementById('login-sub').textContent = 'Seleccioná tu nombre';
   setFiltro('todos', document.querySelector('.filtro-btn'));
 }
 
@@ -782,16 +891,17 @@ function fmtTotal(t) {
 function botonesEstado(p) {
   const id = p.pedidoId;
   const fila = p.fila;
+  const esAdmin = vendedorActual === 'ADMIN';
   let btns = '';
 
   if (p.estado !== 'Confirmado')
     btns += `<button class="btn-estado btn-confirmar" onclick="cambiarEstado('${id}',${fila},'Confirmado',event)">✅ Confirmar</button>`;
   if (p.estado !== 'Entregado')
     btns += `<button class="btn-estado btn-entregar" onclick="cambiarEstado('${id}',${fila},'Entregado',event)">📦 Entregado</button>`;
-  if (p.estado !== 'Pendiente')
+  if (p.estado !== 'Pendiente' && esAdmin)
     btns += `<button class="btn-estado btn-pendiente-again" onclick="cambiarEstado('${id}',${fila},'Pendiente',event)">⏳ Pendiente</button>`;
-  if (p.estado !== 'Cancelado')
-    btns += `<button class="btn-estado btn-cancelar" onclick="cambiarEstado('${id}',${fila},'Cancelado',event)">❌ Cancelar</button>`;
+  if (p.estado !== 'Cancelado' && esAdmin)
+    btns += `<button class="btn-estado btn-cancelar" onclick="confirmarCancelar('${id}',${fila},event)">❌ Cancelar</button>`;
 
   return btns;
 }
@@ -825,7 +935,7 @@ function renderCard(p) {
     <div class="pedido-detalle-row"><span class="pdr-label">Productos</span><span class="pdr-val">${p.items} unidades</span></div>
     <div class="pedido-detalle-row"><span class="pdr-label">Total</span><span class="pdr-val" style="color:var(--red);font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:900;">${fmtTotal(p.total)}</span></div>
     <div class="pedido-detalle-row"><span class="pdr-label">Fecha/Hora</span><span class="pdr-val">${p.fechaHora}</span></div>
-    ${p.resumen ? `<div class="pedido-productos">${p.resumen.replace(/\|/g, '\n')}</div>` : ''}
+    ${p.detalle ? `<div class="pedido-productos">${p.detalle.replace(/\|/g,'\n').replace(/ · /g,' — ')}</div>` : p.resumen ? `<div class="pedido-productos">${p.resumen}</div>` : ''}
     ${dupAlert}
     <div class="pedido-acciones">${botonesEstado(p)}</div>
   </div>
@@ -835,6 +945,14 @@ function renderCard(p) {
 function toggleCard(id) {
   const body = document.getElementById('body-' + id);
   if (body) body.classList.toggle('on');
+}
+
+// ── CONFIRMAR CANCELACIÓN ────────────────────────────────────────
+function confirmarCancelar(pedidoId, fila, event) {
+  event.stopPropagation();
+  if (confirm('⚠️ ¿Seguro que querés cancelar este pedido?\nEsta acción quedará registrada.')) {
+    cambiarEstado(pedidoId, fila, 'Cancelado', event);
+  }
 }
 
 // ── CAMBIAR ESTADO ───────────────────────────────────────────────
