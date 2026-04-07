@@ -516,7 +516,7 @@ button,
 </div>
 </div></div>
 <div class="hdr"><div class="hdr-stripe"></div><div class="hdr-body">
-<div class="hdr-brand"><div class="hdr-brand-name">THE CHICKEN <span>KINGS</span></div><div class="hdr-brand-sub">Cat&aacute;logo Abril 2026 &middot; Trenque Lauquen</div></div>
+<div class="hdr-brand"><div class="hdr-brand-name">THE CHICKEN <span>KINGS</span></div><div class="hdr-brand-sub" id="hdr-price-status">Cat&aacute;logo Abril 2026 &middot; Trenque Lauquen</div></div>
 <div class="hdr-right"><div class="cart-pill" id="cart-pill"></div><button class="hdr-support" id="hdr-support" onclick="toggleFAB()" aria-label="Ayuda"><svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor" style="opacity:.85;flex-shrink:0"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z"/></svg> Ayuda</button><div class="vchip" id="vchip" onclick="cambiarVendedor()"></div></div>
 </div><div class="catnav" id="catnav"></div></div>
 <div class="body" id="body"></div>
@@ -537,12 +537,77 @@ button,
 </div></div>
 </div>
 <script>
-const _imgmap = {"Pollo Ginosa": "Pollo ginosa.jpg", "Pollo Optimo": "pollo optimo.jpg", "Suprema": "suprema.jpg", "Suprema IQF": "suprema iqf.jpg", "Alita Congelada Granel": "alita congelada granel.jpg", "MDM - Carne Molida de Pollo": "MDM.jpg", "Cuarto Trasero IQF": "cuarto trasero IQF.jpg", "Medallon de Pollo Clasico": "medallon de pollo clasico.jpg", "Medallon Pollo c/Cheddar": "medallon de Pollo c cheddar.jpg", "Medallon Pollo JyQ": "Medallon Pollo JyQ.jpg", "Medallon Pollo y Espinaca": "Medallon Pollo y Espinaca.jpg", "Formita Clasica": "Formita Clasica.jpg", "Formitas Pollo JyQ": "Formitas Pollo JyQ.jpg", "Nuggets de Pollo Crocante": "Nuggets de Pollo Crocante.jpg", "Bocadito de Papa y Jamon": "Bocadito de Papa y Jamon.jpg", "Pechuguitas al Verdeo": "Pechuguitas al Verdeo.jpg", "Filet Merluza Finas Hierbas": "Filet Merluza Finas Hierbas.jpg", "Filet de Merluza Rebozado": "Filet de Merluza Rebozado.jpg", "Filet Merluza a Granel": "Filet Merluza a Granel.jpg", "Milanesa de Nalga": "Milanesa de Nalga.jpg", "Milanesa de Pollo": "Milanesa de Pollo.jpg", "Hamburguesa 100% Carne": "Hamburguesa Carne.jpg", "Papas Noisette": "Papas Noisette.jpg", "Pulpa de Palta": "Pulpa de Palta.jpg", "Papa Baston Balcarce": "Papa Baston Balcarce.jpg", "Maple N° 2": "Maple N° 2.jpg", "Maple N° 3": "Maple N° 3.jpg", "Cajita 1/2 Docena N° 2": "Cajita 12 Docena N° 2.jpg", "Cajita 1/2 Docena N° 3": "Cajita 12 Docena N° 2.jpg", "Arándanos Solimeno": "Arándanos Solimeno.jpg", "Brocoli": "Brocoli.jpg", "Espinacas": "Espinacas.jpg", "Morron": "Morron.jpg", "Primavera": "Primavera.jpg", "Frutos Rojos": "Frutos Rojos.jpg", "Cebolla": "Cebolla.jpg", "Ravioles de Calabaza": "Ravioles de Calabaza.jpg", "Raviolones Espinaca y Mozz": "Raviolones Espinaca y Mozz.jpg", "Gnoquis de Papa": "Gnoquis de Papa.jpg", "Gnoquis de Espinaca": "Gnoquis de Espinaca.jpg", "Sorrentinos Jamon y Queso": "Sorrentinos Jamon y Queso.jpg", "Sorrentinos Ricota 4 Quesos": "Sorrentinos Ricota 4 Quesos.jpg", "Hamburguesa de Garbanzos": "Hamburguesa de Garbanzos.jpg", "Hamburguesa de Lentejas": "Hamburguesa de Lentejas.jpg", "Hamburguesa de Quinoa": "Hamburguesa de Quinoa.jpg", "Hamburguesa de Arvejas": "Hamburguesa de Arvejas.jpg", "Hamburguesa de Hongos": "Hamburguesa de Hongos.jpg", "Hamburguesa de Espinaca": "Hamburguesa de Espinaca.jpg", "Hamburguesa Mexicana": "Hamburguesa Mexicana.jpg", "Hamburguesa 5 Vegetales": "Hamburguesa 5 Vegetales.jpg", "Fino de Ave Cocida": "img/Fino de ave cocido.png", "fino_empanada": "empanada_mordida.jpg"};
+const _imgmap = {
+  "Pollo Ginosa":              "Pollo ginosa.jpg",
+  "Pollo Optimo":              "pollo optimo.jpg",
+  "Suprema":                   "suprema.jpg",
+  "Suprema IQF":               "suprema iqf.jpg",
+  "Alita Congelada Granel":    "alita congelada granel.jpg",
+  "MDM - Carne Molida de Pollo": "MDM.jpg",
+  "Cuarto Trasero IQF":        "cuarto trasero IQF.jpg",
+  "Medallon de Pollo Clasico": "medallon de pollo clasico.jpg",
+  "Medallon Pollo c/Cheddar":  "medallon de Pollo c cheddar.jpg",
+  "Medallon Pollo JyQ":        "Medallon Pollo JyQ.jpg",
+  "Medallon Pollo y Espinaca": "Medallon Pollo y Espinaca.jpg",
+  "Formita Clasica":           "Formita Clasica.jpg",
+  "Formitas Pollo JyQ":        "Formitas Pollo JyQ.jpg",
+  "Nuggets de Pollo Crocante": "Nuggets de Pollo Crocante.jpg",
+  "Bocadito de Papa y Jamon":  "Bocadito de Papa y Jamon.jpg",
+  "Pechuguitas al Verdeo":     "Pechuguitas al Verdeo.jpg",
+  "Filet Merluza Finas Hierbas": "Filet Merluza Finas Hierbas.jpg",
+  "Filet de Merluza Rebozado": "Filet de Merluza Rebozado.jpg",
+  "Filet Merluza a Granel":    "Filet Merluza a Granel.jpg",
+  "Milanesa de Nalga":         "Milanesa de Nalga.jpg",
+  "Milanesa de Pollo":         "Milanesa de Pollo.jpg",
+  "Hamburguesa 100% Carne":    "Hamburguesa Carne.jpg",
+  "Papas Noisette":            "Papas Noisette.jpg",
+  "Pulpa de Palta":            "Pulpa de Palta.jpg",
+  "Papa Baston Balcarce":      "Papa Baston Balcarce.jpg",
+  "Maple N\u00b0 2":          "Maple N\u00b0 2.jpg",
+  "Maple N\u00b0 3":          "Maple N\u00b0 3.jpg",
+  "Cajita 1/2 Docena N\u00b0 2": "Cajita 12 Docena N\u00b0 2.jpg",
+  "Cajita 1/2 Docena N\u00b0 3": "Cajita 12 Docena N\u00b0 2.jpg",
+  "Ar\u00e1ndanos Solimeno":  "Ar\u00e1ndanos Solimeno.jpg",
+  "Brocoli":                   "Brocoli.jpg",
+  "Espinacas":                 "Espinacas.jpg",
+  "Morron":                    "Morron.jpg",
+  "Primavera":                 "Primavera.jpg",
+  "Frutos Rojos":              "Frutos Rojos.jpg",
+  "Cebolla":                   "Cebolla.jpg",
+  "Ravioles de Calabaza":      "Ravioles de Calabaza.jpg",
+  "Raviolones Espinaca y Mozz":"Raviolones Espinaca y Mozz.jpg",
+  "Gnoquis de Papa":           "Gnoquis de Papa.jpg",
+  "Gnoquis de Espinaca":       "Gnoquis de Espinaca.jpg",
+  "Sorrentinos Jamon y Queso": "Sorrentinos Jamon y Queso.jpg",
+  "Sorrentinos Ricota 4 Quesos":"Sorrentinos Ricota 4 Quesos.jpg",
+  "Hamburguesa de Garbanzos":  "Hamburguesa de Garbanzos.jpg",
+  "Hamburguesa de Lentejas":   "Hamburguesa de Lentejas.jpg",
+  "Hamburguesa de Quinoa":     "Hamburguesa de Quinoa.jpg",
+  "Hamburguesa de Arvejas":    "Hamburguesa de Arvejas.jpg",
+  "Hamburguesa de Hongos":     "Hamburguesa de Hongos.jpg",
+  "Hamburguesa de Espinaca":   "Hamburguesa de Espinaca.jpg",
+  "Hamburguesa Mexicana":      "Hamburguesa Mexicana.jpg",
+  "Hamburguesa 5 Vegetales":   "Hamburguesa 5 Vegetales.jpg",
+  "Fino de Ave Cocida":        "Fino de ave cocido.png",
+  "medallon_clasico_v2":       "medallon de pollo clasico.jpg",
+  "medallon_cheddar_v2":       "medallon de Pollo c cheddar.jpg",
+  "medallon_jyq_v2":           "Medallon Pollo JyQ.jpg",
+  "medallon_espinaca_v2":      "Medallon Pollo y Espinaca.jpg",
+  "formita_clasica_v2":        "Formita Clasica.jpg",
+  "formita_jyq_v2":            "Formitas Pollo JyQ.jpg",
+  "nuggets_v2":                "Nuggets de Pollo Crocante.jpg",
+  "bocadito_v2":               "Bocadito de Papa y Jamon.jpg",
+  "pechuguitas_v2":            "Pechuguitas al Verdeo.jpg",
+  "merluza_hierbas_v2":        "Filet Merluza Finas Hierbas.jpg",
+  "merluza_granel_v2":         "Filet Merluza a Granel.jpg",
+  "milanesa_nalga_v2":         "Milanesa de Nalga.jpg",
+  "milanesa_pollo_v2":         "Milanesa de Pollo.jpg"
+};
 </script>
 
 <script>
 const VEND=[{"nombre": "Miguel", "wa": "5492392449725"}, {"nombre": "Juan", "wa": "5492392458941"}, {"nombre": "Lisandro", "wa": "5492392548046"}];
-const CAT=[{"id": "pollos", "sec": "POLLOS CONGELADOS", "col1": "#B71C1C", "col2": "#7B0000", "shaddai": false, "items": [{"n": "Pollo Ginosa", "p": "x 20 Kg", "pr": 86000, "img": "pollo_ginosa", "badge": "POLLO PREMIUM", "badge_tipo": "gold", "pu": "&#x2248;$4,300 / kg"}, {"n": "Pollo Optimo", "p": "x 20 Kg", "pr": 72000, "img": "pollo_optimo", "badge": "&#x2605; MAS PEDIDO", "badge_tipo": "red", "pu": "&#x2248;$3,600 / kg"}, {"n": "Suprema", "p": "x 5 Kg", "pr": 33000, "img": "supremas_bolsa", "badge": "&#x2605; MAS PEDIDO", "badge_tipo": "red", "pu": "&#x2248;$6,600 / kg"}, {"n": "Suprema IQF", "p": "x 15 Kg", "pr": 102000, "img": "suprema_iqf", "pu": "&#x2248;$6,800 / kg"}]}, {"id": "trozados", "sec": "TROZADOS", "col1": "#6D2C00", "col2": "#3B1500", "shaddai": false, "items": [{"n": "Fino de Ave Cocida", "p": "Cocida y desmenuzada · x 10 Kg", "pr": 62400, "img2": "img/empanada mordida.png", "pu": "&#x2248;$6,240 / kg", "badge": "&#x2605; NUEVO", "badge_tipo": "red"}, {"n": "Alita Congelada Granel", "p": "x 15 Kg", "pr": 44000, "img": "alas", "pu": "&#x2248;$2,933 / kg"}, {"n": "MDM - Carne Molida de Pollo", "p": "Ideal relleno empanadas · x 20 Kg", "pr": 34000, "img": "mdm", "badge": "&#x25BC; OPORTUNIDAD", "badge_tipo": "oport", "pu": "&#x2248;$1,700 / kg"}, {"n": "Cuarto Trasero IQF", "p": "x 15 Kg", "pr": 53000, "img": "patamuslo", "badge": "&#x2605; MAS PEDIDO", "badge_tipo": "red", "pu": "&#x2248;$3,533 / kg"}]}, {"id": "shaddai", "sec": "REBOZADOS EL SHADDAI", "col1": "#922B21", "col2": "#5C1A14", "shaddai": true, "items": [{"n": "Medallon de Pollo Clasico", "p": "x 6 Kg", "pr": 28500, "img": "merluza_hierbas", "pu": "&#x2248;$4,750 / kg"}, {"n": "Medallon Pollo c/Cheddar", "p": "x 6 Kg", "pr": 47800, "img": "formita_clasica", "pu": "&#x2248;$7,967 / kg"}, {"n": "Medallon Pollo JyQ", "p": "x 6 Kg", "pr": 33500, "img": "medallon_cheddar", "pu": "&#x2248;$5,583 / kg"}, {"n": "Medallon Pollo y Espinaca", "p": "x 6 Kg", "pr": 33000, "img": "medallon_espinaca", "pu": "&#x2248;$5,500 / kg"}, {"n": "Formita Clasica", "p": "x 6 Kg", "pr": 28500, "img": "nuggets", "pu": "&#x2248;$4,750 / kg"}, {"n": "Formitas Pollo JyQ", "p": "x 6 Kg", "pr": 33500, "img": "merluza_granel", "pu": "&#x2248;$5,583 / kg"}, {"n": "Nuggets de Pollo Crocante", "p": "x 6 Kg", "pr": 34500, "img": "nuggets2", "pu": "&#x2248;$5,750 / kg"}, {"n": "Bocadito de Papa y Jamon", "p": "x 6 Kg", "pr": 29000, "img": "bocadito", "pu": "&#x2248;$4,833 / kg"}, {"n": "Pechuguitas al Verdeo", "p": "x 6 Kg", "pr": 45500, "img": "formita_jyq", "pu": "&#x2248;$7,583 / kg"}, {"n": "Filet Merluza Finas Hierbas", "p": "x 6 Kg", "pr": 45600, "img": "merluza_hierbas", "pu": "&#x2248;$7,600 / kg"}, {"n": "Filet de Merluza Rebozado", "p": "x 6 Kg", "pr": 43700, "img": "merluza_rebozado", "pu": "&#x2248;$7,283 / kg"}, {"n": "Filet Merluza a Granel", "p": "Rupes Gelida · x 10 Kg", "pr": 80500, "img": "milanesa_pollo", "pu": "&#x2248;$8,050 / kg"}]}, {"id": "mila", "sec": "MILANESAS Y HAMBURGUESAS", "col1": "#7B241C", "col2": "#4A1510", "shaddai": false, "items": [{"n": "Milanesa de Nalga", "p": "x 5 Kg", "pr": 68000, "img": "medallon_clasico", "pu": "&#x2248;$13,600 / kg"}, {"n": "Milanesa de Pollo", "p": "x 5 Kg", "pr": 40500, "img": "medallon_jyq", "pu": "&#x2248;$5,300 / kg"}, {"n": "Hamburguesa 100% Carne", "p": "x 4 Kg (100g c/u)", "pr": 46600, "img": "hamburguesa_carne", "pu": "&#x2248;$1,165 / unidad"}]}, {"id": "papas_mccain", "sec": "PAPAS McCAIN", "col1": "#BA4A00", "col2": "#7A3000", "shaddai": false, "items": [{"n": "Papas Noisette", "p": "Bolsa 2,5 Kg / Caja 6x2Kg", "pr": 11531, "img": "papa_noisette", "pu": "&#x2248;$4,612 / kg"}, {"n": "Pulpa de Palta", "p": "Pickers by McCain · x 450 Grs", "pr": 12200, "img": "pulpa_palta", "pu": ""}]}, {"id": "papas_balcarce", "sec": "PAPAS BALCARCE", "col1": "#D4870A", "col2": "#8C5500", "shaddai": false, "items": [{"n": "Papa Baston Balcarce", "p": "x 2,5 Kg", "pr": 8000, "img": "papa_baston", "badge": "&#x2605; MAS PEDIDO", "badge_tipo": "red", "pu": "&#x2248;$3,200 / kg"}]}, {"id": "huevos", "sec": "HUEVOS", "col1": "#D4A000", "col2": "#8B6500", "shaddai": false, "items": [{"n": "Maple N° 2", "p": "30 unidades", "pr": 4800, "img": "huevos_maple", "pu": ""}, {"n": "Maple N° 3", "p": "30 unidades", "pr": 3600, "img": "huevos_maple", "pu": ""}, {"n": "Cajita 1/2 Docena N° 2", "p": "6 unidades", "pr": 1350, "img": "huevos_cajita", "pu": ""}, {"n": "Cajita 1/2 Docena N° 3", "p": "6 unidades", "pr": 1250, "img": "huevos_cajita", "pu": ""}]}, {"id": "verd", "sec": "VERDURAS CONGELADAS", "col1": "#1E8449", "col2": "#0E4D29", "shaddai": false, "items": [{"n": "Arándanos Solimeno", "p": "500 Grs", "pr": 9000, "img": "arandanos", "pu": ""}, {"n": "Brocoli", "p": "500 Grs", "pr": 5800, "img": "brocoli", "pu": ""}, {"n": "Espinacas", "p": "500 Grs", "pr": 4000, "img": "espinaca", "pu": ""}, {"n": "Morron", "p": "500 Grs", "pr": 7000, "img": "morron", "pu": ""}, {"n": "Primavera", "p": "500 Grs", "pr": 5000, "img": "primavera", "pu": ""}, {"n": "Frutos Rojos", "p": "500 Grs", "pr": 11000, "img": "frutos_rojos", "pu": ""}, {"n": "Cebolla", "p": "500 Grs", "pr": 4000, "img": "cebolla", "pu": ""}]}, {"id": "pastas", "sec": "PASTAS LA CASERIANA", "col1": "#1A5276", "col2": "#0D2B3E", "shaddai": false, "items": [{"n": "Ravioles de Calabaza", "p": "500 Grs", "pr": 2700, "img": "ravioles", "pu": ""}, {"n": "Raviolones Espinaca y Mozz", "p": "Masa Integral · 500 Grs", "pr": 3900, "img": "ravioles", "pu": ""}, {"n": "Gnoquis de Papa", "p": "500 Grs", "pr": 2100, "img": "gnoquis", "pu": ""}, {"n": "Gnoquis de Espinaca", "p": "500 Grs", "pr": 2100, "img": "gnoquis_espinaca", "pu": ""}, {"n": "Sorrentinos Jamon y Queso", "p": "500 Grs", "pr": 4200, "img": "sorrentinos", "pu": ""}, {"n": "Sorrentinos Ricota 4 Quesos", "p": "400 Grs", "pr": 2600, "img": "sorrentinos", "pu": ""}]}, {"id": "veggie", "sec": "VEGGIE LA CASERIANA", "col1": "#4A7C35", "col2": "#2A4D1A", "shaddai": false, "items": [{"n": "Hamburguesa de Garbanzos", "p": "x 400 g", "pr": 4200, "img": "veggie_garbanzos", "pu": "&#x2248;$1.050 / unidad"}, {"n": "Hamburguesa de Lentejas", "p": "x 400 g", "pr": 4200, "img": "veggie_lentejas", "pu": "&#x2248;$1.050 / unidad"}, {"n": "Hamburguesa de Quinoa", "p": "x 400 g", "pr": 4200, "img": "veggie_quinoa", "pu": "&#x2248;$1.050 / unidad"}, {"n": "Hamburguesa de Arvejas", "p": "x 400 g", "pr": 4200, "img": "arvejas", "pu": "&#x2248;$1.050 / unidad"}, {"n": "Hamburguesa de Hongos", "p": "x 400 g", "pr": 4200, "img": "veggie_hongos", "pu": "&#x2248;$1.050 / unidad"}, {"n": "Hamburguesa de Espinaca", "p": "x 400 g", "pr": 4200, "img": "veggie_espinaca", "pu": "&#x2248;$1.050 / unidad"}, {"n": "Hamburguesa Mexicana", "p": "x 400 g", "pr": 4200, "img": "veggie_mexicana", "pu": "&#x2248;$1.050 / unidad"}, {"n": "Hamburguesa 5 Vegetales", "p": "x 400 g", "pr": 4200, "img": "veggie_5veg", "pu": "&#x2248;$1.050 / unidad"}]}];
+const CAT=[{"id": "pollos", "sec": "POLLOS CONGELADOS", "col1": "#B71C1C", "col2": "#7B0000", "shaddai": false, "items": [{"n": "Pollo Ginosa", "p": "x 20 Kg", "pr": 86000, "img": "pollo_ginosa", "badge": "POLLO PREMIUM", "badge_tipo": "gold", "pu": "&#x2248;$4,300 / kg"}, {"n": "Pollo Optimo", "p": "x 20 Kg", "pr": 72000, "img": "pollo_optimo", "badge": "&#x2605; MAS PEDIDO", "badge_tipo": "red", "pu": "&#x2248;$3,600 / kg"}, {"n": "Suprema", "p": "x 5 Kg", "pr": 33000, "img": "supremas_bolsa", "badge": "&#x2605; MAS PEDIDO", "badge_tipo": "red", "pu": "&#x2248;$6,600 / kg"}, {"n": "Suprema IQF", "p": "x 15 Kg", "pr": 102000, "img": "suprema_iqf", "pu": "&#x2248;$6,800 / kg"}]}, {"id": "trozados", "sec": "TROZADOS", "col1": "#6D2C00", "col2": "#3B1500", "shaddai": false, "items": [{"n": "Fino de Ave Cocida", "p": "Cocida y desmenuzada · x 10 Kg", "pr": 62400, "img2": "img/empanada mordida.png", "pu": "&#x2248;$6,240 / kg", "badge": "&#x2605; NUEVO", "badge_tipo": "red"}, {"n": "Alita Congelada Granel", "p": "x 15 Kg", "pr": 44000, "img": "alas", "pu": "&#x2248;$2,933 / kg"}, {"n": "MDM - Carne Molida de Pollo", "p": "Ideal relleno empanadas · x 20 Kg", "pr": 34000, "img": "mdm", "badge": "&#x25BC; OPORTUNIDAD", "badge_tipo": "oport", "pu": "&#x2248;$1,700 / kg"}, {"n": "Cuarto Trasero IQF", "p": "x 15 Kg", "pr": 53000, "img": "patamuslo", "badge": "&#x2605; MAS PEDIDO", "badge_tipo": "red", "pu": "&#x2248;$3,533 / kg"}]}, {"id": "shaddai", "sec": "REBOZADOS EL SHADDAI", "col1": "#922B21", "col2": "#5C1A14", "shaddai": true, "items": [{"n": "Medallon de Pollo Clasico", "p": "x 6 Kg", "pr": 28500, "img": "medallon_clasico_v2", "pu": "&#x2248;$4,750 / kg"}, {"n": "Medallon Pollo c/Cheddar", "p": "x 6 Kg", "pr": 47800, "img": "medallon_cheddar_v2", "pu": "&#x2248;$7,967 / kg"}, {"n": "Medallon Pollo JyQ", "p": "x 6 Kg", "pr": 33500, "img": "medallon_jyq_v2", "pu": "&#x2248;$5,583 / kg"}, {"n": "Medallon Pollo y Espinaca", "p": "x 6 Kg", "pr": 33000, "img": "medallon_espinaca_v2", "pu": "&#x2248;$5,500 / kg"}, {"n": "Formita Clasica", "p": "x 6 Kg", "pr": 28500, "img": "formita_clasica_v2", "pu": "&#x2248;$4,750 / kg"}, {"n": "Formitas Pollo JyQ", "p": "x 6 Kg", "pr": 33500, "img": "formita_jyq_v2", "pu": "&#x2248;$5,583 / kg"}, {"n": "Nuggets de Pollo Crocante", "p": "x 6 Kg", "pr": 34500, "img": "nuggets_v2", "pu": "&#x2248;$5,750 / kg"}, {"n": "Bocadito de Papa y Jamon", "p": "x 6 Kg", "pr": 29000, "img": "bocadito_v2", "pu": "&#x2248;$4,833 / kg"}, {"n": "Pechuguitas al Verdeo", "p": "x 6 Kg", "pr": 45500, "img": "pechuguitas_v2", "pu": "&#x2248;$7,583 / kg"}, {"n": "Filet Merluza Finas Hierbas", "p": "x 6 Kg", "pr": 45600, "img": "merluza_hierbas_v2", "pu": "&#x2248;$7,600 / kg"}, {"n": "Filet de Merluza Rebozado", "p": "x 6 Kg", "pr": 43700, "img": "merluza_rebozado", "pu": "&#x2248;$7,283 / kg"}, {"n": "Filet Merluza a Granel", "p": "Rupes Gelida · x 10 Kg", "pr": 80500, "img": "merluza_granel_v2", "pu": "&#x2248;$8,050 / kg"}]}, {"id": "mila", "sec": "MILANESAS Y HAMBURGUESAS", "col1": "#7B241C", "col2": "#4A1510", "shaddai": false, "items": [{"n": "Milanesa de Nalga", "p": "x 5 Kg", "pr": 68000, "img": "milanesa_nalga_v2", "pu": "&#x2248;$13,600 / kg"}, {"n": "Milanesa de Pollo", "p": "x 5 Kg", "pr": 40500, "img": "milanesa_pollo_v2", "pu": "&#x2248;$5,300 / kg"}, {"n": "Hamburguesa 100% Carne", "p": "x 4 Kg (100g c/u)", "pr": 46600, "img": "hamburguesa_carne", "pu": "&#x2248;$1,165 / unidad"}]}, {"id": "papas_mccain", "sec": "PAPAS McCAIN", "col1": "#BA4A00", "col2": "#7A3000", "shaddai": false, "items": [{"n": "Papas Noisette", "p": "Bolsa 2,5 Kg / Caja 6x2Kg", "pr": 11531, "img": "papa_noisette", "pu": "&#x2248;$4,612 / kg"}, {"n": "Pulpa de Palta", "p": "Pickers by McCain · x 450 Grs", "pr": 12200, "img": "pulpa_palta", "pu": ""}]}, {"id": "papas_balcarce", "sec": "PAPAS BALCARCE", "col1": "#D4870A", "col2": "#8C5500", "shaddai": false, "items": [{"n": "Papa Baston Balcarce", "p": "x 2,5 Kg", "pr": 8000, "img": "papa_baston", "badge": "&#x2605; MAS PEDIDO", "badge_tipo": "red", "pu": "&#x2248;$3,200 / kg"}]}, {"id": "huevos", "sec": "HUEVOS", "col1": "#D4A000", "col2": "#8B6500", "shaddai": false, "items": [{"n": "Maple N° 2", "p": "30 unidades", "pr": 4800, "img": "huevos_maple", "pu": ""}, {"n": "Maple N° 3", "p": "30 unidades", "pr": 3600, "img": "huevos_maple", "pu": ""}, {"n": "Cajita 1/2 Docena N° 2", "p": "6 unidades", "pr": 1350, "img": "huevos_cajita", "pu": ""}, {"n": "Cajita 1/2 Docena N° 3", "p": "6 unidades", "pr": 1250, "img": "huevos_cajita", "pu": ""}]}, {"id": "verd", "sec": "VERDURAS CONGELADAS", "col1": "#1E8449", "col2": "#0E4D29", "shaddai": false, "items": [{"n": "Arándanos Solimeno", "p": "500 Grs", "pr": 9000, "img": "arandanos", "pu": ""}, {"n": "Brocoli", "p": "500 Grs", "pr": 5800, "img": "brocoli", "pu": ""}, {"n": "Espinacas", "p": "500 Grs", "pr": 4000, "img": "espinaca", "pu": ""}, {"n": "Morron", "p": "500 Grs", "pr": 7000, "img": "morron", "pu": ""}, {"n": "Primavera", "p": "500 Grs", "pr": 5000, "img": "primavera", "pu": ""}, {"n": "Frutos Rojos", "p": "500 Grs", "pr": 11000, "img": "frutos_rojos", "pu": ""}, {"n": "Cebolla", "p": "500 Grs", "pr": 4000, "img": "cebolla", "pu": ""}]}, {"id": "pastas", "sec": "PASTAS LA CASERIANA", "col1": "#1A5276", "col2": "#0D2B3E", "shaddai": false, "items": [{"n": "Ravioles de Calabaza", "p": "500 Grs", "pr": 2700, "img": "ravioles", "pu": ""}, {"n": "Raviolones Espinaca y Mozz", "p": "Masa Integral · 500 Grs", "pr": 3900, "img": "ravioles", "pu": ""}, {"n": "Gnoquis de Papa", "p": "500 Grs", "pr": 2100, "img": "gnoquis", "pu": ""}, {"n": "Gnoquis de Espinaca", "p": "500 Grs", "pr": 2100, "img": "gnoquis_espinaca", "pu": ""}, {"n": "Sorrentinos Jamon y Queso", "p": "500 Grs", "pr": 4200, "img": "sorrentinos", "pu": ""}, {"n": "Sorrentinos Ricota 4 Quesos", "p": "400 Grs", "pr": 2600, "img": "sorrentinos", "pu": ""}]}, {"id": "veggie", "sec": "VEGGIE LA CASERIANA", "col1": "#4A7C35", "col2": "#2A4D1A", "shaddai": false, "items": [{"n": "Hamburguesa de Garbanzos", "p": "x 400 g", "pr": 4200, "img": "veggie_garbanzos", "pu": "&#x2248;$1.050 / unidad"}, {"n": "Hamburguesa de Lentejas", "p": "x 400 g", "pr": 4200, "img": "veggie_lentejas", "pu": "&#x2248;$1.050 / unidad"}, {"n": "Hamburguesa de Quinoa", "p": "x 400 g", "pr": 4200, "img": "veggie_quinoa", "pu": "&#x2248;$1.050 / unidad"}, {"n": "Hamburguesa de Arvejas", "p": "x 400 g", "pr": 4200, "img": "arvejas", "pu": "&#x2248;$1.050 / unidad"}, {"n": "Hamburguesa de Hongos", "p": "x 400 g", "pr": 4200, "img": "veggie_hongos", "pu": "&#x2248;$1.050 / unidad"}, {"n": "Hamburguesa de Espinaca", "p": "x 400 g", "pr": 4200, "img": "veggie_espinaca", "pu": "&#x2248;$1.050 / unidad"}, {"n": "Hamburguesa Mexicana", "p": "x 400 g", "pr": 4200, "img": "veggie_mexicana", "pu": "&#x2248;$1.050 / unidad"}, {"n": "Hamburguesa 5 Vegetales", "p": "x 400 g", "pr": 4200, "img": "veggie_5veg", "pu": "&#x2248;$1.050 / unidad"}]}];
 
 const qty={};
 let vActivo=null;
@@ -987,14 +1052,22 @@ function confirmarYEnviarWA() {
   const comercio  = (document.getElementById('ci-comercio').value||'').trim();
   const localidad = (document.getElementById('ci-localidad').value||'').trim();
 
+  function _resetBtn() {
+    _enviandoPedido = false;
+    const b = document.querySelector('#modal-cliente-id .tck-submit-wa');
+    if (b) { b.disabled = false; b.style.opacity = ''; b.innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.2 1.36.172 1.872.104.571-.074 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.122.553 4.112 1.522 5.84L.057 23.882a.5.5 0 00.612.612l6.042-1.465A11.952 11.952 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.891 0-3.659-.52-5.168-1.426l-.37-.217-3.835.929.929-3.835-.217-.37A9.952 9.952 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg> Enviar pedido por WhatsApp'; }
+  }
+
   if(!nombre) {
     alert('Por favor ingresá tu nombre o razón social.');
     document.getElementById('ci-nombre').focus();
+    _resetBtn();
     return;
   }
   if(!localidad) {
     alert('Por favor ingresá tu localidad.');
     document.getElementById('ci-localidad').focus();
+    _resetBtn();
     return;
   }
 
@@ -1137,15 +1210,17 @@ function confirmarYEnviarWA() {
 // ── PRECIOS DESDE GOOGLE SHEETS ─────────────────────────────────
 const PRICES_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQDZk6Z5pejrI_djbUYBLEvh-X7H_sLF5ZCW2RQr0Bc03r8LOL17_C3pCmwwyLe2iXf3Fan0tgl7IJG/pub?gid=1658103892&single=true&output=csv';
 
+let _preciosDesdeSheets = false;
+
 async function cargarPrecios() {
+  const el = document.getElementById('hdr-price-status');
   try {
-    const res = await fetch(PRICES_CSV_URL, { cache: 'no-cache' });
+    const res = await fetch(PRICES_CSV_URL + '&_t=' + Date.now(), { cache: 'no-cache' });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
     const csv = await res.text();
     const lines = csv.trim().split('\n');
-    // Saltar header (fila 1)
     const priceMap = {};
     for (let i = 1; i < lines.length; i++) {
-      // Parsear CSV correctamente (campos pueden tener comas dentro de comillas)
       const cols = parseCsvLine(lines[i]);
       if (cols.length < 2) continue;
       const nombre   = cols[0].trim().replace(/^"|"$/g, '');
@@ -1156,7 +1231,6 @@ async function cargarPrecios() {
         priceMap[nombre] = { precio, precioKg };
       }
     }
-    // Aplicar precios al CAT
     let actualizados = 0;
     CAT.forEach(sec => sec.items.forEach(it => {
       if (priceMap[it.n]) {
@@ -1167,8 +1241,12 @@ async function cargarPrecios() {
         actualizados++;
       }
     }));
+    _preciosDesdeSheets = true;
+    if (el) el.innerHTML = 'Precios actualizados &middot; Trenque Lauquen';
     console.log('[TCK Precios] ' + actualizados + ' productos actualizados desde Sheets');
   } catch(e) {
+    _preciosDesdeSheets = false;
+    if (el) el.innerHTML = 'Precios estimados &middot; Trenque Lauquen <span style="color:rgba(255,200,0,.7);font-size:8px;" title="Sin conexi\u00f3n a precios en tiempo real">&#9432;</span>';
     console.warn('[TCK Precios] Usando precios del HTML (fallback):', e.message);
   }
 }
@@ -1435,91 +1513,6 @@ document.addEventListener('visibilitychange', function() {
   </div>
 </div>
 
-
-<script>
-var _catPrompt = null;
-
-window.addEventListener('beforeinstallprompt', function(e) {
-  e.preventDefault();
-  _catPrompt = e;
-  setTimeout(_showInstallBanner, 4000);
-});
-
-window.addEventListener('appinstalled', function() {
-  _catPrompt = null;
-  var b = document.getElementById('tck-inst');
-  if (b) b.remove();
-});
-
-function _showInstallBanner() {
-  if (window.matchMedia('(display-mode: standalone)').matches) return;
-  try { if (localStorage.getItem('tck_no_inst')) return; } catch(e) {}
-  if (document.getElementById('tck-inst')) return;
-
-  var b = document.createElement('div');
-  b.id = 'tck-inst';
-  b.style.cssText = 'position:fixed;bottom:0;left:0;right:0;z-index:9998;transform:translateY(100%);transition:transform .4s cubic-bezier(.34,1.56,.64,1)';
-
-  b.innerHTML = [
-    '<div style="background:linear-gradient(135deg,#1A0800,#2A0E00);border-top:3px solid #FFD700;padding:16px 20px;box-shadow:0 -8px 32px rgba(0,0,0,.5)">',
-      '<div style="display:flex;align-items:center;gap:14px;margin-bottom:14px">',
-        '<img src="/img/logo.png" style="width:52px;height:52px;border-radius:12px;border:2px solid #FFD700;object-fit:cover" onerror="this.style.display=\'none\'">',
-        '<div style="flex:1">',
-          '<div style="font-family:Barlow Condensed,sans-serif;font-size:18px;font-weight:900;color:#FFD700">TCK CATÁLOGO</div>',
-          '<div style="font-size:12px;color:rgba(255,255,255,.8);margin-top:2px">Guardá el catálogo para pedir más rápido</div>',
-        '</div>',
-        '<button onclick="_noInst()" style="background:rgba(255,255,255,.1);color:rgba(255,255,255,.6);border:none;border-radius:8px;padding:6px 10px;font-size:16px;cursor:pointer">&#x2715;</button>',
-      '</div>',
-      '<button onclick="_doInst()" style="width:100%;background:#FFD700;color:#1A0800;border:none;border-radius:12px;padding:14px;font-family:Barlow Condensed,sans-serif;font-size:17px;font-weight:900;cursor:pointer">&#128242; Agregar al inicio</button>',
-      '<div style="text-align:center;margin-top:10px;font-size:11px;color:rgba(255,255,255,.4)">No es una descarga &mdash; acceso directo</div>',
-    '</div>'
-  ].join('');
-
-  document.body.appendChild(b);
-  setTimeout(function(){ b.style.transform = 'translateY(0)'; }, 50);
-}
-
-async function _doInst() {
-  if (_catPrompt) {
-    _catPrompt.prompt();
-    await _catPrompt.userChoice;
-    _catPrompt = null;
-  } else {
-    _iosInst();
-  }
-  _noInst();
-}
-
-function _noInst() {
-  var b = document.getElementById('tck-inst');
-  if (b) { b.style.transform='translateY(100%)'; setTimeout(function(){b.remove();},400); }
-  try { localStorage.setItem('tck_no_inst','1'); } catch(e) {}
-}
-
-function _iosInst() {
-  var m = document.createElement('div');
-  m.style.cssText = 'position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,.7);display:flex;align-items:flex-end';
-  m.innerHTML = [
-    '<div style="background:#fff;width:100%;border-radius:20px 20px 0 0;padding:28px 24px">',
-      '<div style="font-family:Barlow Condensed,sans-serif;font-size:22px;font-weight:900;color:#8B0000;margin-bottom:4px">&#x1F414; TCK Catálogo</div>',
-      '<div style="font-size:13px;color:#888;margin-bottom:20px">Guardálo en tu pantalla de inicio</div>',
-      '<div style="font-size:14px;color:#333;line-height:2.2">',
-        '<div>1&#xFE0F;&#x20E3; Tocá <strong>Compartir &#x2B06;&#xFE0F;</strong> en Safari</div>',
-        '<div>2&#xFE0F;&#x20E3; Tocá <strong>Agregar a pantalla de inicio</strong></div>',
-        '<div>3&#xFE0F;&#x20E3; Tocá <strong>Agregar</strong> &mdash; ¡listo!</div>',
-      '</div>',
-      '<button onclick="this.closest(\'div\').parentElement.remove()" style="width:100%;margin-top:20px;background:#8B0000;color:#fff;border:none;border-radius:12px;padding:14px;font-family:Barlow Condensed,sans-serif;font-size:16px;font-weight:700;cursor:pointer">Entendido</button>',
-    '</div>'
-  ].join('');
-  document.body.appendChild(m);
-}
-
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', function() {
-    navigator.serviceWorker.register('/sw.js').catch(function(){});
-  });
-}
-</script>
 
 <script>
 (function() {
