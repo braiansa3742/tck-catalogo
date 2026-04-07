@@ -865,6 +865,70 @@ body {
   padding: 12px 16px;
 }
 
+/* ── MANUAL DE USO ── */
+.manual-item {
+  display: flex;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--cream2);
+  align-items: flex-start;
+}
+.manual-item-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+.manual-item-txt { flex: 1; min-width: 0; }
+.manual-item-titulo {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--text);
+  line-height: 1.2;
+}
+.manual-item-desc {
+  font-size: 12px;
+  color: var(--text3);
+  margin-top: 3px;
+  line-height: 1.4;
+}
+.manual-paso {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.manual-paso:last-child { margin-bottom: 0; }
+.manual-paso-num {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: rgba(255,215,0,.3);
+  border: 1.5px solid rgba(255,215,0,.6);
+  color: var(--gold);
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 13px;
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+.manual-paso-txt {
+  font-size: 13px;
+  color: rgba(255,255,255,.85);
+  line-height: 1.5;
+  flex: 1;
+}
+.manual-paso-txt strong { color: var(--gold); font-weight: 700; }
+
 /* ── VIEW: CLIENTES ── */
 .clientes-view-inner {
   padding: 12px 16px 0;
@@ -1297,6 +1361,7 @@ input[type="date"] {
   </div>
   <div class="hdr-fecha" id="hdr-fecha"></div>
   <div id="ultima-actualizacion" style="font-size:10px;color:rgba(255,255,255,.45);text-align:right;margin-top:1px;letter-spacing:.3px;grid-column:2;"></div>
+  <button id="hdr-help-btn" onclick="abrirManual()" style="display:none;background:rgba(255,255,255,.15);border:1.5px solid rgba(255,255,255,.3);border-radius:50%;width:32px;height:32px;color:#fff;font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:900;cursor:pointer;flex-shrink:0;position:absolute;top:12px;right:16px;touch-action:manipulation;-webkit-tap-highlight-color:transparent;" title="Cómo usar el panel">?</button>
 </div>
 
 <!-- LOGIN -->
@@ -1529,6 +1594,106 @@ input[type="date"] {
     <span class="tab-label">Reportes</span>
   </button>
 </nav>
+
+<!-- MODAL MANUAL DE USO -->
+<div class="export-backdrop" id="manual-backdrop" onclick="cerrarManualFondo(event)" style="z-index:600;">
+  <div class="export-sheet" id="manual-sheet" style="max-height:96vh;">
+    <div class="export-pill"></div>
+    <div style="padding:14px 20px 0;display:flex;align-items:center;justify-content:space-between;">
+      <div>
+        <div style="font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:900;color:var(--red);">📖 Cómo usar el panel</div>
+        <div style="font-size:12px;color:var(--text3);margin-top:2px;">Guía rápida para el día a día</div>
+      </div>
+      <button onclick="cerrarManual()" style="background:var(--cream2);border:none;border-radius:50%;width:32px;height:32px;font-size:16px;color:var(--text2);cursor:pointer;flex-shrink:0;">✕</button>
+    </div>
+
+    <div style="padding:16px 20px;overflow-y:auto;max-height:calc(96vh - 80px);">
+
+      <!-- Flujo del día -->
+      <div style="background:linear-gradient(135deg,var(--red),var(--red2));border-radius:14px;padding:16px;margin-bottom:16px;">
+        <div style="font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:900;color:var(--gold);letter-spacing:1px;text-transform:uppercase;margin-bottom:12px;">⚡ El flujo del día</div>
+        <div id="manual-flujo-pasos"></div>
+      </div>
+
+      <!-- Sección: Pedidos -->
+      <div style="background:#fff;border-radius:14px;border:1.5px solid var(--cream3);overflow:hidden;margin-bottom:12px;">
+        <div style="background:var(--cream2);padding:10px 16px;font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:900;color:var(--text);text-transform:uppercase;letter-spacing:.8px;">📋 Tab Pedidos</div>
+        <div style="padding:14px 16px;">
+          <div class="manual-item">
+            <div class="manual-item-icon" style="background:var(--orange2);color:var(--orange);">⏳</div>
+            <div class="manual-item-txt">
+              <div class="manual-item-titulo">Pendiente</div>
+              <div class="manual-item-desc">El cliente hizo el pedido pero vos todavía no lo cargaste en Xubio.</div>
+            </div>
+          </div>
+          <div class="manual-item">
+            <div class="manual-item-icon" style="background:var(--green3);color:var(--green2);">✅</div>
+            <div class="manual-item-txt">
+              <div class="manual-item-titulo">Ya remití en Xubio → pasa a Confirmado</div>
+              <div class="manual-item-desc">Apretás este botón <strong>después</strong> de cargar el remito en Xubio. Podés anotar el número de remito en el campo que aparece.</div>
+            </div>
+          </div>
+          <div class="manual-item">
+            <div class="manual-item-icon" style="background:var(--blue2);color:var(--blue);">📦</div>
+            <div class="manual-item-txt">
+              <div class="manual-item-titulo">Entregado</div>
+              <div class="manual-item-desc">El producto ya llegó físicamente al cliente. Lo marcás cuando hacés la entrega.</div>
+            </div>
+          </div>
+          <div class="manual-item" style="border-bottom:none;">
+            <div class="manual-item-icon" style="background:#FFEBEE;color:#C62828;">⚠️</div>
+            <div class="manual-item-txt">
+              <div class="manual-item-titulo">Duplicados</div>
+              <div class="manual-item-desc">Si un cliente mandó el pedido dos veces, el sistema lo avisa en rojo. Coordiná con el otro vendedor antes de remitir.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sección: Rutina diaria -->
+      <div style="background:#fff;border-radius:14px;border:1.5px solid var(--cream3);overflow:hidden;margin-bottom:12px;">
+        <div style="background:var(--cream2);padding:10px 16px;font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:900;color:var(--text);text-transform:uppercase;letter-spacing:.8px;">🗓️ Rutina diaria</div>
+        <div style="padding:14px 16px;">
+          <div class="manual-item">
+            <div class="manual-item-icon" style="background:var(--cream2);color:var(--text2);">🌅</div>
+            <div class="manual-item-txt">
+              <div class="manual-item-titulo">Al empezar el día</div>
+              <div class="manual-item-desc">Abrí el panel y fijate cuántos pedidos llegaron de la noche anterior. Revisá si hay duplicados o pedidos raros antes de cargar nada en Xubio.</div>
+            </div>
+          </div>
+          <div class="manual-item">
+            <div class="manual-item-icon" style="background:var(--cream2);color:var(--text2);">☀️</div>
+            <div class="manual-item-txt">
+              <div class="manual-item-titulo">Durante el día</div>
+              <div class="manual-item-desc">A medida que cargás remitos en Xubio, marcá cada pedido como "Ya remití". Anotá el número de remito en el campo que aparece al abrir el pedido.</div>
+            </div>
+          </div>
+          <div class="manual-item" style="border-bottom:none;">
+            <div class="manual-item-icon" style="background:var(--cream2);color:var(--text2);">🌙</div>
+            <div class="manual-item-txt">
+              <div class="manual-item-titulo">Al cerrar el día</div>
+              <div class="manual-item-desc">Usá "Enviar resumen" → "Cómo va el día" para mandar los totales al grupo. Todos los pedidos deberían estar en Confirmado o Entregado. Si quedan Pendientes, algo faltó remitir.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sección: Enviar por WA -->
+      <div style="background:#fff;border-radius:14px;border:1.5px solid var(--cream3);overflow:hidden;margin-bottom:12px;">
+        <div style="background:var(--cream2);padding:10px 16px;font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:900;color:var(--text);text-transform:uppercase;letter-spacing:.8px;">📲 Botón "Enviar"</div>
+        <div style="padding:14px 16px;">
+          <div class="manual-item"><div class="manual-item-icon" style="background:var(--green3);color:var(--green2);">📊</div><div class="manual-item-txt"><div class="manual-item-titulo">Cómo va el día</div><div class="manual-item-desc">Para mandar al grupo o al dueño. Solo los totales.</div></div></div>
+          <div class="manual-item"><div class="manual-item-icon" style="background:var(--blue2);color:var(--blue);">👥</div><div class="manual-item-txt"><div class="manual-item-titulo">Quién compró y a qué hora</div><div class="manual-item-desc">Lista de clientes con hora y localidad. Para coordinar visitas o entregas.</div></div></div>
+          <div class="manual-item"><div class="manual-item-icon" style="background:var(--orange2);color:var(--orange);">🧾</div><div class="manual-item-txt"><div class="manual-item-titulo">Pedido completo con productos</div><div class="manual-item-desc">Para confirmar con el cliente o mandar al depósito.</div></div></div>
+          <div class="manual-item" style="border-bottom:none;"><div class="manual-item-icon" style="background:#FFF0F0;color:#C62828;">🚚</div><div class="manual-item-txt"><div class="manual-item-titulo">Qué hay que cargar hoy</div><div class="manual-item-desc">Totales por producto para el depósito o el chofer. Sin nombres de clientes.</div></div></div>
+        </div>
+      </div>
+
+      <div style="text-align:center;padding:8px 0 4px;font-size:12px;color:var(--text3);">TCK Distribuidora · Panel de Vendedores</div>
+
+    </div>
+  </div>
+</div>
 
 <div class="toast" id="toast"></div>
 
@@ -1793,6 +1958,8 @@ function login(nombre) {
   document.getElementById('filtros-vendedor').style.display = esAdmin ? 'flex' : 'none';
   cargarPedidos();
   mostrarTabs();
+  mostrarBotonesManual();
+  checkPrimeraVez();
 }
 
 function salir() {
@@ -1806,6 +1973,7 @@ function salir() {
   document.getElementById('login-sub').textContent = 'Seleccioná tu nombre';
   setFiltro('todos', document.querySelector('#filtros-estado .filtro-btn'));
   ocultarTabs();
+  var hb = document.getElementById('hdr-help-btn'); if (hb) hb.style.display='none';
 }
 
 // ── CARGAR PEDIDOS ───────────────────────────────────────────────
@@ -2078,7 +2246,7 @@ function renderCard(p) {
   }
 
   var btns = '';
-  if (p.estado !== 'Confirmado') btns += '<button class="btn-estado btn-confirmar" onclick="cambiarEstado(\'' + p.pedidoId + '\',' + p.fila + ',\'Confirmado\',event)">✅ Confirmar</button>';
+  if (p.estado !== 'Confirmado') btns += '<button class="btn-estado btn-confirmar" onclick="cambiarEstado(\'' + p.pedidoId + '\',' + p.fila + ',\'Confirmado\',event)">✅ Ya remití en Xubio</button>';
   if (p.estado !== 'Entregado')  btns += '<button class="btn-estado btn-entregar" onclick="cambiarEstado(\'' + p.pedidoId + '\',' + p.fila + ',\'Entregado\',event)">📦 Entregado</button>';
   if (esAdmin && p.estado !== 'Pendiente') btns += '<button class="btn-estado btn-pendiente-again" onclick="cambiarEstado(\'' + p.pedidoId + '\',' + p.fila + ',\'Pendiente\',event)">⏳ Pendiente</button>';
   if (esAdmin && p.estado !== 'Cancelado') btns += '<button class="btn-estado btn-cancelar" onclick="confirmarCancelar(\'' + p.pedidoId + '\',' + p.fila + ',event)">❌ Cancelar</button>';
@@ -2111,8 +2279,11 @@ function renderCard(p) {
       dupAlert +
       '<div class="pedido-acciones">' + btns + '</div>' +
       '<div class="nota-wrap">' +
+        '<div style="display:flex;gap:8px;margin-bottom:8px;">' +
+          '<input class="nota-input" style="flex:1;height:40px;font-size:14px;" id="remito-' + id + '" type="text" inputmode="numeric" placeholder="N° remito Xubio (opcional)" value="' + (p.remito||'') + '" onblur="guardarRemito(\'' + p.pedidoId + '\')">' +
+        '</div>' +
         '<textarea class="nota-input" id="nota-' + id + '" placeholder="📝 Nota interna..." onblur="guardarNota(\'' + p.pedidoId + '\')">' + (p.nota||'') + '</textarea>' +
-        '<div class="nota-guardada" id="nota-ok-' + id + '">✅ Nota guardada</div>' +
+        '<div class="nota-guardada" id="nota-ok-' + id + '">✅ Guardado</div>' +
       '</div>' +
     '</div>' +
   '</div>';
@@ -2124,6 +2295,19 @@ function toggleCard(id) {
 }
 
 // ── NOTAS ─────────────────────────────────────────────────────────
+function guardarRemito(pedidoId) {
+  var id = pedidoId.replace(/[^a-zA-Z0-9]/g,'-');
+  var el = document.getElementById('remito-'+id);
+  if (!el) return;
+  try {
+    localStorage.setItem('tck_remito_'+pedidoId, el.value.trim());
+    var p = todosLosPedidos.find(function(x){return x.pedidoId===pedidoId;});
+    if (p) p.remito = el.value.trim();
+    var ok = document.getElementById('nota-ok-'+id);
+    if (ok) { ok.style.display='block'; setTimeout(function(){ok.style.display='none';},1500); }
+  } catch(e) {}
+}
+
 function guardarNota(pedidoId) {
   var id = pedidoId.replace(/[^a-zA-Z0-9]/g,'-');
   var el = document.getElementById('nota-'+id);
@@ -2140,6 +2324,7 @@ function guardarNota(pedidoId) {
 function cargarNotas(pedidos) {
   pedidos.forEach(function(p) {
     try { p.nota = localStorage.getItem('tck_nota_'+p.pedidoId)||''; } catch(e) { p.nota=''; }
+    try { p.remito = localStorage.getItem('tck_remito_'+p.pedidoId)||''; } catch(e) { p.remito=''; }
   });
 }
 
@@ -2661,6 +2846,62 @@ function actualizarBadgePendientes() {
   }).length;
   badge.textContent = pend > 0 ? (pend > 99 ? '99+' : pend) : '';
   badge.classList.toggle('on', pend > 0);
+}
+
+
+// ── MANUAL DE USO ─────────────────────────────────────────────────
+var _manualVisto = false;
+
+function abrirManual() {
+  // Build the flujo pasos dynamically
+  var esAdmin = vendedorActual === 'ADMIN';
+  var pasos = [
+    { num: '1', txt: 'El cliente hace el pedido desde el <strong>catálogo web</strong>.' },
+    { num: '2', txt: 'El pedido aparece en el panel como <strong>⏳ Pendiente</strong>.' },
+    { num: '3', txt: 'Abrís el pedido, revisás los productos y lo cargás en <strong>Xubio</strong> como remito.' },
+    { num: '4', txt: 'Tocás <strong>"✅ Ya remití en Xubio"</strong> y anotás el número de remito.' },
+    { num: '5', txt: 'Cuando hacés la entrega física, lo marcás como <strong>📦 Entregado</strong>.' },
+  ];
+  if (esAdmin) {
+    pasos.push({ num: '6', txt: 'Al cerrar el día, enviá el <strong>Resumen</strong> al grupo con los totales.' });
+  }
+
+  var pasosEl = document.getElementById('manual-flujo-pasos');
+  if (pasosEl) {
+    pasosEl.innerHTML = pasos.map(function(p) {
+      return '<div class="manual-paso">'
+        + '<div class="manual-paso-num">' + p.num + '</div>'
+        + '<div class="manual-paso-txt">' + p.txt + '</div>'
+        + '</div>';
+    }).join('');
+  }
+
+  document.getElementById('manual-backdrop').classList.add('on');
+  _manualVisto = true;
+  try { localStorage.setItem('tck_manual_visto', '1'); } catch(e) {}
+}
+
+function cerrarManual() {
+  document.getElementById('manual-backdrop').classList.remove('on');
+}
+
+function cerrarManualFondo(e) {
+  if (e && e.target !== document.getElementById('manual-backdrop')) return;
+  cerrarManual();
+}
+
+function mostrarBotonesManual() {
+  var btn = document.getElementById('hdr-help-btn');
+  if (btn) btn.style.display = 'flex';
+}
+
+// Mostrar manual automáticamente la primera vez
+function checkPrimeraVez() {
+  try {
+    if (!localStorage.getItem('tck_manual_visto')) {
+      setTimeout(abrirManual, 600);
+    }
+  } catch(e) {}
 }
 
 
