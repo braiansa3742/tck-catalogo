@@ -866,6 +866,187 @@ body {
 }
 
 /* ── VIEW: CLIENTES ── */
+.clientes-view-inner {
+  padding: 12px 16px 0;
+}
+/* Reusa midia-section-card, midia-section-hdr, midia-section-body */
+
+/* Header de sección clientes con selector de período */
+.cli-hdr-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 16px 8px;
+  border-bottom: 1.5px solid var(--cream2);
+}
+.cli-hdr-title {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 13px;
+  font-weight: 900;
+  color: var(--text);
+  text-transform: uppercase;
+  letter-spacing: .8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.cli-periodo-btns {
+  display: flex;
+  gap: 4px;
+}
+.cli-periodo-btn {
+  padding: 4px 10px;
+  border-radius: 20px;
+  border: 1.5px solid var(--cream3);
+  background: #fff;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text3);
+  cursor: pointer;
+  transition: all .12s;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+.cli-periodo-btn.on {
+  background: var(--red);
+  border-color: var(--red);
+  color: #fff;
+}
+
+/* Fila de cliente en ranking */
+.cli-row {
+  display: flex;
+  align-items: center;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--cream2);
+  gap: 12px;
+  cursor: pointer;
+  transition: background .12s;
+  -webkit-tap-highlight-color: transparent;
+}
+.cli-row:last-child { border-bottom: none; }
+.cli-row:active { background: var(--cream2); }
+.cli-pos {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 13px;
+  font-weight: 900;
+  color: var(--text3);
+  width: 22px;
+  flex-shrink: 0;
+  text-align: center;
+}
+.cli-av {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--red), var(--red2));
+  color: #fff;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 16px;
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.cli-info {
+  flex: 1;
+  min-width: 0;
+}
+.cli-nombre {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--text);
+  line-height: 1.1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.cli-sub {
+  font-size: 11px;
+  color: var(--text3);
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.cli-monto-col {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  flex-shrink: 0;
+  gap: 3px;
+}
+.cli-monto {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 17px;
+  font-weight: 900;
+  color: var(--red);
+  line-height: 1;
+}
+.cli-meta {
+  font-size: 11px;
+  color: var(--text3);
+  text-align: right;
+}
+
+/* Tag de días sin comprar */
+.cli-tag {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .3px;
+}
+.cli-tag-ok    { background: var(--green3);  color: var(--green2); }
+.cli-tag-warn  { background: var(--orange2); color: var(--orange); }
+.cli-tag-alert { background: #FFEBEE;        color: #C62828; }
+
+/* Mini stats de clientes */
+.cli-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  padding: 12px 16px;
+  border-bottom: 1.5px solid var(--cream2);
+}
+.cli-stat {
+  text-align: center;
+  background: var(--cream2);
+  border-radius: 10px;
+  padding: 8px 6px;
+}
+.cli-stat-num {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 22px;
+  font-weight: 900;
+  color: var(--red);
+  line-height: 1;
+}
+.cli-stat-lbl {
+  font-size: 10px;
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  font-weight: 700;
+  font-family: 'Barlow Condensed', sans-serif;
+  margin-top: 3px;
+}
+
+/* Empty state */
+.cli-empty {
+  text-align: center;
+  padding: 28px 20px;
+  color: var(--text3);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
 .coming-soon {
   display: flex;
   flex-direction: column;
@@ -1265,11 +1446,54 @@ input[type="date"] {
 
   <!-- ══ VIEW: CLIENTES ══ -->
   <div class="view" id="view-clientes">
-    <div class="coming-soon">
-      <div class="coming-soon-icon">⭐</div>
-      <div class="coming-soon-title">Análisis de clientes</div>
-      <div class="coming-soon-sub">Acá vas a ver los mejores clientes, frecuencia de compra, ticket promedio y clientes inactivos.</div>
-      <div class="coming-soon-badge">Próximamente</div>
+    <div class="clientes-view-inner">
+
+      <!-- ── Mini stats globales ── -->
+      <div class="midia-section-card" style="margin-top:4px;">
+        <div class="cli-stats" id="cli-stats">
+          <div class="cli-stat">
+            <div class="cli-stat-num" id="cli-stat-total">—</div>
+            <div class="cli-stat-lbl">Clientes</div>
+          </div>
+          <div class="cli-stat">
+            <div class="cli-stat-num" id="cli-stat-pedidos">—</div>
+            <div class="cli-stat-lbl">Pedidos</div>
+          </div>
+          <div class="cli-stat" style="background:var(--orange2);">
+            <div class="cli-stat-num" id="cli-stat-ticket" style="color:var(--orange);">—</div>
+            <div class="cli-stat-lbl" style="color:var(--orange);">Ticket prom.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Mejores clientes ── -->
+      <div class="midia-section-card">
+        <div class="cli-hdr-row">
+          <div class="cli-hdr-title">⭐ Mejores clientes</div>
+          <div class="cli-periodo-btns" id="cli-periodo-btns">
+            <button class="cli-periodo-btn on" onclick="setCliPeriodo('semana',this)">Semana</button>
+            <button class="cli-periodo-btn" onclick="setCliPeriodo('todos',this)">Todo</button>
+          </div>
+        </div>
+        <div id="cli-top-list"></div>
+      </div>
+
+      <!-- ── Sin comprar hace tiempo ── -->
+      <div class="midia-section-card">
+        <div class="cli-hdr-row">
+          <div class="cli-hdr-title">💤 Sin comprar hace tiempo</div>
+        </div>
+        <div id="cli-inactivos-list"></div>
+      </div>
+
+      <!-- ── Por localidad ── -->
+      <div class="midia-section-card">
+        <div class="cli-hdr-row">
+          <div class="cli-hdr-title">📍 Por localidad</div>
+        </div>
+        <div id="cli-localidades-list"></div>
+      </div>
+
     </div>
   </div>
 
@@ -2376,9 +2600,8 @@ function renderMiDia() {
 
 // Actualizar Mi Día cuando está abierto después de recargar pedidos
 function actualizarMiDiaSiAbierto() {
-  // Re-render Mi Día si su tab está activa
   if (_tabActual === 'midia') renderMiDia();
-  // Actualizar badge de pendientes
+  if (_tabActual === 'clientes') renderClientes();
   actualizarBadgePendientes();
 }
 
@@ -2398,6 +2621,10 @@ function cambiarTab(tab) {
   });
 
   // Cuando se abre Mi Día, renderizar
+  if (tab === 'clientes') {
+    renderClientes();
+    var v = document.getElementById('view-clientes'); if (v) v.scrollTop = 0;
+  }
   if (tab === 'midia') {
     renderMiDia();
     // Scroll to top
@@ -2434,6 +2661,208 @@ function actualizarBadgePendientes() {
   }).length;
   badge.textContent = pend > 0 ? (pend > 99 ? '99+' : pend) : '';
   badge.classList.toggle('on', pend > 0);
+}
+
+
+// ── SECCIÓN CLIENTES ─────────────────────────────────────────────
+var _cliPeriodo = 'semana';
+
+function setCliPeriodo(periodo, btn) {
+  _cliPeriodo = periodo;
+  document.querySelectorAll('.cli-periodo-btn').forEach(function(b) { b.classList.remove('on'); });
+  if (btn) btn.classList.add('on');
+  renderClientes();
+}
+
+function getClientesData(periodo) {
+  // Toma todos los pedidos sin filtro de vendedor ni estado
+  var todos = todosLosPedidos.filter(function(p) { return p.estado !== 'Cancelado'; });
+
+  // Filtrar por período
+  var hoy = new Date(); hoy.setHours(0,0,0,0);
+  if (periodo === 'semana') {
+    var sem = new Date(hoy); sem.setDate(sem.getDate() - 7);
+    todos = todos.filter(function(p) { return fechaPedido(p) >= sem; });
+  }
+
+  // Agrupar por cliente
+  var mapa = {};
+  todos.forEach(function(p) {
+    var key = (p.cliente||'').trim().toLowerCase();
+    if (!key) return;
+    if (!mapa[key]) {
+      mapa[key] = {
+        nombre: p.cliente,
+        comercio: p.comercio || '',
+        localidad: p.localidad || '',
+        vendedor: p.vendedor || '',
+        monto: 0,
+        pedidos: 0,
+        fechas: []
+      };
+    }
+    mapa[key].monto   += parseInt((p.total||'').replace(/[^\d]/g,''))||0;
+    mapa[key].pedidos += 1;
+    var m = (p.pedidoId||'').match(/TCK-(\d{4})(\d{2})(\d{2})/);
+    if (m) {
+      var f = new Date(+m[1], +m[2]-1, +m[3]);
+      mapa[key].fechas.push(f.getTime());
+    }
+  });
+
+  // Calcular métricas derivadas
+  var clientes = Object.values(mapa).map(function(c) {
+    c.ticket    = c.pedidos ? Math.round(c.monto / c.pedidos) : 0;
+    c.ultimaFecha = c.fechas.length ? new Date(Math.max.apply(null, c.fechas)) : null;
+    c.diasSinComprar = c.ultimaFecha
+      ? Math.floor((hoy.getTime() - c.ultimaFecha.getTime()) / 86400000)
+      : 999;
+    // Frecuencia: si tiene >1 pedido, promedio de días entre compras
+    if (c.fechas.length > 1) {
+      var sorted = c.fechas.slice().sort(function(a,b){return a-b;});
+      var gaps = [];
+      for (var i=1; i<sorted.length; i++) gaps.push((sorted[i]-sorted[i-1])/86400000);
+      c.frecDias = Math.round(gaps.reduce(function(a,b){return a+b;},0)/gaps.length);
+    } else {
+      c.frecDias = null;
+    }
+    return c;
+  });
+
+  return clientes;
+}
+
+function renderClientes() {
+  if (!todosLosPedidos.length) return;
+
+  var clientes = getClientesData(_cliPeriodo);
+  var hoy = new Date(); hoy.setHours(0,0,0,0);
+
+  // ── Mini stats ──────────────────────────────────────────────────
+  var totalPedidos = clientes.reduce(function(a,c){return a+c.pedidos;},0);
+  var totalMonto   = clientes.reduce(function(a,c){return a+c.monto;},0);
+  var ticketGlobal = totalPedidos ? Math.round(totalMonto/totalPedidos) : 0;
+
+  var elTotal   = document.getElementById('cli-stat-total');
+  var elPedidos = document.getElementById('cli-stat-pedidos');
+  var elTicket  = document.getElementById('cli-stat-ticket');
+  if (elTotal)   elTotal.textContent   = clientes.length;
+  if (elPedidos) elPedidos.textContent = totalPedidos;
+  if (elTicket)  elTicket.textContent  = ticketGlobal ? '$' + ticketGlobal.toLocaleString('es-AR') : '—';
+
+  // ── Top clientes (por monto) ────────────────────────────────────
+  var top = clientes.slice().sort(function(a,b){return b.monto-a.monto;}).slice(0,8);
+  var maxMonto = top.length ? top[0].monto : 1;
+  var topEl = document.getElementById('cli-top-list');
+  if (topEl) {
+    if (!top.length) {
+      topEl.innerHTML = '<div class="cli-empty">No hay datos para el período seleccionado.</div>';
+    } else {
+      topEl.innerHTML = top.map(function(c, i) {
+        var pct = Math.round((c.monto/maxMonto)*100);
+        var pos = i===0?'🥇':i===1?'🥈':i===2?'🥉':(i+1)+'.';
+        var pedLabel = c.pedidos===1?'1 pedido':c.pedidos+' pedidos';
+        var subInfo  = (c.comercio||c.localidad)
+          ? (c.comercio ? c.comercio : '') + (c.comercio && c.localidad ? ' · ' : '') + (c.localidad||'')
+          : (c.vendedor || '');
+        return '<div class="cli-row">'
+          + '<div class="cli-pos">' + pos + '</div>'
+          + '<div class="cli-av">' + (c.nombre||'?')[0].toUpperCase() + '</div>'
+          + '<div class="cli-info">'
+          +   '<div class="cli-nombre">' + (c.nombre||'—') + '</div>'
+          +   '<div class="cli-sub">' + subInfo + '</div>'
+          + '</div>'
+          + '<div class="cli-monto-col">'
+          +   '<div class="cli-monto">$' + c.monto.toLocaleString('es-AR') + '</div>'
+          +   '<div style="width:70px;height:4px;background:var(--cream2);border-radius:2px;overflow:hidden;margin:3px 0 2px;align-self:flex-end;">'
+          +     '<div style="width:'+pct+'%;height:100%;background:linear-gradient(90deg,var(--red),var(--gold2));border-radius:2px;"></div>'
+          +   '</div>'
+          +   '<div class="cli-meta">' + pedLabel + '</div>'
+          + '</div>'
+          + '</div>';
+      }).join('');
+    }
+  }
+
+  // ── Sin comprar hace tiempo ─────────────────────────────────────
+  // Umbral: >2 días sin comprar (con poco dato, 2 días ya es señal)
+  var inactivos = clientes
+    .filter(function(c) { return c.diasSinComprar >= 2; })
+    .sort(function(a,b) { return b.diasSinComprar - a.diasSinComprar; })
+    .slice(0, 8);
+
+  var inEl = document.getElementById('cli-inactivos-list');
+  if (inEl) {
+    if (!inactivos.length) {
+      inEl.innerHTML = '<div class="cli-empty">Todos los clientes compraron recientemente. ✅</div>';
+    } else {
+      inEl.innerHTML = inactivos.map(function(c) {
+        var dias = c.diasSinComprar;
+        var tagClass = dias >= 5 ? 'cli-tag-alert' : dias >= 3 ? 'cli-tag-warn' : 'cli-tag-ok';
+        var tagLabel = dias === 0 ? 'Hoy'
+          : dias === 1 ? 'Ayer'
+          : dias + (dias===1?' día':' días');
+        var subInfo = (c.comercio||c.localidad)
+          ? (c.comercio||'') + (c.comercio&&c.localidad?' · ':'') + (c.localidad||'')
+          : (c.vendedor||'');
+        return '<div class="cli-row">'
+          + '<div class="cli-pos" style="color:var(--orange);">—</div>'
+          + '<div class="cli-av" style="background:var(--cream3);color:var(--text2);">'
+          +   (c.nombre||'?')[0].toUpperCase()
+          + '</div>'
+          + '<div class="cli-info">'
+          +   '<div class="cli-nombre">' + (c.nombre||'—') + '</div>'
+          +   '<div class="cli-sub">' + subInfo + '</div>'
+          + '</div>'
+          + '<div class="cli-monto-col">'
+          +   '<span class="cli-tag ' + tagClass + '">' + tagLabel + '</span>'
+          +   '<div class="cli-meta" style="margin-top:3px;">$' + c.monto.toLocaleString('es-AR') + ' hist.</div>'
+          + '</div>'
+          + '</div>';
+      }).join('');
+    }
+  }
+
+  // ── Por localidad ───────────────────────────────────────────────
+  var locMap = {};
+  clientes.forEach(function(c) {
+    var loc = (c.localidad||'Sin localidad').trim();
+    if (!locMap[loc]) locMap[loc] = { pedidos:0, monto:0, clientes:0 };
+    locMap[loc].pedidos  += c.pedidos;
+    locMap[loc].monto    += c.monto;
+    locMap[loc].clientes += 1;
+  });
+  var locs = Object.entries(locMap)
+    .sort(function(a,b){ return b[1].monto - a[1].monto; })
+    .slice(0, 6);
+  var maxLocMonto = locs.length ? locs[0][1].monto : 1;
+
+  var locEl = document.getElementById('cli-localidades-list');
+  if (locEl) {
+    if (!locs.length) {
+      locEl.innerHTML = '<div class="cli-empty">Sin datos.</div>';
+    } else {
+      locEl.innerHTML = locs.map(function(entry) {
+        var loc = entry[0], d = entry[1];
+        var pct = Math.round((d.monto/maxLocMonto)*100);
+        var cliLabel = d.clientes===1?'1 cliente':d.clientes+' clientes';
+        var pedLabel = d.pedidos===1?'1 pedido':d.pedidos+' pedidos';
+        return '<div class="cli-row">'
+          + '<div class="cli-pos"></div>'
+          + '<div class="cli-info">'
+          +   '<div class="cli-nombre">' + loc + '</div>'
+          +   '<div class="cli-sub">' + cliLabel + ' · ' + pedLabel + '</div>'
+          + '</div>'
+          + '<div class="cli-monto-col">'
+          +   '<div class="cli-monto">$' + d.monto.toLocaleString('es-AR') + '</div>'
+          +   '<div style="width:70px;height:4px;background:var(--cream2);border-radius:2px;overflow:hidden;margin:3px 0 2px;align-self:flex-end;">'
+          +     '<div style="width:'+pct+'%;height:100%;background:linear-gradient(90deg,var(--red),var(--gold2));border-radius:2px;"></div>'
+          +   '</div>'
+          + '</div>'
+          + '</div>';
+      }).join('');
+    }
+  }
 }
 
 
