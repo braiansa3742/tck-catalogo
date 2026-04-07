@@ -1,5 +1,5 @@
 // TCK Service Worker — v1
-const CACHE = 'tck-v1';
+const CACHE = 'tck-v2';
 const ASSETS = [
   '/',
   '/index.html',
