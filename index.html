@@ -9,6 +9,11 @@
 <meta name="apple-mobile-web-app-title" content="TCK Catálogo">
 <link rel="apple-touch-icon" href="/img/logo.png">
 <link rel="manifest" href="/manifest_catalogo.json">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="TCK Catálogo">
+<link rel="apple-touch-icon" href="/img/logo.png">
+<link rel="manifest" href="/manifest_catalogo.json">
 <title>TCK &ndash; The Chicken Kings &middot; Cat&aacute;logo Abril 2026</title>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@300;400;600;700;800;900&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -1514,6 +1519,124 @@ if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('/sw.js').catch(function(){});
   });
 }
+</script>
+
+<script>
+(function() {
+  // ── PWA: solo Chrome Android lo dispara ──────────────────────
+  var _prompt = null;
+
+  window.addEventListener('beforeinstallprompt', function(e) {
+    e.preventDefault();
+    _prompt = e;
+    // Mostrar banner después de 5s si no fue descartado antes
+    setTimeout(function() {
+      if (_prompt) _showBanner();
+    }, 5000);
+  });
+
+  window.addEventListener('appinstalled', function() {
+    _prompt = null;
+    _hideBanner();
+  });
+
+  function _showBanner() {
+    try { if (localStorage.getItem('tck_no_inst')) return; } catch(e) {}
+    if (document.getElementById('_tck_inst')) return;
+
+    var b = document.createElement('div');
+    b.id = '_tck_inst';
+    // Banner compacto en la parte superior — no interfiere con el orderbar
+    b.style.cssText = [
+      'position:fixed',
+      'top:0',
+      'left:0',
+      'right:0',
+      'z-index:9999',
+      'transform:translateY(-100%)',
+      'transition:transform .4s cubic-bezier(.34,1.56,.64,1)',
+      'pointer-events:auto'
+    ].join(';');
+
+    b.innerHTML = '<div style="background:linear-gradient(135deg,#1A0800,#8B0000);' +
+      'border-bottom:2px solid #FFD700;padding:10px 16px;' +
+      'display:flex;align-items:center;gap:10px;box-shadow:0 4px 16px rgba(0,0,0,.4);">' +
+      '<img src="/img/logo.png" style="width:32px;height:32px;border-radius:8px;' +
+      'border:1.5px solid #FFD700;object-fit:cover;flex-shrink:0;" id="_tck_logo">' +
+      '<div style="flex:1;min-width:0;">' +
+        '<div style="font-family:Barlow Condensed,sans-serif;font-size:14px;' +
+        'font-weight:900;color:#FFD700;letter-spacing:.5px;">Instalá TCK Catálogo</div>' +
+        '<div style="font-size:11px;color:rgba(255,255,255,.7);">Acceso rápido desde tu pantalla de inicio</div>' +
+      '</div>' +
+      '<button id="_tck_inst_btn" style="background:#FFD700;color:#1A0800;border:none;' +
+      'border-radius:8px;padding:7px 14px;font-family:Barlow Condensed,sans-serif;' +
+      'font-size:14px;font-weight:900;cursor:pointer;flex-shrink:0;' +
+      'touch-action:manipulation;-webkit-tap-highlight-color:transparent;">Instalar</button>' +
+      '<button id="_tck_inst_x" style="background:rgba(255,255,255,.1);color:rgba(255,255,255,.6);' +
+      'border:none;border-radius:6px;padding:7px 10px;font-size:14px;cursor:pointer;' +
+      'flex-shrink:0;touch-action:manipulation;-webkit-tap-highlight-color:transparent;">✕</button>' +
+    '</div>';
+
+    document.body.appendChild(b);
+
+    // Animar entrada
+    setTimeout(function() { b.style.transform = 'translateY(0)'; }, 50);
+
+    // Botón instalar
+    document.getElementById('_tck_inst_btn').addEventListener('click', function() {
+      if (_prompt) {
+        _prompt.prompt();
+        _prompt.userChoice.then(function() { _prompt = null; });
+      } else {
+        _showIOSModal();
+      }
+      _hideBanner();
+    });
+
+    // Botón cerrar
+    document.getElementById('_tck_inst_x').addEventListener('click', function() {
+      _hideBanner();
+      try { localStorage.setItem('tck_no_inst', '1'); } catch(e) {}
+    });
+  }
+
+  function _hideBanner() {
+    var b = document.getElementById('_tck_inst');
+    if (!b) return;
+    b.style.transform = 'translateY(-100%)';
+    setTimeout(function() { if (b.parentNode) b.parentNode.removeChild(b); }, 400);
+  }
+
+  function _showIOSModal() {
+    var m = document.createElement('div');
+    m.style.cssText = 'position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,.7);' +
+      'display:flex;align-items:flex-end;pointer-events:auto;';
+    m.innerHTML = '<div style="background:#fff;width:100%;border-radius:20px 20px 0 0;padding:28px 24px;">' +
+      '<div style="font-family:Barlow Condensed,sans-serif;font-size:22px;font-weight:900;' +
+      'color:#8B0000;margin-bottom:4px;">🐔 TCK Catálogo</div>' +
+      '<div style="font-size:13px;color:#888;margin-bottom:20px;">Guardalo en tu pantalla de inicio</div>' +
+      '<div style="font-size:14px;color:#333;line-height:2.2;">' +
+        '<div>1️⃣ Tocá <strong>Compartir ⬆️</strong> en Safari</div>' +
+        '<div>2️⃣ Tocá <strong>"Agregar a pantalla de inicio"</strong></div>' +
+        '<div>3️⃣ Tocá <strong>Agregar</strong> — ¡listo!</div>' +
+      '</div>' +
+      '<button id="_ios_ok" style="width:100%;margin-top:20px;background:#8B0000;color:#fff;' +
+      'border:none;border-radius:12px;padding:14px;font-family:Barlow Condensed,sans-serif;' +
+      'font-size:16px;font-weight:700;cursor:pointer;touch-action:manipulation;">Entendido</button>' +
+    '</div>';
+    document.body.appendChild(m);
+    document.getElementById('_ios_ok').addEventListener('click', function() {
+      if (m.parentNode) m.parentNode.removeChild(m);
+    });
+  }
+
+  // ── Service Worker ─────────────────────────────────────────────
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function() {
+      navigator.serviceWorker.register('/sw.js').catch(function() {});
+    });
+  }
+})();
 </script>
 </body>
 </html>
