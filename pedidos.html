@@ -596,7 +596,6 @@ input[type="date"] {
     <div class="hdr-sub">Panel de vendedores</div>
   </div>
   <div class="hdr-fecha" id="hdr-fecha"></div>
-  <div id="ultima-actualizacion" style="font-size:10px;color:rgba(255,255,255,.45);text-align:right;margin-top:2px;letter-spacing:.3px;"></div>
 </div>
 
 <!-- LOGIN -->
@@ -733,22 +732,8 @@ input[type="date"] {
 <script>
 const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxbx9ma8S5wcuRqFXjRyFYvIo_kLwc5Px4eE4Y7-CqPmIfJbI3VBEP4I9qSV8s0owMMYg/exec';
 const SHEET_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQDZk6Z5pejrI_djbUYBLEvh-X7H_sLF5ZCW2RQr0Bc03r8LOL17_C3pCmwwyLe2iXf3Fan0tgl7IJG/pub?gid=0&single=true&output=csv';
-// NOTA: El CSV de Sheets puede tener hasta 30 min de lag. Se agrega timestamp
-// para evitar que el browser lo cachee, pero el lag de Sheets es inevitable.
-// Solución real: usar Apps Script con doGet para obtener datos frescos.
 const NUM_ADMIN = '5492314475357';
-// PINs almacenados como hashes SHA-256 — nunca en texto plano
-const PIN_HASHES = {
-  'Miguel':   '1cde77dff3692822bac597186ba175833c895d7fd31f104d3d3979bdf6bd4feb',
-  'Juan':     '9cf876e274c8bbc32e1ad874ee32f4d7c10c9a3f14a77931ea1f27acedad9d09',
-  'Lisandro': '144f58b5926367a95181b3a2195aaf2f49d03efa56fe7bd22c217eb1ac0ab547',
-  'ADMIN':    '923460afd903841a21363fb1ae650e8d624aaea62efe94c043dced07673a52e3'
-};
-
-async function hashPin(pin) {
-  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pin));
-  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
-}
+const PINS = { 'Miguel':'3356', 'Juan':'4256', 'Lisandro':'8020', 'ADMIN':'3050' };
 const SESSION_KEY = 'tck_session';
 const SESSION_HORAS = 24;
 
@@ -797,24 +782,10 @@ function actualizarFecha() {
 actualizarFecha();
 setInterval(actualizarFecha, 60000);
 
-// Auto-refresh de pedidos cada 5 minutos (el CSV de Sheets puede tardar hasta 30 min,
-// pero el auto-refresh al menos trae lo más reciente que Sheets haya publicado)
-var _autoRefreshInterval = null;
-function iniciarAutoRefresh() {
-  if (_autoRefreshInterval) clearInterval(_autoRefreshInterval);
-  _autoRefreshInterval = setInterval(function() {
-    if (vendedorActual) {
-      var el = document.getElementById('ultima-actualizacion');
-      if (el) { el.textContent = 'Actualizando...'; el.style.color = 'rgba(255,255,255,.4)'; }
-      cargarPedidos(true);
-    }
-  }, 5 * 60 * 1000);
-}
-
 // Recuperar sesión si existe
 (function() {
   var sesion = recuperarSesion();
-  if (sesion && PIN_HASHES[sesion]) {
+  if (sesion && PINS[sesion]) {
     login(sesion);
   }
 })();
@@ -938,9 +909,8 @@ function actualizarDots() {
   });
 }
 
-async function verificarPin() {
-  const hash = await hashPin(pinActual);
-  if (hash === PIN_HASHES[pinVendedorTemp]) {
+function verificarPin() {
+  if (pinActual === PINS[pinVendedorTemp]) {
     login(pinVendedorTemp);
   } else {
     document.getElementById('pin-error').textContent = 'PIN incorrecto. Intentá de nuevo.';
@@ -963,7 +933,6 @@ function login(nombre) {
     : 'Tus pedidos de hoy — ' + new Date().toLocaleDateString('es-AR');
   document.getElementById('filtros-vendedor').style.display = esAdmin ? 'flex' : 'none';
   cargarPedidos();
-  iniciarAutoRefresh();
 }
 
 function salir() {
@@ -1006,17 +975,12 @@ async function cargarPedidos(silencioso) {
         fila:      i + 1
       });
     }
-    pedidos.sort(function(a, b) { return b.fechaHora.localeCompare(a.fechaHora); });
-
-    // Actualizar timestamp de última carga
-    var ahoraEl = document.getElementById('ultima-actualizacion');
-    if (ahoraEl) {
-      var ahora = new Date();
-      var hh = ahora.getHours().toString().padStart(2,'0');
-      var mm = ahora.getMinutes().toString().padStart(2,'0');
-      ahoraEl.textContent = 'Actualizado ' + hh + ':' + mm;
-      ahoraEl.style.color = 'var(--green2)';
-    }
+    pedidos.sort(function(a, b) {
+      var da = new Date((a.fechaHora||'').replace(' ','T'));
+      var db = new Date((b.fechaHora||'').replace(' ','T'));
+      if (!isNaN(db) && !isNaN(da)) return db - da;
+      return (b.fechaHora||'').localeCompare(a.fechaHora||'');
+    });
 
     // Detectar duplicados — dos niveles
     var mapTotal = {}, mapCliente = {};
@@ -1177,6 +1141,13 @@ function pedidosFiltrados() {
     return p.cliente.toLowerCase().includes(q) || p.comercio.toLowerCase().includes(q) ||
            p.localidad.toLowerCase().includes(q) || p.pedidoId.toLowerCase().includes(q);
   });
+  // Siempre devolver ordenado por fecha descendente
+  lista.sort(function(a, b) {
+    var da = new Date((a.fechaHora||'').replace(' ','T'));
+    var db = new Date((b.fechaHora||'').replace(' ','T'));
+    if (!isNaN(db) && !isNaN(da)) return db - da;
+    return (b.fechaHora||'').localeCompare(a.fechaHora||'');
+  });
   return lista;
 }
 
@@ -1295,24 +1266,75 @@ function cargarNotas(pedidos) {
 function exportarResumen() {
   var lista = pedidosFiltrados();
   if (!lista.length) { toast('No hay pedidos para exportar',''); return; }
-  var nombre = vendedorActual==='ADMIN' ? 'Todos los vendedores' : vendedorActual;
+
+  var esAdmin = vendedorActual === 'ADMIN';
   var activos = lista.filter(function(p){return p.estado!=='Cancelado';});
-  var total = activos.reduce(function(acc,p){return acc+(parseInt((p.total||'').replace(/[^\d]/g,''))||0);},0);
-  var pend = activos.filter(function(p){return p.estado==='Pendiente';});
-  var conf = activos.filter(function(p){return p.estado==='Confirmado';});
-  var entr = activos.filter(function(p){return p.estado==='Entregado';});
-  var canc = lista.filter(function(p){return p.estado==='Cancelado';});
+  var canc    = lista.filter(function(p){return p.estado==='Cancelado';});
+  var pend    = activos.filter(function(p){return p.estado==='Pendiente';});
+  var conf    = activos.filter(function(p){return p.estado==='Confirmado';});
+  var entr    = activos.filter(function(p){return p.estado==='Entregado';});
+  var totalMonto = activos.reduce(function(acc,p){return acc+(parseInt((p.total||'').replace(/[^\d]/g,''))||0);},0);
+
   var hoy = new Date().toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long'});
-  var msg = '🐔 *TCK — Resumen de pedidos*\n📅 '+hoy+'\n👤 '+nombre+'\n━━━━━━━━━━━━━━━\n\n';
-  msg += '📦 *Total:* '+activos.length+'\n💰 *Monto:* $'+total.toLocaleString('es-AR')+'\n\n';
-  msg += '⏳ Pendientes: '+pend.length+'\n✅ Confirmados: '+conf.length+'\n📦 Entregados: '+entr.length+'\n';
-  if (canc.length) msg += '❌ Cancelados: '+canc.length+'\n';
-  msg += '\n━━━━━━━━━━━━━━━\n*Detalle:*\n';
-  activos.forEach(function(p){
+  var sep = '━━━━━━━━━━━━━━━';
+
+  // Encabezado
+  var msg = '🐔 *TCK — Resumen de pedidos*\n';
+  msg += '📅 ' + hoy + '\n';
+  if (esAdmin) msg += '👥 *Todos los vendedores*\n';
+  else         msg += '👤 *' + vendedorActual + '*\n';
+  msg += sep + '\n\n';
+
+  // Totales generales
+  msg += '📦 *Pedidos:* ' + activos.length;
+  if (canc.length) msg += '  ❌ Cancelados: ' + canc.length;
+  msg += '\n';
+  msg += '💰 *Monto total:* *$' + totalMonto.toLocaleString('es-AR') + '*\n';
+  msg += '⏳ Pend: ' + pend.length + '  ✅ Conf: ' + conf.length + '  📦 Entregados: ' + entr.length + '\n';
+  msg += '\n';
+
+  function horaStr(p) {
+    var partes = (p.fechaHora||'').split(' ');
+    if (partes.length >= 2) {
+      var hm = partes[1].split(':');
+      return hm[0]+':'+hm[1];
+    }
+    return '';
+  }
+
+  function lineaPedido(p) {
     var ic = p.estado==='Confirmado'?'✅':p.estado==='Entregado'?'📦':'⏳';
-    msg += ic+' '+p.cliente+(p.comercio?' ('+p.comercio+')':'')+' — '+fmtTotal(p.total)+' · '+p.localidad+'\n';
-  });
-  msg += '\n_Generado desde TCK Pedidos_';
+    var hora = horaStr(p);
+    var nombre = '*'+p.cliente+'*';
+    if (p.comercio) nombre += ' (' + p.comercio + ')';
+    var linea = ic + ' ' + nombre + '\n';
+    linea += '     🕐 ' + (hora||'—') + '  📍 ' + p.localidad + '  💰 ' + fmtTotal(p.total) + '\n';
+    return linea;
+  }
+
+  if (esAdmin) {
+    // Agrupar por vendedor, ordenado por nombre
+    var byVend = {};
+    activos.forEach(function(p) {
+      var v = p.vendedor || 'Sin asignar';
+      if (!byVend[v]) byVend[v] = [];
+      byVend[v].push(p);
+    });
+    var vendores = Object.keys(byVend).sort();
+    vendores.forEach(function(v) {
+      var ps = byVend[v];
+      var subtotal = ps.reduce(function(acc,p){return acc+(parseInt((p.total||'').replace(/[^\d]/g,''))||0);},0);
+      msg += sep + '\n';
+      msg += '👤 *' + v + '*  —  ' + ps.length + ' pedido' + (ps.length!==1?'s':'') + '  |  $' + subtotal.toLocaleString('es-AR') + '\n\n';
+      ps.forEach(function(p){ msg += lineaPedido(p); });
+      msg += '\n';
+    });
+  } else {
+    msg += sep + '\n*Detalle:*\n\n';
+    activos.forEach(function(p){ msg += lineaPedido(p); });
+  }
+
+  msg += sep + '\n_Generado desde TCK Pedidos_';
   window.open('https://wa.me/?text='+encodeURIComponent(msg),'_blank');
 }
 
