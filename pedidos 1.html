@@ -1,0 +1,879 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TCK — Panel de Pedidos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;700;900&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --red: #8B0000;
+  --red2: #B71C1C;
+  --gold: #FFD700;
+  --cream: #FFF8F0;
+  --cream2: #F5EDE0;
+  --text: #1A0800;
+  --text2: #5C3A1E;
+  --text3: #9C7050;
+  --green: #1B5E20;
+  --green2: #2E7D32;
+  --green3: #E8F5E9;
+  --orange: #E65100;
+  --orange2: #FFF3E0;
+  --blue: #0D47A1;
+  --blue2: #E3F2FD;
+  --gray: #F5F5F5;
+  --border: rgba(139,0,0,.15);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Barlow', sans-serif;
+  background: var(--cream);
+  color: var(--text);
+  min-height: 100vh;
+}
+
+/* ── HEADER ── */
+.hdr {
+  background: var(--red);
+  padding: 14px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 12px rgba(0,0,0,.3);
+}
+.hdr-logo {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 22px;
+  font-weight: 900;
+  color: var(--gold);
+  letter-spacing: 1px;
+}
+.hdr-sub {
+  font-size: 11px;
+  color: rgba(255,215,0,.7);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+.hdr-fecha {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 14px;
+  color: rgba(255,255,255,.8);
+  text-align: right;
+}
+
+/* ── LOGIN ── */
+.login-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: calc(100vh - 60px);
+  padding: 24px;
+}
+.login-box {
+  background: #fff;
+  border-radius: 18px;
+  padding: 36px 28px;
+  width: 100%;
+  max-width: 340px;
+  box-shadow: 0 4px 24px rgba(139,0,0,.12);
+  text-align: center;
+}
+.login-titulo {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 26px;
+  font-weight: 900;
+  color: var(--red);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 6px;
+}
+.login-sub {
+  font-size: 13px;
+  color: var(--text2);
+  margin-bottom: 28px;
+}
+.login-btn {
+  width: 100%;
+  background: var(--cream2);
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-bottom: 10px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text);
+  cursor: pointer;
+  transition: all .15s;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  letter-spacing: .3px;
+}
+.login-btn:hover { background: var(--red); color: #fff; border-color: var(--red); }
+.login-btn:hover .login-av { background: rgba(255,255,255,.2); color: #fff; }
+.login-av {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: var(--red);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: 900;
+  flex-shrink: 0;
+}
+.login-btn-name { flex: 1; text-align: left; }
+.login-btn-role { font-size: 11px; color: var(--text3); font-weight: 400; font-family: 'Barlow', sans-serif; }
+
+/* ── PANEL PRINCIPAL ── */
+.panel { display: none; padding: 16px; max-width: 900px; margin: 0 auto; }
+.panel.on { display: block; }
+
+/* ── BIENVENIDA ── */
+.bienvenida {
+  background: linear-gradient(135deg, var(--red) 0%, var(--red2) 100%);
+  border-radius: 14px;
+  padding: 16px 20px;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.bienvenida-nombre {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 22px;
+  font-weight: 900;
+  color: #fff;
+  letter-spacing: .5px;
+}
+.bienvenida-sub { font-size: 12px; color: rgba(255,255,255,.75); margin-top: 2px; }
+.btn-salir {
+  background: rgba(255,255,255,.15);
+  border: 1px solid rgba(255,255,255,.3);
+  border-radius: 8px;
+  padding: 7px 14px;
+  color: #fff;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  letter-spacing: .3px;
+}
+
+/* ── STATS ── */
+.stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.stat-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 14px 16px;
+  text-align: center;
+  border: 1.5px solid var(--border);
+}
+.stat-num {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 32px;
+  font-weight: 900;
+  color: var(--red);
+  line-height: 1;
+}
+.stat-label {
+  font-size: 11px;
+  color: var(--text2);
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  margin-top: 4px;
+}
+
+/* ── FILTROS ── */
+.filtros {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+.filtro-btn {
+  padding: 7px 14px;
+  border-radius: 20px;
+  border: 1.5px solid var(--border);
+  background: #fff;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text2);
+  cursor: pointer;
+  letter-spacing: .3px;
+  transition: all .15s;
+}
+.filtro-btn.on { background: var(--red); color: #fff; border-color: var(--red); }
+.filtro-btn:hover:not(.on) { border-color: var(--red); color: var(--red); }
+
+/* ── BUSCADOR ── */
+.buscador-wrap { margin-bottom: 14px; position: relative; }
+.buscador {
+  width: 100%;
+  padding: 11px 16px 11px 40px;
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  font-family: 'Barlow', sans-serif;
+  font-size: 14px;
+  background: #fff;
+  color: var(--text);
+  outline: none;
+}
+.buscador:focus { border-color: var(--red); }
+.buscador-icon {
+  position: absolute;
+  left: 13px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 16px;
+  color: var(--text3);
+}
+
+/* ── LISTA DE PEDIDOS ── */
+.pedido-card {
+  background: #fff;
+  border-radius: 14px;
+  border: 1.5px solid var(--border);
+  margin-bottom: 10px;
+  overflow: hidden;
+  transition: box-shadow .15s;
+}
+.pedido-card:hover { box-shadow: 0 2px 12px rgba(139,0,0,.08); }
+.pedido-card.duplicado { border-color: #E65100; border-width: 2px; }
+
+.pedido-head {
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  cursor: pointer;
+  user-select: none;
+}
+.pedido-head-left { flex: 1; min-width: 0; }
+.pedido-id {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 11px;
+  color: var(--text3);
+  letter-spacing: .5px;
+  margin-bottom: 2px;
+}
+.pedido-cliente {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 18px;
+  font-weight: 900;
+  color: var(--text);
+  line-height: 1.1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.pedido-comercio {
+  font-size: 12px;
+  color: var(--text2);
+  margin-top: 1px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.pedido-head-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+  flex-shrink: 0;
+}
+.pedido-total {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 20px;
+  font-weight: 900;
+  color: var(--red);
+}
+.pedido-hora {
+  font-size: 11px;
+  color: var(--text3);
+}
+
+/* ── BADGES DE ESTADO ── */
+.badge {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 20px;
+  letter-spacing: .3px;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.badge-pendiente { background: var(--orange2); color: var(--orange); }
+.badge-confirmado { background: var(--green3); color: var(--green2); }
+.badge-entregado { background: var(--blue2); color: var(--blue); }
+.badge-cancelado { background: #FFEBEE; color: #C62828; }
+.badge-duplicado { background: #FFF3E0; color: #E65100; }
+
+/* ── DETALLE EXPANDIDO ── */
+.pedido-body {
+  display: none;
+  border-top: 1px solid var(--border);
+  padding: 14px 16px;
+  background: var(--cream);
+}
+.pedido-body.on { display: block; }
+.pedido-detalle-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+  padding: 5px 0;
+  border-bottom: 1px solid rgba(0,0,0,.05);
+  gap: 8px;
+}
+.pedido-detalle-row:last-child { border-bottom: none; }
+.pdr-label { color: var(--text2); font-size: 11.5px; text-transform: uppercase; letter-spacing: .3px; font-weight: 600; }
+.pdr-val { color: var(--text); font-weight: 500; text-align: right; }
+
+.pedido-productos {
+  background: #fff;
+  border-radius: 10px;
+  padding: 10px 14px;
+  margin: 10px 0;
+  font-size: 12.5px;
+  color: var(--text2);
+  line-height: 1.8;
+  border: 1px solid var(--border);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* ── ACCIONES ── */
+.pedido-acciones {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
+.btn-estado {
+  flex: 1;
+  min-width: 120px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1.5px solid;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  letter-spacing: .3px;
+  transition: all .15s;
+  text-align: center;
+}
+.btn-confirmar { background: var(--green3); color: var(--green2); border-color: var(--green2); }
+.btn-confirmar:hover { background: var(--green2); color: #fff; }
+.btn-entregar { background: var(--blue2); color: var(--blue); border-color: var(--blue); }
+.btn-entregar:hover { background: var(--blue); color: #fff; }
+.btn-cancelar { background: #FFEBEE; color: #C62828; border-color: #C62828; }
+.btn-cancelar:hover { background: #C62828; color: #fff; }
+.btn-pendiente-again { background: var(--orange2); color: var(--orange); border-color: var(--orange); }
+.btn-pendiente-again:hover { background: var(--orange); color: #fff; }
+
+/* ── ALERTA DUPLICADO ── */
+.duplicado-alert {
+  background: #FFF3E0;
+  border: 1.5px solid var(--orange);
+  border-radius: 10px;
+  padding: 10px 14px;
+  margin-top: 10px;
+  font-size: 12.5px;
+  color: var(--orange);
+  font-weight: 600;
+}
+
+/* ── LOADING / EMPTY ── */
+.loading, .empty {
+  text-align: center;
+  padding: 48px 24px;
+  color: var(--text2);
+  font-size: 14px;
+}
+.loading-spinner {
+  width: 36px;
+  height: 36px;
+  border: 3px solid var(--cream2);
+  border-top-color: var(--red);
+  border-radius: 50%;
+  animation: spin .8s linear infinite;
+  margin: 0 auto 16px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.btn-refresh {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #fff;
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  padding: 9px 16px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text2);
+  cursor: pointer;
+  margin-left: auto;
+  margin-bottom: 14px;
+}
+.btn-refresh:hover { border-color: var(--red); color: var(--red); }
+
+/* ── TOAST ── */
+.toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%) translateY(80px);
+  background: var(--text);
+  color: #fff;
+  padding: 12px 24px;
+  border-radius: 12px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  z-index: 999;
+  transition: transform .3s;
+  white-space: nowrap;
+}
+.toast.on { transform: translateX(-50%) translateY(0); }
+.toast.ok { background: var(--green2); }
+.toast.err { background: #C62828; }
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div>
+    <div class="hdr-logo">🐔 TCK Pedidos</div>
+    <div class="hdr-sub">Panel de vendedores</div>
+  </div>
+  <div class="hdr-fecha" id="hdr-fecha"></div>
+</div>
+
+<!-- LOGIN -->
+<div class="login-wrap" id="login-wrap">
+  <div class="login-box">
+    <div class="login-titulo">Ingresá</div>
+    <div class="login-sub">Seleccioná tu nombre para ver tus pedidos del día</div>
+
+    <button class="login-btn" onclick="login('Miguel')">
+      <div class="login-av">M</div>
+      <div class="login-btn-name">
+        Miguel Martínez
+        <div class="login-btn-role">Vendedor</div>
+      </div>
+    </button>
+
+    <button class="login-btn" onclick="login('Juan')">
+      <div class="login-av">J</div>
+      <div class="login-btn-name">
+        Juan Cruz
+        <div class="login-btn-role">Vendedor</div>
+      </div>
+    </button>
+
+    <button class="login-btn" onclick="login('Lisandro')">
+      <div class="login-av" style="background:var(--text2);">L</div>
+      <div class="login-btn-name">
+        Lisandro
+        <div class="login-btn-role">Vendedor</div>
+      </div>
+    </button>
+
+    <button class="login-btn" onclick="login('ADMIN')" style="margin-top:8px;border-color:var(--gold);background:var(--cream2);">
+      <div class="login-av" style="background:var(--gold);color:var(--text);">A</div>
+      <div class="login-btn-name">
+        Administración
+        <div class="login-btn-role">Ver todos los pedidos</div>
+      </div>
+    </button>
+  </div>
+</div>
+
+<!-- PANEL -->
+<div class="panel" id="panel">
+  <div class="bienvenida">
+    <div>
+      <div class="bienvenida-nombre" id="bienvenida-nombre"></div>
+      <div class="bienvenida-sub" id="bienvenida-sub"></div>
+    </div>
+    <button class="btn-salir" onclick="salir()">Salir</button>
+  </div>
+
+  <!-- STATS -->
+  <div class="stats">
+    <div class="stat-card">
+      <div class="stat-num" id="stat-total">—</div>
+      <div class="stat-label">Pedidos hoy</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num" id="stat-pend" style="color:var(--orange)">—</div>
+      <div class="stat-label">Pendientes</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num" id="stat-conf" style="color:var(--green2)">—</div>
+      <div class="stat-label">Confirmados</div>
+    </div>
+  </div>
+
+  <!-- REFRESH -->
+  <button class="btn-refresh" onclick="cargarPedidos()">
+    <span>🔄</span> Actualizar
+  </button>
+
+  <!-- BUSCADOR -->
+  <div class="buscador-wrap">
+    <span class="buscador-icon">🔍</span>
+    <input class="buscador" id="buscador" placeholder="Buscar cliente, comercio, localidad..." oninput="filtrar()">
+  </div>
+
+  <!-- FILTROS -->
+  <div class="filtros">
+    <button class="filtro-btn on" onclick="setFiltro('todos', this)">Todos</button>
+    <button class="filtro-btn" onclick="setFiltro('Pendiente', this)">⏳ Pendientes</button>
+    <button class="filtro-btn" onclick="setFiltro('Confirmado', this)">✅ Confirmados</button>
+    <button class="filtro-btn" onclick="setFiltro('Entregado', this)">📦 Entregados</button>
+    <button class="filtro-btn" onclick="setFiltro('duplicado', this)">⚠️ Duplicados</button>
+  </div>
+
+  <!-- LISTA -->
+  <div id="lista-pedidos"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxbx9ma8S5wcuRqFXjRyFYvIo_kLwc5Px4eE4Y7-CqPmIfJbI3VBEP4I9qSV8s0owMMYg/exec';
+const SHEET_ID = '1zHgDHdsouB3Ausxob2rMIWXllY4Ir7fcdZEHHfzf2rA';
+
+let vendedorActual = null;
+let todosLosPedidos = [];
+let filtroActual = 'todos';
+
+// ── FECHA EN HEADER ──────────────────────────────────────────────
+function actualizarFecha() {
+  const now = new Date().toLocaleString('es-AR', { timeZone: 'America/Argentina/Buenos_Aires' });
+  const d = new Date(now);
+  document.getElementById('hdr-fecha').innerHTML =
+    d.toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long' }) +
+    '<br>' + d.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
+}
+actualizarFecha();
+setInterval(actualizarFecha, 60000);
+
+// ── LOGIN ────────────────────────────────────────────────────────
+function login(nombre) {
+  vendedorActual = nombre;
+  document.getElementById('login-wrap').style.display = 'none';
+  document.getElementById('panel').classList.add('on');
+
+  const esAdmin = nombre === 'ADMIN';
+  document.getElementById('bienvenida-nombre').textContent = esAdmin ? '👑 Administración' : '👤 ' + nombre;
+  document.getElementById('bienvenida-sub').textContent = esAdmin
+    ? 'Viendo todos los pedidos del día'
+    : 'Tus pedidos de hoy — ' + new Date().toLocaleDateString('es-AR');
+
+  cargarPedidos();
+}
+
+function salir() {
+  vendedorActual = null;
+  todosLosPedidos = [];
+  document.getElementById('login-wrap').style.display = 'flex';
+  document.getElementById('panel').classList.remove('on');
+  document.getElementById('lista-pedidos').innerHTML = '';
+  document.getElementById('buscador').value = '';
+  setFiltro('todos', document.querySelector('.filtro-btn'));
+}
+
+// ── CARGAR PEDIDOS DESDE SHEET ───────────────────────────────────
+async function cargarPedidos() {
+  document.getElementById('lista-pedidos').innerHTML =
+    '<div class="loading"><div class="loading-spinner"></div>Cargando pedidos...</div>';
+
+  try {
+    // Leer el Sheet via CSV publicado (hoja Pedidos, gid=0)
+    const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=Pedidos`;
+    const res = await fetch(url + '&t=' + Date.now());
+    const csv = await res.text();
+    const lines = csv.trim().split('\n');
+
+    // Parsear filas (skip header fila 1)
+    const pedidos = [];
+    for (let i = 1; i < lines.length; i++) {
+      const cols = parseCsv(lines[i]);
+      if (!cols[0] || cols[0].trim().replace(/"/g,'') === '') continue;
+      pedidos.push({
+        pedidoId:      limpiar(cols[0]),
+        fechaHora:     limpiar(cols[1]),
+        vendedor:      limpiar(cols[2]),
+        cliente:       limpiar(cols[3]),
+        comercio:      limpiar(cols[4]),
+        localidad:     limpiar(cols[5]),
+        total:         limpiar(cols[6]),
+        items:         limpiar(cols[7]),
+        resumen:       limpiar(cols[8]),
+        detalle:       limpiar(cols[9]),
+        estado:        limpiar(cols[10]) || 'Pendiente',
+        origen:        limpiar(cols[11]),
+        fila:          i + 1  // fila real en el sheet (header = fila 1)
+      });
+    }
+
+    // Filtrar por vendedor si no es admin
+    // Y filtrar solo HOY
+    const hoy = new Date().toLocaleDateString('es-AR', { timeZone: 'America/Argentina/Buenos_Aires' });
+    let filtrados = pedidos.filter(p => {
+      const esHoy = p.fechaHora.includes(new Date().toISOString().slice(0,10)) ||
+                    p.fechaHora.startsWith(hoy.split('/').reverse().join('-'));
+      return true; // Mostrar todos por ahora (sin filtro de fecha estricto)
+    });
+
+    // Ordenar: más recientes primero
+    filtrados.sort((a, b) => b.fechaHora.localeCompare(a.fechaHora));
+
+    // Detectar duplicados (mismo cliente + mismo total)
+    const clienteCount = {};
+    filtrados.forEach(p => {
+      const key = (p.cliente + p.total).toLowerCase().replace(/\s/g,'');
+      clienteCount[key] = (clienteCount[key] || 0) + 1;
+    });
+    filtrados.forEach(p => {
+      const key = (p.cliente + p.total).toLowerCase().replace(/\s/g,'');
+      p.esDuplicado = clienteCount[key] > 1;
+    });
+
+    todosLosPedidos = filtrados;
+    actualizarStats();
+    renderPedidos();
+
+  } catch(e) {
+    document.getElementById('lista-pedidos').innerHTML =
+      '<div class="empty">❌ Error al cargar pedidos.<br>Verificá tu conexión.</div>';
+  }
+}
+
+function limpiar(s) {
+  if (!s) return '';
+  return s.trim().replace(/^"|"$/g, '').trim();
+}
+
+function parseCsv(line) {
+  const result = [];
+  let current = '';
+  let inQuotes = false;
+  for (let i = 0; i < line.length; i++) {
+    const c = line[i];
+    if (c === '"') {
+      if (inQuotes && line[i+1] === '"') { current += '"'; i++; }
+      else inQuotes = !inQuotes;
+    } else if (c === ',' && !inQuotes) {
+      result.push(current);
+      current = '';
+    } else {
+      current += c;
+    }
+  }
+  result.push(current);
+  return result;
+}
+
+// ── STATS ────────────────────────────────────────────────────────
+function actualizarStats() {
+  const mis = pedidosVisibles();
+  document.getElementById('stat-total').textContent = mis.length;
+  document.getElementById('stat-pend').textContent = mis.filter(p => p.estado === 'Pendiente').length;
+  document.getElementById('stat-conf').textContent = mis.filter(p => p.estado === 'Confirmado').length;
+}
+
+function pedidosVisibles() {
+  if (vendedorActual === 'ADMIN') return todosLosPedidos;
+  return todosLosPedidos.filter(p =>
+    p.vendedor.toLowerCase().includes(vendedorActual.toLowerCase())
+  );
+}
+
+// ── FILTROS Y BÚSQUEDA ───────────────────────────────────────────
+function setFiltro(f, btn) {
+  filtroActual = f;
+  document.querySelectorAll('.filtro-btn').forEach(b => b.classList.remove('on'));
+  btn.classList.add('on');
+  filtrar();
+}
+
+function filtrar() {
+  renderPedidos();
+}
+
+function pedidosFiltrados() {
+  let lista = pedidosVisibles();
+  const q = document.getElementById('buscador').value.toLowerCase();
+
+  if (filtroActual === 'duplicado') {
+    lista = lista.filter(p => p.esDuplicado);
+  } else if (filtroActual !== 'todos') {
+    lista = lista.filter(p => p.estado === filtroActual);
+  }
+
+  if (q) {
+    lista = lista.filter(p =>
+      p.cliente.toLowerCase().includes(q) ||
+      p.comercio.toLowerCase().includes(q) ||
+      p.localidad.toLowerCase().includes(q) ||
+      p.pedidoId.toLowerCase().includes(q)
+    );
+  }
+
+  return lista;
+}
+
+// ── RENDER PEDIDOS ───────────────────────────────────────────────
+function renderPedidos() {
+  actualizarStats();
+  const lista = pedidosFiltrados();
+  const cont = document.getElementById('lista-pedidos');
+
+  if (lista.length === 0) {
+    cont.innerHTML = '<div class="empty">📭 No hay pedidos para mostrar</div>';
+    return;
+  }
+
+  cont.innerHTML = lista.map(p => renderCard(p)).join('');
+}
+
+function badgeHtml(estado, esDuplicado) {
+  const badges = {
+    'Pendiente': '<span class="badge badge-pendiente">⏳ Pendiente</span>',
+    'Confirmado': '<span class="badge badge-confirmado">✅ Confirmado</span>',
+    'Entregado': '<span class="badge badge-entregado">📦 Entregado</span>',
+    'Cancelado': '<span class="badge badge-cancelado">❌ Cancelado</span>',
+  };
+  let b = badges[estado] || `<span class="badge badge-pendiente">${estado}</span>`;
+  if (esDuplicado) b += ' <span class="badge badge-duplicado">⚠️ DUPLICADO</span>';
+  return b;
+}
+
+function fmtTotal(t) {
+  const n = parseInt(t.replace(/[^\d]/g,''));
+  if (isNaN(n)) return t;
+  return '$' + n.toLocaleString('es-AR');
+}
+
+function botonesEstado(p) {
+  const id = p.pedidoId;
+  const fila = p.fila;
+  let btns = '';
+
+  if (p.estado !== 'Confirmado')
+    btns += `<button class="btn-estado btn-confirmar" onclick="cambiarEstado('${id}',${fila},'Confirmado',event)">✅ Confirmar</button>`;
+  if (p.estado !== 'Entregado')
+    btns += `<button class="btn-estado btn-entregar" onclick="cambiarEstado('${id}',${fila},'Entregado',event)">📦 Entregado</button>`;
+  if (p.estado !== 'Pendiente')
+    btns += `<button class="btn-estado btn-pendiente-again" onclick="cambiarEstado('${id}',${fila},'Pendiente',event)">⏳ Pendiente</button>`;
+  if (p.estado !== 'Cancelado')
+    btns += `<button class="btn-estado btn-cancelar" onclick="cambiarEstado('${id}',${fila},'Cancelado',event)">❌ Cancelar</button>`;
+
+  return btns;
+}
+
+function renderCard(p) {
+  const dupAlert = p.esDuplicado
+    ? `<div class="duplicado-alert">⚠️ Posible pedido duplicado — mismo cliente y total en otro pedido del día. Verificá con tu equipo.</div>`
+    : '';
+
+  const vendedorRow = vendedorActual === 'ADMIN'
+    ? `<div class="pedido-detalle-row"><span class="pdr-label">Vendedor</span><span class="pdr-val">${p.vendedor}</span></div>`
+    : '';
+
+  return `
+<div class="pedido-card${p.esDuplicado ? ' duplicado' : ''}" id="card-${p.pedidoId.replace(/[^a-zA-Z0-9]/g,'-')}">
+  <div class="pedido-head" onclick="toggleCard('${p.pedidoId.replace(/[^a-zA-Z0-9]/g,'-')}')">
+    <div class="pedido-head-left">
+      <div class="pedido-id">${p.pedidoId}</div>
+      <div class="pedido-cliente">${p.cliente || '(sin nombre)'}</div>
+      ${p.comercio ? `<div class="pedido-comercio">🏪 ${p.comercio} · 📍 ${p.localidad}</div>` : `<div class="pedido-comercio">📍 ${p.localidad}</div>`}
+    </div>
+    <div class="pedido-head-right">
+      <div class="pedido-total">${fmtTotal(p.total)}</div>
+      ${badgeHtml(p.estado, p.esDuplicado)}
+      <div class="pedido-hora">${p.fechaHora.split(' ')[1] || p.fechaHora}</div>
+    </div>
+  </div>
+  <div class="pedido-body" id="body-${p.pedidoId.replace(/[^a-zA-Z0-9]/g,'-')}">
+    ${vendedorRow}
+    <div class="pedido-detalle-row"><span class="pdr-label">Localidad</span><span class="pdr-val">${p.localidad}</span></div>
+    <div class="pedido-detalle-row"><span class="pdr-label">Productos</span><span class="pdr-val">${p.items} unidades</span></div>
+    <div class="pedido-detalle-row"><span class="pdr-label">Total</span><span class="pdr-val" style="color:var(--red);font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:900;">${fmtTotal(p.total)}</span></div>
+    <div class="pedido-detalle-row"><span class="pdr-label">Fecha/Hora</span><span class="pdr-val">${p.fechaHora}</span></div>
+    ${p.resumen ? `<div class="pedido-productos">${p.resumen.replace(/\|/g, '\n')}</div>` : ''}
+    ${dupAlert}
+    <div class="pedido-acciones">${botonesEstado(p)}</div>
+  </div>
+</div>`;
+}
+
+function toggleCard(id) {
+  const body = document.getElementById('body-' + id);
+  if (body) body.classList.toggle('on');
+}
+
+// ── CAMBIAR ESTADO ───────────────────────────────────────────────
+async function cambiarEstado(pedidoId, fila, nuevoEstado, event) {
+  event.stopPropagation();
+  const btn = event.target;
+  btn.disabled = true;
+  btn.textContent = 'Guardando...';
+
+  try {
+    const params = new URLSearchParams({
+      accion: 'cambiarEstado',
+      pedidoId: pedidoId,
+      fila: fila,
+      estado: nuevoEstado
+    });
+    await fetch(APPS_SCRIPT_URL + '?' + params.toString(), { mode: 'no-cors' });
+
+    // Actualizar localmente sin recargar todo
+    const p = todosLosPedidos.find(x => x.pedidoId === pedidoId);
+    if (p) p.estado = nuevoEstado;
+    renderPedidos();
+    toast('Estado actualizado: ' + nuevoEstado, 'ok');
+
+  } catch(e) {
+    btn.disabled = false;
+    btn.textContent = 'Error — reintentar';
+    toast('Error al guardar', 'err');
+  }
+}
+
+// ── TOAST ────────────────────────────────────────────────────────
+function toast(msg, tipo) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'toast on ' + (tipo || '');
+  setTimeout(() => el.classList.remove('on'), 2500);
+}
+</script>
+</body>
+</html>
