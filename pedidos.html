@@ -485,6 +485,25 @@ body {
 .pin-back { font-size: 13px; color: var(--text2); }
 .pin-del { font-size: 18px; color: var(--red2); }
 
+
+/* ── NOTAS ── */
+.nota-wrap { margin-top: 10px; }
+.nota-input {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  font-family: 'Barlow', sans-serif;
+  font-size: 13px;
+  color: var(--text);
+  background: #fff;
+  resize: none;
+  outline: none;
+  min-height: 60px;
+}
+.nota-input:focus { border-color: var(--gold); }
+.nota-guardada { font-size: 12px; color: var(--green2); margin-top: 4px; display: none; }
+
 </style>
 </head>
 <body>
@@ -564,11 +583,17 @@ body {
   </div>
 
   <!-- STATS -->
-  <div class="stats">
+  <div class="stats" style="grid-template-columns:repeat(2,1fr)">
     <div class="stat-card">
       <div class="stat-num" id="stat-total">—</div>
       <div class="stat-label">Pedidos hoy</div>
     </div>
+    <div class="stat-card">
+      <div class="stat-num" id="stat-monto" style="font-size:22px">—</div>
+      <div class="stat-label">Total del día</div>
+    </div>
+  </div>
+  <div class="stats" style="margin-top:0;margin-bottom:16px">
     <div class="stat-card">
       <div class="stat-num" id="stat-pend" style="color:var(--orange)">—</div>
       <div class="stat-label">Pendientes</div>
@@ -577,12 +602,21 @@ body {
       <div class="stat-num" id="stat-conf" style="color:var(--green2)">—</div>
       <div class="stat-label">Confirmados</div>
     </div>
+    <div class="stat-card">
+      <div class="stat-num" id="stat-entregado" style="color:var(--blue)">—</div>
+      <div class="stat-label">Entregados</div>
+    </div>
   </div>
 
   <!-- REFRESH -->
-  <button class="btn-refresh" onclick="cargarPedidos()">
-    <span>🔄</span> Actualizar
-  </button>
+  <div style="display:flex;gap:8px;margin-bottom:14px;">
+    <button class="btn-refresh" style="margin-bottom:0;flex:1" onclick="cargarPedidos()">
+      <span>🔄</span> Actualizar
+    </button>
+    <button class="btn-refresh" style="margin-bottom:0;flex:1;color:var(--green2);border-color:var(--green2)" onclick="exportarResumen()">
+      <span>📤</span> Enviar resumen
+    </button>
+  </div>
 
   <!-- BUSCADOR -->
   <div class="buscador-wrap">
@@ -591,6 +625,21 @@ body {
   </div>
 
   <!-- FILTROS -->
+  <!-- Filtros de fecha -->
+  <div class="filtros" id="filtros-fecha">
+    <button class="filtro-btn on" onclick="setFiltroFecha('hoy', this)">📅 Hoy</button>
+    <button class="filtro-btn" onclick="setFiltroFecha('ayer', this)">Ayer</button>
+    <button class="filtro-btn" onclick="setFiltroFecha('semana', this)">Esta semana</button>
+    <button class="filtro-btn" onclick="setFiltroFecha('todos', this)">Todos</button>
+  </div>
+  <!-- Filtro por vendedor (solo admin) -->
+  <div class="filtros" id="filtros-vendedor" style="display:none">
+    <button class="filtro-btn on" onclick="setFiltroVendedor('todos', this)">👥 Todos</button>
+    <button class="filtro-btn" onclick="setFiltroVendedor('Miguel', this)">Miguel</button>
+    <button class="filtro-btn" onclick="setFiltroVendedor('Juan', this)">Juan</button>
+    <button class="filtro-btn" onclick="setFiltroVendedor('Lisandro', this)">Lisandro</button>
+  </div>
+  <!-- Filtros de estado -->
   <div class="filtros">
     <button class="filtro-btn on" onclick="setFiltro('todos', this)">Todos</button>
     <button class="filtro-btn" onclick="setFiltro('Pendiente', this)">⏳ Pendientes</button>
@@ -611,6 +660,8 @@ const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxbx9ma8S5wcuRq
 let vendedorActual = null;
 let todosLosPedidos = [];
 let filtroActual = 'todos';
+let filtroFecha = 'hoy';
+let filtroVendedor = 'todos';
 
 // ── FECHA EN HEADER ──────────────────────────────────────────────
 function actualizarFecha() {
@@ -622,6 +673,40 @@ function actualizarFecha() {
 }
 actualizarFecha();
 setInterval(actualizarFecha, 60000);
+
+// Auto-refresh cada 30 segundos cuando el panel está abierto
+setInterval(function() {
+  if (vendedorActual) {
+    const antes = todosLosPedidos.length;
+    cargarPedidos(true).then(function() {
+      const despues = todosLosPedidos.length;
+      if (despues > antes) {
+        notificarNuevoPedido(despues - antes);
+      }
+    });
+  }
+}, 30000);
+
+function notificarNuevoPedido(cantidad) {
+  // Sonido de notificación
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.frequency.setValueAtTime(800, ctx.currentTime);
+    osc.frequency.setValueAtTime(1000, ctx.currentTime + 0.1);
+    gain.gain.setValueAtTime(0.3, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + 0.4);
+  } catch(e) {}
+  // Vibración en móvil
+  if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+  // Toast
+  toast('🔔 ' + cantidad + ' pedido' + (cantidad > 1 ? 's' : '') + ' nuevo' + (cantidad > 1 ? 's' : '') + '!', 'ok');
+}
 
 // ── PIN / LOGIN ──────────────────────────────────────────────────
 const PINS = {
@@ -698,7 +783,8 @@ function login(nombre) {
   document.getElementById('bienvenida-sub').textContent = esAdmin
     ? 'Viendo todos los pedidos del día'
     : 'Tus pedidos de hoy — ' + new Date().toLocaleDateString('es-AR');
-
+  // Mostrar filtro de vendedor solo para admin
+  document.getElementById('filtros-vendedor').style.display = esAdmin ? 'flex' : 'none';
   cargarPedidos();
 }
 
@@ -716,8 +802,8 @@ function salir() {
 }
 
 // ── CARGAR PEDIDOS DESDE SHEET ───────────────────────────────────
-async function cargarPedidos() {
-  document.getElementById('lista-pedidos').innerHTML =
+async function cargarPedidos(silencioso = false) {
+  if (!silencioso) document.getElementById('lista-pedidos').innerHTML =
     '<div class="loading"><div class="loading-spinner"></div>Cargando pedidos...</div>';
 
   try {
@@ -772,6 +858,7 @@ async function cargarPedidos() {
       p.esDuplicado = clienteCount[key] > 1;
     });
 
+    cargarNotas(filtrados);
     todosLosPedidos = filtrados;
     actualizarStats();
     renderPedidos();
@@ -810,9 +897,17 @@ function parseCsv(line) {
 // ── STATS ────────────────────────────────────────────────────────
 function actualizarStats() {
   const mis = pedidosVisibles();
-  document.getElementById('stat-total').textContent = mis.length;
+  const cancelados = mis.filter(p => p.estado === 'Cancelado');
+  const activos = mis.filter(p => p.estado !== 'Cancelado');
+  const total = activos.reduce((acc, p) => {
+    const n = parseInt((p.total || '0').toString().replace(/[^\d]/g, ''));
+    return acc + (isNaN(n) ? 0 : n);
+  }, 0);
+  document.getElementById('stat-total').textContent = activos.length;
+  document.getElementById('stat-monto').textContent = '$' + total.toLocaleString('es-AR');
   document.getElementById('stat-pend').textContent = mis.filter(p => p.estado === 'Pendiente').length;
   document.getElementById('stat-conf').textContent = mis.filter(p => p.estado === 'Confirmado').length;
+  document.getElementById('stat-entregado').textContent = mis.filter(p => p.estado === 'Entregado').length;
 }
 
 function pedidosVisibles() {
@@ -823,6 +918,20 @@ function pedidosVisibles() {
 }
 
 // ── FILTROS Y BÚSQUEDA ───────────────────────────────────────────
+function setFiltroFecha(f, btn) {
+  filtroFecha = f;
+  document.querySelectorAll('#filtros-fecha .filtro-btn').forEach(b => b.classList.remove('on'));
+  btn.classList.add('on');
+  filtrar();
+}
+
+function setFiltroVendedor(v, btn) {
+  filtroVendedor = v;
+  document.querySelectorAll('#filtros-vendedor .filtro-btn').forEach(b => b.classList.remove('on'));
+  btn.classList.add('on');
+  filtrar();
+}
+
 function setFiltro(f, btn) {
   filtroActual = f;
   document.querySelectorAll('.filtro-btn').forEach(b => b.classList.remove('on'));
@@ -834,16 +943,50 @@ function filtrar() {
   renderPedidos();
 }
 
+function fechaPedido(p) {
+  // Extraer fecha del pedidoId: TCK-YYYYMMDD-...
+  const m = p.pedidoId.match(/TCK-(\d{4})(\d{2})(\d{2})/);
+  if (m) return new Date(m[1], m[2]-1, m[3]);
+  // Fallback: usar fechaHora
+  return new Date(p.fechaHora);
+}
+
 function pedidosFiltrados() {
   let lista = pedidosVisibles();
   const q = document.getElementById('buscador').value.toLowerCase();
+  const hoy = new Date();
+  hoy.setHours(0,0,0,0);
 
+  // Filtro por fecha
+  if (filtroFecha === 'hoy') {
+    lista = lista.filter(p => {
+      const f = fechaPedido(p); f.setHours(0,0,0,0);
+      return f.getTime() === hoy.getTime();
+    });
+  } else if (filtroFecha === 'ayer') {
+    const ayer = new Date(hoy); ayer.setDate(ayer.getDate()-1);
+    lista = lista.filter(p => {
+      const f = fechaPedido(p); f.setHours(0,0,0,0);
+      return f.getTime() === ayer.getTime();
+    });
+  } else if (filtroFecha === 'semana') {
+    const semana = new Date(hoy); semana.setDate(semana.getDate()-7);
+    lista = lista.filter(p => fechaPedido(p) >= semana);
+  }
+
+  // Filtro por vendedor (solo admin)
+  if (vendedorActual === 'ADMIN' && filtroVendedor !== 'todos') {
+    lista = lista.filter(p => p.vendedor.toLowerCase().includes(filtroVendedor.toLowerCase()));
+  }
+
+  // Filtro por estado
   if (filtroActual === 'duplicado') {
     lista = lista.filter(p => p.esDuplicado);
   } else if (filtroActual !== 'todos') {
     lista = lista.filter(p => p.estado === filtroActual);
   }
 
+  // Búsqueda
   if (q) {
     lista = lista.filter(p =>
       p.cliente.toLowerCase().includes(q) ||
@@ -938,13 +1081,89 @@ function renderCard(p) {
     ${p.detalle ? `<div class="pedido-productos">${p.detalle.replace(/\|/g,'\n').replace(/ · /g,' — ')}</div>` : p.resumen ? `<div class="pedido-productos">${p.resumen}</div>` : ''}
     ${dupAlert}
     <div class="pedido-acciones">${botonesEstado(p)}</div>
+    <div class="nota-wrap">
+      <textarea class="nota-input" id="nota-${p.pedidoId.replace(/[^a-zA-Z0-9]/g,'-')}" placeholder="📝 Nota interna (ej: entregar a la tarde, cliente confirmó...)" onblur="guardarNota('${p.pedidoId}')">${p.nota || ''}</textarea>
+      <div class="nota-guardada" id="nota-ok-${p.pedidoId.replace(/[^a-zA-Z0-9]/g,'-')}">✅ Nota guardada</div>
+    </div>
   </div>
-</div>`;
+</div>`; 
 }
 
 function toggleCard(id) {
   const body = document.getElementById('body-' + id);
   if (body) body.classList.toggle('on');
+}
+
+
+// ── NOTAS INTERNAS ───────────────────────────────────────────────
+function guardarNota(pedidoId) {
+  const key = 'nota-' + pedidoId.replace(/[^a-zA-Z0-9]/g,'-');
+  const el = document.getElementById('nota-' + pedidoId.replace(/[^a-zA-Z0-9]/g,'-'));
+  if (!el) return;
+  const texto = el.value.trim();
+  try {
+    localStorage.setItem('tck_nota_' + pedidoId, texto);
+    const ok = document.getElementById('nota-ok-' + pedidoId.replace(/[^a-zA-Z0-9]/g,'-'));
+    if (ok) { ok.style.display = 'block'; setTimeout(() => ok.style.display = 'none', 2000); }
+    // Actualizar en memoria
+    const p = todosLosPedidos.find(x => x.pedidoId === pedidoId);
+    if (p) p.nota = texto;
+  } catch(e) {}
+}
+
+function cargarNotas(pedidos) {
+  pedidos.forEach(p => {
+    try {
+      p.nota = localStorage.getItem('tck_nota_' + p.pedidoId) || '';
+    } catch(e) { p.nota = ''; }
+  });
+}
+
+
+// ── EXPORTAR RESUMEN DEL DÍA ─────────────────────────────────────
+function exportarResumen() {
+  const lista = pedidosFiltrados();
+  if (lista.length === 0) { toast('No hay pedidos para exportar', ''); return; }
+
+  const hoy = new Date().toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long' });
+  const nombre = vendedorActual === 'ADMIN' ? 'Todos los vendedores' : vendedorActual;
+
+  const cancelados = lista.filter(p => p.estado === 'Cancelado');
+  const activos = lista.filter(p => p.estado !== 'Cancelado');
+  const total = activos.reduce((acc, p) => {
+    const n = parseInt((p.total || '0').toString().replace(/[^\d]/g, ''));
+    return acc + (isNaN(n) ? 0 : n);
+  }, 0);
+
+  const pendientes = activos.filter(p => p.estado === 'Pendiente');
+  const confirmados = activos.filter(p => p.estado === 'Confirmado');
+  const entregados = activos.filter(p => p.estado === 'Entregado');
+
+  let msg = '🐔 *TCK — Resumen de pedidos*\n';
+  msg += '📅 ' + hoy + '\n';
+  msg += '👤 ' + nombre + '\n';
+  msg += '━━━━━━━━━━━━━━━\n\n';
+  msg += '📦 *Total pedidos:* ' + activos.length + '\n';
+  msg += '💰 *Monto total:* $' + total.toLocaleString('es-AR') + '\n\n';
+  msg += '⏳ Pendientes: ' + pendientes.length + '\n';
+  msg += '✅ Confirmados: ' + confirmados.length + '\n';
+  msg += '📦 Entregados: ' + entregados.length + '\n';
+  if (cancelados.length > 0) msg += '❌ Cancelados: ' + cancelados.length + '\n';
+  msg += '\n━━━━━━━━━━━━━━━\n';
+  msg += '*Detalle:*\n';
+
+  activos.forEach(p => {
+    const icon = p.estado === 'Confirmado' ? '✅' : p.estado === 'Entregado' ? '📦' : '⏳';
+    msg += icon + ' ' + p.cliente;
+    if (p.comercio) msg += ' (' + p.comercio + ')';
+    msg += ' — $' + parseInt((p.total||'0').toString().replace(/[^\d]/g,'')).toLocaleString('es-AR');
+    msg += ' · ' + p.localidad + '\n';
+  });
+
+  msg += '\n_Generado desde TCK Pedidos_';
+
+  const url = 'https://wa.me/?text=' + encodeURIComponent(msg);
+  window.open(url, '_blank');
 }
 
 // ── CONFIRMAR CANCELACIÓN ────────────────────────────────────────
