@@ -377,6 +377,167 @@ body {
 .badge-dup-parcial { background: var(--orange); color: #fff; animation: pulse 1.5s infinite; }
 @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.6} }
 
+/* ── PRODUCTOS EN CARD (visible sin abrir) ── */
+.pedido-prods-preview {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 6px;
+}
+.prod-chip {
+  background: var(--cream2);
+  border: 1px solid var(--cream3);
+  border-radius: 20px;
+  padding: 2px 8px;
+  font-size: 11px;
+  color: var(--text2);
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700;
+  letter-spacing: .2px;
+  white-space: nowrap;
+}
+.prod-chip-more {
+  background: var(--red);
+  color: #fff;
+  border-color: var(--red);
+}
+
+/* ── BARRA DE REFRESH ── */
+.refresh-bar-wrap {
+  height: 3px;
+  background: var(--cream2);
+  margin: 0 0 12px 0;
+  border-radius: 2px;
+  overflow: hidden;
+}
+.refresh-bar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--red), var(--gold2));
+  border-radius: 2px;
+  transition: width .5s linear;
+  width: 100%;
+}
+
+/* ── MI DÍA ── */
+.mi-dia {
+  background: #fff;
+  border-radius: 14px;
+  border: 1.5px solid var(--cream3);
+  margin-bottom: 14px;
+  overflow: hidden;
+  box-shadow: var(--shadow);
+}
+.mi-dia-hdr {
+  background: linear-gradient(135deg, var(--red), var(--red2));
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  user-select: none;
+}
+.mi-dia-hdr-title {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 15px;
+  font-weight: 900;
+  color: var(--gold);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+.mi-dia-hdr-sub {
+  font-size: 11px;
+  color: rgba(255,255,255,.6);
+  margin-top: 1px;
+}
+.mi-dia-chevron {
+  font-size: 18px;
+  color: rgba(255,215,0,.7);
+  transition: transform .2s;
+}
+.mi-dia-chevron.open { transform: rotate(180deg); }
+.mi-dia-body { display: none; padding: 14px 16px; }
+.mi-dia-body.on { display: block; }
+
+.mi-dia-seccion {
+  margin-bottom: 14px;
+}
+.mi-dia-seccion-title {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: .8px;
+  margin-bottom: 6px;
+}
+.ranking-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 5px 0;
+  border-bottom: 1px solid var(--cream2);
+  gap: 8px;
+}
+.ranking-item:last-child { border-bottom: none; }
+.ranking-nombre {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ranking-cantidad {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text2);
+  flex-shrink: 0;
+  min-width: 60px;
+  text-align: right;
+}
+.ranking-bar-wrap {
+  width: 70px;
+  height: 5px;
+  background: var(--cream2);
+  border-radius: 3px;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+.ranking-bar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--red), var(--gold2));
+  border-radius: 3px;
+}
+.mi-dia-total-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--cream2);
+  font-size: 13px;
+}
+.mi-dia-total-row:last-child { border-bottom: none; }
+.mi-dia-total-label {
+  color: var(--text3);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  font-weight: 600;
+  font-family: 'Barlow Condensed', sans-serif;
+}
+.mi-dia-total-val {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 17px;
+  font-weight: 900;
+  color: var(--red);
+}
+.mi-dia-total-val.verde { color: var(--green2); }
+.mi-dia-total-val.naranja { color: var(--orange); }
+
 /* ── DETALLE ── */
 .pedido-body {
   display: none;
@@ -596,6 +757,7 @@ input[type="date"] {
     <div class="hdr-sub">Panel de vendedores</div>
   </div>
   <div class="hdr-fecha" id="hdr-fecha"></div>
+  <div id="ultima-actualizacion" style="font-size:10px;color:rgba(255,255,255,.45);text-align:right;margin-top:1px;letter-spacing:.3px;grid-column:2;"></div>
 </div>
 
 <!-- LOGIN -->
@@ -684,9 +846,22 @@ input[type="date"] {
       <div class="stat-label">Entregados</div>
     </div>
   </div>
-  <div style="display:flex;gap:8px;margin-bottom:14px;">
+  <div style="display:flex;gap:8px;margin-bottom:6px;">
     <button class="btn-refresh" style="flex:1" onclick="cargarPedidos()">🔄 Actualizar</button>
     <button class="btn-refresh" style="flex:1;color:var(--green2);border-color:var(--green2)" onclick="exportarResumen()">📤 Enviar resumen</button>
+  </div>
+  <div class="refresh-bar-wrap"><div class="refresh-bar" id="refresh-bar"></div></div>
+
+  <!-- MI DÍA -->
+  <div class="mi-dia" id="mi-dia-panel" style="display:none">
+    <div class="mi-dia-hdr" onclick="toggleMiDia()">
+      <div>
+        <div class="mi-dia-hdr-title">📊 Mi día</div>
+        <div class="mi-dia-hdr-sub" id="mi-dia-sub">Resumen de tu actividad</div>
+      </div>
+      <div class="mi-dia-chevron" id="mi-dia-chevron">⌄</div>
+    </div>
+    <div class="mi-dia-body" id="mi-dia-body"></div>
   </div>
   <div class="buscador-wrap">
     <span class="buscador-icon">🔍</span>
@@ -800,7 +975,8 @@ setInterval(function() {
     const dupNuevos = todosLosPedidos.filter(p => p.esDuplicado && !dupAntes.has(p.pedidoId));
     if (dupNuevos.length > 0) notificarDuplicados(dupNuevos);
   });
-}, 30000);
+  resetBarraRefresh();
+}, 20000);
 
 // ── SONIDOS ──────────────────────────────────────────────────────
 function sonarTono(frecuencias, duracion) {
@@ -933,6 +1109,7 @@ function login(nombre) {
     : 'Tus pedidos de hoy — ' + new Date().toLocaleDateString('es-AR');
   document.getElementById('filtros-vendedor').style.display = esAdmin ? 'flex' : 'none';
   cargarPedidos();
+  var p = document.getElementById('mi-dia-panel'); if (p) p.style.display='block';
 }
 
 function salir() {
@@ -982,6 +1159,16 @@ async function cargarPedidos(silencioso) {
       return (b.fechaHora||'').localeCompare(a.fechaHora||'');
     });
 
+    // Actualizar timestamp de última carga
+    var ahoraEl = document.getElementById('ultima-actualizacion');
+    if (ahoraEl) {
+      var ahora = new Date();
+      var hh = ahora.getHours().toString().padStart(2,'0');
+      var mm = ahora.getMinutes().toString().padStart(2,'0');
+      ahoraEl.textContent = 'Actualizado ' + hh + ':' + mm;
+      ahoraEl.style.color = 'var(--green2)';
+    }
+
     // Detectar duplicados — dos niveles
     var mapTotal = {}, mapCliente = {};
     pedidos.forEach(function(p) {
@@ -1020,6 +1207,8 @@ async function cargarPedidos(silencioso) {
     }
     actualizarStats();
     renderPedidos();
+    actualizarMiDiaSiAbierto();
+    resetBarraRefresh();
   } catch(e) {
     if (!silencioso) document.getElementById('lista-pedidos').innerHTML =
       '<div class="empty">❌ Error al cargar pedidos.<br>Verificá tu conexión.</div>';
@@ -1213,6 +1402,7 @@ function renderCard(p) {
         '<div class="pedido-id">' + p.pedidoId + '</div>' +
         '<div class="pedido-cliente">' + (p.cliente||'(sin nombre)') + '</div>' +
         '<div class="pedido-comercio">' + (p.comercio ? '🏪 '+p.comercio+' · ' : '') + '📍 ' + p.localidad + '</div>' +
+        buildProdsPreview(p) +
       '</div>' +
       '<div class="pedido-head-right">' +
         '<div class="pedido-total">' + fmtTotal(p.total) + '</div>' +
@@ -1371,7 +1561,172 @@ function toast(msg, tipo) {
   el.className = 'toast on '+(tipo||'');
   setTimeout(function(){el.classList.remove('on');},2500);
 }
+
+// ── PRODUCT CHIPS EN HEADER DE CARD ──────────────────────────────
+function parseProds(detalle) {
+  if (!detalle) return [];
+  var prods = [];
+  var segs = detalle.split(' | ');
+  segs.forEach(function(seg) {
+    seg = seg.trim();
+    if (!seg) return;
+    var nameMatch = seg.match(/\*([^*]+)\*/);
+    var name = nameMatch ? nameMatch[1] : '';
+    if (!name) return;
+    var afterName = seg.slice(seg.indexOf('*', seg.indexOf('*')+1)+1).trim();
+    var qtyMatch = afterName.match(/^(\d+)/);
+    var qty = qtyMatch ? parseInt(qtyMatch[1]) : 1;
+    var emojiMatch = seg.match(/^(\S+)\s/);
+    var emoji = emojiMatch && emojiMatch[1].length <= 3 ? emojiMatch[1] : '';
+    var shortName = name.length > 20 ? name.slice(0, 18) + '…' : name;
+    prods.push({ emoji: emoji, name: shortName, qty: qty });
+  });
+  return prods;
+}
+
+function buildProdsPreview(p) {
+  if (!p.detalle) return '';
+  var prods = parseProds(p.detalle);
+  if (!prods.length) return '';
+  var max = 3;
+  var chips = '';
+  prods.slice(0, max).forEach(function(pr) {
+    chips += '<span class="prod-chip">' + (pr.emoji ? pr.emoji + ' ' : '') + pr.qty + ' ' + pr.name + '</span>';
+  });
+  if (prods.length > max) {
+    chips += '<span class="prod-chip prod-chip-more">+' + (prods.length - max) + ' más</span>';
+  }
+  return '<div class="pedido-prods-preview">' + chips + '</div>';
+}
+
+// ── MI DÍA ────────────────────────────────────────────────────────
+var _miDiaOpen = false;
+
+function toggleMiDia() {
+  _miDiaOpen = !_miDiaOpen;
+  var body = document.getElementById('mi-dia-body');
+  var chev = document.getElementById('mi-dia-chevron');
+  if (body) body.classList.toggle('on', _miDiaOpen);
+  if (chev) chev.classList.toggle('open', _miDiaOpen);
+  if (_miDiaOpen) renderMiDia();
+}
+
+function renderMiDia() {
+  var panel = document.getElementById('mi-dia-panel');
+  var body = document.getElementById('mi-dia-body');
+  var sub = document.getElementById('mi-dia-sub');
+  if (!panel || !body) return;
+
+  var mis = pedidosVisibles();
+  var activos = mis.filter(function(p){ return p.estado !== 'Cancelado'; });
+
+  if (!activos.length) {
+    body.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text3);font-size:13px;">Aún no hay pedidos del día</div>';
+    return;
+  }
+
+  var totalMonto = activos.reduce(function(acc,p){ return acc+(parseInt((p.total||'').replace(/[^\d]/g,''))||0); }, 0);
+  var pend = activos.filter(function(p){ return p.estado==='Pendiente'; }).length;
+  var conf = activos.filter(function(p){ return p.estado==='Confirmado'; }).length;
+  var entr = activos.filter(function(p){ return p.estado==='Entregado'; }).length;
+  var ticket = activos.length ? Math.round(totalMonto / activos.length) : 0;
+
+  var prodMap = {};
+  activos.forEach(function(p) {
+    var prods = parseProds(p.detalle);
+    prods.forEach(function(pr) {
+      var key = pr.name.replace(/…$/, '').trim();
+      if (!prodMap[key]) prodMap[key] = { emoji: pr.emoji, name: pr.name, total: 0, pedidos: 0 };
+      prodMap[key].total += pr.qty;
+      prodMap[key].pedidos += 1;
+    });
+  });
+  var ranking = Object.values(prodMap).sort(function(a,b){ return b.total - a.total; });
+  var maxQty = ranking.length ? ranking[0].total : 1;
+
+  var locMap = {};
+  activos.forEach(function(p) {
+    var loc = (p.localidad||'?').trim();
+    if (!locMap[loc]) locMap[loc] = { monto: 0, pedidos: 0 };
+    locMap[loc].pedidos += 1;
+    locMap[loc].monto += parseInt((p.total||'').replace(/[^\d]/g,''))||0;
+  });
+  var locs = Object.entries(locMap).sort(function(a,b){ return b[1].pedidos - a[1].pedidos; }).slice(0, 5);
+  var maxLoc = locs.length ? locs[0][1].pedidos : 1;
+
+  if (sub) sub.textContent = activos.length + ' pedidos · $' + totalMonto.toLocaleString('es-AR');
+
+  var html = '';
+
+  html += '<div class="mi-dia-seccion">';
+  html += '<div class="mi-dia-seccion-title">📋 Estado del día</div>';
+  html += '<div class="mi-dia-total-row"><span class="mi-dia-total-label">Total pedidos</span><span class="mi-dia-total-val">' + activos.length + '</span></div>';
+  html += '<div class="mi-dia-total-row"><span class="mi-dia-total-label">Monto total</span><span class="mi-dia-total-val">$' + totalMonto.toLocaleString('es-AR') + '</span></div>';
+  html += '<div class="mi-dia-total-row"><span class="mi-dia-total-label">Ticket promedio</span><span class="mi-dia-total-val naranja">$' + ticket.toLocaleString('es-AR') + '</span></div>';
+  html += '<div class="mi-dia-total-row"><span class="mi-dia-total-label">⏳ Pendientes</span><span class="mi-dia-total-val naranja">' + pend + '</span></div>';
+  html += '<div class="mi-dia-total-row"><span class="mi-dia-total-label">✅ Confirmados</span><span class="mi-dia-total-val verde">' + conf + '</span></div>';
+  html += '<div class="mi-dia-total-row"><span class="mi-dia-total-label">📦 Entregados</span><span class="mi-dia-total-val" style="color:var(--blue)">' + entr + '</span></div>';
+  html += '</div>';
+
+  if (ranking.length) {
+    html += '<div class="mi-dia-seccion">';
+    html += '<div class="mi-dia-seccion-title">🏆 Productos más pedidos hoy</div>';
+    ranking.slice(0, 8).forEach(function(pr) {
+      var pct = Math.round((pr.total / maxQty) * 100);
+      html += '<div class="ranking-item">';
+      html += '<div class="ranking-nombre">' + (pr.emoji ? pr.emoji + ' ' : '') + pr.name + '</div>';
+      html += '<div class="ranking-bar-wrap"><div class="ranking-bar" style="width:' + pct + '%"></div></div>';
+      html += '<div class="ranking-cantidad">' + pr.total + ' uds · ' + pr.pedidos + ' ped</div>';
+      html += '</div>';
+    });
+    html += '</div>';
+  }
+
+  if (locs.length) {
+    html += '<div class="mi-dia-seccion">';
+    html += '<div class="mi-dia-seccion-title">📍 Localidades del día</div>';
+    locs.forEach(function(entry) {
+      var loc = entry[0], data = entry[1];
+      var pct = Math.round((data.pedidos / maxLoc) * 100);
+      html += '<div class="ranking-item">';
+      html += '<div class="ranking-nombre">' + loc + '</div>';
+      html += '<div class="ranking-bar-wrap"><div class="ranking-bar" style="width:' + pct + '%"></div></div>';
+      html += '<div class="ranking-cantidad">' + data.pedidos + ' ped · $' + Math.round(data.monto/1000) + 'K</div>';
+      html += '</div>';
+    });
+    html += '</div>';
+  }
+
+  body.innerHTML = html;
+}
+
+// Actualizar Mi Día cuando está abierto después de recargar pedidos
+function actualizarMiDiaSiAbierto() {
+  if (_miDiaOpen) renderMiDia();
+  // Mostrar/ocultar panel según si hay sesión
+  var panel = document.getElementById('mi-dia-panel');
+  if (panel) panel.style.display = vendedorActual ? 'block' : 'none';
+}
+
+// ── BARRA DE PROGRESO DE REFRESH ─────────────────────────────────
+var _refreshTotal = 20000;
+var _refreshStart = Date.now();
+
+function resetBarraRefresh() {
+  _refreshStart = Date.now();
+}
+
+function actualizarBarraRefresh() {
+  var bar = document.getElementById('refresh-bar');
+  if (!bar || !vendedorActual) return;
+  var elapsed = Date.now() - _refreshStart;
+  var pct = Math.min(100, (elapsed / _refreshTotal) * 100);
+  bar.style.width = (100 - pct) + '%';
+}
+
+setInterval(actualizarBarraRefresh, 400);
 </script>
+
 
 
 <script>
