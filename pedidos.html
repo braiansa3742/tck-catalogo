@@ -532,19 +532,19 @@ body {
     <div class="login-sub" id="login-sub">Seleccioná tu nombre</div>
 
     <div id="paso1">
-      <button class="login-btn" onclick="seleccionarVendedor('Miguel','M','#8B0000',event)">
+      <button class="login-btn" onclick="seleccionarVendedor('Miguel','M','#8B0000')">
         <div class="login-av">M</div>
         <div class="login-btn-name">Miguel Martínez<div class="login-btn-role">Vendedor</div></div>
       </button>
-      <button class="login-btn" onclick="seleccionarVendedor('Juan','J','#8B0000',event)">
+      <button class="login-btn" onclick="seleccionarVendedor('Juan','J','#8B0000')">
         <div class="login-av">J</div>
         <div class="login-btn-name">Juan Cruz<div class="login-btn-role">Vendedor</div></div>
       </button>
-      <button class="login-btn" onclick="seleccionarVendedor('Lisandro','L','#5C3A1E',event)">
+      <button class="login-btn" onclick="seleccionarVendedor('Lisandro','L','#5C3A1E')">
         <div class="login-av" style="background:var(--text2);">L</div>
         <div class="login-btn-name">Lisandro<div class="login-btn-role">Vendedor</div></div>
       </button>
-      <button class="login-btn" onclick="seleccionarVendedor('ADMIN','A','#B8860B',event)" style="margin-top:8px;border-color:var(--gold);background:var(--cream2);">
+      <button class="login-btn" onclick="seleccionarVendedor('ADMIN','A','#B8860B')" style="margin-top:8px;border-color:var(--gold);background:var(--cream2);">
         <div class="login-av" style="background:var(--gold);color:var(--text);">A</div>
         <div class="login-btn-name">Administración<div class="login-btn-role">Ver todos los pedidos</div></div>
       </button>
@@ -820,8 +820,7 @@ const PINS = {
 let pinVendedorTemp = null;
 let pinActual = '';
 
-function seleccionarVendedor(nombre, inicial, color, e) {
-  if (e && e.type === 'touchend') { e.preventDefault(); }
+function seleccionarVendedor(nombre, inicial, color) {
   pinVendedorTemp = nombre;
   pinActual = '';
   document.getElementById('paso1').style.display = 'none';
@@ -834,8 +833,7 @@ function seleccionarVendedor(nombre, inicial, color, e) {
   actualizarDots();
 }
 
-function pinPress(n, e) {
-  if (e) { e.preventDefault(); e.stopPropagation(); }
+function pinPress(n) {
   if (pinActual.length >= 4) return;
   pinActual += n;
   actualizarDots();
