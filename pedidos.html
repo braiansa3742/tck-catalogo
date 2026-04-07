@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>TCK Pedidos</title>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -24,7 +24,7 @@
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: 'Barlow', sans-serif; background: var(--cream); color: var(--text); min-height: 100vh; }
-.hdr { background: var(--red); padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 12px rgba(0,0,0,.3); }
+.hdr { background: var(--red); padding: 14px 20px; padding-top: max(14px, env(safe-area-inset-top)); display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 12px rgba(0,0,0,.3); }
 .hdr-logo { font-family: 'Barlow Condensed', sans-serif; font-size: 22px; font-weight: 900; color: var(--gold); letter-spacing: 1px; }
 .hdr-sub { font-size: 11px; color: rgba(255,215,0,.7); letter-spacing: 1px; text-transform: uppercase; }
 .hdr-fecha { font-family: 'Barlow Condensed', sans-serif; font-size: 14px; color: rgba(255,255,255,.8); text-align: right; }
@@ -119,25 +119,20 @@ body { font-family: 'Barlow', sans-serif; background: var(--cream); color: var(-
 .nota-input:focus { border-color: var(--gold); }
 .nota-guardada { font-size: 12px; color: var(--green2); margin-top: 4px; display: none; }
 
-/* ── MODO OSCURO ── */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --cream: #1A1008;
-    --cream2: #2A1A0E;
-    --text: #F5EDE0;
-    --text2: #D4A97A;
-    --text3: #8B6A4A;
-    --border: rgba(255,215,0,.12);
+
+  body { background: #161010; }
+  .login-box, .stat-card, .pedido-card, .pedido-body,
+  .pedido-productos, .buscador, .nota-input, .pin-key {
+    background: #221810 !important;
+    color: var(--text) !important;
   }
-  body { background: #120A04; }
-  .login-box, .stat-card, .pedido-card, .pedido-productos,
-  .buscador, .filtro-btn, .btn-refresh, .nota-input,
-  .pin-key { background: #1E0F06 !important; color: var(--text) !important; }
-  .pedido-body { background: #150B04 !important; }
+  .filtro-btn { background: #2A1F18 !important; color: var(--text2) !important; }
   .filtro-btn.on { background: var(--red) !important; color: #fff !important; }
-  .pedido-card.dup-exacto { background: #2A0A0A !important; }
-  .pedido-card.dup-parcial { background: #2A1500 !important; }
-  input[type="date"] { background: #1E0F06; color: var(--text); border-color: var(--border); }
+  .btn-refresh { background: #2A1F18 !important; color: var(--text2) !important; }
+  .pedido-card.dup-exacto { background: #2A1010 !important; }
+  .pedido-card.dup-parcial { background: #2A1A08 !important; }
+  input[type="date"] { background: #2A1F18 !important; color: var(--text) !important; }
+  .bienvenida { background: linear-gradient(135deg, #6B0000 0%, #8B0000 100%) !important; }
 }
 
 </style>
