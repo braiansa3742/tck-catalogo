@@ -558,6 +558,7 @@ function elegir(i){
   cerrarFAB();
   document.getElementById('d-wa-nom').textContent=vActivo.nombre;
   setTimeout(()=>sv.style.display='none',400);
+  saveCartLS();
 }
 
 function cambiarVendedor(){
@@ -650,8 +651,8 @@ function chg(key,si,ii,d){
   }
   updateBar();
   if(document.getElementById('drawer').classList.contains('on'))renderDrawer();
+  saveCartLS();
 }
-
 function updateBar(){
   const{t,c}=T(); const has=c>0;
   document.getElementById('ob-empty').style.display=has?'none':'block';
@@ -684,9 +685,11 @@ function renderDrawer(){
   body.innerHTML=html;
   document.getElementById('d-tot').textContent=fmt(t);
   foot.style.display='block';
+
+  saveCartLS();
 }
 
-function clearCart(){Object.keys(qty).forEach(k=>delete qty[k]);renderBody();updateBar();renderDrawer();}
+function clearCart(){Object.keys(qty).forEach(k=>delete qty[k]);renderBody();updateBar();renderDrawer();clearCartLS();}
 
 let holdTimeout=null;
 let holdInterval=null;
@@ -1185,7 +1188,45 @@ cargarPrecios().finally(() => {
 
 
 
+
+// ── LOCALSTORAGE: guardar y recuperar carrito ────────────────────
+function saveCartLS() {
+  try {
+    const data = {
+      qty: qty,
+      vActivo: vActivo ? VEND.indexOf(vActivo) : -1
+    };
+    localStorage.setItem('tck_cart', JSON.stringify(data));
+  } catch(e) {}
+}
+
+function loadCartLS() {
+  try {
+    const raw = localStorage.getItem('tck_cart');
+    if (!raw) return;
+    const data = JSON.parse(raw);
+    // Restaurar vendedor
+    if (data.vActivo !== undefined && data.vActivo >= 0 && VEND[data.vActivo]) {
+      elegir(data.vActivo);
+    }
+    // Restaurar cantidades
+    if (data.qty) {
+      Object.keys(data.qty).forEach(function(k) {
+        if (data.qty[k] > 0) qty[k] = data.qty[k];
+      });
+      renderBody();
+      updateBar();
+      renderDrawer();
+    }
+  } catch(e) {}
+}
+
+function clearCartLS() {
+  try { localStorage.removeItem('tck_cart'); } catch(e) {}
+}
+
 renderVend();renderNav();renderBody();updateBar();
+  setTimeout(loadCartLS, 100);
 });
 </script>
 <script>
