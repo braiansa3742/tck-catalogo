@@ -698,34 +698,106 @@ setInterval(actualizarFecha, 60000);
 setInterval(function() {
   if (vendedorActual) {
     const antes = todosLosPedidos.length;
+    const dupAntes = new Set(todosLosPedidos.filter(p => p.esDuplicado).map(p => p.pedidoId));
+
     cargarPedidos(true).then(function() {
+      // Avisar pedidos nuevos
       const despues = todosLosPedidos.length;
       if (despues > antes) {
         notificarNuevoPedido(despues - antes);
+      }
+
+      // Detectar duplicados nuevos que no estaban antes
+      const dupDespues = todosLosPedidos.filter(p => p.esDuplicado);
+      const dupNuevosAuto = dupDespues.filter(p => !dupAntes.has(p.pedidoId));
+      if (dupNuevosAuto.length > 0) {
+        notificarDuplicados(dupNuevosAuto);
       }
     });
   }
 }, 30000);
 
-function notificarNuevoPedido(cantidad) {
-  // Sonido de notificación
+function sonarTono(frecuencias, duracion) {
   try {
     const ctx = new (window.AudioContext || window.webkitAudioContext)();
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-    osc.frequency.setValueAtTime(800, ctx.currentTime);
-    osc.frequency.setValueAtTime(1000, ctx.currentTime + 0.1);
-    gain.gain.setValueAtTime(0.3, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4);
-    osc.start(ctx.currentTime);
-    osc.stop(ctx.currentTime + 0.4);
+    frecuencias.forEach((freq, i) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.frequency.value = freq;
+      gain.gain.setValueAtTime(0.3, ctx.currentTime + i * duracion);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i * duracion + duracion);
+      osc.start(ctx.currentTime + i * duracion);
+      osc.stop(ctx.currentTime + i * duracion + duracion);
+    });
   } catch(e) {}
-  // Vibración en móvil
+}
+
+function notificarNuevoPedido(cantidad) {
+  // Tono suave ascendente
+  sonarTono([800, 1000], 0.2);
   if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
-  // Toast
   toast('🔔 ' + cantidad + ' pedido' + (cantidad > 1 ? 's' : '') + ' nuevo' + (cantidad > 1 ? 's' : '') + '!', 'ok');
+}
+
+// Track de duplicados ya notificados para no repetir
+const duplicadosNotificados = new Set();
+
+function notificarDuplicados(dups) {
+  // Solo notificar los que no avisamos antes
+  const nuevos = dups.filter(p => !duplicadosNotificados.has(p.pedidoId));
+  if (nuevos.length === 0) return;
+  nuevos.forEach(p => duplicadosNotificados.add(p.pedidoId));
+
+  // Tono de alerta — descendente y más urgente
+  sonarTono([1200, 800, 1200, 600], 0.15);
+  if (navigator.vibrate) navigator.vibrate([300, 100, 300, 100, 300]);
+
+  // Toast de alerta
+  toast('⚠️ ' + nuevos.length + ' pedido' + (nuevos.length > 1 ? 's' : '') + ' duplicado' + (nuevos.length > 1 ? 's' : '') + ' detectado' + (nuevos.length > 1 ? 's' : '') + '!', 'err');
+
+  // Armar mensaje de WhatsApp para admin
+  setTimeout(() => {
+    const hoy = new Date();
+    const hora = hoy.getHours().toString().padStart(2,'0') + ':' + hoy.getMinutes().toString().padStart(2,'0');
+    let msg = '⚠️ *TCK — Pedidos duplicados detectados*\n';
+    msg += '🕐 ' + hora + '\n\n';
+    nuevos.forEach(p => {
+      msg += '👤 *' + p.cliente + '*';
+      if (p.comercio) msg += ' (' + p.comercio + ')';
+      msg += '\n';
+      msg += '💰 $' + parseInt((p.total||'0').toString().replace(/[^\d]/g,'')).toLocaleString('es-AR') + ' · ' + p.localidad + '\n';
+      msg += '📋 ' + p.pedidoId + '\n';
+      msg += '⚠️ También en: ' + (p.duplicadoCon || 'otro vendedor') + '\n\n';
+    });
+    msg += '_Verificar antes de remitir_';
+
+    // Mostrar botón de aviso al admin
+    mostrarBotonAlertaAdmin(msg);
+  }, 1000);
+}
+
+function mostrarBotonAlertaAdmin(msg) {
+  // Crear o actualizar banner de duplicado
+  let banner = document.getElementById('dup-banner');
+  if (!banner) {
+    banner = document.createElement('div');
+    banner.id = 'dup-banner';
+    banner.style.cssText = 'position:fixed;bottom:0;left:0;right:0;z-index:999;background:#E65100;color:#fff;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px;box-shadow:0 -4px 16px rgba(0,0,0,.3);';
+    document.body.appendChild(banner);
+  }
+  banner.innerHTML = '<div style="font-family:Barlow Condensed,sans-serif;font-size:15px;font-weight:700;">⚠️ Pedidos duplicados detectados</div>' +
+    '<div style="display:flex;gap:8px;">' +
+    '<button onclick="avisoWA(' + JSON.stringify(msg).replace(/'/g,"\'") + ')" style="background:#fff;color:#E65100;border:none;border-radius:8px;padding:8px 14px;font-family:Barlow Condensed,sans-serif;font-size:14px;font-weight:700;cursor:pointer;">📲 Avisar admin</button>' +
+    '<button onclick="document.getElementById('dup-banner').remove()" style="background:rgba(255,255,255,.2);color:#fff;border:none;border-radius:8px;padding:8px 12px;font-size:14px;cursor:pointer;">✕</button>' +
+    '</div>';
+}
+
+function avisoWA(msg) {
+  // Número de admin — Chan
+  const numAdmin = '5492314475357';
+  window.open('https://wa.me/' + numAdmin + '?text=' + encodeURIComponent(msg), '_blank');
 }
 
 // ── PIN / LOGIN ──────────────────────────────────────────────────
@@ -867,25 +939,57 @@ async function cargarPedidos(silencioso = false) {
     // Ordenar: más recientes primero
     filtrados.sort((a, b) => b.fechaHora.localeCompare(a.fechaHora));
 
-    // Detectar duplicados (mismo cliente + mismo total)
-    const clienteCount = {};
+    // Detectar duplicados — dos niveles:
+    // 1) Exacto: mismo cliente + mismo total
+    // 2) Parcial: mismo cliente + distinto total (pedido doble)
+    const clienteMapTotal = {};
+    const clienteMapSolo  = {};
     filtrados.forEach(p => {
-      const key = (p.cliente + p.total).toLowerCase().replace(/\s/g,'');
-      clienteCount[key] = (clienteCount[key] || 0) + 1;
+      const keyT = (p.cliente + p.total).toLowerCase().replace(/\s/g,'');
+      const keyC = p.cliente.toLowerCase().trim();
+      if (!clienteMapTotal[keyT]) clienteMapTotal[keyT] = [];
+      if (!clienteMapSolo[keyC])  clienteMapSolo[keyC]  = [];
+      clienteMapTotal[keyT].push(p);
+      clienteMapSolo[keyC].push(p);
     });
     filtrados.forEach(p => {
-      const key = (p.cliente + p.total).toLowerCase().replace(/\s/g,'');
-      p.esDuplicado = clienteCount[key] > 1;
+      const keyT = (p.cliente + p.total).toLowerCase().replace(/\s/g,'');
+      const keyC = p.cliente.toLowerCase().trim();
+      const grupoT = clienteMapTotal[keyT];
+      const grupoC = clienteMapSolo[keyC];
+      if (grupoT.length > 1) {
+        p.esDuplicado = true;
+        p.tipoDuplicado = 'exacto';
+        p.duplicadoCon = grupoT.filter(x => x.pedidoId !== p.pedidoId)
+          .map(x => x.vendedor || 'otro vendedor')
+          .filter((v,i,arr) => arr.indexOf(v) === i).join(', ');
+      } else if (grupoC.length > 1) {
+        p.esDuplicado = true;
+        p.tipoDuplicado = 'parcial';
+        p.duplicadoCon = grupoC.filter(x => x.pedidoId !== p.pedidoId)
+          .map(x => x.vendedor || 'otro vendedor')
+          .filter((v,i,arr) => arr.indexOf(v) === i).join(', ');
+      } else {
+        p.esDuplicado = false;
+        p.tipoDuplicado = null;
+        p.duplicadoCon = '';
+      }
     });
-
-    cargarNotas(filtrados);
+    // Notificar solo en carga inicial
+    if (!silencioso) {
+      const dupNuevos = filtrados.filter(p => p.esDuplicado);
+      if (dupNuevos.length > 0) notificarDuplicados(dupNuevos);
+    }
+        cargarNotas(filtrados);
     todosLosPedidos = filtrados;
     actualizarStats();
     renderPedidos();
 
   } catch(e) {
-    document.getElementById('lista-pedidos').innerHTML =
-      '<div class="empty">❌ Error al cargar pedidos.<br>Verificá tu conexión.</div>';
+    if (!silencioso) {
+      document.getElementById('lista-pedidos').innerHTML =
+        '<div class="empty">❌ Error al cargar pedidos.<br>Verificá tu conexión.</div>';
+    }
   }
 }
 
@@ -1061,7 +1165,7 @@ function renderPedidos() {
   cont.innerHTML = lista.map(p => renderCard(p)).join('');
 }
 
-function badgeHtml(estado, esDuplicado) {
+function badgeHtml(estado, esDuplicado, tipoDuplicado) {
   const badges = {
     'Pendiente': '<span class="badge badge-pendiente">⏳ Pendiente</span>',
     'Confirmado': '<span class="badge badge-confirmado">✅ Confirmado</span>',
@@ -1069,7 +1173,8 @@ function badgeHtml(estado, esDuplicado) {
     'Cancelado': '<span class="badge badge-cancelado">❌ Cancelado</span>',
   };
   let b = badges[estado] || `<span class="badge badge-pendiente">${estado}</span>`;
-  if (esDuplicado) b += ' <span class="badge badge-duplicado">⚠️ DUPLICADO</span>';
+  if (esDuplicado && tipoDuplicado === 'exacto') b += ' <span class="badge badge-duplicado" style="background:#FFEBEE;color:#C62828;">🔴 DUPLICADO</span>';
+  else if (esDuplicado) b += ' <span class="badge badge-duplicado">🟠 PEDIDO DOBLE</span>';
   return b;
 }
 
@@ -1098,9 +1203,18 @@ function botonesEstado(p) {
 }
 
 function renderCard(p) {
-  const dupAlert = p.esDuplicado
-    ? `<div class="duplicado-alert">⚠️ Posible pedido duplicado — mismo cliente y total en otro pedido del día. Verificá con tu equipo.</div>`
-    : '';
+  let dupAlert = '';
+  if (p.esDuplicado && p.tipoDuplicado === 'exacto') {
+    dupAlert = `<div class="duplicado-alert" style="background:#FFEBEE;border-color:#C62828;color:#C62828;">
+      🔴 <strong>PEDIDO DUPLICADO EXACTO</strong> — Este mismo pedido (mismo cliente y mismo total) también lo tiene <strong>${p.duplicadoCon || 'otro vendedor'}</strong>.
+      Uno de los dos debe cancelar. Coordiná con tu equipo antes de remitir.
+    </div>`;
+  } else if (p.esDuplicado && p.tipoDuplicado === 'parcial') {
+    dupAlert = `<div class="duplicado-alert">
+      🟠 <strong>CLIENTE CON PEDIDO DOBLE</strong> — <strong>${p.cliente}</strong> tiene otro pedido con <strong>${p.duplicadoCon || 'otro vendedor'}</strong> por un monto diferente.
+      Recordá que cada cliente debe pedir siempre al mismo vendedor. Verificar manualmente.
+    </div>`;
+  }
 
   const vendedorRow = vendedorActual === 'ADMIN'
     ? `<div class="pedido-detalle-row"><span class="pdr-label">Vendedor</span><span class="pdr-val">${p.vendedor}</span></div>`
@@ -1116,7 +1230,7 @@ function renderCard(p) {
     </div>
     <div class="pedido-head-right">
       <div class="pedido-total">${fmtTotal(p.total)}</div>
-      ${badgeHtml(p.estado, p.esDuplicado)}
+      ${badgeHtml(p.estado, p.esDuplicado, p.tipoDuplicado)}
       <div class="pedido-hora">${(p.fechaHora || '').split(' ')[1] || (p.fechaHora || '').split('T')[1] || p.fechaHora || ''}</div>
     </div>
   </div>
