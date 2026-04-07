@@ -631,6 +631,20 @@ body {
     <button class="filtro-btn" onclick="setFiltroFecha('ayer', this)">Ayer</button>
     <button class="filtro-btn" onclick="setFiltroFecha('semana', this)">Esta semana</button>
     <button class="filtro-btn" onclick="setFiltroFecha('todos', this)">Todos</button>
+    <button class="filtro-btn" onclick="setFiltroFecha('personalizado', this)">📆 Rango</button>
+  </div>
+  <!-- Selector de rango personalizado -->
+  <div id="rango-fechas" style="display:none;background:#fff;border-radius:12px;border:1.5px solid var(--border);padding:14px 16px;margin-bottom:10px;">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;align-items:end;">
+      <div>
+        <div style="font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:.3px;margin-bottom:4px;font-weight:600;">Desde</div>
+        <input type="date" id="fecha-desde" style="width:100%;padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;font-family:'Barlow',sans-serif;font-size:14px;color:var(--text);" onchange="filtrar()">
+      </div>
+      <div>
+        <div style="font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:.3px;margin-bottom:4px;font-weight:600;">Hasta</div>
+        <input type="date" id="fecha-hasta" style="width:100%;padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;font-family:'Barlow',sans-serif;font-size:14px;color:var(--text);" onchange="filtrar()">
+      </div>
+    </div>
   </div>
   <!-- Filtro por vendedor (solo admin) -->
   <div class="filtros" id="filtros-vendedor" style="display:none">
@@ -665,11 +679,17 @@ let filtroVendedor = 'todos';
 
 // ── FECHA EN HEADER ──────────────────────────────────────────────
 function actualizarFecha() {
-  const now = new Date().toLocaleString('es-AR', { timeZone: 'America/Argentina/Buenos_Aires' });
-  const d = new Date(now);
+  const d = new Date();
+  const dias = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+  const meses = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  // Ajuste a Argentina (UTC-3)
+  const ar = new Date(d.getTime() - (d.getTimezoneOffset() * 60000) - (d.getTimezoneOffset() === 180 ? 0 : (d.getTimezoneOffset() + 180) * 60000));
+  const local = new Date();
+  const h = local.getHours().toString().padStart(2,'0');
+  const m = local.getMinutes().toString().padStart(2,'0');
   document.getElementById('hdr-fecha').innerHTML =
-    d.toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long' }) +
-    '<br>' + d.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
+    dias[local.getDay()] + ' ' + local.getDate() + ' de ' + meses[local.getMonth()] +
+    '<br>' + h + ':' + m;
 }
 actualizarFecha();
 setInterval(actualizarFecha, 60000);
@@ -922,6 +942,21 @@ function setFiltroFecha(f, btn) {
   filtroFecha = f;
   document.querySelectorAll('#filtros-fecha .filtro-btn').forEach(b => b.classList.remove('on'));
   btn.classList.add('on');
+  // Mostrar/ocultar selector de rango
+  const rango = document.getElementById('rango-fechas');
+  if (f === 'personalizado') {
+    rango.style.display = 'block';
+    // Setear fechas por defecto: hoy
+    const hoy = new Date();
+    const yyyy = hoy.getFullYear();
+    const mm = String(hoy.getMonth()+1).padStart(2,'0');
+    const dd = String(hoy.getDate()).padStart(2,'0');
+    const hoyStr = yyyy + '-' + mm + '-' + dd;
+    if (!document.getElementById('fecha-desde').value) document.getElementById('fecha-desde').value = hoyStr;
+    if (!document.getElementById('fecha-hasta').value) document.getElementById('fecha-hasta').value = hoyStr;
+  } else {
+    rango.style.display = 'none';
+  }
   filtrar();
 }
 
@@ -946,9 +981,11 @@ function filtrar() {
 function fechaPedido(p) {
   // Extraer fecha del pedidoId: TCK-YYYYMMDD-...
   const m = p.pedidoId.match(/TCK-(\d{4})(\d{2})(\d{2})/);
-  if (m) return new Date(m[1], m[2]-1, m[3]);
-  // Fallback: usar fechaHora
-  return new Date(p.fechaHora);
+  if (m) return new Date(parseInt(m[1]), parseInt(m[2])-1, parseInt(m[3]));
+  // Fallback: usar fechaHora — iOS requiere T en vez de espacio
+  const fh = (p.fechaHora || '').replace(' ', 'T');
+  const d = new Date(fh);
+  return isNaN(d.getTime()) ? new Date() : d;
 }
 
 function pedidosFiltrados() {
@@ -972,6 +1009,17 @@ function pedidosFiltrados() {
   } else if (filtroFecha === 'semana') {
     const semana = new Date(hoy); semana.setDate(semana.getDate()-7);
     lista = lista.filter(p => fechaPedido(p) >= semana);
+  } else if (filtroFecha === 'personalizado') {
+    const desdeStr = document.getElementById('fecha-desde').value;
+    const hastaStr = document.getElementById('fecha-hasta').value;
+    if (desdeStr) {
+      const desde = new Date(desdeStr + 'T00:00:00');
+      lista = lista.filter(p => fechaPedido(p) >= desde);
+    }
+    if (hastaStr) {
+      const hasta = new Date(hastaStr + 'T23:59:59');
+      lista = lista.filter(p => fechaPedido(p) <= hasta);
+    }
   }
 
   // Filtro por vendedor (solo admin)
@@ -1069,7 +1117,7 @@ function renderCard(p) {
     <div class="pedido-head-right">
       <div class="pedido-total">${fmtTotal(p.total)}</div>
       ${badgeHtml(p.estado, p.esDuplicado)}
-      <div class="pedido-hora">${p.fechaHora.split(' ')[1] || p.fechaHora}</div>
+      <div class="pedido-hora">${(p.fechaHora || '').split(' ')[1] || (p.fechaHora || '').split('T')[1] || p.fechaHora || ''}</div>
     </div>
   </div>
   <div class="pedido-body" id="body-${p.pedidoId.replace(/[^a-zA-Z0-9]/g,'-')}">
