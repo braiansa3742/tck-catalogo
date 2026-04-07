@@ -455,7 +455,7 @@ body {
   transition: transform .2s;
 }
 .mi-dia-chevron.open { transform: rotate(180deg); }
-.mi-dia-body { display: none; padding: 14px 16px; }
+.mi-dia-body { display: none; padding: 16px 18px; }
 .mi-dia-body.on { display: block; }
 
 .mi-dia-seccion {
@@ -496,7 +496,7 @@ body {
 }
 .mi-dia-mini-val {
   font-family: 'Barlow Condensed', sans-serif;
-  font-size: 20px;
+  font-size: clamp(16px, 4vw, 22px);
   font-weight: 900;
   color: var(--red);
   line-height: 1;
@@ -511,14 +511,14 @@ body {
 }
 .mi-dia-chip {
   flex: 1;
-  min-width: 70px;
+  min-width: 60px;
   text-align: center;
   border-radius: 10px;
-  padding: 8px 6px;
+  padding: 10px 6px 8px;
   font-family: 'Barlow Condensed', sans-serif;
 }
 .mi-dia-chip-num {
-  font-size: 22px;
+  font-size: 28px;
   font-weight: 900;
   line-height: 1;
 }
@@ -526,8 +526,9 @@ body {
   font-size: 10px;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: .4px;
-  margin-top: 2px;
+  letter-spacing: .3px;
+  margin-top: 3px;
+  opacity: .85;
 }
 .chip-pend  { background: var(--orange2); color: var(--orange); }
 .chip-conf  { background: var(--green3);  color: var(--green2); }
@@ -567,12 +568,13 @@ body {
   align-items: flex-end;
   gap: 4px;
   flex-shrink: 0;
+  min-width: 100px;
 }
 .ranking-bar-wrap {
-  width: 60px;
-  height: 4px;
+  width: clamp(40px, 12vw, 90px);
+  height: 5px;
   background: var(--cream2);
-  border-radius: 2px;
+  border-radius: 3px;
   overflow: hidden;
 }
 .ranking-bar {
@@ -1939,7 +1941,7 @@ function parseProds(detalle) {
     var qty = qtyMatch ? parseInt(qtyMatch[1]) : 1;
     var emojiMatch = seg.match(/^(\S+)\s/);
     var emoji = emojiMatch && emojiMatch[1].length <= 3 ? emojiMatch[1] : '';
-    var shortName = name.length > 20 ? name.slice(0, 18) + '…' : name;
+    var shortName = name;  // nombre completo sin truncar
     prods.push({ emoji: emoji, name: shortName, qty: qty });
   });
   return prods;
@@ -2076,6 +2078,83 @@ function renderMiDia() {
     });
     html += '</div>';
   }
+
+  // ── Nuevas secciones: mejores clientes e inactivos ─────────────
+  // ── Mejores clientes del período visible ─────────────────────────
+  var clienteMap = {};
+  var todosPeriodo = filtroFecha === 'hoy' ? activos : pedidosVisibles().filter(function(p){ return p.estado !== 'Cancelado'; });
+  todosPeriodo.forEach(function(p) {
+    var key = (p.cliente||'').trim().toLowerCase();
+    if (!key) return;
+    if (!clienteMap[key]) clienteMap[key] = { nombre: p.cliente, comercio: p.comercio, localidad: p.localidad, monto: 0, pedidos: 0, ultimaFecha: '' };
+    clienteMap[key].monto   += parseInt((p.total||'').replace(/[^\d]/g,''))||0;
+    clienteMap[key].pedidos += 1;
+    var fecha = p.pedidoId.match(/TCK-(\d{8})/);
+    if (fecha && fecha[1] > clienteMap[key].ultimaFecha) clienteMap[key].ultimaFecha = fecha[1];
+  });
+  var topClientes = Object.values(clienteMap).sort(function(a,b){ return b.monto - a.monto; }).slice(0, 6);
+  var maxClienteMonto = topClientes.length ? topClientes[0].monto : 1;
+
+  if (topClientes.length) {
+    html += '<div class="mi-dia-seccion">';
+    html += '<div class="mi-dia-seccion-title">⭐ Mejores clientes ' + (filtroFecha === 'hoy' ? 'de hoy' : 'del período') + '</div>';
+    topClientes.forEach(function(c, i) {
+      var pct = Math.round((c.monto / maxClienteMonto) * 100);
+      var medalPos = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : (i+1) + '.';
+      var pedLabel = c.pedidos === 1 ? '1 pedido' : c.pedidos + ' pedidos';
+      html += '<div class="ranking-item">';
+      html += '<div class="ranking-pos">' + medalPos + '</div>';
+      html += '<div style="flex:1;min-width:0;">';
+      html += '<div class="ranking-nombre">' + c.nombre + '</div>';
+      if (c.comercio || c.localidad) {
+        html += '<div style="font-size:11px;color:var(--text3);margin-top:1px;">' + (c.comercio ? c.comercio + ' · ' : '') + (c.localidad||'') + '</div>';
+      }
+      html += '</div>';
+      html += '<div class="ranking-right">';
+      html += '<div class="ranking-bar-wrap"><div class="ranking-bar" style="width:' + pct + '%"></div></div>';
+      html += '<div class="ranking-cantidad">$' + c.monto.toLocaleString('es-AR') + ' · ' + pedLabel + '</div>';
+      html += '</div>';
+      html += '</div>';
+    });
+    html += '</div>';
+  }
+
+  // ── Clientes que compraron antes pero no hoy ──────────────────────
+  if (filtroFecha !== 'hoy' && filtroFecha !== 'todos') {
+    // Solo tiene sentido si hay período > 1 día
+    var clientesHoy = new Set(activos.filter(function(p){
+      var m = p.pedidoId.match(/TCK-(\d{8})/);
+      if (!m) return false;
+      var hoyStr = new Date().toLocaleDateString('sv').replace(/-/g,'');
+      return m[1] === hoyStr;
+    }).map(function(p){ return (p.cliente||'').trim().toLowerCase(); }));
+
+    var inactivos = Object.values(clienteMap)
+      .filter(function(c){ return !clientesHoy.has(c.nombre.trim().toLowerCase()); })
+      .sort(function(a,b){ return b.monto - a.monto; })
+      .slice(0, 5);
+
+    if (inactivos.length) {
+      html += '<div class="mi-dia-seccion">';
+      html += '<div class="mi-dia-seccion-title" style="color:var(--orange);">💤 Compraron antes, no hoy</div>';
+      inactivos.forEach(function(c) {
+        html += '<div class="ranking-item">';
+        html += '<div class="ranking-pos" style="color:var(--orange);">—</div>';
+        html += '<div style="flex:1;min-width:0;">';
+        html += '<div class="ranking-nombre">' + c.nombre + '</div>';
+        if (c.comercio || c.localidad) {
+          html += '<div style="font-size:11px;color:var(--text3);margin-top:1px;">' + (c.comercio ? c.comercio + ' · ' : '') + (c.localidad||'') + '</div>';
+        }
+        html += '</div>';
+        html += '<div class="ranking-right">';
+        html += '<div class="ranking-cantidad" style="color:var(--text3);">$' + c.monto.toLocaleString('es-AR') + ' hist.</div>';
+        html += '</div>';
+        html += '</div>';
+      });
+      html += '</div>';
+    }
+  }
+
 
   body.innerHTML = html;
 }
