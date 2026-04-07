@@ -750,6 +750,115 @@ body {
 @keyframes spin { to { transform: rotate(360deg); } }
 
 /* ── TOAST ── */
+.export-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.55);
+  z-index: 500;
+  display: none;
+  align-items: flex-end;
+}
+.export-backdrop.on { display: flex; }
+.export-sheet {
+  background: var(--cream);
+  width: 100%;
+  border-radius: 20px 20px 0 0;
+  padding: 0 0 calc(20px + env(safe-area-inset-bottom));
+  transform: translateY(100%);
+  transition: transform .28s cubic-bezier(.32,1.1,.7,1);
+  max-height: 92vh;
+  overflow-y: auto;
+}
+.export-backdrop.on .export-sheet { transform: translateY(0); }
+.export-pill {
+  width: 36px; height: 4px;
+  background: var(--cream3);
+  border-radius: 2px;
+  margin: 12px auto 0;
+}
+.export-hdr {
+  padding: 14px 20px 12px;
+  border-bottom: 1.5px solid var(--cream2);
+}
+.export-hdr-title {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 20px;
+  font-weight: 900;
+  color: var(--red);
+  letter-spacing: .5px;
+}
+.export-hdr-sub {
+  font-size: 12px;
+  color: var(--text3);
+  margin-top: 2px;
+}
+.export-opciones {
+  padding: 12px 16px 4px;
+}
+.export-opcion {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 13px 14px;
+  border-radius: 14px;
+  border: 1.5px solid var(--cream3);
+  background: #fff;
+  margin-bottom: 8px;
+  cursor: pointer;
+  transition: border-color .14s, background .14s;
+  width: 100%;
+  text-align: left;
+  -webkit-tap-highlight-color: transparent;
+}
+.export-opcion:active { background: var(--cream2); border-color: var(--red); }
+.export-opcion-icon {
+  font-size: 22px;
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.icon-bg-green  { background: var(--green3); }
+.icon-bg-blue   { background: var(--blue2); }
+.icon-bg-orange { background: var(--orange2); }
+.icon-bg-red    { background: #FFF0F0; }
+.export-opcion-info { flex: 1; min-width: 0; }
+.export-opcion-title {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 17px;
+  font-weight: 800;
+  color: var(--text);
+  line-height: 1.1;
+}
+.export-opcion-desc {
+  font-size: 12px;
+  color: var(--text3);
+  margin-top: 2px;
+  line-height: 1.3;
+}
+.export-opcion-arrow {
+  font-size: 18px;
+  color: var(--cream3);
+  flex-shrink: 0;
+}
+.export-cancelar {
+  display: block;
+  width: calc(100% - 32px);
+  margin: 4px 16px 0;
+  padding: 13px;
+  background: none;
+  border: none;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 15px;
+  color: var(--text3);
+  cursor: pointer;
+  letter-spacing: .3px;
+  text-align: center;
+}
+
 .toast {
   position: fixed;
   bottom: 24px;
@@ -924,7 +1033,7 @@ input[type="date"] {
   </div>
   <div style="display:flex;gap:8px;margin-bottom:6px;">
     <button class="btn-refresh" style="flex:1" onclick="cargarPedidos()">🔄 Actualizar</button>
-    <button class="btn-refresh" style="flex:1;color:var(--green2);border-color:var(--green2)" onclick="exportarResumen()">📤 Enviar resumen</button>
+    <button class="btn-refresh" style="flex:1;color:var(--green2);border-color:var(--green2)" onclick="abrirExport()">📤 Enviar resumen</button>
   </div>
   <div class="refresh-bar-wrap"><div class="refresh-bar" id="refresh-bar"></div></div>
 
@@ -979,6 +1088,57 @@ input[type="date"] {
 </div>
 
 <div class="toast" id="toast"></div>
+
+<!-- MODAL EXPORTAR -->
+<div class="export-backdrop" id="export-backdrop" onclick="cerrarExport(event)">
+  <div class="export-sheet" id="export-sheet">
+    <div class="export-pill"></div>
+    <div class="export-hdr">
+      <div class="export-hdr-title">📤 Enviar por WhatsApp</div>
+      <div class="export-hdr-sub" id="export-hdr-sub">¿Qué querés exportar?</div>
+    </div>
+    <div class="export-opciones">
+
+      <button class="export-opcion" onclick="ejecutarExport('ejecutivo')">
+        <div class="export-opcion-icon icon-bg-green">📊</div>
+        <div class="export-opcion-info">
+          <div class="export-opcion-title">Resumen ejecutivo</div>
+          <div class="export-opcion-desc">Solo totales: pedidos, monto y estados. Mensaje corto.</div>
+        </div>
+        <div class="export-opcion-arrow">›</div>
+      </button>
+
+      <button class="export-opcion" onclick="ejecutarExport('lista')">
+        <div class="export-opcion-icon icon-bg-blue">📋</div>
+        <div class="export-opcion-info">
+          <div class="export-opcion-title">Lista de pedidos</div>
+          <div class="export-opcion-desc">Cada cliente con hora, localidad y total. Sin productos.</div>
+        </div>
+        <div class="export-opcion-arrow">›</div>
+      </button>
+
+      <button class="export-opcion" onclick="ejecutarExport('detalle')">
+        <div class="export-opcion-icon icon-bg-orange">🛒</div>
+        <div class="export-opcion-info">
+          <div class="export-opcion-title">Pedidos con productos</div>
+          <div class="export-opcion-desc">Lista completa con los productos de cada pedido.</div>
+        </div>
+        <div class="export-opcion-arrow">›</div>
+      </button>
+
+      <button class="export-opcion" id="export-camion-btn" onclick="ejecutarExport('camion')">
+        <div class="export-opcion-icon icon-bg-red">🚚</div>
+        <div class="export-opcion-info">
+          <div class="export-opcion-title">Preparar camión</div>
+          <div class="export-opcion-desc">Totales por producto: cuántas cajas de cada cosa. Sin nombres.</div>
+        </div>
+        <div class="export-opcion-arrow">›</div>
+      </button>
+
+    </div>
+    <button class="export-cancelar" onclick="cerrarExportBtn()">Cancelar</button>
+  </div>
+</div>
 
 <script>
 const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxbx9ma8S5wcuRqFXjRyFYvIo_kLwc5Px4eE4Y7-CqPmIfJbI3VBEP4I9qSV8s0owMMYg/exec';
@@ -1535,90 +1695,199 @@ function cargarNotas(pedidos) {
 }
 
 // ── EXPORTAR ──────────────────────────────────────────────────────
-function exportarResumen() {
+// ── MODAL DE EXPORTACIÓN ──────────────────────────────────────────
+function abrirExport() {
   var lista = pedidosFiltrados();
-  if (!lista.length) { toast('No hay pedidos para exportar',''); return; }
+  if (!lista.length) { toast('No hay pedidos para exportar', ''); return; }
 
   var esAdmin = vendedorActual === 'ADMIN';
-  var activos = lista.filter(function(p){return p.estado!=='Cancelado';});
-  var canc    = lista.filter(function(p){return p.estado==='Cancelado';});
-  var pend    = activos.filter(function(p){return p.estado==='Pendiente';});
-  var conf    = activos.filter(function(p){return p.estado==='Confirmado';});
-  var entr    = activos.filter(function(p){return p.estado==='Entregado';});
-  var totalMonto = activos.reduce(function(acc,p){return acc+(parseInt((p.total||'').replace(/[^\d]/g,''))||0);},0);
+  var activos = lista.filter(function(p){ return p.estado !== 'Cancelado'; });
 
-  var hoy = new Date().toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long'});
+  // Subtítulo contextual
+  var filtroLabel = '';
+  if (filtroActual !== 'todos') filtroLabel = ' · solo ' + filtroActual.toLowerCase();
+  if (filtroFecha === 'hoy') filtroLabel = 'Hoy' + filtroLabel;
+  else if (filtroFecha === 'ayer') filtroLabel = 'Ayer' + filtroLabel;
+  else if (filtroFecha === 'semana') filtroLabel = 'Esta semana' + filtroLabel;
+  var sub = document.getElementById('export-hdr-sub');
+  if (sub) sub.textContent = activos.length + ' pedidos · $' + activos.reduce(function(a,p){ return a+(parseInt((p.total||'').replace(/[^\d]/g,''))||0); },0).toLocaleString('es-AR') + (filtroLabel ? ' (' + filtroLabel + ')' : '');
+
+  // Mostrar/ocultar opción camión según si es admin o tiene filtro todos
+  var camionBtn = document.getElementById('export-camion-btn');
+  if (camionBtn) camionBtn.style.display = (esAdmin || true) ? 'flex' : 'none';
+
+  document.getElementById('export-backdrop').classList.add('on');
+}
+
+function cerrarExport(e) {
+  if (e && e.target !== document.getElementById('export-backdrop')) return;
+  document.getElementById('export-backdrop').classList.remove('on');
+}
+
+function cerrarExportBtn() {
+  document.getElementById('export-backdrop').classList.remove('on');
+}
+
+function ejecutarExport(modo) {
+  cerrarExportBtn();
+  setTimeout(function() { generarMensaje(modo); }, 80);
+}
+
+function generarMensaje(modo) {
+  var lista = pedidosFiltrados();
+  if (!lista.length) { toast('No hay pedidos', ''); return; }
+
+  var esAdmin = vendedorActual === 'ADMIN';
+  var activos = lista.filter(function(p){ return p.estado !== 'Cancelado'; });
+  var canc    = lista.filter(function(p){ return p.estado === 'Cancelado'; });
+  var pend    = activos.filter(function(p){ return p.estado === 'Pendiente'; });
+  var conf    = activos.filter(function(p){ return p.estado === 'Confirmado'; });
+  var entr    = activos.filter(function(p){ return p.estado === 'Entregado'; });
+  var totalMonto = activos.reduce(function(acc,p){ return acc+(parseInt((p.total||'').replace(/[^\d]/g,''))||0); }, 0);
+
+  var hoy = new Date().toLocaleDateString('es-AR', {weekday:'long', day:'numeric', month:'long'});
   var sep = '━━━━━━━━━━━━━━━';
-
-  // Encabezado
-  var msg = '🐔 *TCK — Resumen de pedidos*\n';
-  msg += '📅 ' + hoy + '\n';
-  if (esAdmin) msg += '👥 *Todos los vendedores*\n';
-  else         msg += '👤 *' + vendedorActual + '*\n';
-  msg += sep + '\n\n';
-
-  // Totales generales
-  msg += '📦 *Pedidos:* ' + activos.length;
-  if (canc.length) msg += '  ❌ Cancelados: ' + canc.length;
-  msg += '\n';
-  msg += '💰 *Monto total:* *$' + totalMonto.toLocaleString('es-AR') + '*\n';
-  msg += '⏳ Pend: ' + pend.length + '  ✅ Conf: ' + conf.length + '  📦 Entregados: ' + entr.length + '\n';
-  msg += '\n';
+  var quien = esAdmin ? '👥 Todos los vendedores' : '👤 ' + vendedorActual;
+  var msg = '';
 
   function horaStr(p) {
-    var partes = (p.fechaHora||'').split(' ');
-    if (partes.length >= 2) {
-      var hm = partes[1].split(':');
-      return hm[0]+':'+hm[1];
-    }
-    return '';
+    var parts = (p.fechaHora||'').split(' ');
+    if (parts.length >= 2) { var hm = parts[1].split(':'); return hm[0]+':'+hm[1]; }
+    // Fallback: extract from pedidoId TCK-YYYYMMDD-HHMM-...
+    var m = (p.pedidoId||'').match(/TCK-\d{8}-(\d{2})(\d{2})/);
+    return m ? m[1]+':'+m[2] : '';
   }
 
-  function lineaPedido(p) {
-    var ic = p.estado==='Confirmado'?'✅':p.estado==='Entregado'?'📦':'⏳';
-    var hora = horaStr(p);
-    var nombre = '*'+p.cliente+'*';
+  function estadoIcon(p) {
+    return p.estado==='Confirmado' ? '✅' : p.estado==='Entregado' ? '📦' : '⏳';
+  }
+
+  function lineaBase(p) {
+    var ic = estadoIcon(p);
+    var nombre = '*' + p.cliente + '*';
     if (p.comercio) nombre += ' (' + p.comercio + ')';
-    var linea = ic + ' ' + nombre + '\n';
-    linea += '     🕐 ' + (hora||'—') + '  📍 ' + p.localidad + '  💰 ' + fmtTotal(p.total) + '\n';
-    // Agregar productos si están disponibles
-    if (p.detalle) {
-      var prods = parseProds(p.detalle);
-      if (prods.length) {
-        prods.forEach(function(pr) {
-          linea += '     ' + (pr.emoji || '•') + ' ' + pr.name + ' ×' + pr.qty + '\n';
-        });
-      }
+    var hora = horaStr(p);
+    return ic + ' ' + nombre + '\n     🕐 ' + (hora||'—') + '  📍 ' + p.localidad + '  💰 ' + fmtTotal(p.total);
+  }
+
+  // ── MODO: Resumen ejecutivo ──────────────────────────────────────
+  if (modo === 'ejecutivo') {
+    msg  = '🐔 *TCK — Resumen del día*\n';
+    msg += '📅 ' + hoy + '\n';
+    msg += quien + '\n';
+    msg += sep + '\n\n';
+    msg += '📦 *' + activos.length + ' pedidos*';
+    if (canc.length) msg += '  ❌ ' + canc.length + ' cancelados';
+    msg += '\n';
+    msg += '💰 *$' + totalMonto.toLocaleString('es-AR') + '*  (ticket prom. $' + (activos.length ? Math.round(totalMonto/activos.length).toLocaleString('es-AR') : '—') + ')\n\n';
+    msg += '⏳ Pendientes: *' + pend.length + '*\n';
+    msg += '✅ Confirmados: *' + conf.length + '*\n';
+    msg += '📦 Entregados: *' + entr.length + '*\n';
+    if (canc.length) msg += '❌ Cancelados: *' + canc.length + '*\n';
+
+    // Si es admin, agregar fila por vendedor
+    if (esAdmin) {
+      msg += '\n' + sep + '\n';
+      var byVend = {};
+      activos.forEach(function(p){ var v=p.vendedor||'Sin asignar'; if(!byVend[v]) byVend[v]={n:0,m:0}; byVend[v].n++; byVend[v].m+=parseInt((p.total||'').replace(/[^\d]/g,''))||0; });
+      Object.keys(byVend).sort().forEach(function(v) {
+        msg += '👤 ' + v + ': ' + byVend[v].n + ' ped · $' + byVend[v].m.toLocaleString('es-AR') + '\n';
+      });
     }
-    linea += '\n';
-    return linea;
+    msg += '\n_TCK Pedidos_';
   }
 
-  if (esAdmin) {
-    // Agrupar por vendedor, ordenado por nombre
-    var byVend = {};
+  // ── MODO: Lista de pedidos (sin productos) ───────────────────────
+  else if (modo === 'lista') {
+    msg  = '🐔 *TCK — Pedidos del día*\n';
+    msg += '📅 ' + hoy + '  ' + quien + '\n';
+    msg += sep + '\n';
+    msg += '📦 ' + activos.length + ' pedidos · 💰 $' + totalMonto.toLocaleString('es-AR') + '\n\n';
+
+    if (esAdmin) {
+      var byVend = {};
+      activos.forEach(function(p){ var v=p.vendedor||'Sin asignar'; if(!byVend[v]) byVend[v]=[]; byVend[v].push(p); });
+      Object.keys(byVend).sort().forEach(function(v) {
+        var ps = byVend[v];
+        var sub = ps.reduce(function(a,p){ return a+(parseInt((p.total||'').replace(/[^\d]/g,''))||0); },0);
+        msg += sep + '\n';
+        msg += '👤 *' + v + '*  ' + ps.length + ' ped · $' + sub.toLocaleString('es-AR') + '\n\n';
+        ps.forEach(function(p){ msg += lineaBase(p) + '\n'; });
+        msg += '\n';
+      });
+    } else {
+      activos.forEach(function(p){ msg += lineaBase(p) + '\n\n'; });
+    }
+    msg += sep + '\n_TCK Pedidos_';
+  }
+
+  // ── MODO: Pedidos con productos ──────────────────────────────────
+  else if (modo === 'detalle') {
+    msg  = '🐔 *TCK — Pedidos con detalle*\n';
+    msg += '📅 ' + hoy + '  ' + quien + '\n';
+    msg += sep + '\n';
+    msg += '📦 ' + activos.length + ' pedidos · 💰 $' + totalMonto.toLocaleString('es-AR') + '\n\n';
+
+    function lineaDetalle(p) {
+      var linea = lineaBase(p) + '\n';
+      if (p.detalle) {
+        var prods = parseProds(p.detalle);
+        prods.forEach(function(pr){ linea += '     ' + (pr.emoji||'•') + ' ' + pr.name + ' ×' + pr.qty + '\n'; });
+      }
+      return linea;
+    }
+
+    if (esAdmin) {
+      var byVend = {};
+      activos.forEach(function(p){ var v=p.vendedor||'Sin asignar'; if(!byVend[v]) byVend[v]=[]; byVend[v].push(p); });
+      Object.keys(byVend).sort().forEach(function(v) {
+        var ps = byVend[v];
+        var sub = ps.reduce(function(a,p){ return a+(parseInt((p.total||'').replace(/[^\d]/g,''))||0); },0);
+        msg += sep + '\n';
+        msg += '👤 *' + v + '*  ' + ps.length + ' ped · $' + sub.toLocaleString('es-AR') + '\n\n';
+        ps.forEach(function(p){ msg += lineaDetalle(p) + '\n'; });
+      });
+    } else {
+      activos.forEach(function(p){ msg += lineaDetalle(p) + '\n'; });
+    }
+    msg += sep + '\n_TCK Pedidos_';
+  }
+
+  // ── MODO: Preparar camión ────────────────────────────────────────
+  else if (modo === 'camion') {
+    var prodMap = {};
     activos.forEach(function(p) {
-      var v = p.vendedor || 'Sin asignar';
-      if (!byVend[v]) byVend[v] = [];
-      byVend[v].push(p);
+      var prods = parseProds(p.detalle);
+      prods.forEach(function(pr) {
+        var key = pr.name.replace(/…$/,'').trim();
+        if (!prodMap[key]) prodMap[key] = { emoji: pr.emoji, name: pr.name, total: 0, pedidos: 0, clientes: [] };
+        prodMap[key].total += pr.qty;
+        prodMap[key].pedidos += 1;
+        if (p.cliente && prodMap[key].clientes.indexOf(p.cliente) === -1) prodMap[key].clientes.push(p.cliente);
+      });
     });
-    var vendores = Object.keys(byVend).sort();
-    vendores.forEach(function(v) {
-      var ps = byVend[v];
-      var subtotal = ps.reduce(function(acc,p){return acc+(parseInt((p.total||'').replace(/[^\d]/g,''))||0);},0);
-      msg += sep + '\n';
-      msg += '👤 *' + v + '*  —  ' + ps.length + ' pedido' + (ps.length!==1?'s':'') + '  |  $' + subtotal.toLocaleString('es-AR') + '\n\n';
-      ps.forEach(function(p){ msg += lineaPedido(p); });
-      msg += '\n';
+
+    var ranking = Object.values(prodMap).sort(function(a,b){ return b.total - a.total; });
+
+    msg  = '🚚 *TCK — Preparar camión*\n';
+    msg += '📅 ' + hoy + '\n';
+    if (esAdmin) msg += '👥 Todos los vendedores\n';
+    else         msg += '👤 ' + vendedorActual + '\n';
+    msg += sep + '\n';
+    msg += '📦 ' + activos.length + ' pedidos · ' + ranking.length + ' productos distintos\n\n';
+
+    ranking.forEach(function(pr) {
+      var pedLabel = pr.pedidos === 1 ? '1 pedido' : pr.pedidos + ' pedidos';
+      msg += (pr.emoji||'📦') + ' *' + pr.name + '*\n';
+      msg += '     ×' + pr.total + ' unidades  en ' + pedLabel + '\n';
     });
-  } else {
-    msg += sep + '\n*Detalle:*\n\n';
-    activos.forEach(function(p){ msg += lineaPedido(p); });
+
+    msg += '\n' + sep + '\n_TCK Pedidos_';
   }
 
-  msg += sep + '\n_Generado desde TCK Pedidos_';
-  window.open('https://wa.me/?text='+encodeURIComponent(msg),'_blank');
+  window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank');
 }
+
 
 // ── CAMBIAR ESTADO ────────────────────────────────────────────────
 function confirmarCancelar(pedidoId, fila, event) {
