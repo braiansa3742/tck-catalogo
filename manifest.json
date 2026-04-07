@@ -1,11 +1,11 @@
 {
-  "name": "TCK Catálogo",
-  "short_name": "TCK",
-  "description": "Catálogo de productos TCK Distribuidora",
-  "start_url": "/",
+  "name": "TCK Pedidos",
+  "short_name": "TCK Pedidos",
+  "description": "Panel de pedidos TCK Distribuidora",
+  "start_url": "/pedidos.html",
   "scope": "/",
   "display": "standalone",
-  "background_color": "#FFF8F0",
+  "background_color": "#1A0800",
   "theme_color": "#8B0000",
   "orientation": "portrait",
   "icons": [
