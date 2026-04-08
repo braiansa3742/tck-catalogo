@@ -865,6 +865,211 @@ body {
   padding: 12px 16px;
 }
 
+/* ── REPORTES ── */
+.rep-view-inner {
+  padding: 12px 16px 0;
+}
+.rep-card {
+  background: #fff;
+  border-radius: 14px;
+  border: 1.5px solid var(--cream3);
+  margin-bottom: 12px;
+  overflow: hidden;
+  box-shadow: var(--shadow);
+}
+.rep-card-hdr {
+  padding: 11px 16px 9px;
+  border-bottom: 1.5px solid var(--cream2);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.rep-card-titulo {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 13px;
+  font-weight: 900;
+  color: var(--text);
+  text-transform: uppercase;
+  letter-spacing: .8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.rep-periodo-btns {
+  display: flex;
+  gap: 4px;
+}
+.rep-periodo-btn {
+  padding: 3px 9px;
+  border-radius: 20px;
+  border: 1.5px solid var(--cream3);
+  background: #fff;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text3);
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition: all .12s;
+}
+.rep-periodo-btn.on {
+  background: var(--red);
+  border-color: var(--red);
+  color: #fff;
+}
+.rep-card-body { padding: 12px 16px; }
+
+/* Mini stats row */
+.rep-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.rep-stat {
+  background: var(--cream2);
+  border-radius: 10px;
+  padding: 9px 8px;
+  text-align: center;
+}
+.rep-stat-num {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 20px;
+  font-weight: 900;
+  color: var(--red);
+  line-height: 1;
+}
+.rep-stat-num.verde  { color: var(--green2); }
+.rep-stat-num.orange { color: var(--orange); }
+.rep-stat-lbl {
+  font-size: 10px;
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  font-weight: 700;
+  font-family: 'Barlow Condensed', sans-serif;
+  margin-top: 3px;
+}
+
+/* Gráfico de barras SVG */
+.rep-chart-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin: 0 -2px;
+  padding-bottom: 4px;
+}
+.rep-chart-wrap svg { display: block; }
+
+/* Tabla de vendedores */
+.rep-vend-row {
+  display: flex;
+  align-items: center;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--cream2);
+  gap: 10px;
+}
+.rep-vend-row:last-child { border-bottom: none; }
+.rep-vend-av {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--red), var(--red2));
+  color: #fff;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 16px;
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.rep-vend-info { flex: 1; min-width: 0; }
+.rep-vend-nombre {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--text);
+  line-height: 1;
+}
+.rep-vend-sub { font-size: 11px; color: var(--text3); margin-top: 2px; }
+.rep-vend-monto {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 17px;
+  font-weight: 900;
+  color: var(--red);
+  flex-shrink: 0;
+  text-align: right;
+}
+.rep-vend-bar-wrap {
+  width: 100%;
+  height: 4px;
+  background: var(--cream2);
+  border-radius: 2px;
+  margin-top: 5px;
+  overflow: hidden;
+}
+.rep-vend-bar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--red), var(--gold2));
+  border-radius: 2px;
+  transition: width .4s ease;
+}
+
+/* Ranking items (productos y localidades) */
+.rep-rank-item {
+  display: flex;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--cream2);
+  gap: 10px;
+}
+.rep-rank-item:last-child { border-bottom: none; }
+.rep-rank-pos {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 13px;
+  font-weight: 900;
+  color: var(--text3);
+  width: 22px;
+  text-align: center;
+  flex-shrink: 0;
+}
+.rep-rank-info { flex: 1; min-width: 0; }
+.rep-rank-nombre {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--text);
+  line-height: 1.1;
+}
+.rep-rank-sub { font-size: 11px; color: var(--text3); margin-top: 2px; }
+.rep-rank-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  flex-shrink: 0;
+  min-width: 80px;
+}
+.rep-rank-val {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 15px;
+  font-weight: 900;
+  color: var(--red);
+}
+.rep-rank-bar-wrap {
+  width: clamp(40px, 10vw, 70px);
+  height: 4px;
+  background: var(--cream2);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.rep-rank-bar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--red), var(--gold2));
+  border-radius: 2px;
+}
+
 /* ── XUBIO INTEGRATION ── */
 .xubio-panel {
   margin-top: 14px;
@@ -1825,11 +2030,72 @@ input[type="date"] {
 
   <!-- ══ VIEW: REPORTES ══ -->
   <div class="view" id="view-reportes">
-    <div class="coming-soon">
-      <div class="coming-soon-icon">📈</div>
-      <div class="coming-soon-title">Reportes y tendencias</div>
-      <div class="coming-soon-sub">Comparativo semanal, ranking de vendedores, productos más rentables y evolución del negocio.</div>
-      <div class="coming-soon-badge">Próximamente</div>
+    <div class="rep-view-inner">
+
+      <!-- ── Mini stats globales ── -->
+      <div class="rep-card" style="margin-top:4px;">
+        <div class="rep-card-hdr">
+          <div class="rep-card-titulo">📈 Resumen</div>
+          <div class="rep-periodo-btns" id="rep-periodo-btns">
+            <button class="rep-periodo-btn on" onclick="setRepPeriodo('semana',this)">Semana</button>
+            <button class="rep-periodo-btn" onclick="setRepPeriodo('mes',this)">Mes</button>
+            <button class="rep-periodo-btn" onclick="setRepPeriodo('todos',this)">Todo</button>
+          </div>
+        </div>
+        <div class="rep-card-body">
+          <div class="rep-stats">
+            <div class="rep-stat">
+              <div class="rep-stat-num" id="rep-stat-monto">—</div>
+              <div class="rep-stat-lbl">Facturado</div>
+            </div>
+            <div class="rep-stat">
+              <div class="rep-stat-num verde" id="rep-stat-pedidos">—</div>
+              <div class="rep-stat-lbl">Pedidos</div>
+            </div>
+            <div class="rep-stat">
+              <div class="rep-stat-num orange" id="rep-stat-ticket">—</div>
+              <div class="rep-stat-lbl">Ticket prom.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Evolución diaria ── -->
+      <div class="rep-card">
+        <div class="rep-card-hdr">
+          <div class="rep-card-titulo">📅 Evolución de ventas</div>
+        </div>
+        <div class="rep-card-body" style="padding:10px 10px 8px;">
+          <div class="rep-chart-wrap" id="rep-chart-wrap">
+            <div style="text-align:center;padding:20px;color:var(--text3);font-size:12px;">Cargando...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Comparativo vendedores (solo Admin) ── -->
+      <div class="rep-card" id="rep-vend-card" style="display:none;">
+        <div class="rep-card-hdr">
+          <div class="rep-card-titulo">👤 Por vendedor</div>
+        </div>
+        <div class="rep-card-body" id="rep-vend-body"></div>
+      </div>
+
+      <!-- ── Productos más vendidos ── -->
+      <div class="rep-card">
+        <div class="rep-card-hdr">
+          <div class="rep-card-titulo">📦 Productos más pedidos</div>
+        </div>
+        <div class="rep-card-body" id="rep-prod-body"></div>
+      </div>
+
+      <!-- ── Por localidad ── -->
+      <div class="rep-card">
+        <div class="rep-card-hdr">
+          <div class="rep-card-titulo">📍 Por localidad</div>
+        </div>
+        <div class="rep-card-body" id="rep-loc-body"></div>
+      </div>
+
     </div>
   </div>
 
@@ -3046,6 +3312,7 @@ function renderMiDia() {
 function actualizarMiDiaSiAbierto() {
   if (_tabActual === 'midia') renderMiDia();
   if (_tabActual === 'clientes') renderClientes();
+  if (_tabActual === 'reportes') renderReportes();
   actualizarBadgePendientes();
 }
 
@@ -3068,6 +3335,10 @@ function cambiarTab(tab) {
   if (tab === 'clientes') {
     renderClientes();
     var v = document.getElementById('view-clientes'); if (v) v.scrollTop = 0;
+  }
+  if (tab === 'reportes') {
+    renderReportes();
+    var v = document.getElementById('view-reportes'); if (v) v.scrollTop = 0;
   }
   if (tab === 'midia') {
     renderMiDia();
@@ -3161,6 +3432,294 @@ function checkPrimeraVez() {
       setTimeout(abrirManual, 600);
     }
   } catch(e) {}
+}
+
+
+// ── SECCIÓN REPORTES ──────────────────────────────────────────────
+var _repPeriodo = 'semana';
+
+function setRepPeriodo(periodo, btn) {
+  _repPeriodo = periodo;
+  document.querySelectorAll('.rep-periodo-btn').forEach(function(b) { b.classList.remove('on'); });
+  if (btn) btn.classList.add('on');
+  renderReportes();
+}
+
+function getRepDatos(periodo) {
+  // Usa todosLosPedidos para tener histórico completo
+  var todos = todosLosPedidos.filter(function(p) { return p.estado !== 'Cancelado'; });
+
+  // Filtrar por vendedor si no es admin
+  if (vendedorActual !== 'ADMIN') {
+    todos = todos.filter(function(p) {
+      return p.vendedor && p.vendedor.toLowerCase().includes(vendedorActual.toLowerCase());
+    });
+  }
+
+  // Filtrar por período
+  var hoy = new Date(); hoy.setHours(0,0,0,0);
+  if (periodo === 'semana') {
+    var desde = new Date(hoy); desde.setDate(desde.getDate() - 7);
+    todos = todos.filter(function(p) { return fechaPedido(p) >= desde; });
+  } else if (periodo === 'mes') {
+    var desde = new Date(hoy); desde.setDate(desde.getDate() - 30);
+    todos = todos.filter(function(p) { return fechaPedido(p) >= desde; });
+  }
+
+  return todos;
+}
+
+function renderReportes() {
+  if (!vendedorActual || !todosLosPedidos.length) return;
+
+  var datos = getRepDatos(_repPeriodo);
+  var esAdmin = vendedorActual === 'ADMIN';
+
+  // ── Mini stats ──────────────────────────────────────────────
+  var totalMonto   = datos.reduce(function(a,p){ return a + (parseInt((p.total||'').replace(/[^\d]/g,''))||0); }, 0);
+  var totalPedidos = datos.length;
+  var ticket       = totalPedidos ? Math.round(totalMonto / totalPedidos) : 0;
+
+  var fmt = function(n) {
+    if (n >= 1000000) return '$' + (n/1000000).toFixed(1) + 'M';
+    if (n >= 1000)    return '$' + Math.round(n/1000) + 'k';
+    return '$' + n.toLocaleString('es-AR');
+  };
+
+  var el = document.getElementById('rep-stat-monto');
+  if (el) el.textContent = fmt(totalMonto);
+  el = document.getElementById('rep-stat-pedidos');
+  if (el) el.textContent = totalPedidos;
+  el = document.getElementById('rep-stat-ticket');
+  if (el) el.textContent = ticket ? fmt(ticket) : '—';
+
+  // ── Gráfico evolución diaria ─────────────────────────────────
+  renderGrafico(datos);
+
+  // ── Comparativo vendedores (solo Admin) ──────────────────────
+  var vendCard = document.getElementById('rep-vend-card');
+  if (vendCard) vendCard.style.display = esAdmin ? 'block' : 'none';
+  if (esAdmin) renderVendedores(datos);
+
+  // ── Productos más pedidos ────────────────────────────────────
+  renderProductos(datos);
+
+  // ── Por localidad ─────────────────────────────────────────────
+  renderLocalidades(datos);
+}
+
+// ── GRÁFICO DE BARRAS SVG ────────────────────────────────────────
+function renderGrafico(datos) {
+  var wrap = document.getElementById('rep-chart-wrap');
+  if (!wrap) return;
+
+  if (!datos.length) {
+    wrap.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text3);font-size:12px;">Sin datos para el período</div>';
+    return;
+  }
+
+  // Agrupar por día
+  var diasMap = {};
+  datos.forEach(function(p) {
+    var f = fechaPedido(p);
+    var key = f.getFullYear() + '-' + String(f.getMonth()+1).padStart(2,'0') + '-' + String(f.getDate()).padStart(2,'0');
+    if (!diasMap[key]) diasMap[key] = { monto: 0, pedidos: 0, fecha: f };
+    diasMap[key].monto   += parseInt((p.total||'').replace(/[^\d]/g,''))||0;
+    diasMap[key].pedidos += 1;
+  });
+
+  // Generar rango de días según período
+  var hoy = new Date(); hoy.setHours(0,0,0,0);
+  var dias = _repPeriodo === 'mes' ? 30 : _repPeriodo === 'todos' ? 60 : 14;
+  var labels = [];
+  for (var i = dias-1; i >= 0; i--) {
+    var d = new Date(hoy); d.setDate(d.getDate() - i);
+    var key = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+    labels.push({ key: key, fecha: d, data: diasMap[key] || { monto: 0, pedidos: 0 } });
+  }
+
+  // SVG dimensions
+  var barW    = _repPeriodo === 'mes' ? 14 : _repPeriodo === 'todos' ? 10 : 22;
+  var gap     = _repPeriodo === 'mes' ? 4  : _repPeriodo === 'todos' ? 3  : 8;
+  var padL    = 44;
+  var padR    = 8;
+  var padT    = 10;
+  var padB    = 28;
+  var chartH  = 110;
+  var totalW  = padL + labels.length * (barW + gap) - gap + padR;
+  var svgH    = chartH + padT + padB;
+
+  var maxMonto = Math.max.apply(null, labels.map(function(l) { return l.data.monto; })) || 1;
+
+  // Y axis labels
+  var ySteps = [0, 0.25, 0.5, 0.75, 1].map(function(r) {
+    return { y: padT + chartH - r * chartH, val: Math.round(maxMonto * r) };
+  });
+
+  var fmt = function(n) {
+    if (n >= 1000000) return '$' + (n/1000000).toFixed(1) + 'M';
+    if (n >= 1000)    return '$' + Math.round(n/1000) + 'k';
+    return '$' + n;
+  };
+
+  var svgParts = ['<svg width="' + totalW + '" height="' + svgH + '" xmlns="http://www.w3.org/2000/svg">'];
+
+  // Grid lines
+  ySteps.forEach(function(s) {
+    svgParts.push('<line x1="' + padL + '" y1="' + s.y + '" x2="' + (totalW - padR) + '" y2="' + s.y + '" stroke="#F5EDE0" stroke-width="1"/>');
+    svgParts.push('<text x="' + (padL - 4) + '" y="' + (s.y + 4) + '" text-anchor="end" font-size="9" fill="#9C7050" font-family="Barlow Condensed,sans-serif">' + fmt(s.val) + '</text>');
+  });
+
+  // Bars
+  var diasSemana = ['D','L','M','X','J','V','S'];
+  labels.forEach(function(l, i) {
+    var x   = padL + i * (barW + gap);
+    var pct = l.data.monto / maxMonto;
+    var bH  = Math.max(pct * chartH, l.data.monto > 0 ? 3 : 0);
+    var y   = padT + chartH - bH;
+    var esHoy = l.key === labels[labels.length-1].key;
+
+    // Bar
+    var color = esHoy ? '#B71C1C' : (l.data.monto > 0 ? '#D32F2F' : '#F5EDE0');
+    svgParts.push('<rect x="' + x + '" y="' + y + '" width="' + barW + '" height="' + bH + '" rx="3" fill="' + color + '" opacity="' + (esHoy ? '1' : '.7') + '"/>');
+
+    // X label (day of week, show every 2 for dense charts)
+    var showLabel = _repPeriodo === 'semana' || i % 2 === 0;
+    if (showLabel) {
+      var labelY = padT + chartH + 16;
+      var labelX = x + barW / 2;
+      var diaN = diasSemana[l.fecha.getDay()];
+      svgParts.push('<text x="' + labelX + '" y="' + labelY + '" text-anchor="middle" font-size="9" fill="' + (esHoy ? '#8B0000' : '#9C7050') + '" font-family="Barlow Condensed,sans-serif" font-weight="' + (esHoy ? '900' : '600') + '">' + diaN + '</text>');
+    }
+
+    // Value on top for bars with data (only if bar is wide enough)
+    if (l.data.pedidos > 0 && barW >= 18) {
+      svgParts.push('<text x="' + (x + barW/2) + '" y="' + (y - 3) + '" text-anchor="middle" font-size="8" fill="#8B0000" font-family="Barlow Condensed,sans-serif" font-weight="700">' + l.data.pedidos + '</text>');
+    }
+  });
+
+  svgParts.push('</svg>');
+  wrap.innerHTML = svgParts.join('');
+}
+
+// ── COMPARATIVO VENDEDORES (Admin) ───────────────────────────────
+function renderVendedores(datos) {
+  var body = document.getElementById('rep-vend-body');
+  if (!body) return;
+
+  if (!datos.length) { body.innerHTML = '<div style="text-align:center;padding:16px;color:var(--text3);font-size:12px;">Sin datos</div>'; return; }
+
+  var vendMap = {};
+  datos.forEach(function(p) {
+    var v = p.vendedor || 'Sin asignar';
+    if (!vendMap[v]) vendMap[v] = { nombre: v, monto: 0, pedidos: 0 };
+    vendMap[v].monto   += parseInt((p.total||'').replace(/[^\d]/g,''))||0;
+    vendMap[v].pedidos += 1;
+  });
+
+  var vends = Object.values(vendMap).sort(function(a,b){ return b.monto - a.monto; });
+  var maxM  = vends.length ? vends[0].monto : 1;
+
+  body.innerHTML = vends.map(function(v) {
+    var pct    = Math.round((v.monto / maxM) * 100);
+    var ticket = v.pedidos ? Math.round(v.monto / v.pedidos) : 0;
+    var fmt    = function(n) { return '$' + Math.round(n).toLocaleString('es-AR'); };
+    return '<div class="rep-vend-row">'
+      + '<div class="rep-vend-av">' + v.nombre[0].toUpperCase() + '</div>'
+      + '<div class="rep-vend-info">'
+      +   '<div class="rep-vend-nombre">' + v.nombre + '</div>'
+      +   '<div class="rep-vend-sub">' + v.pedidos + ' pedidos · ticket ' + fmt(ticket) + '</div>'
+      +   '<div class="rep-vend-bar-wrap"><div class="rep-vend-bar" style="width:' + pct + '%"></div></div>'
+      + '</div>'
+      + '<div class="rep-vend-monto">' + fmt(v.monto) + '</div>'
+      + '</div>';
+  }).join('');
+}
+
+// ── PRODUCTOS MÁS PEDIDOS ────────────────────────────────────────
+function renderProductos(datos) {
+  var body = document.getElementById('rep-prod-body');
+  if (!body) return;
+
+  var prodMap = {};
+  datos.forEach(function(p) {
+    var prods = parseProds(p.detalle);
+    prods.forEach(function(pr) {
+      var key = pr.name.trim();
+      if (!prodMap[key]) prodMap[key] = { nombre: key, emoji: pr.emoji, unidades: 0, pedidos: 0 };
+      prodMap[key].unidades += pr.qty;
+      prodMap[key].pedidos  += 1;
+    });
+  });
+
+  var ranking = Object.values(prodMap).sort(function(a,b){ return b.unidades - a.unidades; }).slice(0, 10);
+  var maxU    = ranking.length ? ranking[0].unidades : 1;
+
+  if (!ranking.length) {
+    body.innerHTML = '<div style="text-align:center;padding:16px;color:var(--text3);font-size:12px;">Sin datos de productos</div>';
+    return;
+  }
+
+  body.innerHTML = ranking.map(function(pr, i) {
+    var pct    = Math.round((pr.unidades / maxU) * 100);
+    var pos    = i===0?'🥇':i===1?'🥈':i===2?'🥉':(i+1)+'.';
+    var pedLbl = pr.pedidos === 1 ? '1 pedido' : pr.pedidos + ' pedidos';
+    return '<div class="rep-rank-item">'
+      + '<div class="rep-rank-pos">' + pos + '</div>'
+      + '<div class="rep-rank-info">'
+      +   '<div class="rep-rank-nombre">' + (pr.emoji ? pr.emoji + ' ' : '') + pr.nombre + '</div>'
+      +   '<div class="rep-rank-sub">' + pedLbl + '</div>'
+      + '</div>'
+      + '<div class="rep-rank-right">'
+      +   '<div class="rep-rank-val">×' + pr.unidades + '</div>'
+      +   '<div class="rep-rank-bar-wrap"><div class="rep-rank-bar" style="width:' + pct + '%"></div></div>'
+      + '</div>'
+      + '</div>';
+  }).join('');
+}
+
+// ── POR LOCALIDAD ─────────────────────────────────────────────────
+function renderLocalidades(datos) {
+  var body = document.getElementById('rep-loc-body');
+  if (!body) return;
+
+  var locMap = {};
+  datos.forEach(function(p) {
+    var loc = (p.localidad || '?').trim();
+    if (!locMap[loc]) locMap[loc] = { monto: 0, pedidos: 0, clientes: new Set() };
+    locMap[loc].monto   += parseInt((p.total||'').replace(/[^\d]/g,''))||0;
+    locMap[loc].pedidos += 1;
+    if (p.cliente) locMap[loc].clientes.add(p.cliente.trim().toLowerCase());
+  });
+
+  var locs   = Object.entries(locMap).sort(function(a,b){ return b[1].monto - a[1].monto; }).slice(0, 8);
+  var maxM   = locs.length ? locs[0][1].monto : 1;
+
+  if (!locs.length) {
+    body.innerHTML = '<div style="text-align:center;padding:16px;color:var(--text3);font-size:12px;">Sin datos</div>';
+    return;
+  }
+
+  body.innerHTML = locs.map(function(entry, i) {
+    var loc  = entry[0], d = entry[1];
+    var pct  = Math.round((d.monto / maxM) * 100);
+    var pos  = i===0?'🥇':i===1?'🥈':i===2?'🥉':(i+1)+'.';
+    var fmt  = function(n) { return '$' + Math.round(n).toLocaleString('es-AR'); };
+    var cliN = d.clientes.size;
+    var cliLbl = cliN === 1 ? '1 cliente' : cliN + ' clientes';
+    var pedLbl = d.pedidos === 1 ? '1 pedido' : d.pedidos + ' pedidos';
+    return '<div class="rep-rank-item">'
+      + '<div class="rep-rank-pos">' + pos + '</div>'
+      + '<div class="rep-rank-info">'
+      +   '<div class="rep-rank-nombre">' + loc + '</div>'
+      +   '<div class="rep-rank-sub">' + cliLbl + ' · ' + pedLbl + '</div>'
+      + '</div>'
+      + '<div class="rep-rank-right">'
+      +   '<div class="rep-rank-val">' + fmt(d.monto) + '</div>'
+      +   '<div class="rep-rank-bar-wrap"><div class="rep-rank-bar" style="width:' + pct + '%"></div></div>'
+      + '</div>'
+      + '</div>';
+  }).join('');
 }
 
 
