@@ -771,7 +771,7 @@ function renderBody(){
         +(it.img2
         ? ('<div class="card-img-area" style="position:relative;display:flex;gap:2px;">'+bdg
           +'<img class="card-img card-img-left" src="'
-          +(_imgmap[it.n]||('img/'+encodeURIComponent(it.n+'.jpg').replace(/%25/g,'%').replace(/%2F/g,'/')))
+          +(_imgmap[it.n] ? 'img/'+_imgmap[it.n] : ('img/'+encodeURIComponent(it.n+'.jpg').replace(/%25/g,'%').replace(/%2F/g,'/')))
           +'" alt="'+it.n+'" loading="lazy" decoding="async" style="flex:1;min-width:0;height:160px;object-fit:cover;padding:0;">'
           +'<img class="card-img card-img-right" src="'+it.img2+'" alt="uso" loading="lazy" decoding="async" style="flex:1;min-width:0;height:160px;object-fit:cover;padding:0;">'
           +'</div>'
