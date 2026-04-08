@@ -346,6 +346,93 @@ button,
 
 /* ── FAB MENU (dropdown desde header) ── */
 .fab-contact{display:none;}
+
+/* ── REPETIR PEDIDO FAB ── */
+.rep-fab {
+  position: fixed;
+  bottom: calc(82px + env(safe-area-inset-bottom));
+  right: 16px;
+  z-index: 95;
+  display: none;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0;
+  animation: repFabIn .35s cubic-bezier(.34,1.56,.64,1) both;
+}
+.rep-fab.on { display: flex; }
+@keyframes repFabIn {
+  from { opacity:0; transform:translateY(16px) scale(.88); }
+  to   { opacity:1; transform:translateY(0) scale(1); }
+}
+.rep-fab-card {
+  background: #fff;
+  border: 1.5px solid var(--cream3);
+  border-radius: 16px;
+  box-shadow: 0 6px 24px rgba(0,0,0,.15);
+  padding: 11px 14px;
+  max-width: 220px;
+  margin-bottom: 8px;
+  display: none;
+}
+.rep-fab-card.on { display: block; }
+.rep-fab-card-titulo {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 12px;
+  font-weight: 900;
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: .7px;
+  margin-bottom: 4px;
+}
+.rep-fab-card-items {
+  font-size: 12px;
+  color: var(--text2);
+  line-height: 1.5;
+  margin-bottom: 6px;
+}
+.rep-fab-card-total {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 15px;
+  font-weight: 900;
+  color: var(--red);
+}
+.rep-fab-btn {
+  background: linear-gradient(135deg, var(--red2), var(--red));
+  color: #fff;
+  border: none;
+  border-radius: 50px;
+  padding: 11px 18px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 15px;
+  font-weight: 900;
+  letter-spacing: .3px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  box-shadow: 0 4px 14px rgba(139,0,0,.3);
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  white-space: nowrap;
+}
+.rep-fab-btn:active { opacity: .88; transform: scale(.97); }
+.rep-fab-cerrar {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--text2);
+  color: #fff;
+  border: none;
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  touch-action: manipulation;
+}
 .fab-menu{position:absolute;top:50px;right:10px;z-index:200;display:flex;flex-direction:column;gap:0;opacity:0;pointer-events:none;transform:translateY(-6px);transition:opacity .18s,transform .18s;background:#fff;border-radius:16px;box-shadow:0 6px 24px rgba(0,0,0,.18);overflow:hidden;min-width:230px;}
 .fab-menu.on{opacity:1;pointer-events:all;transform:translateY(0);}
 .fab-menu-header{padding:10px 16px 8px;font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;color:#9C7050;letter-spacing:.8px;text-transform:uppercase;border-bottom:1px solid #F5EDE0;}
@@ -527,6 +614,19 @@ button,
 <button class="btn-wa" id="btn-wa" onclick="sendWA()"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.125.558 4.122 1.532 5.852L.057 23.737a.5.5 0 00.606.606l5.885-1.475A11.945 11.945 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22a9.944 9.944 0 01-5.073-1.386l-.363-.214-3.771.945.963-3.655-.236-.378A9.954 9.954 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg> Enviar pedido</button>
 </div>
 <div class="overlay" id="overlay" onclick="closeDrawer()"></div>
+
+<!-- REPETIR PEDIDO FAB -->
+<div class="rep-fab" id="rep-fab">
+  <div class="rep-fab-card" id="rep-fab-card" style="position:relative;">
+    <button class="rep-fab-cerrar" onclick="cerrarRepFab()" title="Cerrar">✕</button>
+    <div class="rep-fab-card-titulo">🔄 Tu último pedido</div>
+    <div class="rep-fab-card-items" id="rep-fab-items"></div>
+    <div class="rep-fab-card-total" id="rep-fab-total"></div>
+  </div>
+  <button class="rep-fab-btn" id="rep-fab-btn" onclick="toggleRepFabCard()">
+    🔄 <span>Repetir pedido</span>
+  </button>
+</div>
 <div class="drawer" id="drawer"><div class="d-pill"></div>
 <div class="d-hdr"><div><div class="d-title">Tu pedido</div><div class="d-sub" id="d-sub"></div></div><button class="d-x" onclick="closeDrawer()">&#x2715;</button></div>
 <div class="d-body" id="d-body"></div>
@@ -708,6 +808,7 @@ function renderBody(){
 
 function chg(key,si,ii,d){
   qty[key]=Math.max(0,(qty[key]||0)+d);
+  checkRepFabVisibility();
   const q=qty[key]||0;
   const card=document.querySelector('.card[data-key="'+key+'"]');
   if(card){
@@ -764,7 +865,7 @@ function renderDrawer(){
   saveCartLS();
 }
 
-function clearCart(){Object.keys(qty).forEach(k=>delete qty[k]);renderBody();updateBar();renderDrawer();clearCartLS();}
+function clearCart(){Object.keys(qty).forEach(k=>delete qty[k]);renderBody();updateBar();renderDrawer();clearCartLS();mostrarRepFab();}
 
 let holdTimeout=null;
 let holdInterval=null;
@@ -1144,6 +1245,7 @@ function confirmarYEnviarWA() {
 
   // Fire-and-forget: no await, WhatsApp se abre siempre
   saveOrderToSheets(payload);
+  guardarUltimoPedido();  // Guardar para "Repetir pedido"
 
   // ── Abrir WhatsApp ──────────────────────────────────────────
   window.open('https://wa.me/' + vActivo.wa + '?text=' + encodeURIComponent(mensajeCompleto), '_blank');
@@ -1300,6 +1402,7 @@ function clearCartLS() {
 }
 
 cargarPrecios().finally(() => {
+  mostrarRepFab();
   
 
 
@@ -1630,6 +1733,122 @@ document.addEventListener('visibilitychange', function() {
     });
   }
 })();
+</script>
+<script>
+// ── HISTORIAL: ÚLTIMO PEDIDO ─────────────────────────────────────
+const LS_ULTIMO = 'tck_ultimo_pedido';
+
+function guardarUltimoPedido() {
+  try {
+    // Capturar productos actuales del carrito
+    var items = [];
+    var total = 0;
+    CAT.forEach(function(sec, si) {
+      sec.items.forEach(function(it, ii) {
+        var q = qty[si + '-' + ii] || 0;
+        if (q > 0) {
+          items.push({ si: si, ii: ii, nombre: it.n, qty: q, pr: it.pr });
+          total += it.pr * q;
+        }
+      });
+    });
+    if (!items.length) return;
+    localStorage.setItem(LS_ULTIMO, JSON.stringify({ items: items, total: total, fecha: new Date().toISOString() }));
+  } catch(e) {}
+}
+
+function cargarUltimoPedido() {
+  try {
+    var raw = localStorage.getItem(LS_ULTIMO);
+    if (!raw) return;
+    var data = JSON.parse(raw);
+    if (!data.items || !data.items.length) return;
+
+    // Cargar al carrito
+    data.items.forEach(function(it) {
+      var key = it.si + '-' + it.ii;
+      // Verificar que el producto todavía existe en CAT
+      if (CAT[it.si] && CAT[it.si].items[it.ii]) {
+        qty[key] = it.qty;
+      }
+    });
+    renderBody();
+    updateBar();
+    renderDrawer();
+    saveCartLS();
+
+    // Ocultar FAB
+    ocultarRepFab();
+  } catch(e) {}
+}
+
+function mostrarRepFab() {
+  try {
+    var raw = localStorage.getItem(LS_ULTIMO);
+    if (!raw) return;
+    var data = JSON.parse(raw);
+    if (!data.items || !data.items.length) return;
+
+    // No mostrar si ya hay algo en el carrito
+    var { c } = T();
+    if (c > 0) return;
+
+    // Armar preview de items (máx 3)
+    var preview = data.items.slice(0, 3).map(function(it) {
+      return it.nombre + ' ×' + it.qty;
+    }).join('<br>');
+    if (data.items.length > 3) preview += '<br>+' + (data.items.length - 3) + ' más';
+
+    var fmt = function(n) { return '$' + Math.round(n).toLocaleString('es-AR'); };
+
+    document.getElementById('rep-fab-items').innerHTML = preview;
+    document.getElementById('rep-fab-total').textContent = fmt(data.total);
+
+    // Mostrar el FAB con delay suave
+    setTimeout(function() {
+      var fab = document.getElementById('rep-fab');
+      if (fab) fab.classList.add('on');
+    }, 800);
+  } catch(e) {}
+}
+
+function toggleRepFabCard() {
+  var card = document.getElementById('rep-fab-card');
+  if (!card) return;
+  if (card.classList.contains('on')) {
+    // Si la card está abierta, repetir el pedido
+    cargarUltimoPedido();
+  } else {
+    card.classList.add('on');
+    // Cambiar texto del botón
+    var btn = document.getElementById('rep-fab-btn');
+    if (btn) btn.querySelector('span').textContent = 'Cargar al carrito →';
+  }
+}
+
+function cerrarRepFab() {
+  ocultarRepFab();
+  // No volver a mostrar en esta sesión
+  try { sessionStorage.setItem('tck_rep_cerrado', '1'); } catch(e) {}
+}
+
+function ocultarRepFab() {
+  var fab = document.getElementById('rep-fab');
+  if (fab) fab.classList.remove('on');
+}
+
+// Ocultar FAB cuando el carrito tiene items
+function checkRepFabVisibility() {
+  try {
+    if (sessionStorage.getItem('tck_rep_cerrado')) return;
+    var { c } = T();
+    var fab = document.getElementById('rep-fab');
+    if (!fab) return;
+    if (c > 0) {
+      fab.classList.remove('on');
+    }
+  } catch(e) {}
+}
 </script>
 </body>
 </html>
