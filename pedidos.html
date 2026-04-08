@@ -4061,14 +4061,98 @@ function toggleFiltrosAvanzados() {
   if (_filtrosAbiertos) poblarFiltroLoc();
 }
 
+function normalizarLoc(loc) {
+  return (loc||'').trim().toLowerCase()
+    .replace(/[áàä]/g,'a').replace(/[éèë]/g,'e')
+    .replace(/[íìï]/g,'i').replace(/[óòö]/g,'o')
+    .replace(/[úùü]/g,'u').replace(/ñ/g,'n')
+    .replace(/\s+/g,' ');
+}
+
+// Distancia de Levenshtein — cuántos caracteres difieren entre dos strings
+function levenshtein(a, b) {
+  if (a === b) return 0;
+  if (!a.length) return b.length;
+  if (!b.length) return a.length;
+  var matrix = [];
+  for (var i = 0; i <= b.length; i++) matrix[i] = [i];
+  for (var j = 0; j <= a.length; j++) matrix[0][j] = j;
+  for (var i = 1; i <= b.length; i++) {
+    for (var j = 1; j <= a.length; j++) {
+      if (b[i-1] === a[j-1]) {
+        matrix[i][j] = matrix[i-1][j-1];
+      } else {
+        matrix[i][j] = 1 + Math.min(matrix[i-1][j-1], matrix[i-1][j], matrix[i][j-1]);
+      }
+    }
+  }
+  return matrix[b.length][a.length];
+}
+
+// Umbral: si dos localidades normalizadas difieren en ≤ 2 chars → misma localidad
+var LOC_FUZZY_MAX = 2;
+
 function poblarFiltroLoc() {
   var sel = document.getElementById('rep-filtro-loc');
-  if (!sel || sel.options.length > 1) return;
-  var locs = new Set();
-  todosLosPedidos.forEach(function(p) { if (p.localidad) locs.add(p.localidad.trim()); });
-  Array.from(locs).sort().forEach(function(loc) {
+  if (!sel) return;
+  while (sel.options.length > 1) sel.remove(1);
+
+  // 1. Recolectar todas las variantes con frecuencia
+  var variantes = {};
+  todosLosPedidos.forEach(function(p) {
+    if (!p.localidad) return;
+    var raw = p.localidad.trim();
+    if (!raw) return;
+    variantes[raw] = (variantes[raw] || 0) + 1;
+  });
+
+  // 2. Agrupar con fuzzy matching
+  // Para cada variante, buscar si ya existe un grupo "cercano"
+  var grupos = []; // [{canonical, keyNorm, count, variantes:[]}]
+
+  Object.keys(variantes).forEach(function(raw) {
+    var normRaw = normalizarLoc(raw);
+    var freq    = variantes[raw];
+
+    // Buscar grupo existente con distancia ≤ LOC_FUZZY_MAX
+    var encontrado = null;
+    for (var i = 0; i < grupos.length; i++) {
+      if (levenshtein(normRaw, grupos[i].keyNorm) <= LOC_FUZZY_MAX) {
+        encontrado = grupos[i];
+        break;
+      }
+    }
+
+    if (encontrado) {
+      encontrado.count += freq;
+      encontrado.variantes.push({ raw: raw, freq: freq });
+      // Si esta variante es más frecuente, usarla como canonical
+      if (freq > encontrado.topFreq) {
+        encontrado.canonical = raw;
+        encontrado.topFreq   = freq;
+      }
+    } else {
+      grupos.push({
+        canonical: raw,
+        keyNorm:   normRaw,
+        count:     freq,
+        topFreq:   freq,
+        variantes: [{ raw: raw, freq: freq }]
+      });
+    }
+  });
+
+  // 3. Ordenar grupos alfabéticamente por canonical
+  grupos.sort(function(a,b) {
+    return normalizarLoc(a.canonical).localeCompare(normalizarLoc(b.canonical));
+  });
+
+  // 4. Construir select — value = todas las variantes del grupo (para filtrar)
+  grupos.forEach(function(g) {
     var opt = document.createElement('option');
-    opt.value = loc; opt.textContent = loc;
+    // Guardamos las variantes en data-variantes para usarlas al filtrar
+    opt.value = g.variantes.map(function(v){ return v.raw; }).join('|||');
+    opt.textContent = g.canonical + (g.variantes.length > 1 ? ' (' + g.count + ')' : '');
     sel.appendChild(opt);
   });
 }
@@ -4081,8 +4165,10 @@ function getRepDatosFiltrados() {
   // Filtro localidad
   var loc = document.getElementById('rep-filtro-loc');
   if (loc && loc.value) {
+    // value contiene todas las variantes separadas por |||
+    var locVariantes = loc.value.split('|||');
     datos = datos.filter(function(p) {
-      return (p.localidad||'').trim() === loc.value;
+      return locVariantes.indexOf((p.localidad||'').trim()) !== -1;
     });
   }
 
