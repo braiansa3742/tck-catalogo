@@ -4730,14 +4730,30 @@ function xubioRenderDropdown(clientes, id, pedidoId) {
     drop.classList.add('on');
     return;
   }
-  drop.innerHTML = clientes.map(function(c) {
-    return '<div class="xubio-dropdown-item" onclick="xubioSeleccionarCliente(\'' + pedidoId + '\',\'' + id + '\',' + JSON.stringify(c).replace(/'/g, "\\'") + ')">'
+
+  // Guardar lista en variable global — evita pasar JSON en onclick
+  if (!window._xubioDropData) window._xubioDropData = {};
+  window._xubioDropData[id] = clientes;
+
+  drop.innerHTML = clientes.map(function(c, idx) {
+    var meta = '';
+    if (c.cuit)      meta += 'CUIT: ' + c.cuit;
+    if (c.localidad) meta += (meta ? ' · ' : '') + c.localidad;
+    if (!meta)       meta  = 'ID Xubio: ' + c.id;
+    return '<div class="xubio-dropdown-item" onclick="xubioSeleccionarPorIdx('' + pedidoId + '','' + id + '',' + idx + ')" style="cursor:pointer;">'
       + '<div class="xubio-dropdown-nombre">' + c.nombre + '</div>'
-      + '<div class="xubio-dropdown-meta">' + (c.cuit ? 'CUIT: ' + c.cuit + ' · ' : '') + (c.localidad||'') + '</div>'
+      + '<div class="xubio-dropdown-meta">' + meta + '</div>'
       + '</div>';
   }).join('');
   drop.classList.add('on');
 }
+
+function xubioSeleccionarPorIdx(pedidoId, id, idx) {
+  var clientes = window._xubioDropData && window._xubioDropData[id];
+  if (!clientes || !clientes[idx]) return;
+  xubioSeleccionarCliente(pedidoId, id, clientes[idx]);
+}
+
 
 function xubioAbrirDropdown(id) {
   // Cerrar otros dropdowns abiertos
