@@ -3076,6 +3076,10 @@ function renderCard(p) {
       '<div class="pedido-acciones">' + btns + '</div>' +
       buildXubioPanel(p, id) +
       '<div class="nota-wrap">' +
+        '<div style="display:flex;gap:8px;margin-bottom:8px;align-items:center;">' +
+          '<span style="font-size:14px;flex-shrink:0;">📞</span>' +
+          '<input class="nota-input" style="flex:1;height:38px;font-size:13px;" id="tel-' + id + '" type="tel" inputmode="numeric" placeholder="Teléfono del cliente (opcional)" value="' + (p.telCliente||'') + '" onblur="guardarTelCliente(\'' + p.pedidoId + '\')">' +
+        '</div>' +
         '<textarea class="nota-input" id="nota-' + id + '" placeholder="📝 Nota interna..." onblur="guardarNota(\'' + p.pedidoId + '\')">' + (p.nota||'') + '</textarea>' +
         '<div class="nota-guardada" id="nota-ok-' + id + '">✅ Guardado</div>' +
       '</div>' +
@@ -3102,6 +3106,31 @@ function guardarRemito(pedidoId) {
   } catch(e) {}
 }
 
+function guardarTelCliente(pedidoId) {
+  var id  = pedidoId.replace(/[^a-zA-Z0-9]/g,'-');
+  var el  = document.getElementById('tel-'+id);
+  if (!el) return;
+  var tel = el.value.trim().replace(/\D/g,'');
+  if (!tel) return;
+  try {
+    localStorage.setItem('tck_tel_'+pedidoId, tel);
+    var p = todosLosPedidos.find(function(x){return x.pedidoId===pedidoId;});
+    if (p) p.telCliente = tel;
+    // Guardar en Apps Script → hoja Clientes
+    var params = new URLSearchParams({
+      accion:    'guardarTelefonoDesdePanel',
+      cliente:   p ? (p.cliente||'') : '',
+      comercio:  p ? (p.comercio||'') : '',
+      localidad: p ? (p.localidad||'') : '',
+      telefono:  tel,
+      vendedor:  vendedorActual || ''
+    });
+    fetch(APPS_SCRIPT_URL + '?' + params.toString()).catch(function(){});
+    var ok = document.getElementById('nota-ok-'+id);
+    if (ok) { ok.style.display='block'; ok.textContent='✅ Tel. guardado'; setTimeout(function(){ok.style.display='none'; ok.textContent='✅ Guardado';},2000); }
+  } catch(e) {}
+}
+
 function guardarNota(pedidoId) {
   var id = pedidoId.replace(/[^a-zA-Z0-9]/g,'-');
   var el = document.getElementById('nota-'+id);
@@ -3117,8 +3146,9 @@ function guardarNota(pedidoId) {
 
 function cargarNotas(pedidos) {
   pedidos.forEach(function(p) {
-    try { p.nota = localStorage.getItem('tck_nota_'+p.pedidoId)||''; } catch(e) { p.nota=''; }
-    try { p.remito = localStorage.getItem('tck_remito_'+p.pedidoId)||''; } catch(e) { p.remito=''; }
+    try { p.nota      = localStorage.getItem('tck_nota_'+p.pedidoId)||''; }   catch(e) { p.nota=''; }
+    try { p.remito    = localStorage.getItem('tck_remito_'+p.pedidoId)||''; } catch(e) { p.remito=''; }
+    try { p.telCliente= localStorage.getItem('tck_tel_'+p.pedidoId)||''; }    catch(e) { p.telCliente=''; }
   });
 }
 
@@ -4032,6 +4062,90 @@ function renderLocalidades(datos) {
 }
 
 
+// ── NORMALIZACIÓN Y FUZZY MATCHING DE CLIENTES ───────────────────
+function normalizarNombre(n) {
+  return (n||'').trim().toLowerCase()
+    .replace(/[áàä]/g,'a').replace(/[éèë]/g,'e')
+    .replace(/[íìï]/g,'i').replace(/[óòö]/g,'o')
+    .replace(/[úùü]/g,'u').replace(/ñ/g,'n')
+    .replace(/\s+/g,' ');
+}
+
+function levenshteinCli(a, b) {
+  if (a === b) return 0;
+  if (!a.length) return b.length;
+  if (!b.length) return a.length;
+  var matrix = [];
+  for (var i = 0; i <= b.length; i++) matrix[i] = [i];
+  for (var j = 0; j <= a.length; j++) matrix[0][j] = j;
+  for (var i = 1; i <= b.length; i++) {
+    for (var j = 1; j <= a.length; j++) {
+      matrix[i][j] = b[i-1] === a[j-1]
+        ? matrix[i-1][j-1]
+        : 1 + Math.min(matrix[i-1][j-1], matrix[i-1][j], matrix[i][j-1]);
+    }
+  }
+  return matrix[b.length][a.length];
+}
+
+// Agrupar pedidos por cliente usando fuzzy matching
+// Retorna map: clave_normalizada → { nombre, monto, pedidos, fechas, telCliente }
+function agruparClientesFuzzy(pedidos) {
+  var grupos = []; // [{keyNorm, canonical, monto, pedidos, fechas, tel}]
+
+  pedidos.forEach(function(p) {
+    if (!p.cliente) return;
+    var raw      = p.cliente.trim();
+    var normRaw  = normalizarNombre(raw);
+    var tel      = p.telCliente || '';
+    var monto    = parseInt((p.total||'').replace(/[^\d]/g,''))||0;
+    var fecha    = fechaPedido(p);
+
+    // Buscar grupo existente
+    var encontrado = null;
+
+    // 1. Match por teléfono (más confiable)
+    if (tel) {
+      for (var i = 0; i < grupos.length; i++) {
+        if (grupos[i].tel && grupos[i].tel === tel) { encontrado = grupos[i]; break; }
+      }
+    }
+
+    // 2. Fuzzy match por nombre (umbral ≤ 2)
+    if (!encontrado) {
+      for (var i = 0; i < grupos.length; i++) {
+        if (levenshteinCli(normRaw, grupos[i].keyNorm) <= 2) { encontrado = grupos[i]; break; }
+      }
+    }
+
+    if (encontrado) {
+      encontrado.monto   += monto;
+      encontrado.pedidos += 1;
+      encontrado.fechas.push(fecha);
+      if (tel && !encontrado.tel) encontrado.tel = tel;
+      // Usar el nombre más largo como canonical (suele ser el más completo)
+      if (raw.length > encontrado.canonical.length) {
+        encontrado.canonical = raw;
+        encontrado.keyNorm   = normalizarNombre(raw);
+      }
+    } else {
+      grupos.push({
+        canonical: raw,
+        keyNorm:   normRaw,
+        monto:     monto,
+        pedidos:   1,
+        fechas:    [fecha],
+        tel:       tel,
+        comercio:  p.comercio || '',
+        localidad: p.localidad || '',
+        vendedor:  p.vendedor  || ''
+      });
+    }
+  });
+
+  return grupos;
+}
+
 // ── CONSTANTES DE ALERTAS ─────────────────────────────────────────
 var ALERTA_CAIDA_PCT  = 30;   // % de caída para alertar
 var ALERTA_INACT_DIAS = 7;    // días sin comprar = inactivo
@@ -4351,17 +4465,10 @@ function renderClientes_rep(datos) {
   }
 
   var hoy = new Date(); hoy.setHours(0,0,0,0);
-  var cliMap = {};
-  datos.forEach(function(p) {
-    var key = (p.cliente||'').trim().toLowerCase();
-    if (!key) return;
-    if (!cliMap[key]) cliMap[key] = { nombre: p.cliente, comercio: p.comercio, localidad: p.localidad, monto: 0, pedidos: 0, fechas: [] };
-    cliMap[key].monto   += parseInt((p.total||'').replace(/[^\d]/g,''))||0;
-    cliMap[key].pedidos += 1;
-    cliMap[key].fechas.push(fechaPedido(p));
-  });
+  var grupos = agruparClientesFuzzy(datos);
 
-  var clientes = Object.values(cliMap).map(function(c) {
+  var clientes = grupos.map(function(c) {
+    c.nombre = c.canonical;
     c.ticket = c.pedidos ? Math.round(c.monto / c.pedidos) : 0;
     c.ultimaFecha = c.fechas.length ? new Date(Math.max.apply(null, c.fechas)) : null;
     c.diasInact   = c.ultimaFecha ? Math.floor((hoy - c.ultimaFecha) / 86400000) : 999;
@@ -4421,8 +4528,8 @@ function renderInactivos_rep() {
   if (!body) return;
 
   var hoy = new Date(); hoy.setHours(0,0,0,0);
-  var cliMap = {};
-  var todos  = todosLosPedidos.filter(function(p) { return p.estado !== 'Cancelado'; });
+  var hoy2 = new Date(); hoy2.setHours(0,0,0,0);
+  var todos = todosLosPedidos.filter(function(p) { return p.estado !== 'Cancelado'; });
 
   if (vendedorActual !== 'ADMIN') {
     todos = todos.filter(function(p) {
@@ -4434,18 +4541,14 @@ function renderInactivos_rep() {
     });
   }
 
-  todos.forEach(function(p) {
-    var key = (p.cliente||'').trim().toLowerCase();
-    if (!key) return;
-    var f = fechaPedido(p);
-    if (!cliMap[key]) cliMap[key] = { nombre: p.cliente, localidad: p.localidad, comercio: p.comercio, monto: 0, pedidos: 0, ultima: f };
-    cliMap[key].monto   += parseInt((p.total||'').replace(/[^\d]/g,''))||0;
-    cliMap[key].pedidos += 1;
-    if (f > cliMap[key].ultima) cliMap[key].ultima = f;
+  var grupos2 = agruparClientesFuzzy(todos);
+  grupos2.forEach(function(c) {
+    var ultima = c.fechas.length ? new Date(Math.max.apply(null,c.fechas)) : new Date(0);
+    c.ultima = ultima;
   });
 
-  var inactivos = Object.values(cliMap)
-    .map(function(c) { c.dias = Math.floor((hoy - c.ultima) / 86400000); return c; })
+  var inactivos = grupos2
+    .map(function(c) { c.dias = Math.floor((hoy2 - c.ultima) / 86400000); return c; })
     .filter(function(c) { return c.dias >= ALERTA_INACT_DIAS; })
     .sort(function(a,b) { return b.dias - a.dias; })
     .slice(0, 10);
