@@ -4789,8 +4789,10 @@ function xubioSeleccionarCliente(pedidoId, id, cliente) {
   // Mostrar cliente seleccionado
   var sel = document.getElementById('xubio-sel-' + id);
   if (sel) {
-    sel.innerHTML = '<div><div class="xubio-cliente-sel-nombre">' + cliente.nombre + '</div>'
-      + '<div class="xubio-cliente-sel-meta">' + (cliente.cuit ? 'CUIT: ' + cliente.cuit : '') + '</div></div>'
+    var nomDisplay  = cliente.nombre || cliente.razonSocial || '(sin nombre)';
+    var metaDisplay = cliente.cuit ? ('CUIT: ' + cliente.cuit) : ('ID: ' + (cliente.id || cliente.cliente_id || '?'));
+    sel.innerHTML = '<div><div class="xubio-cliente-sel-nombre">' + nomDisplay + '</div>'
+      + '<div class="xubio-cliente-sel-meta">' + metaDisplay + '</div></div>'
       + '<button class="xubio-cliente-clear" onclick="xubioLimpiarCliente(\'' + pedidoId + '\',\'' + id + '\')">✕</button>';
     sel.classList.add('on');
   }
