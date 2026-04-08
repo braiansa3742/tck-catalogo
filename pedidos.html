@@ -2920,7 +2920,8 @@ function actualizarTitle() {
 }
 
 function actualizarStats() {
-  var mis = pedidosVisibles();
+  // Los stats siempre muestran los pedidos del filtro activo (no todos)
+  var mis = pedidosFiltrados();
   var activos = mis.filter(function(p){return p.estado!=='Cancelado';});
   var total = activos.reduce(function(acc,p){
     var n = parseInt((p.total||'0').replace(/[^\d]/g,''));
@@ -2928,9 +2929,9 @@ function actualizarStats() {
   }, 0);
   document.getElementById('stat-total').textContent = activos.length;
   document.getElementById('stat-monto').textContent = '$' + total.toLocaleString('es-AR');
-  document.getElementById('stat-pend').textContent = mis.filter(function(p){return p.estado==='Pendiente';}).length;
-  document.getElementById('stat-conf').textContent = mis.filter(function(p){return p.estado==='Confirmado';}).length;
-  document.getElementById('stat-entregado').textContent = mis.filter(function(p){return p.estado==='Entregado';}).length;
+  document.getElementById('stat-pend').textContent = activos.filter(function(p){return p.estado==='Pendiente';}).length;
+  document.getElementById('stat-conf').textContent = activos.filter(function(p){return p.estado==='Confirmado';}).length;
+  document.getElementById('stat-entregado').textContent = activos.filter(function(p){return p.estado==='Entregado';}).length;
 }
 
 function pedidosVisibles() {
