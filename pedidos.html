@@ -2817,6 +2817,8 @@ async function cargarPedidos(silencioso) {
     for (var i = 1; i < lines.length; i++) {
       var cols = parseCsv(lines[i]);
       if (!cols[0] || limpiar(cols[0]) === '') continue;
+      // Saltar filas separadoras (no tienen formato TCK-YYYYMMDD-...)
+      if (!/^TCK-\d{8}-/.test(limpiar(cols[0]))) continue;
       pedidos.push({
         pedidoId:  limpiar(cols[0]),
         fechaHora: limpiar(cols[1]),
