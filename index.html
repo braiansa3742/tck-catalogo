@@ -110,6 +110,40 @@ button,
 .sec-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:12px 10px 16px;background:var(--cream)}
 
 /* === CARDS — réplica del PDF === */
+.card-sinstock {
+  position: relative;
+  pointer-events: none;
+}
+.card-sinstock .card-img,
+.card-sinstock .card-img-left,
+.card-sinstock .card-img-right {
+  filter: grayscale(80%) brightness(0.65);
+}
+.card-sinstock .card-body {
+  opacity: .55;
+}
+.badge-sinstock {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  background: rgba(30,30,30,.82);
+  color: #fff;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: .8px;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border-radius: 20px;
+  z-index: 5;
+  backdrop-filter: blur(2px);
+  pointer-events: none;
+}
+.card-sinstock .qty-ctrl,
+.card-sinstock .qty-btn,
+.card-sinstock .qty-add {
+  display: none !important;
+}
 .card{background:#fff;border-radius:10px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 1px 3px rgba(0,0,0,.08),0 3px 10px rgba(0,0,0,.06);position:relative;border:2.5px solid transparent;box-sizing:border-box}
 .card.shaddai{border:2px solid var(--gold2)}
 .card.has-qty{border-color:var(--red3)}
@@ -707,6 +741,27 @@ const _imgmap = {
 
 <script>
 const VEND=[{"nombre": "Miguel", "wa": "5492392449725"}, {"nombre": "Juan", "wa": "5492392458941"}, {"nombre": "Lisandro", "wa": "5492392548046"}];
+// ── STOCK ─────────────────────────────────────────────────────────
+// Para ocultar: agregar nombre exacto a OCULTOS
+// Para marcar sin stock: agregar nombre exacto a SIN_STOCK
+const OCULTOS = new Set([
+  'Papas Noisette'
+]);
+
+const SIN_STOCK = new Set([
+  'MDM - Carne Molida de Pollo',
+  'Suprema',
+  'Suprema IQF',
+  'Cuarto Trasero IQF',
+  'Filet de Merluza Rebozado',
+  'Filet Merluza Finas Hierbas',
+  'Alita Congelada Granel',
+  'Pollo Optimo',
+  'Pollo Ginosa',
+  'Nuggets de Pollo Crocante',
+  'Bocadito de Papa y Jamon'
+]);
+
 const CAT=[{"id": "pollos", "sec": "POLLOS CONGELADOS", "col1": "#B71C1C", "col2": "#7B0000", "shaddai": false, "items": [{"n": "Pollo Ginosa", "p": "x 20 Kg", "pr": 86000, "img": "pollo_ginosa", "badge": "POLLO PREMIUM", "badge_tipo": "gold", "pu": "&#x2248;$4,300 / kg"}, {"n": "Pollo Optimo", "p": "x 20 Kg", "pr": 72000, "img": "pollo_optimo", "badge": "&#x2605; MAS PEDIDO", "badge_tipo": "red", "pu": "&#x2248;$3,600 / kg"}, {"n": "Suprema", "p": "x 5 Kg", "pr": 33000, "img": "supremas_bolsa", "badge": "&#x2605; MAS PEDIDO", "badge_tipo": "red", "pu": "&#x2248;$6,600 / kg"}, {"n": "Suprema IQF", "p": "x 15 Kg", "pr": 102000, "img": "suprema_iqf", "pu": "&#x2248;$6,800 / kg"}]}, {"id": "trozados", "sec": "TROZADOS", "col1": "#6D2C00", "col2": "#3B1500", "shaddai": false, "items": [{"n": "Fino de Ave Cocida", "p": "Cocida y desmenuzada · x 10 Kg", "pr": 62400, "img2": "img/empanada mordida.png", "pu": "&#x2248;$6,240 / kg", "badge": "&#x2605; NUEVO", "badge_tipo": "red"}, {"n": "Alita Congelada Granel", "p": "x 15 Kg", "pr": 44000, "img": "alas", "pu": "&#x2248;$2,933 / kg"}, {"n": "MDM - Carne Molida de Pollo", "p": "Ideal relleno empanadas · x 20 Kg", "pr": 34000, "img": "mdm", "badge": "&#x25BC; OPORTUNIDAD", "badge_tipo": "oport", "pu": "&#x2248;$1,700 / kg"}, {"n": "Cuarto Trasero IQF", "p": "x 15 Kg", "pr": 53000, "img": "patamuslo", "badge": "&#x2605; MAS PEDIDO", "badge_tipo": "red", "pu": "&#x2248;$3,533 / kg"}]}, {"id": "shaddai", "sec": "REBOZADOS EL SHADDAI", "col1": "#922B21", "col2": "#5C1A14", "shaddai": true, "items": [{"n": "Medallon de Pollo Clasico", "p": "x 6 Kg", "pr": 28500, "img": "medallon_clasico_v2", "pu": "&#x2248;$4,750 / kg"}, {"n": "Medallon Pollo c/Cheddar", "p": "x 6 Kg", "pr": 47800, "img": "medallon_cheddar_v2", "pu": "&#x2248;$7,967 / kg"}, {"n": "Medallon Pollo JyQ", "p": "x 6 Kg", "pr": 33500, "img": "medallon_jyq_v2", "pu": "&#x2248;$5,583 / kg"}, {"n": "Medallon Pollo y Espinaca", "p": "x 6 Kg", "pr": 33000, "img": "medallon_espinaca_v2", "pu": "&#x2248;$5,500 / kg"}, {"n": "Formita Clasica", "p": "x 6 Kg", "pr": 28500, "img": "formita_clasica_v2", "pu": "&#x2248;$4,750 / kg"}, {"n": "Formitas Pollo JyQ", "p": "x 6 Kg", "pr": 33500, "img": "formita_jyq_v2", "pu": "&#x2248;$5,583 / kg"}, {"n": "Nuggets de Pollo Crocante", "p": "x 6 Kg", "pr": 34500, "img": "nuggets_v2", "pu": "&#x2248;$5,750 / kg"}, {"n": "Bocadito de Papa y Jamon", "p": "x 6 Kg", "pr": 29000, "img": "bocadito_v2", "pu": "&#x2248;$4,833 / kg"}, {"n": "Pechuguitas al Verdeo", "p": "x 6 Kg", "pr": 45500, "img": "pechuguitas_v2", "pu": "&#x2248;$7,583 / kg"}, {"n": "Filet Merluza Finas Hierbas", "p": "x 6 Kg", "pr": 45600, "img": "merluza_hierbas_v2", "pu": "&#x2248;$7,600 / kg"}, {"n": "Filet de Merluza Rebozado", "p": "x 6 Kg", "pr": 43700, "img": "merluza_rebozado", "pu": "&#x2248;$7,283 / kg"}, {"n": "Filet Merluza a Granel", "p": "Rupes Gelida · x 10 Kg", "pr": 80500, "img": "merluza_granel_v2", "pu": "&#x2248;$8,050 / kg"}]}, {"id": "mila", "sec": "MILANESAS Y HAMBURGUESAS", "col1": "#7B241C", "col2": "#4A1510", "shaddai": false, "items": [{"n": "Milanesa de Nalga", "p": "x 5 Kg", "pr": 68000, "img": "milanesa_nalga_v2", "pu": "&#x2248;$13,600 / kg"}, {"n": "Milanesa de Pollo", "p": "x 5 Kg", "pr": 40500, "img": "milanesa_pollo_v2", "pu": "&#x2248;$5,300 / kg"}, {"n": "Hamburguesa 100% Carne", "p": "x 4 Kg (100g c/u)", "pr": 46600, "img": "hamburguesa_carne", "pu": "&#x2248;$1,165 / unidad"}]}, {"id": "papas_mccain", "sec": "PAPAS McCAIN", "col1": "#BA4A00", "col2": "#7A3000", "shaddai": false, "items": [{"n": "Papas Noisette", "p": "Bolsa 2,5 Kg / Caja 6x2Kg", "pr": 11531, "img": "papa_noisette", "pu": "&#x2248;$4,612 / kg"}, {"n": "Pulpa de Palta", "p": "Pickers by McCain · x 450 Grs", "pr": 12200, "img": "pulpa_palta", "pu": ""}]}, {"id": "papas_balcarce", "sec": "PAPAS BALCARCE", "col1": "#D4870A", "col2": "#8C5500", "shaddai": false, "items": [{"n": "Papa Baston Balcarce", "p": "x 2,5 Kg", "pr": 8000, "img": "papa_baston", "badge": "&#x2605; MAS PEDIDO", "badge_tipo": "red", "pu": "&#x2248;$3,200 / kg"}]}, {"id": "huevos", "sec": "HUEVOS", "col1": "#D4A000", "col2": "#8B6500", "shaddai": false, "items": [{"n": "Maple N° 2", "p": "30 unidades", "pr": 4800, "img": "huevos_maple", "pu": ""}, {"n": "Maple N° 3", "p": "30 unidades", "pr": 3600, "img": "huevos_maple", "pu": ""}, {"n": "Cajita 1/2 Docena N° 2", "p": "6 unidades", "pr": 1350, "img": "huevos_cajita", "pu": ""}, {"n": "Cajita 1/2 Docena N° 3", "p": "6 unidades", "pr": 1250, "img": "huevos_cajita", "pu": ""}]}, {"id": "verd", "sec": "VERDURAS CONGELADAS", "col1": "#1E8449", "col2": "#0E4D29", "shaddai": false, "items": [{"n": "Arándanos Solimeno", "p": "500 Grs", "pr": 9000, "img": "arandanos", "pu": ""}, {"n": "Brocoli", "p": "500 Grs", "pr": 5800, "img": "brocoli", "pu": ""}, {"n": "Espinacas", "p": "500 Grs", "pr": 4000, "img": "espinaca", "pu": ""}, {"n": "Morron", "p": "500 Grs", "pr": 7000, "img": "morron", "pu": ""}, {"n": "Primavera", "p": "500 Grs", "pr": 5000, "img": "primavera", "pu": ""}, {"n": "Frutos Rojos", "p": "500 Grs", "pr": 11000, "img": "frutos_rojos", "pu": ""}, {"n": "Cebolla", "p": "500 Grs", "pr": 4000, "img": "cebolla", "pu": ""}]}, {"id": "pastas", "sec": "PASTAS LA CASERIANA", "col1": "#1A5276", "col2": "#0D2B3E", "shaddai": false, "items": [{"n": "Ravioles de Calabaza", "p": "500 Grs", "pr": 2700, "img": "ravioles", "pu": ""}, {"n": "Raviolones Espinaca y Mozz", "p": "Masa Integral · 500 Grs", "pr": 3900, "img": "ravioles", "pu": ""}, {"n": "Gnoquis de Papa", "p": "500 Grs", "pr": 2100, "img": "gnoquis", "pu": ""}, {"n": "Gnoquis de Espinaca", "p": "500 Grs", "pr": 2100, "img": "gnoquis_espinaca", "pu": ""}, {"n": "Sorrentinos Jamon y Queso", "p": "500 Grs", "pr": 4200, "img": "sorrentinos", "pu": ""}, {"n": "Sorrentinos Ricota 4 Quesos", "p": "400 Grs", "pr": 2600, "img": "sorrentinos", "pu": ""}]}, {"id": "veggie", "sec": "VEGGIE LA CASERIANA", "col1": "#4A7C35", "col2": "#2A4D1A", "shaddai": false, "items": [{"n": "Hamburguesa de Garbanzos", "p": "x 400 g", "pr": 4200, "img": "veggie_garbanzos", "pu": "&#x2248;$1.050 / unidad"}, {"n": "Hamburguesa de Lentejas", "p": "x 400 g", "pr": 4200, "img": "veggie_lentejas", "pu": "&#x2248;$1.050 / unidad"}, {"n": "Hamburguesa de Quinoa", "p": "x 400 g", "pr": 4200, "img": "veggie_quinoa", "pu": "&#x2248;$1.050 / unidad"}, {"n": "Hamburguesa de Arvejas", "p": "x 400 g", "pr": 4200, "img": "arvejas", "pu": "&#x2248;$1.050 / unidad"}, {"n": "Hamburguesa de Hongos", "p": "x 400 g", "pr": 4200, "img": "veggie_hongos", "pu": "&#x2248;$1.050 / unidad"}, {"n": "Hamburguesa de Espinaca", "p": "x 400 g", "pr": 4200, "img": "veggie_espinaca", "pu": "&#x2248;$1.050 / unidad"}, {"n": "Hamburguesa Mexicana", "p": "x 400 g", "pr": 4200, "img": "veggie_mexicana", "pu": "&#x2248;$1.050 / unidad"}, {"n": "Hamburguesa 5 Vegetales", "p": "x 400 g", "pr": 4200, "img": "veggie_5veg", "pu": "&#x2248;$1.050 / unidad"}]}];
 
 const qty={};
@@ -763,13 +818,17 @@ function jump(id,btn){
 function renderBody(){
   document.getElementById('body').innerHTML=CAT.map((sec,si)=>{
     const items=sec.items.map((it,ii)=>{
+      // Ocultar productos sin stock temporal
+      if (OCULTOS.has(it.n)) return '';
       const key=si+'-'+ii; const q=qty[key]||0;
+      const sinStock = SIN_STOCK.has(it.n);
       const bdg=it.badge?('<div class="card-badge-wrap"><div class="badge-'+(it.badge_tipo||'red')+'">'+it.badge+'</div></div>'):'';
+      const bdgSinStock = sinStock ? '<div class="badge-sinstock">Sin stock</div>' : '';
       const pkg=it.pu?('<div class="card-pkg">'+it.pu+'</div>'):'<div class="card-pkg hidden">-</div>';
       const qsub=q>0?'<div class="qsub">'+fmt(it.pr*q)+'</div>':'';
-      return '<div class="card'+(it.img2?' card-dual':'')+( sec.shaddai?' shaddai':'')+(q>0?' has-qty':'')+'" data-key="'+key+'">'
+      return '<div class="card'+(it.img2?' card-dual':'')+( sec.shaddai?' shaddai':'')+(q>0?' has-qty':'')+(sinStock?' card-sinstock':'')+'" data-key="'+key+'">'
         +(it.img2
-        ? ('<div class="card-img-area" style="position:relative;display:flex;gap:2px;">'+bdg
+        ? ('<div class="card-img-area" style="position:relative;display:flex;gap:2px;">'+bdgSinStock+bdg
           +'<img class="card-img card-img-left" src="'
           +(_imgmap[it.n] ? 'img/'+_imgmap[it.n] : ('img/'+encodeURIComponent(it.n+'.jpg').replace(/%25/g,'%').replace(/%2F/g,'/')))
           +'" alt="'+it.n+'" loading="lazy" decoding="async" style="flex:1;min-width:0;height:160px;object-fit:cover;padding:0;">'
@@ -777,7 +836,7 @@ function renderBody(){
           +'</div>'
           +'<div style="display:flex;gap:2px;padding:2px 4px 0;"><div style="flex:1;font-size:9px;color:var(--text3);text-align:center;font-style:italic;">Producto</div><div style="flex:1;font-size:9px;color:var(--text3);text-align:center;font-style:italic;">Uso ideal</div></div>'
           +'<div class="card-sep"></div>')
-        : ('<div class="card-img-area">'+bdg
+        : ('<div class="card-img-area">'+bdgSinStock+bdg
           +'<img class="card-img" src="img/'+encodeURIComponent(_imgmap[it.n]||it.n+'.jpg').replace(/%25/g,'%').replace(/%2F/g,'/')+'" alt="'+it.n+'" loading="lazy" decoding="async">'
           +'</div><div class="card-sep"></div>'))
         +'<div class="card-body">'
