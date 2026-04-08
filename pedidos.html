@@ -884,6 +884,24 @@ body {
   align-items: center;
   justify-content: space-between;
 }
+.rep-vend-filtro {
+  padding: 8px 16px 9px;
+  border-bottom: 1.5px solid var(--cream2);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--cream2);
+}
+.rep-vend-filtro-label {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
 .rep-card-titulo {
   font-family: 'Barlow Condensed', sans-serif;
   font-size: 13px;
@@ -2040,6 +2058,16 @@ input[type="date"] {
             <button class="rep-periodo-btn on" onclick="setRepPeriodo('semana',this)">Semana</button>
             <button class="rep-periodo-btn" onclick="setRepPeriodo('mes',this)">Mes</button>
             <button class="rep-periodo-btn" onclick="setRepPeriodo('todos',this)">Todo</button>
+          </div>
+        </div>
+        <!-- Filtro vendedor — solo Admin, se muestra/oculta con JS -->
+        <div class="rep-vend-filtro" id="rep-vend-filtro" style="display:none;">
+          <div class="rep-vend-filtro-label">👤 Vendedor</div>
+          <div class="rep-periodo-btns" id="rep-vend-filtro-btns">
+            <button class="rep-periodo-btn on" onclick="setRepVendedor('todos',this)">Todos</button>
+            <button class="rep-periodo-btn" onclick="setRepVendedor('Miguel',this)">Miguel</button>
+            <button class="rep-periodo-btn" onclick="setRepVendedor('Juan',this)">Juan</button>
+            <button class="rep-periodo-btn" onclick="setRepVendedor('Lisandro',this)">Lisandro</button>
           </div>
         </div>
         <div class="rep-card-body">
@@ -3436,11 +3464,20 @@ function checkPrimeraVez() {
 
 
 // ── SECCIÓN REPORTES ──────────────────────────────────────────────
-var _repPeriodo = 'semana';
+var _repPeriodo  = 'semana';
+var _repVendedor = 'todos';
 
 function setRepPeriodo(periodo, btn) {
   _repPeriodo = periodo;
-  document.querySelectorAll('.rep-periodo-btn').forEach(function(b) { b.classList.remove('on'); });
+  // Only reset buttons inside rep-periodo-btns (not the vendor filter)
+  document.querySelectorAll('#rep-periodo-btns .rep-periodo-btn').forEach(function(b) { b.classList.remove('on'); });
+  if (btn) btn.classList.add('on');
+  renderReportes();
+}
+
+function setRepVendedor(vendedor, btn) {
+  _repVendedor = vendedor;
+  document.querySelectorAll('#rep-vend-filtro-btns .rep-periodo-btn').forEach(function(b) { b.classList.remove('on'); });
   if (btn) btn.classList.add('on');
   renderReportes();
 }
@@ -3449,10 +3486,16 @@ function getRepDatos(periodo) {
   // Usa todosLosPedidos para tener histórico completo
   var todos = todosLosPedidos.filter(function(p) { return p.estado !== 'Cancelado'; });
 
-  // Filtrar por vendedor si no es admin
+  // Filtrar por vendedor
   if (vendedorActual !== 'ADMIN') {
+    // Vendedor normal — siempre ve solo lo suyo
     todos = todos.filter(function(p) {
       return p.vendedor && p.vendedor.toLowerCase().includes(vendedorActual.toLowerCase());
+    });
+  } else if (_repVendedor !== 'todos') {
+    // Admin con filtro activo
+    todos = todos.filter(function(p) {
+      return p.vendedor && p.vendedor.toLowerCase().includes(_repVendedor.toLowerCase());
     });
   }
 
@@ -3475,6 +3518,17 @@ function renderReportes() {
   var datos = getRepDatos(_repPeriodo);
   var esAdmin = vendedorActual === 'ADMIN';
 
+  // ── Mostrar/ocultar filtro de vendedor ───────────────────────
+  var filtroEl = document.getElementById('rep-vend-filtro');
+  if (filtroEl) filtroEl.style.display = esAdmin ? 'flex' : 'none';
+
+  // ── Título dinámico según filtro ─────────────────────────────
+  var titulo = document.querySelector('#view-reportes .rep-card-titulo');
+  if (titulo && esAdmin) {
+    var tituloTxt = _repVendedor === 'todos' ? '📈 Todos los vendedores' : '📈 ' + _repVendedor;
+    titulo.innerHTML = tituloTxt;
+  }
+
   // ── Mini stats ──────────────────────────────────────────────
   var totalMonto   = datos.reduce(function(a,p){ return a + (parseInt((p.total||'').replace(/[^\d]/g,''))||0); }, 0);
   var totalPedidos = datos.length;
@@ -3496,10 +3550,11 @@ function renderReportes() {
   // ── Gráfico evolución diaria ─────────────────────────────────
   renderGrafico(datos);
 
-  // ── Comparativo vendedores (solo Admin) ──────────────────────
+  // ── Comparativo vendedores (solo Admin, solo cuando filtra 'todos') ─────
   var vendCard = document.getElementById('rep-vend-card');
-  if (vendCard) vendCard.style.display = esAdmin ? 'block' : 'none';
-  if (esAdmin) renderVendedores(datos);
+  var showVendCard = esAdmin && _repVendedor === 'todos';
+  if (vendCard) vendCard.style.display = showVendCard ? 'block' : 'none';
+  if (showVendCard) renderVendedores(datos);
 
   // ── Productos más pedidos ────────────────────────────────────
   renderProductos(datos);
