@@ -48,15 +48,45 @@ body {
 /* ── HEADER ── */
 .hdr {
   background: linear-gradient(135deg, #4A0000 0%, #8B0000 60%, #B71C1C 100%);
-  padding: 14px 20px;
+  padding: 12px 16px;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 12px;
   position: sticky;
   top: 0;
   z-index: 100;
   box-shadow: 0 2px 16px rgba(0,0,0,.35);
 }
+.hdr-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 3px;
+  flex-shrink: 0;
+}
+.hdr-ayuda-btn {
+  display: none;
+  align-items: center;
+  gap: 5px;
+  background: rgba(255,255,255,.12);
+  border: 1px solid rgba(255,255,255,.25);
+  border-radius: 20px;
+  padding: 4px 10px;
+  color: rgba(255,255,255,.85);
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .4px;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition: background .15s;
+  white-space: nowrap;
+  margin-top: 2px;
+}
+.hdr-ayuda-btn:active { background: rgba(255,255,255,.22); }
+.hdr-ayuda-btn.visible { display: flex; }
 .hdr-logo {
   font-family: 'Barlow Condensed', sans-serif;
   font-size: 22px;
@@ -2031,9 +2061,11 @@ input[type="date"] {
     <div class="hdr-logo">🐔 TCK Pedidos</div>
     <div class="hdr-sub">Panel de vendedores</div>
   </div>
-  <div class="hdr-fecha" id="hdr-fecha"></div>
-  <div id="ultima-actualizacion" style="font-size:10px;color:rgba(255,255,255,.45);text-align:right;margin-top:1px;letter-spacing:.3px;grid-column:2;"></div>
-  <button id="hdr-help-btn" onclick="abrirManual()" style="display:none;background:rgba(255,255,255,.15);border:1.5px solid rgba(255,255,255,.3);border-radius:50%;width:32px;height:32px;color:#fff;font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:900;cursor:pointer;flex-shrink:0;position:absolute;top:12px;right:16px;touch-action:manipulation;-webkit-tap-highlight-color:transparent;" title="Cómo usar el panel">?</button>
+  <div class="hdr-right">
+    <div class="hdr-fecha" id="hdr-fecha"></div>
+    <div id="ultima-actualizacion" style="font-size:10px;color:rgba(255,255,255,.5);text-align:right;letter-spacing:.3px;"></div>
+    <button id="hdr-help-btn" class="hdr-ayuda-btn" onclick="abrirManual()">📖 Cómo usar</button>
+  </div>
 </div>
 
 <!-- LOGIN -->
@@ -2769,7 +2801,7 @@ function salir() {
   document.getElementById('login-sub').textContent = 'Seleccioná tu nombre';
   setFiltro('todos', document.querySelector('#filtros-estado .filtro-btn'));
   ocultarTabs();
-  var hb = document.getElementById('hdr-help-btn'); if (hb) hb.style.display='none';
+  var hb = document.getElementById('hdr-help-btn'); if (hb) hb.classList.remove('visible');
 }
 
 // ── CARGAR PEDIDOS ───────────────────────────────────────────────
@@ -3721,7 +3753,7 @@ function cerrarManualFondo(e) {
 
 function mostrarBotonesManual() {
   var btn = document.getElementById('hdr-help-btn');
-  if (btn) btn.style.display = 'flex';
+  if (btn) btn.classList.add('visible');
 }
 
 // Mostrar manual automáticamente la primera vez
