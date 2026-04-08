@@ -4731,27 +4731,36 @@ function xubioRenderDropdown(clientes, id, pedidoId) {
     return;
   }
 
-  // Guardar lista en variable global — evita pasar JSON en onclick
   if (!window._xubioDropData) window._xubioDropData = {};
-  window._xubioDropData[id] = clientes;
+  window._xubioDropData[id] = { pedidoId: pedidoId, clientes: clientes };
 
-  drop.innerHTML = clientes.map(function(c, idx) {
-    var meta = '';
-    if (c.cuit)      meta += 'CUIT: ' + c.cuit;
-    if (c.localidad) meta += (meta ? ' · ' : '') + c.localidad;
-    if (!meta)       meta  = 'ID Xubio: ' + c.id;
-    return '<div class="xubio-dropdown-item" onclick="xubioSeleccionarPorIdx('' + pedidoId + '','' + id + '',' + idx + ')" style="cursor:pointer;">'
-      + '<div class="xubio-dropdown-nombre">' + c.nombre + '</div>'
-      + '<div class="xubio-dropdown-meta">' + meta + '</div>'
-      + '</div>';
-  }).join('');
+  var html = '';
+  for (var i = 0; i < clientes.length; i++) {
+    var c    = clientes[i];
+    var meta = c.cuit ? ('CUIT: ' + c.cuit) : ('ID Xubio: ' + c.id);
+    if (c.localidad) meta += ' · ' + c.localidad;
+    html += '<div class="xubio-dropdown-item" data-id="' + id + '" data-idx="' + i + '" data-pid="' + pedidoId + '">'
+          + '<div class="xubio-dropdown-nombre">' + c.nombre + '</div>'
+          + '<div class="xubio-dropdown-meta">' + meta + '</div>'
+          + '</div>';
+  }
+  drop.innerHTML = html;
+
+  // Usar event delegation para evitar problemas con onclick inline
+  drop.querySelectorAll('.xubio-dropdown-item').forEach(function(el) {
+    el.addEventListener('mousedown', function(e) {
+      e.preventDefault();
+      var pid = el.getAttribute('data-pid');
+      var did = el.getAttribute('data-id');
+      var idx = parseInt(el.getAttribute('data-idx'));
+      var entry = window._xubioDropData[did];
+      if (entry && entry.clientes[idx]) {
+        xubioSeleccionarCliente(pid, did, entry.clientes[idx]);
+      }
+    });
+  });
+
   drop.classList.add('on');
-}
-
-function xubioSeleccionarPorIdx(pedidoId, id, idx) {
-  var clientes = window._xubioDropData && window._xubioDropData[id];
-  if (!clientes || !clientes[idx]) return;
-  xubioSeleccionarCliente(pedidoId, id, clientes[idx]);
 }
 
 
