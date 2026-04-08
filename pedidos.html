@@ -3465,7 +3465,12 @@ function renderMiDia() {
   var body = document.getElementById('mi-dia-body');
   if (!body) return;
 
-  var mis = pedidosVisibles();
+  // Mi Día siempre muestra solo los pedidos de HOY
+  var hoy = new Date(); hoy.setHours(0,0,0,0);
+  var mis = pedidosVisibles().filter(function(p) {
+    var f = fechaPedido(p); f.setHours(0,0,0,0);
+    return f.getTime() === hoy.getTime();
+  });
   var activos = mis.filter(function(p){ return p.estado !== 'Cancelado'; });
 
   if (!activos.length) {
@@ -4947,8 +4952,14 @@ function setCliPeriodo(periodo, btn) {
 }
 
 function getClientesData(periodo) {
-  // Toma todos los pedidos sin filtro de vendedor ni estado
   var todos = todosLosPedidos.filter(function(p) { return p.estado !== 'Cancelado'; });
+
+  // Filtrar por vendedor — cada uno ve solo sus clientes
+  if (vendedorActual !== 'ADMIN') {
+    todos = todos.filter(function(p) {
+      return p.vendedor && p.vendedor.toLowerCase().includes(vendedorActual.toLowerCase());
+    });
+  }
 
   // Filtrar por período
   var hoy = new Date(); hoy.setHours(0,0,0,0);
