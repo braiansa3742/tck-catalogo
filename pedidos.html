@@ -2644,6 +2644,11 @@ setInterval(actualizarFecha, 60000);
 // ── AUTO-REFRESH 30s ─────────────────────────────────────────────
 setInterval(function() {
   if (!vendedorActual) return;
+  // No refrescar si el vendedor está en medio de una operación Xubio
+  if (_xubioActivo) {
+    resetBarraRefresh();
+    return;
+  }
   const antes = todosLosPedidos.length;
   const dupAntes = new Set(todosLosPedidos.filter(p => p.esDuplicado).map(p => p.pedidoId));
   cargarPedidos(true).then(function() {
@@ -4620,6 +4625,7 @@ function renderInactivos_rep() {
 // ── XUBIO INTEGRATION ─────────────────────────────────────────────
 // Cambiar a true cuando estén las credenciales configuradas en Apps Script
 var XUBIO_HABILITADO = true;
+var _xubioActivo   = false;  // pausa el auto-refresh cuando Xubio está en uso
 
 // Estado por pedido: { clienteId, clienteNombre, productoId, productoNombre }
 var _xubioSeleccion = {};
@@ -4662,7 +4668,7 @@ function buildXubioPanel(p, id) {
     +   '<input class="xubio-search-input" id="xubio-search-' + id + '"'
     +     ' placeholder="Buscar cliente en Xubio..." autocomplete="off"'
     +     ' oninput="xubioBuscarCliente(this,\'' + p.pedidoId + '\',\'' + id + '\')"'
-    +     ' onfocus="xubioAbrirDropdown(\'' + id + '\')">'
+    +     ' onfocus="_xubioActivo=true; xubioAbrirDropdown(\'' + id + '\')"' + ' onblur="setTimeout(function(){_xubioActivo=false;},2000)">'
     +   '<span class="xubio-search-icon" id="xubio-icon-' + id + '">🔍</span>'
     +   '<div class="xubio-search-spinner" id="xubio-spin-' + id + '"></div>'
     +   '<div class="xubio-dropdown" id="xubio-drop-' + id + '"></div>'
@@ -4742,6 +4748,7 @@ function xubioAbrirDropdown(id) {
 
 // ── Seleccionar cliente ───────────────────────────────────────────
 function xubioSeleccionarCliente(pedidoId, id, cliente) {
+  _xubioActivo = true; // mantener pausado mientras se seleccionan variantes
   // Guardar selección
   if (!_xubioSeleccion[pedidoId]) _xubioSeleccion[pedidoId] = {};
   _xubioSeleccion[pedidoId].clienteId     = cliente.id;
@@ -4916,27 +4923,33 @@ function xubioRemitir(pedidoId, fila, id) {
     .then(function(data) {
       if (data.status === 'ok') {
         toast('✅ Remito ' + data.numeroRemito + ' creado en Xubio', 'ok');
-        // Actualizar estado local
+        _xubioActivo = false; // liberar refresh tras éxito
         if (pedido) pedido.estado = 'Confirmado';
         renderPedidos();
         actualizarMiDiaSiAbierto();
       } else {
         toast('Error: ' + (data.message || 'No se pudo crear el remito'), 'err');
+        _xubioActivo = false; // liberar refresh tras error
         if (btn) { btn.disabled = false; btn.textContent = '🚚 Remitir en Xubio'; }
       }
     })
     .catch(function() {
       toast('Error de conexión', 'err');
+      _xubioActivo = false; // liberar refresh tras error de red
       if (btn) { btn.disabled = false; btn.textContent = '🚚 Remitir en Xubio'; }
     });
 }
 
 // Cerrar dropdowns al tocar fuera
 document.addEventListener('click', function(e) {
-  if (!e.target.closest('.xubio-search-wrap')) {
+  if (!e.target.closest('.xubio-search-wrap') && !e.target.closest('.xubio-panel')) {
     document.querySelectorAll('.xubio-dropdown.on').forEach(function(d) {
       d.classList.remove('on');
     });
+    // Si se hizo click fuera del panel Xubio completamente, liberar refresh
+    if (!e.target.closest('.xubio-panel')) {
+      setTimeout(function() { _xubioActivo = false; }, 500);
+    }
   }
 });
 
