@@ -1085,15 +1085,16 @@ const LS_KEY = 'tck_cliente_id';
 function cargarDatosCliente(){
   try{
     const d = JSON.parse(localStorage.getItem(LS_KEY)||'{}');
-    if(d.nombre)   document.getElementById('ci-nombre').value   = d.nombre;
-    if(d.comercio) document.getElementById('ci-comercio').value = d.comercio;
-    if(d.localidad)document.getElementById('ci-localidad').value= d.localidad;
+    if(d.nombre)    document.getElementById('ci-nombre').value    = d.nombre;
+    if(d.comercio)  document.getElementById('ci-comercio').value  = d.comercio;
+    if(d.localidad) document.getElementById('ci-localidad').value = d.localidad;
+    if(d.telefono)  document.getElementById('ci-telefono').value  = d.telefono;
   }catch(e){}
 }
 
-function guardarDatosCliente(nombre, comercio, localidad){
+function guardarDatosCliente(nombre, comercio, localidad, telefono){
   try{
-    localStorage.setItem(LS_KEY, JSON.stringify({nombre, comercio, localidad}));
+    localStorage.setItem(LS_KEY, JSON.stringify({nombre, comercio, localidad, telefono: telefono||''}));
   }catch(e){}
 }
 
@@ -1152,6 +1153,7 @@ function confirmarYEnviarWA() {
   const nombre    = (document.getElementById('ci-nombre').value||'').trim();
   const comercio  = (document.getElementById('ci-comercio').value||'').trim();
   const localidad = (document.getElementById('ci-localidad').value||'').trim();
+  const telefono  = (document.getElementById('ci-telefono').value||'').trim().replace(/\D/g,'');
 
   function _resetBtn() {
     _enviandoPedido = false;
@@ -1173,7 +1175,7 @@ function confirmarYEnviarWA() {
   }
 
   // Guardar datos para próxima vez
-  guardarDatosCliente(nombre, comercio, localidad);
+  guardarDatosCliente(nombre, comercio, localidad, telefono);
 
   // Cerrar modal
   cerrarModal('modal-cliente-id');
@@ -1235,6 +1237,7 @@ function confirmarYEnviarWA() {
     cliente:        nombre,
     comercio:       comercio || '',
     localidad:      localidad,
+    telefono:       telefono || '',
     total:          t,
     itemsTotales:   itemsTotales,
     resumenPedido:  productosCount + ' producto' + (productosCount !== 1 ? 's' : '') + ' / ' + itemsTotales + ' unidad' + (itemsTotales !== 1 ? 'es' : ''),
@@ -1583,6 +1586,10 @@ document.addEventListener('visibilitychange', function() {
     <div class="tck-field">
       <label class="tck-label">Localidad <span style="color:var(--red2)">*</span></label>
       <input class="tck-input" id="ci-localidad" type="text" placeholder="Ej: Trenque Lauquen" autocomplete="address-level2">
+    </div>
+    <div class="tck-field">
+      <label class="tck-label">Teléfono / WhatsApp <span class="tck-campo-opcional">(opcional — para que podamos avisarte)</span></label>
+      <input class="tck-input" id="ci-telefono" type="tel" placeholder="Ej: 2392 123456" autocomplete="tel" inputmode="tel">
     </div>
     <button class="tck-submit-wa" onclick="confirmarYEnviarWA()">
       <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.2 1.36.172 1.872.104.571-.074 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.122.553 4.112 1.522 5.84L.057 23.882a.5.5 0 00.612.612l6.042-1.465A11.952 11.952 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.891 0-3.659-.52-5.168-1.426l-.37-.217-3.835.929.929-3.835-.217-.37A9.952 9.952 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
