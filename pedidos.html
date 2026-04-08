@@ -433,21 +433,6 @@ body {
 }
 
 /* ── BARRA DE REFRESH ── */
-.refresh-bar-wrap {
-  height: 3px;
-  background: var(--cream2);
-  margin: 0 0 12px 0;
-  border-radius: 2px;
-  overflow: hidden;
-}
-.refresh-bar {
-  height: 100%;
-  background: linear-gradient(90deg, var(--red), var(--gold2));
-  border-radius: 2px;
-  transition: width .5s linear;
-  width: 100%;
-}
-
 /* ── MI DÍA ── */
 .mi-dia {
   background: #fff;
@@ -2164,7 +2149,7 @@ input[type="date"] {
         <button class="btn-refresh" style="flex:1" onclick="cargarPedidos()">🔄 Actualizar</button>
         <button class="btn-refresh" style="flex:1;color:var(--green2);border-color:var(--green2)" onclick="abrirExport()">📤 Enviar</button>
       </div>
-      <div class="refresh-bar-wrap"><div class="refresh-bar" id="refresh-bar"></div></div>
+
       <div class="buscador-wrap">
         <span class="buscador-icon">🔍</span>
         <input class="buscador" id="buscador" placeholder="Buscar cliente, comercio, localidad..." oninput="filtrar()">
@@ -2644,11 +2629,11 @@ setInterval(actualizarFecha, 60000);
 // ── AUTO-REFRESH 30s ─────────────────────────────────────────────
 setInterval(function() {
   if (!vendedorActual) return;
-  // No refrescar si el vendedor está en medio de una operación Xubio
-  if (_xubioActivo) {
-    resetBarraRefresh();
-    return;
-  }
+  // No refrescar si hay algún panel Xubio activo (dropdown abierto, cliente seleccionado, o flag activo)
+  var xubioEnUso = _xubioActivo
+    || document.querySelector('.xubio-dropdown.on') !== null
+    || document.querySelector('.xubio-sel.on') !== null;
+  if (xubioEnUso) return;
   const antes = todosLosPedidos.length;
   const dupAntes = new Set(todosLosPedidos.filter(p => p.esDuplicado).map(p => p.pedidoId));
   cargarPedidos(true).then(function() {
@@ -2656,7 +2641,6 @@ setInterval(function() {
     const dupNuevos = todosLosPedidos.filter(p => p.esDuplicado && !dupAntes.has(p.pedidoId));
     if (dupNuevos.length > 0) notificarDuplicados(dupNuevos);
   });
-  resetBarraRefresh();
 }, 20000);
 
 // ── SONIDOS ──────────────────────────────────────────────────────
@@ -2890,8 +2874,7 @@ async function cargarPedidos(silencioso) {
     actualizarStats();
     renderPedidos();
     actualizarMiDiaSiAbierto();
-    resetBarraRefresh();
-  } catch(e) {
+    } catch(e) {
     if (!silencioso) document.getElementById('lista-pedidos').innerHTML =
       '<div class="empty">❌ Error al cargar pedidos.<br>Verificá tu conexión.</div>';
   }
@@ -5190,22 +5173,7 @@ function renderClientes() {
 
 
 // ── BARRA DE PROGRESO DE REFRESH ─────────────────────────────────
-var _refreshTotal = 20000;
-var _refreshStart = Date.now();
 
-function resetBarraRefresh() {
-  _refreshStart = Date.now();
-}
-
-function actualizarBarraRefresh() {
-  var bar = document.getElementById('refresh-bar');
-  if (!bar || !vendedorActual) return;
-  var elapsed = Date.now() - _refreshStart;
-  var pct = Math.min(100, (elapsed / _refreshTotal) * 100);
-  bar.style.width = (100 - pct) + '%';
-}
-
-setInterval(actualizarBarraRefresh, 400);
 </script>
 
 
