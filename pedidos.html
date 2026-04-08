@@ -865,6 +865,267 @@ body {
   padding: 12px 16px;
 }
 
+/* ── XUBIO INTEGRATION ── */
+.xubio-panel {
+  margin-top: 14px;
+  border-top: 1.5px solid var(--cream2);
+  padding-top: 12px;
+}
+.xubio-panel-titulo {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 12px;
+  font-weight: 900;
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: .8px;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.xubio-coming-soon {
+  background: var(--cream2);
+  border: 1.5px dashed var(--cream3);
+  border-radius: 10px;
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  opacity: .7;
+}
+.xubio-coming-soon-icon { font-size: 20px; flex-shrink: 0; }
+.xubio-coming-soon-txt { font-size: 12px; color: var(--text3); line-height: 1.4; }
+.xubio-coming-soon-badge {
+  margin-left: auto;
+  background: var(--cream3);
+  border-radius: 20px;
+  padding: 3px 10px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text3);
+  flex-shrink: 0;
+  letter-spacing: .3px;
+}
+
+/* Buscador de cliente Xubio */
+.xubio-search-wrap {
+  position: relative;
+  margin-bottom: 8px;
+}
+.xubio-search-input {
+  width: 100%;
+  height: 42px;
+  border: 1.5px solid var(--cream3);
+  border-radius: 10px;
+  padding: 0 36px 0 12px;
+  font-family: 'Barlow', sans-serif;
+  font-size: 14px;
+  color: var(--text);
+  background: #fff;
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color .15s;
+}
+.xubio-search-input:focus { border-color: var(--red2); }
+.xubio-search-icon {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 14px;
+  color: var(--text3);
+  pointer-events: none;
+}
+.xubio-search-spinner {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--cream3);
+  border-top-color: var(--red);
+  border-radius: 50%;
+  animation: spin .7s linear infinite;
+  display: none;
+}
+.xubio-search-spinner.on { display: block; }
+
+/* Dropdown resultados */
+.xubio-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0; right: 0;
+  background: #fff;
+  border: 1.5px solid var(--cream3);
+  border-radius: 10px;
+  box-shadow: 0 6px 20px rgba(0,0,0,.12);
+  z-index: 50;
+  max-height: 220px;
+  overflow-y: auto;
+  display: none;
+}
+.xubio-dropdown.on { display: block; }
+.xubio-dropdown-item {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--cream2);
+  cursor: pointer;
+  transition: background .1s;
+  -webkit-tap-highlight-color: transparent;
+}
+.xubio-dropdown-item:last-child { border-bottom: none; }
+.xubio-dropdown-item:active { background: var(--cream2); }
+.xubio-dropdown-nombre {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--text);
+  line-height: 1.1;
+}
+.xubio-dropdown-meta {
+  font-size: 11px;
+  color: var(--text3);
+  margin-top: 2px;
+}
+.xubio-dropdown-empty {
+  padding: 14px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--text3);
+}
+
+/* Cliente seleccionado */
+.xubio-cliente-sel {
+  display: none;
+  background: var(--green3);
+  border: 1.5px solid var(--green2);
+  border-radius: 10px;
+  padding: 8px 12px;
+  margin-bottom: 10px;
+  align-items: center;
+  gap: 8px;
+}
+.xubio-cliente-sel.on { display: flex; }
+.xubio-cliente-sel-nombre {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--green);
+  flex: 1;
+  min-width: 0;
+}
+.xubio-cliente-sel-meta { font-size: 11px; color: var(--green2); margin-top: 1px; }
+.xubio-cliente-clear {
+  background: none;
+  border: none;
+  color: var(--green2);
+  font-size: 16px;
+  cursor: pointer;
+  flex-shrink: 0;
+  padding: 0 2px;
+  touch-action: manipulation;
+}
+
+/* Selector de variantes (calibres) */
+.xubio-variantes {
+  margin-bottom: 10px;
+}
+.xubio-variantes-titulo {
+  font-size: 11px;
+  color: var(--text3);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  margin-bottom: 6px;
+  font-family: 'Barlow Condensed', sans-serif;
+}
+.xubio-variantes-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.xubio-variante-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border: 1.5px solid var(--cream3);
+  border-radius: 9px;
+  cursor: pointer;
+  background: #fff;
+  transition: border-color .12s, background .12s;
+  -webkit-tap-highlight-color: transparent;
+}
+.xubio-variante-item.sel {
+  border-color: var(--red);
+  background: #FFF5F5;
+}
+.xubio-variante-radio {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid var(--cream3);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color .12s;
+}
+.xubio-variante-item.sel .xubio-variante-radio {
+  border-color: var(--red);
+  background: var(--red);
+}
+.xubio-variante-item.sel .xubio-variante-radio::after {
+  content: '';
+  width: 6px;
+  height: 6px;
+  background: #fff;
+  border-radius: 50%;
+}
+.xubio-variante-nombre {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+  flex: 1;
+}
+.xubio-variante-stock {
+  font-size: 11px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 20px;
+  flex-shrink: 0;
+}
+.stock-ok   { background: var(--green3); color: var(--green2); }
+.stock-bajo { background: var(--orange2); color: var(--orange); }
+.stock-null { background: var(--cream2); color: var(--text3); }
+
+/* Botón Remitir */
+.btn-remitir {
+  width: 100%;
+  background: linear-gradient(135deg, var(--red2), var(--red));
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  padding: 13px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 17px;
+  font-weight: 900;
+  letter-spacing: .5px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition: opacity .15s;
+}
+.btn-remitir:disabled { opacity: .45; cursor: not-allowed; }
+.btn-remitir:active:not(:disabled) { opacity: .88; }
+
 /* ── MANUAL DE USO ── */
 .manual-item {
   display: flex;
@@ -2278,10 +2539,8 @@ function renderCard(p) {
       (detalle ? '<div class="pedido-productos">' + detalle + '</div>' : '') +
       dupAlert +
       '<div class="pedido-acciones">' + btns + '</div>' +
+      buildXubioPanel(p, id) +
       '<div class="nota-wrap">' +
-        '<div style="display:flex;gap:8px;margin-bottom:8px;">' +
-          '<input class="nota-input" style="flex:1;height:40px;font-size:14px;" id="remito-' + id + '" type="text" inputmode="numeric" placeholder="N° remito Xubio (opcional)" value="' + (p.remito||'') + '" onblur="guardarRemito(\'' + p.pedidoId + '\')">' +
-        '</div>' +
         '<textarea class="nota-input" id="nota-' + id + '" placeholder="📝 Nota interna..." onblur="guardarNota(\'' + p.pedidoId + '\')">' + (p.nota||'') + '</textarea>' +
         '<div class="nota-guardada" id="nota-ok-' + id + '">✅ Guardado</div>' +
       '</div>' +
@@ -2903,6 +3162,330 @@ function checkPrimeraVez() {
     }
   } catch(e) {}
 }
+
+
+// ── XUBIO INTEGRATION ─────────────────────────────────────────────
+// Cambiar a true cuando estén las credenciales configuradas en Apps Script
+var XUBIO_HABILITADO = false;
+
+// Estado por pedido: { clienteId, clienteNombre, productoId, productoNombre }
+var _xubioSeleccion = {};
+
+// ── buildXubioPanel: genera el HTML del panel dentro de cada card ──
+function buildXubioPanel(p, id) {
+  if (!XUBIO_HABILITADO) {
+    // Modo "próximamente" — muestra el campo de remito manual como siempre
+    return '<div class="xubio-panel">'
+      + '<div class="xubio-panel-titulo">🔗 Remito Xubio</div>'
+      + '<div class="xubio-coming-soon">'
+      +   '<div class="xubio-coming-soon-icon">🔗</div>'
+      +   '<div class="xubio-coming-soon-txt"><strong>Remito automático en Xubio</strong><br>Disponible pronto. Por ahora anotá el número manualmente.</div>'
+      +   '<div class="xubio-coming-soon-badge">Pronto</div>'
+      + '</div>'
+      + '<div style="margin-top:8px;">'
+      +   '<input class="nota-input" style="height:40px;font-size:14px;" id="remito-' + id + '" type="text" inputmode="numeric" placeholder="N° remito Xubio (opcional)" value="' + (p.remito||'') + '" onblur="guardarRemito(\'' + p.pedidoId + '\')">'
+      + '</div>'
+      + '</div>';
+  }
+
+  // Modo habilitado — buscador completo
+  var clienteSel = _xubioSeleccion[p.pedidoId];
+  var clienteSelHtml = clienteSel
+    ? '<div class="xubio-cliente-sel on" id="xubio-sel-' + id + '">'
+    +   '<div><div class="xubio-cliente-sel-nombre">' + clienteSel.nombre + '</div>'
+    +   '<div class="xubio-cliente-sel-meta">' + (clienteSel.cuit ? 'CUIT: ' + clienteSel.cuit : '') + '</div></div>'
+    +   '<button class="xubio-cliente-clear" onclick="xubioLimpiarCliente(\'' + p.pedidoId + '\',\'' + id + '\')">✕</button>'
+    + '</div>'
+    : '<div class="xubio-cliente-sel" id="xubio-sel-' + id + '"></div>';
+
+  return '<div class="xubio-panel">'
+    + '<div class="xubio-panel-titulo">🔗 Remitir en Xubio</div>'
+
+    // Cliente vinculado (si existe)
+    + clienteSelHtml
+
+    // Buscador de cliente
+    + '<div class="xubio-search-wrap" id="xubio-search-wrap-' + id + '" style="' + (clienteSel ? 'display:none;' : '') + '">'
+    +   '<input class="xubio-search-input" id="xubio-search-' + id + '"'
+    +     ' placeholder="Buscar cliente en Xubio..." autocomplete="off"'
+    +     ' oninput="xubioBuscarCliente(this,\'' + p.pedidoId + '\',\'' + id + '\')"'
+    +     ' onfocus="xubioAbrirDropdown(\'' + id + '\')">'
+    +   '<span class="xubio-search-icon" id="xubio-icon-' + id + '">🔍</span>'
+    +   '<div class="xubio-search-spinner" id="xubio-spin-' + id + '"></div>'
+    +   '<div class="xubio-dropdown" id="xubio-drop-' + id + '"></div>'
+    + '</div>'
+
+    // Selector de variantes (visible después de elegir cliente, si el producto tiene calibres)
+    + '<div class="xubio-variantes" id="xubio-vars-' + id + '" style="display:none;">'
+    +   '<div class="xubio-variantes-titulo">Seleccioná el calibre / presentación:</div>'
+    +   '<div class="xubio-variantes-lista" id="xubio-vars-lista-' + id + '"></div>'
+    + '</div>'
+
+    // Botón remitir
+    + '<button class="btn-remitir" id="xubio-btn-' + id + '" disabled'
+    +   ' onclick="xubioRemitir(\'' + p.pedidoId + '\',' + p.fila + ',\'' + id + '\')">'
+    +   '🚚 Remitir en Xubio'
+    + '</button>'
+    + '</div>';
+}
+
+// ── Buscar cliente con debounce ───────────────────────────────────
+var _xubioTimers = {};
+function xubioBuscarCliente(input, pedidoId, id) {
+  clearTimeout(_xubioTimers[id]);
+  var q = input.value.trim();
+  var drop = document.getElementById('xubio-drop-' + id);
+  if (!drop) return;
+
+  if (q.length < 2) { drop.classList.remove('on'); drop.innerHTML = ''; return; }
+
+  // Spinner
+  var spin = document.getElementById('xubio-spin-' + id);
+  var icon = document.getElementById('xubio-icon-' + id);
+  if (spin) spin.classList.add('on');
+  if (icon) icon.style.display = 'none';
+
+  _xubioTimers[id] = setTimeout(function() {
+    fetch(APPS_SCRIPT_URL + '?accion=buscarClienteXubio&q=' + encodeURIComponent(q))
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        if (spin) spin.classList.remove('on');
+        if (icon) icon.style.display = '';
+        if (data.status !== 'ok') { drop.innerHTML = '<div class="xubio-dropdown-empty">Error al buscar</div>'; drop.classList.add('on'); return; }
+        xubioRenderDropdown(data.clientes || [], id, pedidoId);
+      })
+      .catch(function() {
+        if (spin) spin.classList.remove('on');
+        if (icon) icon.style.display = '';
+        drop.innerHTML = '<div class="xubio-dropdown-empty">Sin conexión</div>';
+        drop.classList.add('on');
+      });
+  }, 350);
+}
+
+function xubioRenderDropdown(clientes, id, pedidoId) {
+  var drop = document.getElementById('xubio-drop-' + id);
+  if (!drop) return;
+  if (!clientes.length) {
+    drop.innerHTML = '<div class="xubio-dropdown-empty">No se encontraron clientes</div>';
+    drop.classList.add('on');
+    return;
+  }
+  drop.innerHTML = clientes.map(function(c) {
+    return '<div class="xubio-dropdown-item" onclick="xubioSeleccionarCliente(\'' + pedidoId + '\',\'' + id + '\',' + JSON.stringify(c).replace(/'/g, "\\'") + ')">'
+      + '<div class="xubio-dropdown-nombre">' + c.nombre + '</div>'
+      + '<div class="xubio-dropdown-meta">' + (c.cuit ? 'CUIT: ' + c.cuit + ' · ' : '') + (c.localidad||'') + '</div>'
+      + '</div>';
+  }).join('');
+  drop.classList.add('on');
+}
+
+function xubioAbrirDropdown(id) {
+  // Cerrar otros dropdowns abiertos
+  document.querySelectorAll('.xubio-dropdown.on').forEach(function(d) {
+    if (d.id !== 'xubio-drop-' + id) d.classList.remove('on');
+  });
+}
+
+// ── Seleccionar cliente ───────────────────────────────────────────
+function xubioSeleccionarCliente(pedidoId, id, cliente) {
+  // Guardar selección
+  if (!_xubioSeleccion[pedidoId]) _xubioSeleccion[pedidoId] = {};
+  _xubioSeleccion[pedidoId].clienteId     = cliente.id;
+  _xubioSeleccion[pedidoId].clienteNombre = cliente.nombre;
+  _xubioSeleccion[pedidoId].clienteCuit   = cliente.cuit;
+
+  // Cerrar dropdown, ocultar buscador
+  var drop = document.getElementById('xubio-drop-' + id);
+  var wrap = document.getElementById('xubio-search-wrap-' + id);
+  if (drop) drop.classList.remove('on');
+  if (wrap) wrap.style.display = 'none';
+
+  // Mostrar cliente seleccionado
+  var sel = document.getElementById('xubio-sel-' + id);
+  if (sel) {
+    sel.innerHTML = '<div><div class="xubio-cliente-sel-nombre">' + cliente.nombre + '</div>'
+      + '<div class="xubio-cliente-sel-meta">' + (cliente.cuit ? 'CUIT: ' + cliente.cuit : '') + '</div></div>'
+      + '<button class="xubio-cliente-clear" onclick="xubioLimpiarCliente(\'' + pedidoId + '\',\'' + id + '\')">✕</button>';
+    sel.classList.add('on');
+  }
+
+  // Cargar variantes del primer producto del pedido
+  var pedido = todosLosPedidos.find(function(x) { return x.pedidoId === pedidoId; });
+  if (pedido) xubioCargarVariantes(pedido, id);
+}
+
+// ── Limpiar cliente ───────────────────────────────────────────────
+function xubioLimpiarCliente(pedidoId, id) {
+  delete _xubioSeleccion[pedidoId];
+  var sel  = document.getElementById('xubio-sel-' + id);
+  var wrap = document.getElementById('xubio-search-wrap-' + id);
+  var inp  = document.getElementById('xubio-search-' + id);
+  var vars = document.getElementById('xubio-vars-' + id);
+  var btn  = document.getElementById('xubio-btn-' + id);
+  if (sel)  { sel.classList.remove('on'); sel.innerHTML = ''; }
+  if (wrap) { wrap.style.display = ''; }
+  if (inp)  { inp.value = ''; }
+  if (vars) { vars.style.display = 'none'; }
+  if (btn)  { btn.disabled = true; }
+}
+
+// ── Cargar variantes del producto ─────────────────────────────────
+function xubioCargarVariantes(pedido, id) {
+  // Tomar el primer producto del pedido para buscar variantes
+  var prods = parseProds(pedido.detalle);
+  if (!prods.length) {
+    // Sin variantes detectables — habilitar botón directamente
+    var btn = document.getElementById('xubio-btn-' + id);
+    if (btn) btn.disabled = false;
+    return;
+  }
+
+  var primerProd = prods[0].name;
+  fetch(APPS_SCRIPT_URL + '?accion=buscarProductoXubio&nombre_catalogo=' + encodeURIComponent(primerProd))
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      if (data.status !== 'ok' || !data.productos || !data.productos.length) {
+        // Sin variantes — habilitar botón
+        var btn = document.getElementById('xubio-btn-' + id);
+        if (btn) btn.disabled = false;
+        return;
+      }
+
+      if (data.tipo === '1a1' && data.productos.length === 1) {
+        // Producto único — seleccionar automáticamente y habilitar
+        var pr = data.productos[0];
+        if (!_xubioSeleccion[pedido.pedidoId]) _xubioSeleccion[pedido.pedidoId] = {};
+        _xubioSeleccion[pedido.pedidoId].productoId     = pr.id;
+        _xubioSeleccion[pedido.pedidoId].productoNombre = pr.nombre;
+        var btn = document.getElementById('xubio-btn-' + id);
+        if (btn) btn.disabled = false;
+      } else {
+        // Múltiples variantes — mostrar selector
+        xubioRenderVariantes(data.productos, pedido.pedidoId, id);
+      }
+    })
+    .catch(function() {
+      var btn = document.getElementById('xubio-btn-' + id);
+      if (btn) btn.disabled = false;
+    });
+}
+
+function xubioRenderVariantes(productos, pedidoId, id) {
+  var varsDiv  = document.getElementById('xubio-vars-' + id);
+  var listaDiv = document.getElementById('xubio-vars-lista-' + id);
+  if (!varsDiv || !listaDiv) return;
+
+  listaDiv.innerHTML = productos.map(function(pr, i) {
+    var stockLabel, stockClass;
+    if (pr.stock === null || pr.stock === undefined) {
+      stockLabel = 'Stock N/D'; stockClass = 'stock-null';
+    } else if (pr.stock > 5) {
+      stockLabel = pr.stock + ' en stock'; stockClass = 'stock-ok';
+    } else if (pr.stock > 0) {
+      stockLabel = '⚠️ Solo ' + pr.stock; stockClass = 'stock-bajo';
+    } else {
+      stockLabel = 'Sin stock'; stockClass = 'stock-null';
+    }
+
+    // Pre-seleccionar el primero
+    var sel = i === 0 ? ' sel' : '';
+    if (i === 0) {
+      if (!_xubioSeleccion[pedidoId]) _xubioSeleccion[pedidoId] = {};
+      _xubioSeleccion[pedidoId].productoId     = pr.id;
+      _xubioSeleccion[pedidoId].productoNombre = pr.nombre;
+    }
+
+    return '<div class="xubio-variante-item' + sel + '" id="xvar-' + id + '-' + i + '"'
+      + ' onclick="xubioSeleccionarVariante(\'' + pedidoId + '\',\'' + id + '\',' + i + ',\'' + pr.id + '\',\'' + pr.nombre.replace(/'/g,"\\'") + '\')">'
+      + '<div class="xubio-variante-radio"></div>'
+      + '<div class="xubio-variante-nombre">' + pr.nombre + '</div>'
+      + '<div class="xubio-variante-stock ' + stockClass + '">' + stockLabel + '</div>'
+      + '</div>';
+  }).join('');
+
+  varsDiv.style.display = 'block';
+
+  // Habilitar botón (ya hay una pre-seleccionada)
+  var btn = document.getElementById('xubio-btn-' + id);
+  if (btn) btn.disabled = false;
+}
+
+function xubioSeleccionarVariante(pedidoId, id, idx, prodId, prodNombre) {
+  if (!_xubioSeleccion[pedidoId]) _xubioSeleccion[pedidoId] = {};
+  _xubioSeleccion[pedidoId].productoId     = prodId;
+  _xubioSeleccion[pedidoId].productoNombre = prodNombre;
+
+  // Visual
+  var lista = document.getElementById('xubio-vars-lista-' + id);
+  if (lista) lista.querySelectorAll('.xubio-variante-item').forEach(function(el, i) {
+    el.classList.toggle('sel', i === idx);
+  });
+}
+
+// ── Ejecutar remito ───────────────────────────────────────────────
+function xubioRemitir(pedidoId, fila, id) {
+  var sel = _xubioSeleccion[pedidoId];
+  if (!sel || !sel.clienteId) { toast('Seleccioná un cliente primero', 'err'); return; }
+
+  var btn = document.getElementById('xubio-btn-' + id);
+  if (btn) { btn.disabled = true; btn.textContent = 'Remitiendo...'; }
+
+  // Armar items desde el detalle del pedido
+  var pedido = todosLosPedidos.find(function(x) { return x.pedidoId === pedidoId; });
+  var prods  = pedido ? parseProds(pedido.detalle) : [];
+
+  // Para el primer producto usamos el seleccionado (con variante si aplica)
+  var items = prods.map(function(pr, i) {
+    return {
+      xubioProductoId:     i === 0 && sel.productoId ? sel.productoId : '',
+      xubioProductoNombre: i === 0 && sel.productoNombre ? sel.productoNombre : pr.name,
+      cantidad:            pr.qty,
+      precio:              0  // Xubio lo toma de su lista de precios
+    };
+  });
+
+  var vendedor = pedido ? (pedido.vendedor || vendedorActual) : vendedorActual;
+
+  var params = new URLSearchParams({
+    accion:            'remitirPedido',
+    pedidoId:          pedidoId,
+    fila:              fila,
+    xubioClienteId:    sel.clienteId,
+    xubioClienteNombre:sel.clienteNombre || '',
+    clienteCatalogo:   pedido ? (pedido.cliente || '') : '',
+    vendedor:          vendedor,
+    items:             JSON.stringify(items)
+  });
+
+  fetch(APPS_SCRIPT_URL + '?' + params.toString())
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      if (data.status === 'ok') {
+        toast('✅ Remito ' + data.numeroRemito + ' creado en Xubio', 'ok');
+        // Actualizar estado local
+        if (pedido) pedido.estado = 'Confirmado';
+        renderPedidos();
+        actualizarMiDiaSiAbierto();
+      } else {
+        toast('Error: ' + (data.message || 'No se pudo crear el remito'), 'err');
+        if (btn) { btn.disabled = false; btn.textContent = '🚚 Remitir en Xubio'; }
+      }
+    })
+    .catch(function() {
+      toast('Error de conexión', 'err');
+      if (btn) { btn.disabled = false; btn.textContent = '🚚 Remitir en Xubio'; }
+    });
+}
+
+// Cerrar dropdowns al tocar fuera
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('.xubio-search-wrap')) {
+    document.querySelectorAll('.xubio-dropdown.on').forEach(function(d) {
+      d.classList.remove('on');
+    });
+  }
+});
 
 
 // ── SECCIÓN CLIENTES ─────────────────────────────────────────────
