@@ -4867,12 +4867,34 @@ function xubioRenderVariantes(productos, pedidoId, id) {
     }
 
     return '<div class="xubio-variante-item' + sel + '" id="xvar-' + id + '-' + i + '"'
-      + ' onclick="xubioSeleccionarVariante(\'' + pedidoId + '\',\'' + id + '\',' + i + ',\'' + pr.id + '\',\'' + pr.nombre.replace(/'/g,"\\'") + '\')">'
+      + ' data-pedidoid="' + pedidoId + '" data-id="' + id + '" data-idx="' + i + '">'
       + '<div class="xubio-variante-radio"></div>'
       + '<div class="xubio-variante-nombre">' + pr.nombre + '</div>'
       + '<div class="xubio-variante-stock ' + stockClass + '">' + stockLabel + '</div>'
       + '</div>';
   }).join('');
+
+  // Guardar lista de variantes en global para acceso por índice
+  if (!window._xubioVarsData) window._xubioVarsData = {};
+  window._xubioVarsData[id] = { pedidoId: pedidoId, productos: productos };
+
+  // Agregar event listeners a las variantes
+  setTimeout(function() {
+    var lista = document.getElementById('xubio-vars-lista-' + id);
+    if (!lista) return;
+    lista.querySelectorAll('.xubio-variante-item').forEach(function(el) {
+      el.addEventListener('click', function() {
+        var pid  = el.getAttribute('data-pedidoid');
+        var did  = el.getAttribute('data-id');
+        var idx  = parseInt(el.getAttribute('data-idx'));
+        var data = window._xubioVarsData[did];
+        if (data && data.productos[idx]) {
+          var pr = data.productos[idx];
+          xubioSeleccionarVariante(pid, did, idx, pr.id, pr.nombre);
+        }
+      });
+    });
+  }, 50);
 
   varsDiv.style.display = 'block';
 
