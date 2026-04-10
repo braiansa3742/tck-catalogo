@@ -1118,6 +1118,497 @@ body {
 }
 
 /* ── GPS / CAMPO ── */
+.gps-wrap { padding: 0 0 90px; }
+.gps-estado-card {
+  background: linear-gradient(135deg, #1B5E20, #2E7D32);
+  padding: 16px;
+  color: #fff;
+  margin-bottom: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.gps-estado-card.sin-checkin { background: linear-gradient(135deg, #4A0000, #8B0000); }
+.gps-estado-icon {
+  width: 48px; height: 48px;
+  background: rgba(255,255,255,.15);
+  border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px; flex-shrink: 0;
+}
+.gps-estado-info { flex: 1; }
+.gps-estado-titulo { font-family: 'Barlow Condensed', sans-serif; font-size: 18px; font-weight: 900; line-height: 1.1; }
+.gps-estado-sub { font-size: 12px; opacity: .7; margin-top: 3px; }
+.gps-estado-dot {
+  width: 10px; height: 10px;
+  background: #76FF03;
+  border-radius: 50%;
+  box-shadow: 0 0 0 3px rgba(118,255,3,.3);
+  flex-shrink: 0;
+}
+.gps-acciones-wrap { padding: 12px 14px 0; }
+.gps-btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+.gps-btn-card {
+  border-radius: 14px;
+  padding: 16px 12px;
+  cursor: pointer;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  border: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform .12s, opacity .12s;
+}
+.gps-btn-card:active { transform: scale(.96); opacity: .9; }
+.gps-btn-card-icon { font-size: 28px; }
+.gps-btn-card-titulo {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 16px; font-weight: 900;
+  line-height: 1.1;
+}
+.gps-btn-card-desc { font-size: 10px; font-weight: 600; }
+.gps-btn-card.pedido { background: #fff; border: 2.5px solid #FFD700; }
+.gps-btn-card.pedido .gps-btn-card-titulo { color: #1A0800; }
+.gps-btn-card.pedido .gps-btn-card-desc { color: #888; }
+.gps-btn-card.checkout { background: linear-gradient(135deg,#C62828,#8B0000); }
+.gps-btn-card.checkout .gps-btn-card-titulo { color: #fff; }
+.gps-btn-card.checkout .gps-btn-card-desc { color: rgba(255,255,255,.7); }
+.gps-btn-checkin-full {
+  width: 100%;
+  border-radius: 14px;
+  padding: 16px 18px;
+  cursor: pointer;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  border: none;
+  margin-bottom: 10px;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform .12s;
+  box-shadow: 0 3px 14px rgba(0,0,0,.15);
+}
+.gps-btn-checkin-full:active { transform: scale(.97); }
+.gps-btn-checkin-full.entrar { background: linear-gradient(135deg,#2E7D32,#1B5E20); }
+.gps-btn-checkin-full-icon {
+  width: 46px; height: 46px;
+  background: rgba(255,255,255,.15);
+  border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px; flex-shrink: 0;
+}
+.gps-btn-checkin-full-text { flex: 1; }
+.gps-btn-checkin-full-titulo {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 20px; font-weight: 900;
+  color: #fff; line-height: 1;
+}
+.gps-btn-checkin-full-desc { font-size: 12px; color: rgba(255,255,255,.7); margin-top: 3px; }
+.gps-btn-checkin-full-arrow { font-size: 22px; color: rgba(255,255,255,.5); flex-shrink: 0; }
+.gps-btn-visita-sin {
+  width: 100%;
+  background: #fff;
+  border: 2px dashed #E8D5BB;
+  border-radius: 14px;
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  margin-bottom: 12px;
+  -webkit-tap-highlight-color: transparent;
+  box-sizing: border-box;
+}
+.gps-btn-visita-sin:active { background: #FFF8F0; }
+.gps-btn-visita-sin-icon { font-size: 20px; }
+.gps-btn-visita-sin-text { flex: 1; }
+.gps-btn-visita-sin-titulo { font-family: 'Barlow Condensed', sans-serif; font-size: 15px; font-weight: 900; color: #1A0800; }
+.gps-btn-visita-sin-desc { font-size: 11px; color: #9C7050; }
+.gps-btn-visita-sin-arrow { font-size: 18px; color: #C8B89A; }
+.gps-historial-wrap {
+  background: #fff;
+  border: 1px solid #E8D5BB;
+  border-radius: 14px;
+  margin-bottom: 10px;
+  overflow: hidden;
+}
+.gps-historial-hdr {
+  padding: 10px 14px 8px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 11px; font-weight: 900;
+  color: #9C7050;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  border-bottom: 1px solid #F5EDE0;
+}
+.gps-visita-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 14px;
+  border-bottom: 1px solid #F5EDE0;
+}
+.gps-visita-item:last-child { border-bottom: none; }
+.gps-visita-dot {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; flex-shrink: 0;
+}
+.gps-visita-info { flex: 1; }
+.gps-visita-nombre { font-size: 14px; font-weight: 700; color: #1A0800; }
+.gps-visita-hora { font-size: 11px; color: #9C7050; margin-top: 1px; }
+.gps-visita-monto { font-family: 'Barlow Condensed', sans-serif; font-size: 14px; font-weight: 900; }
+.gps-empty { text-align: center; color: #9C7050; padding: 20px; font-size: 14px; }
+
+/* ── MAPA ADMIN ── */
+.mapa-wrap { padding: 0 0 80px; }
+.mapa-hdr {
+  padding: 14px 16px 10px;
+  background: linear-gradient(135deg, #4A0000, #8B0000);
+  color: #fff;
+}
+.mapa-hdr-titulo {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 20px;
+  font-weight: 900;
+}
+.mapa-filtros {
+  display: flex;
+  gap: 8px;
+  padding: 10px 14px;
+  overflow-x: auto;
+  background: var(--cream2);
+  border-bottom: 1px solid var(--cream3);
+}
+.mapa-chip {
+  padding: 6px 14px;
+  border-radius: 20px;
+  border: 1.5px solid var(--cream3);
+  background: #fff;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  color: var(--text2);
+  -webkit-tap-highlight-color: transparent;
+}
+.mapa-chip.sel { background: var(--red); color: #fff; border-color: var(--red); }
+#mapa-container {
+  height: 380px;
+  width: 100%;
+  z-index: 1;
+}
+.mapa-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  padding: 12px 14px;
+}
+.mapa-stat {
+  background: #fff;
+  border: 1.5px solid var(--cream3);
+  border-radius: 12px;
+  padding: 10px;
+  text-align: center;
+}
+.mapa-stat-num {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 24px;
+  font-weight: 900;
+  color: var(--red);
+}
+.mapa-stat-label {
+  font-size: 11px;
+  color: var(--text3);
+  margin-top: 2px;
+}
+.mapa-lista-titulo {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 14px;
+  font-weight: 900;
+  color: var(--text2);
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  padding: 0 14px;
+  margin-bottom: 8px;
+}
+.mapa-visita-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--cream2);
+}
+.mapa-visita-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.mapa-visita-info { flex: 1; }
+.mapa-visita-nombre { font-weight: 700; font-size: 14px; color: var(--text); }
+.mapa-visita-detalle { font-size: 12px; color: var(--text3); }
+.mapa-visita-tiempo {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text2);
+}
+
+
+/* ── TOMADOR DE PEDIDOS ── */
+.tomador-overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--cream);
+  z-index: 300;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.tomador-hdr {
+  background: linear-gradient(135deg, #4A0000, #8B0000);
+  padding: 14px 16px 12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+.tomador-hdr-back {
+  background: rgba(255,255,255,.15);
+  border: none;
+  border-radius: 50%;
+  width: 34px;
+  height: 34px;
+  color: #fff;
+  font-size: 18px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.tomador-hdr-info { flex: 1; }
+.tomador-hdr-cliente {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 18px;
+  font-weight: 900;
+  color: #fff;
+}
+.tomador-hdr-sub { font-size: 11px; color: rgba(255,255,255,.7); margin-top: 1px; }
+.tomador-hdr-total {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 20px;
+  font-weight: 900;
+  color: var(--gold);
+}
+.tomador-cats {
+  display: flex;
+  gap: 6px;
+  padding: 8px 12px;
+  overflow-x: auto;
+  background: #fff;
+  border-bottom: 1px solid var(--cream3);
+  flex-shrink: 0;
+}
+.tomador-cat-btn {
+  padding: 5px 12px;
+  border-radius: 16px;
+  border: 1.5px solid var(--cream3);
+  background: #fff;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  color: var(--text2);
+  -webkit-tap-highlight-color: transparent;
+  flex-shrink: 0;
+}
+.tomador-cat-btn.sel { background: var(--red); color: #fff; border-color: var(--red); }
+.tomador-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px 12px 100px;
+}
+.tomador-sec-titulo {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 13px;
+  font-weight: 900;
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  margin: 12px 0 6px;
+}
+.tomador-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 6px;
+}
+.tomador-item {
+  background: #fff;
+  border: 1.5px solid var(--cream3);
+  border-radius: 12px;
+  overflow: hidden;
+  transition: border-color .15s;
+}
+.tomador-item.tiene { border-color: var(--red); }
+.tomador-item.sin-stock { opacity: .5; }
+.tomador-item-img {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  display: block;
+  background: var(--cream2);
+}
+.tomador-item-img-placeholder {
+  width: 100%;
+  aspect-ratio: 1;
+  background: var(--cream2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+}
+.tomador-item-body { padding: 8px 8px 6px; }
+.tomador-item-nombre {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.2;
+  margin-bottom: 2px;
+}
+.tomador-item-presentacion { font-size: 10px; color: var(--text3); margin-bottom: 3px; }
+.tomador-item-precio {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 14px;
+  font-weight: 900;
+  color: var(--red);
+  margin-bottom: 4px;
+}
+.tomador-qty {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  justify-content: center;
+}
+.tomador-qty-btn {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 1.5px solid var(--cream3);
+  background: var(--cream);
+  font-size: 16px;
+  font-weight: 900;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text2);
+  -webkit-tap-highlight-color: transparent;
+  flex-shrink: 0;
+}
+.tomador-qty-btn.plus { background: var(--red); color: #fff; border-color: var(--red); }
+.tomador-qty-num {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 16px;
+  font-weight: 900;
+  color: var(--text);
+  min-width: 24px;
+  text-align: center;
+}
+.tomador-precio-comp-btn {
+  display: block;
+  width: 100%;
+  padding: 5px 8px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #E65100;
+  background: #FFF3E0;
+  border: 1.5px solid #FFB74D;
+  border-radius: 8px;
+  cursor: pointer;
+  text-align: center;
+  margin-top: 6px;
+  -webkit-tap-highlight-color: transparent;
+}
+.tomador-precio-comp-btn.tiene-precio {
+  background: #E8F5E9;
+  border-color: #A5D6A7;
+  color: #2E7D32;
+}
+.tomador-footer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #fff;
+  border-top: 1.5px solid var(--cream3);
+  padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
+  z-index: 301;
+}
+.tomador-btn-confirmar {
+  width: 100%;
+  padding: 16px;
+  background: var(--red);
+  color: #fff;
+  border: none;
+  border-radius: 14px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 20px;
+  font-weight: 900;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.tomador-btn-confirmar:disabled { opacity: .5; }
+.tomador-comp-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.6);
+  z-index: 400;
+  display: flex;
+  align-items: flex-end;
+}
+.tomador-comp-sheet {
+  background: #fff;
+  border-radius: 20px 20px 0 0;
+  width: 100%;
+  padding: 20px 20px calc(20px + env(safe-area-inset-bottom));
+}
+.tomador-comp-titulo {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 18px;
+  font-weight: 900;
+  color: var(--red);
+  margin-bottom: 14px;
+}
+.tomador-comp-input {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1.5px solid var(--cream3);
+  border-radius: 12px;
+  font-size: 15px;
+  margin-bottom: 10px;
+  box-sizing: border-box;
+}
+.tomador-comp-input:focus { border-color: var(--red); outline: none; }
+.tomador-comp-guardar {
+  width: 100%;
+  padding: 14px;
+  background: var(--red);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 18px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+/* ── GPS / CAMPO ── */
 .gps-wrap { padding: 12px 14px 80px; }
 .gps-estado-card {
   background: linear-gradient(135deg, #1B5E20, #2E7D32);
@@ -1136,28 +1627,60 @@ body {
 .gps-estado-card.sin-checkin { background: linear-gradient(135deg, #4A0000, #8B0000); }
 .gps-btn-checkin {
   width: 100%;
-  padding: 16px 20px;
-  border-radius: 16px;
+  padding: 0;
+  border-radius: 18px;
   border: none;
-  font-family: 'Barlow Condensed', sans-serif;
-  font-size: 19px;
-  font-weight: 900;
   cursor: pointer;
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 10px;
-  margin-bottom: 10px;
+  gap: 0;
+  margin-bottom: 12px;
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
-  box-shadow: 0 3px 12px rgba(0,0,0,.15);
-  letter-spacing: .3px;
-  transition: transform .1s, box-shadow .1s;
+  box-shadow: 0 4px 16px rgba(0,0,0,.18);
+  overflow: hidden;
+  transition: transform .12s, box-shadow .12s;
+  text-align: left;
 }
-.gps-btn-checkin:active { transform: scale(.97); box-shadow: 0 1px 6px rgba(0,0,0,.1); }
+.gps-btn-checkin:active { transform: scale(.97); box-shadow: 0 2px 8px rgba(0,0,0,.12); }
+.gps-btn-icon-wrap {
+  width: 70px;
+  min-height: 70px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 28px;
+}
+.gps-btn-text-wrap {
+  flex: 1;
+  padding: 14px 16px;
+}
+.gps-btn-titulo {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 20px;
+  font-weight: 900;
+  letter-spacing: .3px;
+  line-height: 1.1;
+}
+.gps-btn-desc {
+  font-size: 12px;
+  opacity: .8;
+  margin-top: 3px;
+  font-weight: 500;
+}
+.gps-btn-arrow {
+  padding: 0 16px 0 8px;
+  font-size: 20px;
+  opacity: .6;
+  flex-shrink: 0;
+}
 .gps-btn-checkin.entrar { background: linear-gradient(135deg,#2E7D32,#1B5E20); color: #fff; }
+.gps-btn-checkin.entrar .gps-btn-icon-wrap { background: rgba(0,0,0,.15); }
 .gps-btn-checkin.salir { background: linear-gradient(135deg,#C62828,#8B0000); color: #fff; }
+.gps-btn-checkin.salir .gps-btn-icon-wrap { background: rgba(0,0,0,.15); }
 .gps-btn-checkin.visita { background: linear-gradient(135deg,#F57C00,#E65100); color: #fff; }
+.gps-btn-checkin.visita .gps-btn-icon-wrap { background: rgba(0,0,0,.15); }
 .gps-seccion-titulo {
   font-family: 'Barlow Condensed', sans-serif;
   font-size: 14px;
@@ -2765,46 +3288,70 @@ input[type="date"] {
   <div class="view" id="view-gps">
     <div class="gps-wrap">
 
-      <!-- Estado card -->
+      <!-- Estado card (header) -->
       <div id="gps-estado-card" class="gps-estado-card sin-checkin">
         <div class="gps-estado-icon" id="gps-estado-icon">📍</div>
         <div class="gps-estado-info">
           <div class="gps-estado-titulo" id="gps-estado-titulo">Sin check-in activo</div>
           <div class="gps-estado-sub" id="gps-estado-sub">Registrá tu entrada a un cliente</div>
         </div>
+        <div class="gps-estado-dot" id="gps-estado-dot" style="display:none"></div>
       </div>
 
-      <!-- Acciones principales -->
-      <div id="gps-acciones-wrap">
-        <!-- Sin checkin -->
-        <div id="gps-acciones-sin" style="display:block">
-          <button class="gps-btn-checkin entrar" id="gps-btn-checkin" onclick="gpsIniciarCheckin()">
-            <svg viewBox="0 0 24 24" fill="currentColor" width="22" height="22"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
-            Check-in al cliente
+      <div class="gps-acciones-wrap">
+
+        <!-- Sin checkin activo -->
+        <div id="gps-acciones-sin">
+          <button class="gps-btn-checkin-full entrar" id="gps-btn-checkin" onclick="gpsIniciarCheckin()">
+            <div class="gps-btn-checkin-full-icon">📍</div>
+            <div class="gps-btn-checkin-full-text">
+              <div class="gps-btn-checkin-full-titulo">Check-in al cliente</div>
+              <div class="gps-btn-checkin-full-desc">Registrá tu llegada y tomá el pedido</div>
+            </div>
+            <div class="gps-btn-checkin-full-arrow">›</div>
           </button>
-          <button class="gps-btn-checkin visita" onclick="gpsVisitaSinPedido()">
-            <svg viewBox="0 0 24 24" fill="currentColor" width="22" height="22"><path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm-1 7V3.5L18.5 9H13zM8 16h8v2H8v-2zm0-4h8v2H8v-2zm0-4h5v2H8V8z"/></svg>
-            Visita sin pedido
+          <button class="gps-btn-visita-sin" onclick="gpsVisitaSinPedido()">
+            <div class="gps-btn-visita-sin-icon">📋</div>
+            <div class="gps-btn-visita-sin-text">
+              <div class="gps-btn-visita-sin-titulo">Registrar visita sin pedido</div>
+              <div class="gps-btn-visita-sin-desc">Para visitas rápidas · registrá el motivo</div>
+            </div>
+            <div class="gps-btn-visita-sin-arrow">›</div>
           </button>
         </div>
 
         <!-- Con checkin activo -->
         <div id="gps-acciones-con" style="display:none">
-          <button class="gps-btn-checkin" id="gps-btn-tomar-pedido" style="background:linear-gradient(135deg,#B8860B,#FFD700);color:#1A0800;font-size:20px" onclick="tomadorAbrir()">
-            <svg viewBox="0 0 24 24" fill="currentColor" width="22" height="22"><path d="M19 7h-3V6c0-1.65-1.35-3-3-3S10 4.35 10 6v1H7c-1.1 0-2 .9-2 2v11c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V9c0-1.1-.9-2-2-2zM13 14.5c0 .83-.67 1.5-1.5 1.5S10 15.33 10 14.5v-2c0-.83.67-1.5 1.5-1.5s1.5.67 1.5 1.5v2zM14 7h-4V6c0-.55.45-1 1-1h2c.55 0 1 .45 1 1v1z"/></svg>
-            Tomar pedido
-          </button>
-          <button class="gps-btn-checkin salir" id="gps-btn-checkout" onclick="gpsCheckout()">
-            <svg viewBox="0 0 24 24" fill="currentColor" width="22" height="22"><path d="M10.09 15.59L11.5 17l5-5-5-5-1.41 1.41L12.67 11H3v2h9.67l-2.58 2.59zM19 3H5c-1.11 0-2 .9-2 2v4h2V5h14v14H5v-4H3v4c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"/></svg>
-            Check-out del cliente
+          <div class="gps-btn-grid">
+            <button class="gps-btn-card pedido" id="gps-btn-tomar-pedido" onclick="tomadorAbrir()">
+              <div class="gps-btn-card-icon">📦</div>
+              <div class="gps-btn-card-titulo">Tomar<br>pedido</div>
+              <div class="gps-btn-card-desc">Cargá productos</div>
+            </button>
+            <button class="gps-btn-card checkout" id="gps-btn-checkout" onclick="gpsCheckout()">
+              <div class="gps-btn-card-icon">🚪</div>
+              <div class="gps-btn-card-titulo">Check-<br>out</div>
+              <div class="gps-btn-card-desc">Registrar salida</div>
+            </button>
+          </div>
+          <button class="gps-btn-visita-sin" onclick="gpsVisitaSinPedido()">
+            <div class="gps-btn-visita-sin-icon">📋</div>
+            <div class="gps-btn-visita-sin-text">
+              <div class="gps-btn-visita-sin-titulo">Registrar visita sin pedido</div>
+              <div class="gps-btn-visita-sin-desc">Para visitas rápidas · registrá el motivo</div>
+            </div>
+            <div class="gps-btn-visita-sin-arrow">›</div>
           </button>
         </div>
-      </div>
 
-      <!-- Historial del día -->
-      <div class="gps-seccion-titulo">📅 Hoy en campo</div>
-      <div id="gps-historial">
-        <div style="text-align:center;color:var(--text3);padding:20px;font-size:14px">Aún no hay visitas registradas hoy</div>
+        <!-- Historial del día -->
+        <div class="gps-historial-wrap">
+          <div class="gps-historial-hdr" id="gps-historial-hdr">📅 Hoy en campo</div>
+          <div id="gps-historial">
+            <div class="gps-empty">Aún no hay visitas registradas hoy</div>
+          </div>
+        </div>
+
       </div>
     </div>
   </div>
@@ -3428,19 +3975,22 @@ async function cargarPedidos(silencioso) {
       ahoraEl.style.color = 'var(--green2)';
     }
 
-    // Detectar duplicados — dos niveles
+    // Detectar duplicados — solo dentro del MISMO DÍA
     var mapTotal = {}, mapCliente = {};
     pedidos.forEach(function(p) {
-      var kT = (p.cliente + p.total).toLowerCase().replace(/\s/g,'');
-      var kC = p.cliente.toLowerCase().trim();
+      // Clave incluye la fecha (solo día) para no cruzar pedidos de días distintos
+      var fechaDia = p.fecha ? p.fecha.substring(0, 10) : '';
+      var kT = (fechaDia + p.cliente + p.total).toLowerCase().replace(/\s/g,'');
+      var kC = (fechaDia + p.cliente).toLowerCase().trim();
       if (!mapTotal[kT]) mapTotal[kT] = [];
       if (!mapCliente[kC]) mapCliente[kC] = [];
       mapTotal[kT].push(p);
       mapCliente[kC].push(p);
     });
     pedidos.forEach(function(p) {
-      var kT = (p.cliente + p.total).toLowerCase().replace(/\s/g,'');
-      var kC = p.cliente.toLowerCase().trim();
+      var fechaDia = p.fecha ? p.fecha.substring(0, 10) : '';
+      var kT = (fechaDia + p.cliente + p.total).toLowerCase().replace(/\s/g,'');
+      var kC = (fechaDia + p.cliente).toLowerCase().trim();
       var gT = mapTotal[kT], gC = mapCliente[kC];
       if (gT.length > 1) {
         p.esDuplicado = true; p.tipoDuplicado = 'exacto';
@@ -5846,6 +6396,7 @@ async function gpsCargarHistorial() {
     );
 
     var el = document.getElementById('gps-historial');
+    var hdrEl = document.getElementById('gps-historial-hdr');
     if (!el) return;
 
     // Verificar si hay checkin activo sin checkout
@@ -5869,22 +6420,32 @@ async function gpsCargarHistorial() {
     gpsActualizarEstado(checkinActivo);
 
     if (!visitas || visitas.length === 0) {
-      el.innerHTML = '<div style="text-align:center;color:var(--text3);padding:20px;font-size:14px">Aún no hay visitas registradas hoy</div>';
+      el.innerHTML = '<div class="gps-empty">Aún no hay visitas registradas hoy</div>';
       return;
     }
 
+    if (hdrEl) hdrEl.textContent = '📅 Hoy en campo — ' + visitas.length + ' visita' + (visitas.length !== 1 ? 's' : '');
     el.innerHTML = visitas.map(function(v) {
       var hora = new Date(v.fecha).toLocaleTimeString('es-AR', {hour:'2-digit',minute:'2-digit'});
-      var icono = v.tipo === 'checkin' ? '🟢' : v.tipo === 'checkout' ? '🔴' : '📋';
-      var tipo = v.tipo === 'checkin' ? 'Check-in' : v.tipo === 'checkout' ? 'Check-out' : 'Visita sin pedido';
-      var extra = v.motivo_no_compra ? '<div style="font-size:11px;color:var(--text3)">Motivo: ' + v.motivo_no_compra + '</div>' : '';
+      var esCheckin  = v.tipo === 'checkin';
+      var esCheckout = v.tipo === 'checkout';
+      var esSinPed   = v.tipo === 'visita_sin_pedido';
+      var esPedido   = v.tipo === 'pedido_campo';
+      var dotBg   = esCheckin ? '#E8F5E9' : esCheckout ? '#FFEBEE' : esPedido ? '#E3F2FD' : '#FFF3E0';
+      var icono   = esCheckin ? '🟢' : esCheckout ? '🔴' : esPedido ? '📦' : '🟡';
+      var tipoLbl = esCheckin ? 'Check-in' : esCheckout ? 'Check-out' : esPedido ? 'Pedido' : 'Visita sin pedido';
+      var detalle = v.motivo_no_compra ? ' · ' + v.motivo_no_compra : '';
+      var monto = v.observacion && v.observacion.includes('$') ? '' : '';
+      var montoColor = esPedido ? '#2E7D32' : esCheckin ? '#1976D2' : '#E65100';
+      var montoTxt = esCheckout ? '' : (esPedido ? 'Con pedido' : esCheckin ? 'Activo' : 'Sin pedido');
       return '<div class="gps-visita-item">'
-        + '<div class="gps-visita-tipo">' + icono + '</div>'
+        + '<div class="gps-visita-dot" style="background:' + dotBg + '">' + icono + '</div>'
         + '<div class="gps-visita-info">'
         + '<div class="gps-visita-nombre">' + (v.nombre_cliente || '—') + '</div>'
-        + '<div class="gps-visita-hora">' + tipo + ' · ' + hora + '</div>'
-        + extra
-        + '</div></div>';
+        + '<div class="gps-visita-hora">' + tipoLbl + ' · ' + hora + detalle + '</div>'
+        + '</div>'
+        + '<div class="gps-visita-monto" style="color:' + montoColor + '">' + montoTxt + '</div>'
+        + '</div>';
     }).join('');
 
   } catch(e) {
@@ -5903,8 +6464,10 @@ function gpsActualizarEstado(checkinActivo) {
   if (checkinActivo) {
     _gpsCheckinActivo = checkinActivo;
     if (card)   card.classList.remove('sin-checkin');
-    if (icon)   icon.textContent = '🟢';
-    if (titulo) titulo.textContent = '✅ En: ' + (checkinActivo.nombre_cliente || 'Cliente');
+    var dot2 = document.getElementById('gps-estado-dot');
+    if (dot2) dot2.style.display = 'block';
+    if (icon)   icon.textContent = '✅';
+    if (titulo) titulo.textContent = 'En: ' + (checkinActivo.nombre_cliente || 'Cliente');
     var entrada = new Date(checkinActivo.fecha).toLocaleTimeString('es-AR', {hour:'2-digit',minute:'2-digit'});
     if (sub)    sub.textContent = 'Entrada: ' + entrada;
     var sinDiv = document.getElementById('gps-acciones-sin');
@@ -5917,6 +6480,7 @@ function gpsActualizarEstado(checkinActivo) {
     if (icon)   icon.textContent = '📍';
     if (titulo) titulo.textContent = 'Sin check-in activo';
     if (sub)    sub.textContent = 'Registrá tu entrada a un cliente';
+    if (dot) dot.style.display = 'none';
     var sinDiv2 = document.getElementById('gps-acciones-sin');
     var conDiv2 = document.getElementById('gps-acciones-con');
     if (sinDiv2) sinDiv2.style.display = 'block';
@@ -6695,13 +7259,76 @@ async function tomadorConfirmar() {
   var items = Object.keys(_tomadorQtys);
   if (items.length === 0) { toast('Agregá productos primero', 'err'); return; }
 
+  // Mostrar resumen antes de confirmar
+  var cliente = _gpsCheckinActivo ? _gpsCheckinActivo.nombre_cliente : 'Cliente';
+  var resumenLineas = [];
+  var resumenTotal = 0;
+  items.forEach(function(nombre) {
+    var qty = _tomadorQtys[nombre];
+    var item = null;
+    for (var i = 0; i < TOMADOR_CAT.length; i++) {
+      for (var j = 0; j < TOMADOR_CAT[i].items.length; j++) {
+        if (TOMADOR_CAT[i].items[j].n === nombre) { item = TOMADOR_CAT[i].items[j]; break; }
+      }
+      if (item) break;
+    }
+    if (!item) return;
+    var sub = item.pr * qty;
+    resumenTotal += sub;
+    resumenLineas.push({ nombre: nombre, qty: qty, presentacion: item.p, precio: item.pr, subtotal: sub });
+  });
+
+  // Crear modal de resumen
+  var resumenModal = document.createElement('div');
+  resumenModal.id = 'tomador-resumen-modal';
+  resumenModal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:400;display:flex;align-items:flex-end';
+  resumenModal.innerHTML = '<div style="background:#fff;border-radius:20px 20px 0 0;width:100%;max-height:80vh;overflow-y:auto;padding:0 0 env(safe-area-inset-bottom)">'
+    + '<div style="background:linear-gradient(135deg,#4A0000,#8B0000);border-radius:20px 20px 0 0;padding:16px 20px;display:flex;align-items:center;justify-content:space-between">'
+    + '<div style="color:#fff;font-family:Barlow Condensed,sans-serif;font-size:20px;font-weight:900">📋 Resumen del pedido</div>'
+    + '<button onclick="document.getElementById(&quot;tomador-resumen-modal&quot;).remove()" style="background:rgba(255,255,255,.2);border:none;border-radius:50%;width:28px;height:28px;color:#fff;cursor:pointer;font-size:14px">✕</button>'
+    + '</div>'
+    + '<div style="padding:14px 20px 0;font-size:13px;color:#666">👤 ' + cliente + '</div>'
+    + '<div style="padding:10px 20px">'
+    + resumenLineas.map(function(l) {
+        return '<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid #f0e8e8">'
+          + '<div><div style="font-weight:700;font-size:14px">' + l.nombre + '</div>'
+          + '<div style="font-size:12px;color:#888">' + l.presentacion + ' · ' + l.qty + ' unid.</div></div>'
+          + '<div style="font-family:Barlow Condensed,sans-serif;font-size:16px;font-weight:900;color:#8B0000">$' + l.subtotal.toLocaleString('es-AR') + '</div>'
+          + '</div>';
+      }).join('')
+    + '</div>'
+    + (Object.keys(_tomadorCompetencia).length > 0
+        ? '<div style="margin:0 20px 10px;background:#FFF3E0;border:1.5px solid #FFB74D;border-radius:10px;padding:10px 14px">'
+          + '<div style="font-size:11px;font-weight:900;color:#E65100;margin-bottom:6px">💲 PRECIOS COMPETENCIA</div>'
+          + Object.keys(_tomadorCompetencia).map(function(n) {
+              var c = _tomadorCompetencia[n];
+              return '<div style="font-size:12px;color:#555">• ' + n + ': <b>$' + c.precio.toLocaleString('es-AR') + '</b>' + (c.nombre ? ' (' + c.nombre + ')' : '') + '</div>';
+            }).join('')
+          + '</div>'
+        : '')
+    + '<div style="padding:8px 20px 16px;display:flex;align-items:center;justify-content:space-between">'
+    + '<div style="font-family:Barlow Condensed,sans-serif;font-size:14px;color:#666">TOTAL</div>'
+    + '<div style="font-family:Barlow Condensed,sans-serif;font-size:28px;font-weight:900;color:#8B0000">$' + resumenTotal.toLocaleString('es-AR') + '</div>'
+    + '</div>'
+    + '<div style="padding:0 20px 20px">'
+    + '<button onclick="tomadorConfirmarFinal()" style="width:100%;padding:16px;background:linear-gradient(135deg,#1B5E20,#2E7D32);color:#fff;border:none;border-radius:14px;font-family:Barlow Condensed,sans-serif;font-size:20px;font-weight:900;cursor:pointer">✅ Confirmar y registrar pedido</button>'
+    + '</div>'
+    + '</div>';
+  document.body.appendChild(resumenModal);
+  return; // Stop here - actual confirmation happens in tomadorConfirmarFinal
+}
+
+async function tomadorConfirmarFinal() {
+  var modal = document.getElementById('tomador-resumen-modal');
+  if (modal) modal.remove();
+
+  var items = Object.keys(_tomadorQtys);
   var cliente   = _gpsCheckinActivo ? _gpsCheckinActivo.nombre_cliente : 'Cliente';
   var vendedor  = vendedorActual || 'Vendedor';
   var hoy       = new Date();
   var fecha     = hoy.toLocaleDateString('es-AR');
   var hora      = hoy.toLocaleTimeString('es-AR', {hour:'2-digit',minute:'2-digit'});
 
-  // Armar detalle
   var lineas = [];
   var total  = 0;
   items.forEach(function(nombre) {
