@@ -1190,6 +1190,16 @@ function abrirEntregas() {
   if (m) m.style.display = 'flex';
   document.body.style.overflow = 'hidden';
 }
+
+// Abrir automáticamente solo una vez por sesión
+(function() {
+  try {
+    if (!sessionStorage.getItem('tck_entrega_visto')) {
+      sessionStorage.setItem('tck_entrega_visto', '1');
+      setTimeout(function() { abrirEntregas(); }, 800);
+    }
+  } catch(e) {}
+})();
 function cerrarEntregas(e) {
   if (e && e.target !== document.getElementById('modal-entregas')) return;
   var m = document.getElementById('modal-entregas');
