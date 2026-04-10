@@ -1763,7 +1763,7 @@ body {
   background: #fff;
   border-top: 1.5px solid var(--cream3);
   display: none;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(6, 1fr);
   box-shadow: 0 -4px 20px rgba(0,0,0,.08);
   padding-bottom: env(safe-area-inset-bottom);
 }
@@ -3310,14 +3310,6 @@ input[type="date"] {
             </div>
             <div class="gps-btn-checkin-full-arrow">›</div>
           </button>
-          <button class="gps-btn-visita-sin" onclick="gpsVisitaSinPedido()">
-            <div class="gps-btn-visita-sin-icon">📋</div>
-            <div class="gps-btn-visita-sin-text">
-              <div class="gps-btn-visita-sin-titulo">Registrar visita sin pedido</div>
-              <div class="gps-btn-visita-sin-desc">Para visitas rápidas · registrá el motivo</div>
-            </div>
-            <div class="gps-btn-visita-sin-arrow">›</div>
-          </button>
         </div>
 
         <!-- Con checkin activo -->
@@ -3328,20 +3320,12 @@ input[type="date"] {
               <div class="gps-btn-card-titulo">Tomar<br>pedido</div>
               <div class="gps-btn-card-desc">Cargá productos</div>
             </button>
-            <button class="gps-btn-card checkout" id="gps-btn-checkout" onclick="gpsCheckout()">
+            <button class="gps-btn-card checkout" id="gps-btn-checkout" onclick="gpsCheckoutConMotivo()">
               <div class="gps-btn-card-icon">🚪</div>
               <div class="gps-btn-card-titulo">Check-<br>out</div>
-              <div class="gps-btn-card-desc">Registrar salida</div>
+              <div class="gps-btn-card-desc">Salir del cliente</div>
             </button>
           </div>
-          <button class="gps-btn-visita-sin" onclick="gpsVisitaSinPedido()">
-            <div class="gps-btn-visita-sin-icon">📋</div>
-            <div class="gps-btn-visita-sin-text">
-              <div class="gps-btn-visita-sin-titulo">Registrar visita sin pedido</div>
-              <div class="gps-btn-visita-sin-desc">Para visitas rápidas · registrá el motivo</div>
-            </div>
-            <div class="gps-btn-visita-sin-arrow">›</div>
-          </button>
         </div>
 
         <!-- Historial del día -->
@@ -3734,7 +3718,8 @@ async function sbFetch(path, options = {}) {
 
 // GPS state
 var _gpsVendedorId  = null;
-var _gpsCheckinActivo = null; // { visitaId, clienteNombre, lat, lng, ts }
+var _gpsCheckinActivo = null;
+var _gpsHizoPedido  = false; // true si tomó pedido en el checkin activo
 
 let vendedorActual = null;
 let todosLosPedidos = [];
@@ -3978,8 +3963,7 @@ async function cargarPedidos(silencioso) {
     // Detectar duplicados — solo dentro del MISMO DÍA
     var mapTotal = {}, mapCliente = {};
     pedidos.forEach(function(p) {
-      // Clave incluye la fecha (solo día) para no cruzar pedidos de días distintos
-      var fechaDia = p.fecha ? p.fecha.substring(0, 10) : '';
+      var fechaDia = (p.fechaHora || '').substring(0, 10);
       var kT = (fechaDia + p.cliente + p.total).toLowerCase().replace(/\s/g,'');
       var kC = (fechaDia + p.cliente).toLowerCase().trim();
       if (!mapTotal[kT]) mapTotal[kT] = [];
@@ -3988,7 +3972,7 @@ async function cargarPedidos(silencioso) {
       mapCliente[kC].push(p);
     });
     pedidos.forEach(function(p) {
-      var fechaDia = p.fecha ? p.fecha.substring(0, 10) : '';
+      var fechaDia = (p.fechaHora || '').substring(0, 10);
       var kT = (fechaDia + p.cliente + p.total).toLowerCase().replace(/\s/g,'');
       var kC = (fechaDia + p.cliente).toLowerCase().trim();
       var gT = mapTotal[kT], gC = mapCliente[kC];
@@ -6560,6 +6544,7 @@ async function gpsConfirmarCheckin(nombreCliente) {
   var modal = document.getElementById('gps-modal-checkin');
   if (modal) modal.remove();
 
+  _gpsHizoPedido = false;
   toast('📍 Obteniendo ubicación...', 'ok');
   var coords = await gpsGetCoords();
   var vendedorId = await gpsObtenerVendedorId();
@@ -6626,7 +6611,6 @@ async function gpsCheckout() {
   if (!_gpsCheckinActivo) return;
   var coords = await gpsGetCoords();
   var vendedorId = await gpsObtenerVendedorId();
-
   try {
     await sbFetch('visitas', {
       method: 'POST',
@@ -6638,8 +6622,60 @@ async function gpsCheckout() {
         lng:            coords.lng
       })
     });
-
     toast('🚪 Check-out registrado', 'ok');
+    _gpsCheckinActivo = null;
+    gpsCargarHistorial();
+  } catch(e) {
+    toast('Error al registrar check-out', 'err');
+  }
+}
+
+// Checkout con pregunta de motivo si no hubo pedido
+function gpsCheckoutConMotivo() {
+  if (!_gpsCheckinActivo) return;
+  // Si ya tomó pedido, hacer checkout directo sin preguntar
+  if (_gpsHizoPedido) { gpsCheckoutFinal(null); return; }
+  var modal = document.createElement('div');
+  modal.className = 'gps-modal-overlay';
+  modal.id = 'gps-modal-checkout';
+  modal.innerHTML = '<div class="gps-modal">'
+    + '<div class="gps-modal-hdr">'
+    + '<div class="gps-modal-titulo">🚪 Check-out — ' + (_gpsCheckinActivo.nombre_cliente || 'Cliente') + '</div>'
+    + '<button class="gps-modal-close" onclick="document.getElementById(&quot;gps-modal-checkout&quot;).remove()">✕</button>'
+    + '</div>'
+    + '<div style="padding:16px 20px">'
+    + '<div style="font-family:&apos;Barlow Condensed&apos;,sans-serif;font-size:16px;font-weight:900;color:var(--text);margin-bottom:14px">¿Hubo pedido?</div>'
+    + '<button class="gps-motivo-btn" style="background:var(--green3);border-color:var(--green2);color:var(--green)" onclick="gpsCheckoutFinal(null)">✅ Sí, tomé el pedido</button>'
+    + '<div style="font-family:&apos;Barlow Condensed&apos;,sans-serif;font-size:14px;font-weight:900;color:var(--text2);margin:14px 0 8px">❌ No compró — ¿por qué?</div>'
+    + '<button class="gps-motivo-btn" onclick="gpsCheckoutFinal(&quot;Precio alto&quot;)">💰 Precio alto</button>'
+    + '<button class="gps-motivo-btn" onclick="gpsCheckoutFinal(&quot;Compró a la competencia&quot;)">🏪 Compró a la competencia</button>'
+    + '<button class="gps-motivo-btn" onclick="gpsCheckoutFinal(&quot;No necesita por ahora&quot;)">📦 No necesita por ahora</button>'
+    + '<button class="gps-motivo-btn" onclick="gpsCheckoutFinal(&quot;Local cerrado&quot;)">🔒 Local cerrado</button>'
+    + '<button class="gps-motivo-btn" onclick="gpsCheckoutFinal(&quot;Cliente ausente&quot;)">🚶 Cliente ausente</button>'
+    + '<button class="gps-motivo-btn" onclick="gpsCheckoutFinal(&quot;Otro&quot;)">💬 Otro motivo</button>'
+    + '</div></div>';
+  document.body.appendChild(modal);
+}
+
+async function gpsCheckoutFinal(motivo) {
+  var modal = document.getElementById('gps-modal-checkout');
+  if (modal) modal.remove();
+  var coords = await gpsGetCoords();
+  var vendedorId = await gpsObtenerVendedorId();
+  var cliente = _gpsCheckinActivo ? _gpsCheckinActivo.nombre_cliente : '';
+  try {
+    await sbFetch('visitas', {
+      method: 'POST',
+      body: JSON.stringify({
+        vendedor_id:      vendedorId,
+        nombre_cliente:   cliente,
+        tipo:             'checkout',
+        motivo_no_compra: motivo || null,
+        lat:              coords.lat,
+        lng:              coords.lng
+      })
+    });
+    toast(motivo ? '📋 Visita registrada: ' + motivo : '🚪 Check-out registrado', 'ok');
     _gpsCheckinActivo = null;
     gpsCargarHistorial();
   } catch(e) {
@@ -7396,8 +7432,8 @@ async function tomadorConfirmarFinal() {
     toast('✅ Pedido enviado por WhatsApp', 'ok');
   }
 
+  _gpsHizoPedido = true;
   tomadorCerrar();
-  // Refrescar pedidos del panel
   setTimeout(function() { cargarPedidos(); }, 2000);
 }
 
