@@ -3889,8 +3889,12 @@ setInterval(function() {
   const antes = todosLosPedidos.length;
   const dupAntes = new Set(todosLosPedidos.filter(p => p.esDuplicado).map(p => p.pedidoId));
   cargarPedidos(true).then(function() {
-    if (todosLosPedidos.length > antes) notificarNuevoPedido(todosLosPedidos.length - antes);
-    const dupNuevos = todosLosPedidos.filter(p => p.esDuplicado && !dupAntes.has(p.pedidoId));
+    // Solo notificar pedidos del vendedor actual (no todos)
+    var misPedidosNuevos = todosLosPedidos.length - antes;
+    if (misPedidosNuevos > 0) notificarNuevoPedido(misPedidosNuevos);
+    const dupNuevos = todosLosPedidos.filter(function(p) {
+      return p.esDuplicado && !dupAntes.has(p.pedidoId);
+    });
     if (dupNuevos.length > 0) notificarDuplicados(dupNuevos);
   });
 }, 20000);
@@ -4018,6 +4022,11 @@ function login(nombre) {
   _gpsVendedorId    = null;
   _gpsHizoPedido    = false;
   _lastTrackPos     = null;
+  // Resetear filtros
+  _repVendedor   = 'todos';
+  _cliPeriodo    = 'semana';
+  filtroFecha    = 'hoy';
+  filtroVendedor = 'todos';
   guardarSesion(nombre);
   vendedorActual = nombre;
   document.getElementById('login-wrap').style.display = 'none';
@@ -4048,6 +4057,11 @@ function salir() {
   _gpsHizoPedido    = false;
   _lastTrackPos     = null;
   _trackingVendorId = null;
+  // Resetear filtros para que no se crucen entre sesiones
+  _repVendedor  = 'todos';
+  _cliPeriodo   = 'semana';
+  filtroFecha   = 'hoy';
+  filtroVendedor = 'todos';
   // Resetear UI del tab Visitas
   gpsActualizarEstado(null);
   limpiarSesion();
@@ -4657,6 +4671,8 @@ async function cambiarEstado(pedidoId, fila, nuevoEstado, event) {
   var txtOrig = btn.textContent;
   btn.disabled = true; btn.textContent = 'Guardando...';
   try {
+    // Siempre mandamos pedidoId además de fila — el Apps Script puede buscar por pedidoId
+    // si la fila está desactualizada (ej: pedidos de campo recién enviados)
     var params = new URLSearchParams({accion:'cambiarEstado', pedidoId:pedidoId, fila:fila, estado:nuevoEstado});
     await fetch(APPS_SCRIPT_URL+'?'+params.toString(), {mode:'no-cors'});
     var p = todosLosPedidos.find(function(x){return x.pedidoId===pedidoId;});
