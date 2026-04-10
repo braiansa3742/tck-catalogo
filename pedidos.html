@@ -6505,7 +6505,48 @@ function tomadorRenderProductos(catId) {
       var sinStock = TOMADOR_SIN_STOCK.has(item.n);
       var qty = _tomadorQtys[item.n] || 0;
       var tieneQty = qty > 0;
-      var imgUrl = 'https://tckcatalogo.com/img/' + encodeURIComponent(item.img + '.jpg').replace(/%25/g,'%').replace(/%2F/g,'/');
+      // Usar el nombre real del archivo desde el mapa de imágenes
+      var IMGMAP = {
+        "Pollo Ginosa":"Pollo ginosa.jpg","Pollo Optimo":"pollo optimo.jpg",
+        "Suprema":"suprema.jpg","Suprema IQF":"suprema iqf.jpg",
+        "Alita Congelada Granel":"alita congelada granel.jpg",
+        "MDM - Carne Molida de Pollo":"MDM.jpg","Cuarto Trasero IQF":"cuarto trasero IQF.jpg",
+        "Medallon de Pollo Clasico":"medallon de pollo clasico.jpg",
+        "Medallon Pollo c/Cheddar":"medallon de Pollo c cheddar.jpg",
+        "Medallon Pollo JyQ":"Medallon Pollo JyQ.jpg",
+        "Medallon Pollo y Espinaca":"Medallon Pollo y Espinaca.jpg",
+        "Formita Clasica":"Formita Clasica.jpg","Formitas Pollo JyQ":"Formitas Pollo JyQ.jpg",
+        "Nuggets de Pollo Crocante":"Nuggets de Pollo Crocante.jpg",
+        "Bocadito de Papa y Jamon":"Bocadito de Papa y Jamon.jpg",
+        "Pechuguitas al Verdeo":"Pechuguitas al Verdeo.jpg",
+        "Filet Merluza Finas Hierbas":"Filet Merluza Finas Hierbas.jpg",
+        "Filet de Merluza Rebozado":"Filet de Merluza Rebozado.jpg",
+        "Filet Merluza a Granel":"Filet Merluza a Granel.jpg",
+        "Milanesa de Nalga":"Milanesa de Nalga.jpg","Milanesa de Pollo":"Milanesa de Pollo.jpg",
+        "Hamburguesa 100% Carne":"Hamburguesa Carne.jpg",
+        "Pulpa de Palta":"Pulpa de Palta.jpg","Papa Baston Balcarce":"Papa Baston Balcarce.jpg",
+        "Maple N° 2":"Maple N° 2.jpg","Maple N° 1":"Maple N° 2.jpg",
+        "Cajita 1/2 Docena N° 2":"Cajita 12 Docena N° 2.jpg",
+        "Arándanos Solimeno":"Arándanos Solimeno.jpg",
+        "Brocoli":"Brocoli.jpg","Espinacas":"Espinacas.jpg","Morron":"Morron.jpg",
+        "Primavera":"Primavera.jpg","Frutos Rojos":"Frutos Rojos.jpg","Cebolla":"Cebolla.jpg",
+        "Ravioles de Calabaza":"Ravioles de Calabaza.jpg",
+        "Raviolones Espinaca y Mozz":"Raviolones Espinaca y Mozz.jpg",
+        "Gnoquis de Papa":"Gnoquis de Papa.jpg","Gnoquis de Espinaca":"Gnoquis de Espinaca.jpg",
+        "Sorrentinos Jamon y Queso":"Sorrentinos Jamon y Queso.jpg",
+        "Sorrentinos Ricota 4 Quesos":"Sorrentinos Ricota 4 Quesos.jpg",
+        "Hamburguesa de Garbanzos":"Hamburguesa de Garbanzos.jpg",
+        "Hamburguesa de Lentejas":"Hamburguesa de Lentejas.jpg",
+        "Hamburguesa de Quinoa":"Hamburguesa de Quinoa.jpg",
+        "Hamburguesa de Arvejas":"Hamburguesa de Arvejas.jpg",
+        "Hamburguesa de Hongos":"Hamburguesa de Hongos.jpg",
+        "Hamburguesa de Espinaca":"Hamburguesa de Espinaca.jpg",
+        "Hamburguesa Mexicana":"Hamburguesa Mexicana.jpg",
+        "Hamburguesa 5 Vegetales":"Hamburguesa 5 Vegetales.jpg",
+        "Fino de Ave Cocida":"Fino de ave cocido.png"
+      };
+      var imgFile = IMGMAP[item.n] || (item.img + '.jpg');
+      var imgUrl = 'https://tckcatalogo.com/img/' + encodeURIComponent(imgFile).replace(/%20/g,'%20');
       var comp = _tomadorCompetencia[item.n];
       var compLabel = comp ? '💲' + comp.precio.toLocaleString('es-AR') + (comp.nombre ? ' — ' + comp.nombre : '') : '';
       var safeName = item.n.replace(/'/g, "\'").replace(/"/g, '&quot;');
@@ -6697,8 +6738,36 @@ async function tomadorConfirmar() {
     });
   } catch(e) { console.warn('No se pudo guardar pedido campo:', e); }
 
+  // Registrar pedido en el Sheet (igual que el catálogo)
+  try {
+    var pedidoId = 'TCK-' + hoy.toISOString().slice(0,10).replace(/-/g,'') + '-'
+      + hoy.toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'}).replace(':','')
+      + '-' + (vendedor === 'ADMIN' ? 'ADM' : vendedor.substring(0,3).toUpperCase())
+      + '-CAMPO';
+
+    var detalleSheet = lineas.map(function(l) { return l; }).join('\n');
+
+    var params = new URLSearchParams({
+      accion:        'guardarPedido',
+      pedidoId:      pedidoId,
+      vendedor:      vendedor,
+      cliente:       cliente,
+      localidad:     _gpsCheckinActivo ? (_gpsCheckinActivo.localidad || 'Campo') : 'Campo',
+      detalle:       detalleSheet,
+      total:         total,
+      nota:          compLineas.length > 0 ? 'PRECIOS COMP: ' + compLineas.join(' | ') : '',
+      origen:        'campo'
+    });
+
+    fetch(APPS_SCRIPT_URL + '?' + params.toString(), {mode: 'no-cors'}).catch(function(){});
+    toast('✅ Pedido registrado y enviado', 'ok');
+  } catch(e) {
+    toast('✅ Pedido enviado por WhatsApp', 'ok');
+  }
+
   tomadorCerrar();
-  toast('✅ Pedido enviado por WhatsApp', 'ok');
+  // Refrescar pedidos del panel
+  setTimeout(function() { cargarPedidos(); }, 2000);
 }
 
 
