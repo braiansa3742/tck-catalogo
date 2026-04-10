@@ -232,6 +232,91 @@ body {
 }
 .btn-salir:hover { background: rgba(255,255,255,.25); }
 
+/* ── OBJETIVOS ── */
+.objetivo-card {
+  background: var(--cream2);
+  border-radius: 14px;
+  padding: 14px 16px;
+  margin-bottom: 10px;
+}
+.objetivo-card-hdr {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.objetivo-av {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  background: var(--red);
+  color: #fff;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 16px;
+  font-weight: 900;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.objetivo-nombre {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 18px;
+  font-weight: 900;
+  color: var(--text);
+}
+.objetivo-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+.objetivo-label {
+  font-size: 13px;
+  color: var(--text2);
+}
+.objetivo-input-wrap { flex-shrink: 0; }
+.objetivo-input {
+  width: 110px;
+  padding: 6px 10px;
+  border: 1.5px solid var(--cream3);
+  border-radius: 8px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+  background: #fff;
+  text-align: right;
+}
+.objetivo-input:focus { outline: none; border-color: var(--red); }
+.objetivo-progreso-wrap { margin-top: 4px; }
+
+/* Botón línea de tiempo en lista clientes */
+.cli-row { cursor: pointer; transition: background .12s; }
+.cli-row:active { background: var(--cream2); }
+.cli-lt-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: var(--red);
+  font-weight: 700;
+  background: var(--cream2);
+  border: none;
+  border-radius: 6px;
+  padding: 3px 8px;
+  cursor: pointer;
+  font-family: 'Barlow Condensed', sans-serif;
+  letter-spacing: .3px;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  margin-top: 4px;
+}
+
+/* Pulse animation para posición actual en mapa */
+@keyframes pulse {
+  0%   { box-shadow: 0 0 0 0 rgba(139,0,0,.4); }
+  70%  { box-shadow: 0 0 0 8px rgba(139,0,0,0); }
+  100% { box-shadow: 0 0 0 0 rgba(139,0,0,0); }
+}
+
 /* ── STATS ── */
 .stats {
   display: grid;
@@ -3371,9 +3456,19 @@ input[type="date"] {
     </div>
   </div>
 
-  <!-- ══ VIEW: REPORTES ══ -->
+  <!-- ══ VIEW: REPORTES ══ -->\
   <div class="view" id="view-reportes">
     <div class="rep-view-inner">
+
+      <!-- ── Objetivos (solo Admin) ── -->
+      <div class="rep-card" id="objetivos-section" style="margin-top:4px;display:none">
+        <div class="rep-card-hdr">
+          <div class="rep-card-titulo">🎯 Objetivos</div>
+        </div>
+        <div id="objetivos-wrap">
+          <div style="text-align:center;color:var(--text3);padding:16px;font-size:13px">Cargando...</div>
+        </div>
+      </div>
 
       <!-- ── Resumen + filtros ── -->
       <div class="rep-card" style="margin-top:4px;">
@@ -3933,9 +4028,14 @@ function login(nombre) {
   mostrarTabs();
   mostrarBotonesManual();
   checkPrimeraVez();
+  // Iniciar tracking GPS continuo (solo vendedores, no Admin)
+  if (nombre !== 'ADMIN') trackingIniciar();
+  // Cargar objetivos
+  objetivosCargar();
 }
 
 function salir() {
+  trackingDetener();
   limpiarSesion();
   document.title = 'TCK Ventas';
   vendedorActual = null; pinActual = ''; pinVendedorTemp = null; todosLosPedidos = [];
@@ -4983,6 +5083,13 @@ function renderReportes() {
   var datos   = getRepDatosFiltrados();
   var anterior = getDatosAnteriores();
   var esAdmin = vendedorActual === 'ADMIN';
+
+  // ── Objetivos (solo Admin) ────────────────────────────────────
+  var objSection = document.getElementById('objetivos-section');
+  if (objSection) {
+    objSection.style.display = esAdmin ? 'block' : 'none';
+    if (esAdmin) renderObjetivos();
+  }
 
   // ── Mostrar/ocultar filtro de vendedor ───────────────────────
   var filtroEl = document.getElementById('rep-vend-filtro');
@@ -6265,6 +6372,7 @@ function renderClientes() {
           + '<div class="cli-info">'
           +   '<div class="cli-nombre">' + (c.nombre||'—') + '</div>'
           +   '<div class="cli-sub">' + subInfo + '</div>'
+          +   '<button class="cli-lt-btn" onclick="abrirLineaTiempo(\'' + (c.nombre||'').replace(/'/g,"\\'") + '\')">📋 Ver historial</button>'
           + '</div>'
           + '<div class="cli-monto-col">'
           +   '<div class="cli-monto">$' + c.monto.toLocaleString('es-AR') + '</div>'
@@ -6307,6 +6415,7 @@ function renderClientes() {
           + '<div class="cli-info">'
           +   '<div class="cli-nombre">' + (c.nombre||'—') + '</div>'
           +   '<div class="cli-sub">' + subInfo + '</div>'
+          +   '<button class="cli-lt-btn" onclick="abrirLineaTiempo(\'' + (c.nombre||'').replace(/'/g,"\\'") + '\')">📋 Ver historial</button>'
           + '</div>'
           + '<div class="cli-monto-col">'
           +   '<span class="cli-tag ' + tagClass + '">' + tagLabel + '</span>'
@@ -6818,6 +6927,17 @@ var _mapaVisitas     = [];
 var _mapaMarkers     = [];
 var _mapaRuta        = null;
 var _mapaGrayMarkers = [];
+var _mapaTrackLines  = {}; // líneas de tracking por vendedor
+var _mapaTrackMarkers = []; // marcador posición actual
+
+// Tracking continuo
+var _trackingWatchId  = null;
+var _trackingInterval = null;
+var _trackingVendorId = null;
+var _lastTrackPos     = null;
+
+// Objetivos
+var _objetivos = {};
 
 // Colores por vendedor
 var COLORES_VENDEDOR = {
@@ -7000,6 +7120,9 @@ function mapaActualizar() {
 
   // Forzar resize del mapa
   setTimeout(function() { if (_mapaInstance) _mapaInstance.invalidateSize(); }, 100);
+
+  // Cargar líneas de tracking GPS continuo
+  if (vendedorActual === 'ADMIN') mapaCargarPosiciones();
 }
 
 // Cargar clientes sin visita hoy (puntos grises en el mapa)
@@ -7090,6 +7213,371 @@ const TOMADOR_SIN_STOCK = new Set(['MDM - Carne Molida de Pollo','Filet de Merlu
 var _tomadorQtys       = {}; // { nombreProducto: cantidad }
 var _tomadorCompetencia = {}; // { nombreProducto: { precio, competencia } }
 var _tomadorCatActual  = 'todos';
+
+// ══════════════════════════════════════════════════════
+// TRACKING CONTINUO DE POSICIÓN
+// ══════════════════════════════════════════════════════
+
+async function trackingIniciar() {
+  if (!navigator.geolocation) return;
+  if (vendedorActual === 'ADMIN') return; // Admin no trackea
+
+  _trackingVendorId = await gpsObtenerVendedorId();
+  if (!_trackingVendorId) return;
+
+  // watchPosition — pide permiso una vez y sigue rastreando
+  _trackingWatchId = navigator.geolocation.watchPosition(
+    function(pos) {
+      var lat = pos.coords.latitude;
+      var lng = pos.coords.longitude;
+      // Solo guardar si se movió más de 20 metros
+      if (_lastTrackPos) {
+        var dist = calcDistancia(_lastTrackPos.lat, _lastTrackPos.lng, lat, lng);
+        if (dist < 0.02) return; // menos de 20 metros, no guardar
+      }
+      _lastTrackPos = {lat: lat, lng: lng};
+      trackingGuardarPosicion(lat, lng);
+    },
+    function(err) { console.warn('GPS tracking:', err.message); },
+    { enableHighAccuracy: true, maximumAge: 30000, timeout: 15000 }
+  );
+}
+
+function trackingDetener() {
+  if (_trackingWatchId !== null) {
+    navigator.geolocation.clearWatch(_trackingWatchId);
+    _trackingWatchId = null;
+  }
+  _lastTrackPos = null;
+  _trackingVendorId = null;
+}
+
+async function trackingGuardarPosicion(lat, lng) {
+  if (!_trackingVendorId) return;
+  try {
+    await sbFetch('posiciones', {
+      method: 'POST',
+      body: JSON.stringify({
+        vendedor_id: _trackingVendorId,
+        lat: lat,
+        lng: lng
+      })
+    });
+  } catch(e) { /* silencioso */ }
+}
+
+// Calcular distancia en km entre dos puntos (Haversine simplificado)
+function calcDistancia(lat1, lng1, lat2, lng2) {
+  var R = 6371;
+  var dLat = (lat2 - lat1) * Math.PI / 180;
+  var dLng = (lng2 - lng1) * Math.PI / 180;
+  var a = Math.sin(dLat/2)*Math.sin(dLat/2) +
+          Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*
+          Math.sin(dLng/2)*Math.sin(dLng/2);
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+// Cargar posiciones del día para el mapa
+async function mapaCargarPosiciones() {
+  try {
+    var hoy = new Date(); hoy.setHours(0,0,0,0);
+    var desde = hoy.toISOString();
+    var query = 'posiciones?fecha=gte.' + desde + '&order=fecha.asc&select=*,vendedores(nombre)';
+    var posiciones = await sbFetch(query);
+    if (!posiciones || !posiciones.length) return;
+
+    // Limpiar líneas anteriores
+    Object.values(_mapaTrackLines).forEach(function(l) { _mapaInstance.removeLayer(l); });
+    _mapaTrackLines = {};
+    _mapaTrackMarkers.forEach(function(m) { _mapaInstance.removeLayer(m); });
+    _mapaTrackMarkers = [];
+
+    // Filtrar por vendedor si hay filtro activo
+    if (_mapaFiltro !== 'todos') {
+      posiciones = posiciones.filter(function(p) {
+        return p.vendedores && p.vendedores.nombre === _mapaFiltro;
+      });
+    }
+
+    // Agrupar por vendedor
+    var porVendedor = {};
+    posiciones.forEach(function(p) {
+      var nombre = p.vendedores ? p.vendedores.nombre : 'Desconocido';
+      if (!porVendedor[nombre]) porVendedor[nombre] = [];
+      porVendedor[nombre].push([p.lat, p.lng]);
+    });
+
+    // Dibujar línea de ruta por vendedor
+    Object.keys(porVendedor).forEach(function(nombre) {
+      var pts = porVendedor[nombre];
+      if (pts.length < 2) return;
+      var color = COLORES_VENDEDOR[nombre] || '#8B0000';
+      var linea = L.polyline(pts, {
+        color: color,
+        weight: 3,
+        opacity: 0.7,
+        dashArray: null
+      }).addTo(_mapaInstance);
+      _mapaTrackLines[nombre] = linea;
+
+      // Marcador de posición actual (último punto)
+      var ultimo = pts[pts.length - 1];
+      var iconActual = L.divIcon({
+        html: '<div style="background:' + color + ';width:14px;height:14px;border-radius:50%;border:3px solid #fff;box-shadow:0 0 0 2px ' + color + ';animation:pulse 1.5s infinite"></div>',
+        iconSize: [14, 14],
+        iconAnchor: [7, 7],
+        className: ''
+      });
+      var m = L.marker(ultimo, {icon: iconActual})
+        .bindPopup('<b>' + nombre + '</b><br>📍 Posición actual')
+        .addTo(_mapaInstance);
+      _mapaTrackMarkers.push(m);
+    });
+  } catch(e) { console.error('Error tracking:', e); }
+}
+
+// ══════════════════════════════════════════════════════
+// OBJETIVOS POR VENDEDOR
+// ══════════════════════════════════════════════════════
+
+async function objetivosCargar() {
+  try {
+    var data = await sbFetch('objetivos?activo=eq.true&select=*,vendedores(nombre)');
+    _objetivos = {};
+    if (data) {
+      data.forEach(function(o) {
+        var nombre = o.vendedores ? o.vendedores.nombre : null;
+        if (!nombre) return;
+        if (!_objetivos[nombre]) _objetivos[nombre] = {};
+        _objetivos[nombre][o.tipo] = o.valor;
+      });
+    }
+  } catch(e) { console.error('Error objetivos:', e); }
+}
+
+async function objetivoGuardar(vendedorNombre, tipo, valor) {
+  try {
+    // Buscar vendedor ID
+    var vData = await sbFetch('vendedores?nombre=eq.' + encodeURIComponent(vendedorNombre) + '&select=id');
+    if (!vData || !vData.length) return;
+    var vendedorId = vData[0].id;
+
+    // Desactivar objetivo anterior del mismo tipo
+    await sbFetch('objetivos?vendedor_id=eq.' + vendedorId + '&tipo=eq.' + tipo, {
+      method: 'PATCH',
+      body: JSON.stringify({ activo: false })
+    });
+
+    // Crear nuevo objetivo
+    await sbFetch('objetivos', {
+      method: 'POST',
+      body: JSON.stringify({
+        vendedor_id: vendedorId,
+        tipo: tipo,
+        valor: valor,
+        activo: true
+      })
+    });
+
+    if (!_objetivos[vendedorNombre]) _objetivos[vendedorNombre] = {};
+    _objetivos[vendedorNombre][tipo] = valor;
+    toast('✅ Objetivo guardado', 'ok');
+  } catch(e) {
+    toast('Error al guardar objetivo', 'err');
+  }
+}
+
+function renderObjetivos() {
+  var el = document.getElementById('objetivos-wrap');
+  if (!el) return;
+
+  var vendedores = ['Miguel', 'Juan', 'Lisandro'];
+  var hoy = new Date(); hoy.setHours(0,0,0,0);
+  var hoyStr = hoy.toISOString();
+
+  // Calcular progreso real del día
+  var pedidosHoy = todosLosPedidos.filter(function(p) {
+    var id = p.pedidoId || '';
+    var match = id.match(/TCK-(\d{4})(\d{2})(\d{2})/);
+    if (!match) return false;
+    var fechaPed = new Date(+match[1], +match[2]-1, +match[3]);
+    return fechaPed >= hoy;
+  });
+
+  el.innerHTML = '<div style="font-family:\'Barlow Condensed\',sans-serif;font-size:18px;font-weight:900;color:var(--text);margin-bottom:14px;letter-spacing:.3px;">🎯 Objetivos del día</div>'
+    + vendedores.map(function(nombre) {
+      var obj = _objetivos[nombre] || {};
+      var visitasObj   = obj['visitas_dia']  || 0;
+      var montoObj     = obj['monto_dia']    || 0;
+
+      // Progreso real
+      var montoReal = pedidosHoy
+        .filter(function(p) { return p.vendedor && p.vendedor.toLowerCase().includes(nombre.toLowerCase()); })
+        .reduce(function(s, p) { return s + (p.total || 0); }, 0);
+
+      var visitasReal = 0; // se carga async desde Supabase — se muestra como — si no está
+
+      var pctMonto   = montoObj   ? Math.min(100, Math.round((montoReal/montoObj)*100))   : 0;
+
+      var colorMonto = pctMonto  >= 100 ? '#2E7D32' : pctMonto  >= 60 ? '#F57C00' : '#8B0000';
+
+      return '<div class="objetivo-card">'
+        + '<div class="objetivo-card-hdr">'
+        +   '<div class="objetivo-av">' + nombre[0] + '</div>'
+        +   '<div class="objetivo-nombre">' + nombre + '</div>'
+        + '</div>'
+        // Objetivo de visitas
+        + '<div class="objetivo-row">'
+        +   '<div class="objetivo-label">📍 Visitas / día</div>'
+        +   '<div class="objetivo-input-wrap">'
+        +     '<input type="number" class="objetivo-input" placeholder="—" value="' + (visitasObj || '') + '" '
+        +       'onchange="objetivoGuardar(\'' + nombre + '\',\'visitas_dia\',+this.value)">'
+        +   '</div>'
+        + '</div>'
+        // Objetivo de monto
+        + '<div class="objetivo-row">'
+        +   '<div class="objetivo-label">💰 Monto / día ($)</div>'
+        +   '<div class="objetivo-input-wrap">'
+        +     '<input type="number" class="objetivo-input" placeholder="—" value="' + (montoObj || '') + '" '
+        +       'onchange="objetivoGuardar(\'' + nombre + '\',\'monto_dia\',+this.value)">'
+        +   '</div>'
+        + '</div>'
+        // Progreso monto
+        + (montoObj ? '<div class="objetivo-progreso-wrap">'
+        +   '<div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text3);margin-bottom:4px">'
+        +     '<span>Facturado hoy</span>'
+        +     '<span style="color:' + colorMonto + ';font-weight:700">$' + montoReal.toLocaleString('es-AR') + ' / $' + montoObj.toLocaleString('es-AR') + '</span>'
+        +   '</div>'
+        +   '<div style="height:6px;background:var(--cream2);border-radius:3px;overflow:hidden">'
+        +     '<div style="width:' + pctMonto + '%;height:100%;background:' + colorMonto + ';border-radius:3px;transition:width .4s"></div>'
+        +   '</div>'
+        + '</div>' : '')
+        + '</div>';
+    }).join('');
+}
+
+// ══════════════════════════════════════════════════════
+// LÍNEA DE TIEMPO POR CLIENTE
+// ══════════════════════════════════════════════════════
+
+async function abrirLineaTiempo(nombreCliente) {
+  var modal = document.createElement('div');
+  modal.className = 'gps-modal-overlay';
+  modal.id = 'modal-linea-tiempo';
+  modal.style.cssText = 'z-index:9999';
+
+  modal.innerHTML = '<div class="gps-modal" style="max-height:85vh;overflow-y:auto">'
+    + '<div class="gps-modal-hdr">'
+    +   '<div class="gps-modal-titulo">📋 ' + nombreCliente + '</div>'
+    +   '<button class="gps-modal-close" onclick="document.getElementById(\'modal-linea-tiempo\').remove()">✕</button>'
+    + '</div>'
+    + '<div id="lt-contenido" style="padding:16px 20px">'
+    +   '<div style="text-align:center;color:var(--text3);padding:20px">Cargando historial...</div>'
+    + '</div>'
+    + '</div>';
+
+  document.body.appendChild(modal);
+
+  // Cargar datos en paralelo
+  try {
+    var hoy = new Date(); hoy.setHours(0,0,0,0);
+    var hace90 = new Date(hoy); hace90.setDate(hace90.getDate() - 90);
+
+    // Visitas desde Supabase
+    var visitasPromise = sbFetch(
+      'visitas?nombre_cliente=ilike.*' + encodeURIComponent(nombreCliente.replace(/ /g,'*')) + '*' +
+      '&fecha=gte.' + hace90.toISOString() +
+      '&order=fecha.desc&select=*,vendedores(nombre)&limit=50'
+    ).catch(function() { return []; });
+
+    var visitas = await visitasPromise;
+
+    // Pedidos desde todosLosPedidos (ya en memoria)
+    var pedidosCliente = todosLosPedidos.filter(function(p) {
+      return p.nombre && p.nombre.toLowerCase().includes(nombreCliente.toLowerCase().substring(0, 8));
+    }).slice(0, 20);
+
+    // Combinar y ordenar por fecha desc
+    var eventos = [];
+
+    (visitas || []).forEach(function(v) {
+      if (v.tipo !== 'checkout') return; // solo mostrar checkouts para no duplicar
+      eventos.push({
+        fecha: new Date(v.fecha),
+        tipo: 'visita',
+        vendedor: v.vendedores ? v.vendedores.nombre : '?',
+        motivo: v.motivo_no_compra,
+        hasPedido: !v.motivo_no_compra
+      });
+    });
+
+    pedidosCliente.forEach(function(p) {
+      var match = (p.pedidoId || '').match(/TCK-(\d{4})(\d{2})(\d{2})-(\d{2})(\d{2})/);
+      if (!match) return;
+      var fecha = new Date(+match[1], +match[2]-1, +match[3], +match[4], +match[5]);
+      eventos.push({
+        fecha: fecha,
+        tipo: 'pedido',
+        vendedor: p.vendedor || '?',
+        total: p.total,
+        estado: p.estado,
+        detalle: p.detalle
+      });
+    });
+
+    eventos.sort(function(a, b) { return b.fecha - a.fecha; });
+
+    var el = document.getElementById('lt-contenido');
+    if (!el) return;
+
+    if (!eventos.length) {
+      el.innerHTML = '<div style="text-align:center;color:var(--text3);padding:20px">Sin historial registrado</div>';
+      return;
+    }
+
+    // Stats rápidas
+    var totalPedidos = eventos.filter(function(e) { return e.tipo === 'pedido'; }).length;
+    var totalVisitas = eventos.filter(function(e) { return e.tipo === 'visita'; }).length;
+    var totalMonto   = eventos.filter(function(e) { return e.tipo === 'pedido'; }).reduce(function(s, e) { return s + (e.total || 0); }, 0);
+
+    el.innerHTML = '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px">'
+      + ltStat(totalVisitas, 'Visitas')
+      + ltStat(totalPedidos, 'Pedidos')
+      + ltStat('$' + (totalMonto/1000).toFixed(0) + 'K', 'Facturado')
+      + '</div>'
+      + '<div style="border-left:2px solid var(--cream3);padding-left:14px;margin-left:6px">'
+      + eventos.map(function(e) {
+          var hora = e.fecha.toLocaleString('es-AR', {day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
+          if (e.tipo === 'pedido') {
+            return '<div style="position:relative;margin-bottom:14px">'
+              + '<div style="position:absolute;left:-20px;top:3px;width:10px;height:10px;border-radius:50%;background:var(--green);border:2px solid #fff"></div>'
+              + '<div style="font-size:11px;color:var(--text3);margin-bottom:2px">' + hora + ' · ' + e.vendedor + '</div>'
+              + '<div style="font-family:\'Barlow Condensed\',sans-serif;font-size:15px;font-weight:900;color:var(--text)">🛒 Pedido — $' + (e.total||0).toLocaleString('es-AR') + '</div>'
+              + '<div style="font-size:11px;color:var(--text3);margin-top:2px">' + (e.estado||'') + '</div>'
+              + '</div>';
+          } else {
+            var icono = e.hasPedido ? '✅' : '❌';
+            var desc  = e.hasPedido ? 'Visitó · con pedido' : ('Sin pedido: ' + (e.motivo || 'sin motivo'));
+            return '<div style="position:relative;margin-bottom:14px">'
+              + '<div style="position:absolute;left:-20px;top:3px;width:10px;height:10px;border-radius:50%;background:' + (e.hasPedido ? 'var(--gold)' : '#E65100') + ';border:2px solid #fff"></div>'
+              + '<div style="font-size:11px;color:var(--text3);margin-bottom:2px">' + hora + ' · ' + e.vendedor + '</div>'
+              + '<div style="font-family:\'Barlow Condensed\',sans-serif;font-size:15px;font-weight:900;color:var(--text)">' + icono + ' ' + desc + '</div>'
+              + '</div>';
+          }
+        }).join('')
+      + '</div>';
+  } catch(e) {
+    var el2 = document.getElementById('lt-contenido');
+    if (el2) el2.innerHTML = '<div style="text-align:center;color:var(--red);padding:20px">Error al cargar historial</div>';
+  }
+}
+
+function ltStat(val, lbl) {
+  return '<div style="background:var(--cream2);border-radius:10px;padding:10px;text-align:center">'
+    + '<div style="font-family:\'Barlow Condensed\',sans-serif;font-size:20px;font-weight:900;color:var(--red)">' + val + '</div>'
+    + '<div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px">' + lbl + '</div>'
+    + '</div>';
+}
 
 // Handlers para bloquear zoom en el tomador
 function _tomadorBlockZoom(e) {
