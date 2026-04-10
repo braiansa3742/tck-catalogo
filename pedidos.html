@@ -953,8 +953,8 @@ body {
 }
 .tomador-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 6px;
 }
 .tomador-item {
   background: #fff;
@@ -984,19 +984,19 @@ body {
 .tomador-item-body { padding: 8px 8px 6px; }
 .tomador-item-nombre {
   font-family: 'Barlow Condensed', sans-serif;
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 700;
   color: var(--text);
   line-height: 1.2;
   margin-bottom: 2px;
 }
-.tomador-item-presentacion { font-size: 11px; color: var(--text3); margin-bottom: 4px; }
+.tomador-item-presentacion { font-size: 10px; color: var(--text3); margin-bottom: 3px; }
 .tomador-item-precio {
   font-family: 'Barlow Condensed', sans-serif;
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 900;
   color: var(--red);
-  margin-bottom: 6px;
+  margin-bottom: 4px;
 }
 .tomador-qty {
   display: flex;
@@ -1005,8 +1005,8 @@ body {
   justify-content: center;
 }
 .tomador-qty-btn {
-  width: 28px;
-  height: 28px;
+  width: 24px;
+  height: 24px;
   border-radius: 50%;
   border: 1.5px solid var(--cream3);
   background: var(--cream);
@@ -1023,7 +1023,7 @@ body {
 .tomador-qty-btn.plus { background: var(--red); color: #fff; border-color: var(--red); }
 .tomador-qty-num {
   font-family: 'Barlow Condensed', sans-serif;
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 900;
   color: var(--text);
   min-width: 24px;
@@ -2507,8 +2507,13 @@ input[type="date"] {
 
 <div class="hdr">
   <div>
-    <div class="hdr-logo">🐔 TCK Pedidos</div>
-    <div class="hdr-sub">Panel de vendedores</div>
+    <div style="display:flex;align-items:center;gap:10px;">
+      <img src="https://tckcatalogo.com/img/logo.png" alt="TCK" style="height:42px;width:auto;object-fit:contain;filter:drop-shadow(0 1px 6px rgba(0,0,0,.5))" onerror="this.style.display='none'">
+      <div>
+        <div class="hdr-logo" style="font-size:17px;line-height:1.1">TCK Pedidos</div>
+        <div class="hdr-sub">Panel de vendedores</div>
+      </div>
+    </div>
   </div>
   <div class="hdr-right">
     <div class="hdr-fecha" id="hdr-fecha"></div>
@@ -2759,7 +2764,8 @@ input[type="date"] {
   <!-- ══ VIEW: VISITAS / GPS ══ -->
   <div class="view" id="view-gps">
     <div class="gps-wrap">
-      <!-- Estado actual -->
+
+      <!-- Estado card -->
       <div id="gps-estado-card" class="gps-estado-card sin-checkin">
         <div class="gps-estado-icon" id="gps-estado-icon">📍</div>
         <div class="gps-estado-info">
@@ -2768,19 +2774,32 @@ input[type="date"] {
         </div>
       </div>
 
-      <!-- Botones principales -->
-      <button class="gps-btn-checkin entrar" id="gps-btn-checkin" onclick="gpsIniciarCheckin()">
-        📍 Check-in — Entrar a cliente
-      </button>
-      <button class="gps-btn-checkin salir" id="gps-btn-checkout" style="display:none" onclick="gpsCheckout()">
-        🚪 Check-out — Salir del cliente
-      </button>
-      <button class="gps-btn-checkin" id="gps-btn-tomar-pedido" style="display:none;background:var(--gold);color:var(--text)" onclick="tomadorAbrir()">
-        📦 Tomar pedido
-      </button>
-      <button class="gps-btn-checkin visita" onclick="gpsVisitaSinPedido()">
-        📋 Registrar visita sin pedido
-      </button>
+      <!-- Acciones principales -->
+      <div id="gps-acciones-wrap">
+        <!-- Sin checkin -->
+        <div id="gps-acciones-sin" style="display:block">
+          <button class="gps-btn-checkin entrar" id="gps-btn-checkin" onclick="gpsIniciarCheckin()">
+            <svg viewBox="0 0 24 24" fill="currentColor" width="22" height="22"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+            Check-in al cliente
+          </button>
+          <button class="gps-btn-checkin visita" onclick="gpsVisitaSinPedido()">
+            <svg viewBox="0 0 24 24" fill="currentColor" width="22" height="22"><path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm-1 7V3.5L18.5 9H13zM8 16h8v2H8v-2zm0-4h8v2H8v-2zm0-4h5v2H8V8z"/></svg>
+            Visita sin pedido
+          </button>
+        </div>
+
+        <!-- Con checkin activo -->
+        <div id="gps-acciones-con" style="display:none">
+          <button class="gps-btn-checkin" id="gps-btn-tomar-pedido" style="background:linear-gradient(135deg,#B8860B,#FFD700);color:#1A0800;font-size:20px" onclick="tomadorAbrir()">
+            <svg viewBox="0 0 24 24" fill="currentColor" width="22" height="22"><path d="M19 7h-3V6c0-1.65-1.35-3-3-3S10 4.35 10 6v1H7c-1.1 0-2 .9-2 2v11c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V9c0-1.1-.9-2-2-2zM13 14.5c0 .83-.67 1.5-1.5 1.5S10 15.33 10 14.5v-2c0-.83.67-1.5 1.5-1.5s1.5.67 1.5 1.5v2zM14 7h-4V6c0-.55.45-1 1-1h2c.55 0 1 .45 1 1v1z"/></svg>
+            Tomar pedido
+          </button>
+          <button class="gps-btn-checkin salir" id="gps-btn-checkout" onclick="gpsCheckout()">
+            <svg viewBox="0 0 24 24" fill="currentColor" width="22" height="22"><path d="M10.09 15.59L11.5 17l5-5-5-5-1.41 1.41L12.67 11H3v2h9.67l-2.58 2.59zM19 3H5c-1.11 0-2 .9-2 2v4h2V5h14v14H5v-4H3v4c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"/></svg>
+            Check-out del cliente
+          </button>
+        </div>
+      </div>
 
       <!-- Historial del día -->
       <div class="gps-seccion-titulo">📅 Hoy en campo</div>
@@ -5879,8 +5898,7 @@ function gpsActualizarEstado(checkinActivo) {
   var icon  = document.getElementById('gps-estado-icon');
   var titulo = document.getElementById('gps-estado-titulo');
   var sub   = document.getElementById('gps-estado-sub');
-  var btnIn  = document.getElementById('gps-btn-checkin');
-  var btnOut = document.getElementById('gps-btn-checkout');
+  // btnIn/btnOut handled via gps-acciones-sin/con divs
 
   if (checkinActivo) {
     _gpsCheckinActivo = checkinActivo;
@@ -5889,20 +5907,20 @@ function gpsActualizarEstado(checkinActivo) {
     if (titulo) titulo.textContent = '✅ En: ' + (checkinActivo.nombre_cliente || 'Cliente');
     var entrada = new Date(checkinActivo.fecha).toLocaleTimeString('es-AR', {hour:'2-digit',minute:'2-digit'});
     if (sub)    sub.textContent = 'Entrada: ' + entrada;
-    if (btnIn)   btnIn.style.display   = 'none';
-    if (btnOut)  btnOut.style.display  = 'flex';
-    var btnPed = document.getElementById('gps-btn-tomar-pedido');
-    if (btnPed)  btnPed.style.display  = 'flex';
+    var sinDiv = document.getElementById('gps-acciones-sin');
+    var conDiv = document.getElementById('gps-acciones-con');
+    if (sinDiv) sinDiv.style.display = 'none';
+    if (conDiv) conDiv.style.display = 'block';
   } else {
     _gpsCheckinActivo = null;
     if (card)   card.classList.add('sin-checkin');
     if (icon)   icon.textContent = '📍';
     if (titulo) titulo.textContent = 'Sin check-in activo';
     if (sub)    sub.textContent = 'Registrá tu entrada a un cliente';
-    if (btnIn)  btnIn.style.display  = 'flex';
-    if (btnOut) btnOut.style.display = 'none';
-    var btnPed2 = document.getElementById('gps-btn-tomar-pedido');
-    if (btnPed2) btnPed2.style.display = 'none';
+    var sinDiv2 = document.getElementById('gps-acciones-sin');
+    var conDiv2 = document.getElementById('gps-acciones-con');
+    if (sinDiv2) sinDiv2.style.display = 'block';
+    if (conDiv2) conDiv2.style.display = 'none';
   }
 }
 
@@ -6428,7 +6446,7 @@ function mapaActualizarLista(checkins, todasVisitas) {
 // ═══════════════════════════════════════════════════════
 
 // Productos del catálogo (copiados del index.html)
-const TOMADOR_CAT = [{"id":"pollos","sec":"POLLOS CONGELADOS","items":[{"n":"Pollo Ginosa","p":"x 20 Kg","pr":86000,"img":"pollo_ginosa"},{"n":"Pollo Optimo","p":"x 20 Kg","pr":72000,"img":"pollo_optimo"},{"n":"Suprema","p":"x 5 Kg","pr":33000,"img":"supremas_bolsa"},{"n":"Suprema IQF","p":"x 15 Kg","pr":102000,"img":"suprema_iqf"}]},{"id":"trozados","sec":"TROZADOS","items":[{"n":"Fino de Ave Cocida","p":"x 10 Kg","pr":62400,"img":"empanada mordida","img2":"https://tckcatalogo.com/img/empanada%20mordida.png"},{"n":"Alita Congelada Granel","p":"x 15 Kg","pr":44000,"img":"alas"},{"n":"MDM - Carne Molida de Pollo","p":"x 20 Kg","pr":34000,"img":"mdm"},{"n":"Cuarto Trasero IQF","p":"x 15 Kg","pr":53000,"img":"patamuslo"}]},{"id":"shaddai","sec":"REBOZADOS EL SHADDAI","items":[{"n":"Medallon de Pollo Clasico","p":"x 6 Kg","pr":28500,"img":"medallon_clasico_v2"},{"n":"Medallon Pollo c/Cheddar","p":"x 6 Kg","pr":47800,"img":"medallon_cheddar_v2"},{"n":"Medallon Pollo JyQ","p":"x 6 Kg","pr":33500,"img":"medallon_jyq_v2"},{"n":"Medallon Pollo y Espinaca","p":"x 6 Kg","pr":33000,"img":"medallon_espinaca_v2"},{"n":"Formita Clasica","p":"x 6 Kg","pr":28500,"img":"formita_clasica_v2"},{"n":"Formitas Pollo JyQ","p":"x 6 Kg","pr":33500,"img":"formita_jyq_v2"},{"n":"Nuggets de Pollo Crocante","p":"x 6 Kg","pr":34500,"img":"nuggets_v2"},{"n":"Bocadito de Papa y Jamon","p":"x 6 Kg","pr":29000,"img":"bocadito_v2"},{"n":"Pechuguitas al Verdeo","p":"x 6 Kg","pr":45500,"img":"pechuguitas_v2"},{"n":"Filet Merluza Finas Hierbas","p":"x 6 Kg","pr":45600,"img":"merluza_hierbas_v2"},{"n":"Filet de Merluza Rebozado","p":"x 6 Kg","pr":43700,"img":"merluza_rebozado"},{"n":"Filet Merluza a Granel","p":"x 10 Kg","pr":80500,"img":"merluza_granel_v2"}]},{"id":"mila","sec":"MILANESAS Y HAMBURGUESAS","items":[{"n":"Milanesa de Nalga","p":"x 5 Kg","pr":68000,"img":"milanesa_nalga_v2"},{"n":"Milanesa de Pollo","p":"x 5 Kg","pr":40500,"img":"milanesa_pollo_v2"},{"n":"Hamburguesa 100% Carne","p":"x 4 Kg","pr":46600,"img":"hamburguesa_carne"}]},{"id":"papas","sec":"McCAIN & BALCARCE","items":[{"n":"Papa Baston Balcarce","p":"x 2,5 Kg","pr":8000,"img":"papa_baston"},{"n":"Pulpa de Palta","p":"x 450 Grs","pr":12200,"img":"pulpa_palta"}]},{"id":"huevos","sec":"HUEVOS","items":[{"n":"Maple N° 2","p":"30 unidades","pr":4800,"img":"huevos_maple"},{"n":"Maple N° 1","p":"30 unidades","pr":5500,"img":"huevos_maple"},{"n":"Cajita 1/2 Docena N° 2","p":"6 unidades","pr":1350,"img":"huevos_cajita"}]},{"id":"verd","sec":"VERDURAS CONGELADAS","items":[{"n":"Arándanos Solimeno","p":"500 Grs","pr":9000,"img":"arandanos"},{"n":"Brocoli","p":"500 Grs","pr":5800,"img":"brocoli"},{"n":"Espinacas","p":"500 Grs","pr":4000,"img":"espinaca"},{"n":"Morron","p":"500 Grs","pr":7000,"img":"morron"},{"n":"Primavera","p":"500 Grs","pr":5000,"img":"primavera"},{"n":"Frutos Rojos","p":"500 Grs","pr":11000,"img":"frutos_rojos"},{"n":"Cebolla","p":"500 Grs","pr":4000,"img":"cebolla"}]}];
+const TOMADOR_CAT = [{"id":"pollos","sec":"POLLOS CONGELADOS","items":[{"n":"Pollo A","p":"x 20 Kg · Premium","pr":86000,"img":"pollo_ginosa"},{"n":"Pollo B","p":"x 20 Kg","pr":72000,"img":"pollo_optimo"},{"n":"Suprema","p":"x 5 Kg","pr":33000,"img":"supremas_bolsa"},{"n":"Suprema IQF","p":"x 15 Kg","pr":102000,"img":"suprema_iqf"}]},{"id":"trozados","sec":"TROZADOS","items":[{"n":"Fino de Ave Cocida","p":"x 10 Kg","pr":62400,"img":"empanada mordida","img2":"https://tckcatalogo.com/img/empanada%20mordida.png"},{"n":"Alita Congelada Granel","p":"x 15 Kg","pr":44000,"img":"alas"},{"n":"MDM - Carne Molida de Pollo","p":"x 20 Kg","pr":34000,"img":"mdm"},{"n":"Cuarto Trasero IQF","p":"x 15 Kg","pr":53000,"img":"patamuslo"}]},{"id":"shaddai","sec":"REBOZADOS EL SHADDAI","items":[{"n":"Medallon de Pollo Clasico","p":"x 6 Kg","pr":28500,"img":"medallon_clasico_v2"},{"n":"Medallon Pollo c/Cheddar","p":"x 6 Kg","pr":47800,"img":"medallon_cheddar_v2"},{"n":"Medallon Pollo JyQ","p":"x 6 Kg","pr":33500,"img":"medallon_jyq_v2"},{"n":"Medallon Pollo y Espinaca","p":"x 6 Kg","pr":33000,"img":"medallon_espinaca_v2"},{"n":"Formita Clasica","p":"x 6 Kg","pr":28500,"img":"formita_clasica_v2"},{"n":"Formitas Pollo JyQ","p":"x 6 Kg","pr":33500,"img":"formita_jyq_v2"},{"n":"Nuggets de Pollo Crocante","p":"x 6 Kg","pr":34500,"img":"nuggets_v2"},{"n":"Bocadito de Papa y Jamon","p":"x 6 Kg","pr":29000,"img":"bocadito_v2"},{"n":"Pechuguitas al Verdeo","p":"x 6 Kg","pr":45500,"img":"pechuguitas_v2"},{"n":"Filet Merluza Finas Hierbas","p":"x 6 Kg","pr":45600,"img":"merluza_hierbas_v2"},{"n":"Filet de Merluza Rebozado","p":"x 6 Kg","pr":43700,"img":"merluza_rebozado"},{"n":"Filet Merluza a Granel","p":"x 10 Kg","pr":80500,"img":"merluza_granel_v2"}]},{"id":"mila","sec":"MILANESAS Y HAMBURGUESAS","items":[{"n":"Milanesa de Nalga","p":"x 5 Kg","pr":68000,"img":"milanesa_nalga_v2"},{"n":"Milanesa de Pollo","p":"x 5 Kg","pr":40500,"img":"milanesa_pollo_v2"},{"n":"Hamburguesa 100% Carne","p":"x 4 Kg","pr":46600,"img":"hamburguesa_carne"}]},{"id":"papas","sec":"McCAIN & BALCARCE","items":[{"n":"Papa Baston Balcarce","p":"x 2,5 Kg","pr":8000,"img":"papa_baston"},{"n":"Pulpa de Palta","p":"x 450 Grs","pr":12200,"img":"pulpa_palta"}]},{"id":"huevos","sec":"HUEVOS","items":[{"n":"Maple N° 2","p":"30 unidades","pr":4800,"img":"huevos_maple"},{"n":"Maple N° 1","p":"30 unidades","pr":5500,"img":"huevos_maple"},{"n":"Cajita 1/2 Docena N° 2","p":"6 unidades","pr":1350,"img":"huevos_cajita"}]},{"id":"verd","sec":"VERDURAS CONGELADAS","items":[{"n":"Arándanos Solimeno","p":"500 Grs","pr":9000,"img":"arandanos"},{"n":"Brocoli","p":"500 Grs","pr":5800,"img":"brocoli"},{"n":"Espinacas","p":"500 Grs","pr":4000,"img":"espinaca"},{"n":"Morron","p":"500 Grs","pr":7000,"img":"morron"},{"n":"Primavera","p":"500 Grs","pr":5000,"img":"primavera"},{"n":"Frutos Rojos","p":"500 Grs","pr":11000,"img":"frutos_rojos"},{"n":"Cebolla","p":"500 Grs","pr":4000,"img":"cebolla"}]}];
 
 const TOMADOR_SIN_STOCK = new Set(['MDM - Carne Molida de Pollo','Filet de Merluza Rebozado','Filet Merluza Finas Hierbas','Pollo Ginosa','Nuggets de Pollo Crocante','Bocadito de Papa y Jamon']);
 
@@ -6507,7 +6525,7 @@ function tomadorRenderProductos(catId) {
       var tieneQty = qty > 0;
       // Usar el nombre real del archivo desde el mapa de imágenes
       var IMGMAP = {
-        "Pollo Ginosa":"Pollo ginosa.jpg","Pollo Optimo":"pollo optimo.jpg",
+        "Pollo A":"Pollo ginosa.jpg","Pollo Ginosa":"Pollo ginosa.jpg","Pollo B":"pollo optimo.jpg","Pollo Optimo":"pollo optimo.jpg",
         "Suprema":"suprema.jpg","Suprema IQF":"suprema iqf.jpg",
         "Alita Congelada Granel":"alita congelada granel.jpg",
         "MDM - Carne Molida de Pollo":"MDM.jpg","Cuarto Trasero IQF":"cuarto trasero IQF.jpg",
@@ -6551,7 +6569,9 @@ function tomadorRenderProductos(catId) {
       var compLabel = comp ? '💲' + comp.precio.toLocaleString('es-AR') + (comp.nombre ? ' — ' + comp.nombre : '') : '';
       var safeName = item.n.replace(/'/g, "\'").replace(/"/g, '&quot;');
 
-      html += '<div class="tomador-item' + (tieneQty ? ' tiene' : '') + (sinStock ? ' sin-stock' : '') + '" id="titem-' + item.img + '">'
+      var sinStockBadge = sinStock ? '<div style="position:absolute;top:4px;left:4px;background:#C62828;color:#fff;font-size:9px;font-weight:900;padding:2px 6px;border-radius:6px;font-family:Barlow Condensed,sans-serif;letter-spacing:.5px">SIN STOCK</div>' : '';
+  html += '<div class="tomador-item' + (tieneQty ? ' tiene' : '') + (sinStock ? ' sin-stock' : '') + '" id="titem-' + item.img + '" style="position:relative">'
+        + sinStockBadge
         + '<img class="tomador-item-img" src="' + (item.img2 || imgUrl) + '" onerror="this.style.display=&quot;none&quot;;this.nextSibling.style.display=&quot;flex&quot;" loading="lazy">'
         + '<div class="tomador-item-img-placeholder" style="display:none">🍗</div>'
         + '<div class="tomador-item-body">'
