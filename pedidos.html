@@ -1032,14 +1032,22 @@ body {
 .tomador-precio-comp-btn {
   display: block;
   width: 100%;
-  padding: 4px;
-  font-size: 10px;
-  color: var(--text3);
-  background: none;
-  border: none;
+  padding: 5px 8px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #E65100;
+  background: #FFF3E0;
+  border: 1.5px solid #FFB74D;
+  border-radius: 8px;
   cursor: pointer;
   text-align: center;
-  margin-top: 2px;
+  margin-top: 6px;
+  -webkit-tap-highlight-color: transparent;
+}
+.tomador-precio-comp-btn.tiene-precio {
+  background: #E8F5E9;
+  border-color: #A5D6A7;
+  color: #2E7D32;
 }
 .tomador-footer {
   position: fixed;
@@ -1128,24 +1136,28 @@ body {
 .gps-estado-card.sin-checkin { background: linear-gradient(135deg, #4A0000, #8B0000); }
 .gps-btn-checkin {
   width: 100%;
-  padding: 16px;
-  border-radius: 14px;
+  padding: 16px 20px;
+  border-radius: 16px;
   border: none;
   font-family: 'Barlow Condensed', sans-serif;
-  font-size: 18px;
+  font-size: 19px;
   font-weight: 900;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 10px;
   margin-bottom: 10px;
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
+  box-shadow: 0 3px 12px rgba(0,0,0,.15);
+  letter-spacing: .3px;
+  transition: transform .1s, box-shadow .1s;
 }
-.gps-btn-checkin.entrar { background: #2E7D32; color: #fff; }
-.gps-btn-checkin.salir { background: #8B0000; color: #fff; }
-.gps-btn-checkin.visita { background: #E65100; color: #fff; }
+.gps-btn-checkin:active { transform: scale(.97); box-shadow: 0 1px 6px rgba(0,0,0,.1); }
+.gps-btn-checkin.entrar { background: linear-gradient(135deg,#2E7D32,#1B5E20); color: #fff; }
+.gps-btn-checkin.salir { background: linear-gradient(135deg,#C62828,#8B0000); color: #fff; }
+.gps-btn-checkin.visita { background: linear-gradient(135deg,#F57C00,#E65100); color: #fff; }
 .gps-seccion-titulo {
   font-family: 'Barlow Condensed', sans-serif;
   font-size: 14px;
@@ -6416,7 +6428,7 @@ function mapaActualizarLista(checkins, todasVisitas) {
 // ═══════════════════════════════════════════════════════
 
 // Productos del catálogo (copiados del index.html)
-const TOMADOR_CAT = [{"id":"pollos","sec":"POLLOS CONGELADOS","items":[{"n":"Pollo Ginosa","p":"x 20 Kg","pr":86000,"img":"pollo_ginosa"},{"n":"Pollo Optimo","p":"x 20 Kg","pr":72000,"img":"pollo_optimo"},{"n":"Suprema","p":"x 5 Kg","pr":33000,"img":"supremas_bolsa"},{"n":"Suprema IQF","p":"x 15 Kg","pr":102000,"img":"suprema_iqf"}]},{"id":"trozados","sec":"TROZADOS","items":[{"n":"Fino de Ave Cocida","p":"x 10 Kg","pr":62400,"img":"fino_ave"},{"n":"Alita Congelada Granel","p":"x 15 Kg","pr":44000,"img":"alas"},{"n":"MDM - Carne Molida de Pollo","p":"x 20 Kg","pr":34000,"img":"mdm"},{"n":"Cuarto Trasero IQF","p":"x 15 Kg","pr":53000,"img":"patamuslo"}]},{"id":"shaddai","sec":"REBOZADOS EL SHADDAI","items":[{"n":"Medallon de Pollo Clasico","p":"x 6 Kg","pr":28500,"img":"medallon_clasico_v2"},{"n":"Medallon Pollo c/Cheddar","p":"x 6 Kg","pr":47800,"img":"medallon_cheddar_v2"},{"n":"Medallon Pollo JyQ","p":"x 6 Kg","pr":33500,"img":"medallon_jyq_v2"},{"n":"Medallon Pollo y Espinaca","p":"x 6 Kg","pr":33000,"img":"medallon_espinaca_v2"},{"n":"Formita Clasica","p":"x 6 Kg","pr":28500,"img":"formita_clasica_v2"},{"n":"Formitas Pollo JyQ","p":"x 6 Kg","pr":33500,"img":"formita_jyq_v2"},{"n":"Nuggets de Pollo Crocante","p":"x 6 Kg","pr":34500,"img":"nuggets_v2"},{"n":"Bocadito de Papa y Jamon","p":"x 6 Kg","pr":29000,"img":"bocadito_v2"},{"n":"Pechuguitas al Verdeo","p":"x 6 Kg","pr":45500,"img":"pechuguitas_v2"},{"n":"Filet Merluza Finas Hierbas","p":"x 6 Kg","pr":45600,"img":"merluza_hierbas_v2"},{"n":"Filet de Merluza Rebozado","p":"x 6 Kg","pr":43700,"img":"merluza_rebozado"},{"n":"Filet Merluza a Granel","p":"x 10 Kg","pr":80500,"img":"merluza_granel_v2"}]},{"id":"mila","sec":"MILANESAS Y HAMBURGUESAS","items":[{"n":"Milanesa de Nalga","p":"x 5 Kg","pr":68000,"img":"milanesa_nalga_v2"},{"n":"Milanesa de Pollo","p":"x 5 Kg","pr":40500,"img":"milanesa_pollo_v2"},{"n":"Hamburguesa 100% Carne","p":"x 4 Kg","pr":46600,"img":"hamburguesa_carne"}]},{"id":"papas","sec":"McCAIN & BALCARCE","items":[{"n":"Papa Baston Balcarce","p":"x 2,5 Kg","pr":8000,"img":"papa_baston"},{"n":"Pulpa de Palta","p":"x 450 Grs","pr":12200,"img":"pulpa_palta"}]},{"id":"huevos","sec":"HUEVOS","items":[{"n":"Maple N° 2","p":"30 unidades","pr":4800,"img":"huevos_maple"},{"n":"Maple N° 1","p":"30 unidades","pr":5500,"img":"huevos_maple"},{"n":"Cajita 1/2 Docena N° 2","p":"6 unidades","pr":1350,"img":"huevos_cajita"}]},{"id":"verd","sec":"VERDURAS CONGELADAS","items":[{"n":"Arándanos Solimeno","p":"500 Grs","pr":9000,"img":"arandanos"},{"n":"Brocoli","p":"500 Grs","pr":5800,"img":"brocoli"},{"n":"Espinacas","p":"500 Grs","pr":4000,"img":"espinaca"},{"n":"Morron","p":"500 Grs","pr":7000,"img":"morron"},{"n":"Primavera","p":"500 Grs","pr":5000,"img":"primavera"},{"n":"Frutos Rojos","p":"500 Grs","pr":11000,"img":"frutos_rojos"},{"n":"Cebolla","p":"500 Grs","pr":4000,"img":"cebolla"}]}];
+const TOMADOR_CAT = [{"id":"pollos","sec":"POLLOS CONGELADOS","items":[{"n":"Pollo Ginosa","p":"x 20 Kg","pr":86000,"img":"pollo_ginosa"},{"n":"Pollo Optimo","p":"x 20 Kg","pr":72000,"img":"pollo_optimo"},{"n":"Suprema","p":"x 5 Kg","pr":33000,"img":"supremas_bolsa"},{"n":"Suprema IQF","p":"x 15 Kg","pr":102000,"img":"suprema_iqf"}]},{"id":"trozados","sec":"TROZADOS","items":[{"n":"Fino de Ave Cocida","p":"x 10 Kg","pr":62400,"img":"empanada mordida","img2":"https://tckcatalogo.com/img/empanada%20mordida.png"},{"n":"Alita Congelada Granel","p":"x 15 Kg","pr":44000,"img":"alas"},{"n":"MDM - Carne Molida de Pollo","p":"x 20 Kg","pr":34000,"img":"mdm"},{"n":"Cuarto Trasero IQF","p":"x 15 Kg","pr":53000,"img":"patamuslo"}]},{"id":"shaddai","sec":"REBOZADOS EL SHADDAI","items":[{"n":"Medallon de Pollo Clasico","p":"x 6 Kg","pr":28500,"img":"medallon_clasico_v2"},{"n":"Medallon Pollo c/Cheddar","p":"x 6 Kg","pr":47800,"img":"medallon_cheddar_v2"},{"n":"Medallon Pollo JyQ","p":"x 6 Kg","pr":33500,"img":"medallon_jyq_v2"},{"n":"Medallon Pollo y Espinaca","p":"x 6 Kg","pr":33000,"img":"medallon_espinaca_v2"},{"n":"Formita Clasica","p":"x 6 Kg","pr":28500,"img":"formita_clasica_v2"},{"n":"Formitas Pollo JyQ","p":"x 6 Kg","pr":33500,"img":"formita_jyq_v2"},{"n":"Nuggets de Pollo Crocante","p":"x 6 Kg","pr":34500,"img":"nuggets_v2"},{"n":"Bocadito de Papa y Jamon","p":"x 6 Kg","pr":29000,"img":"bocadito_v2"},{"n":"Pechuguitas al Verdeo","p":"x 6 Kg","pr":45500,"img":"pechuguitas_v2"},{"n":"Filet Merluza Finas Hierbas","p":"x 6 Kg","pr":45600,"img":"merluza_hierbas_v2"},{"n":"Filet de Merluza Rebozado","p":"x 6 Kg","pr":43700,"img":"merluza_rebozado"},{"n":"Filet Merluza a Granel","p":"x 10 Kg","pr":80500,"img":"merluza_granel_v2"}]},{"id":"mila","sec":"MILANESAS Y HAMBURGUESAS","items":[{"n":"Milanesa de Nalga","p":"x 5 Kg","pr":68000,"img":"milanesa_nalga_v2"},{"n":"Milanesa de Pollo","p":"x 5 Kg","pr":40500,"img":"milanesa_pollo_v2"},{"n":"Hamburguesa 100% Carne","p":"x 4 Kg","pr":46600,"img":"hamburguesa_carne"}]},{"id":"papas","sec":"McCAIN & BALCARCE","items":[{"n":"Papa Baston Balcarce","p":"x 2,5 Kg","pr":8000,"img":"papa_baston"},{"n":"Pulpa de Palta","p":"x 450 Grs","pr":12200,"img":"pulpa_palta"}]},{"id":"huevos","sec":"HUEVOS","items":[{"n":"Maple N° 2","p":"30 unidades","pr":4800,"img":"huevos_maple"},{"n":"Maple N° 1","p":"30 unidades","pr":5500,"img":"huevos_maple"},{"n":"Cajita 1/2 Docena N° 2","p":"6 unidades","pr":1350,"img":"huevos_cajita"}]},{"id":"verd","sec":"VERDURAS CONGELADAS","items":[{"n":"Arándanos Solimeno","p":"500 Grs","pr":9000,"img":"arandanos"},{"n":"Brocoli","p":"500 Grs","pr":5800,"img":"brocoli"},{"n":"Espinacas","p":"500 Grs","pr":4000,"img":"espinaca"},{"n":"Morron","p":"500 Grs","pr":7000,"img":"morron"},{"n":"Primavera","p":"500 Grs","pr":5000,"img":"primavera"},{"n":"Frutos Rojos","p":"500 Grs","pr":11000,"img":"frutos_rojos"},{"n":"Cebolla","p":"500 Grs","pr":4000,"img":"cebolla"}]}];
 
 const TOMADOR_SIN_STOCK = new Set(['MDM - Carne Molida de Pollo','Filet de Merluza Rebozado','Filet Merluza Finas Hierbas','Pollo Ginosa','Nuggets de Pollo Crocante','Bocadito de Papa y Jamon']);
 
@@ -6493,13 +6505,13 @@ function tomadorRenderProductos(catId) {
       var sinStock = TOMADOR_SIN_STOCK.has(item.n);
       var qty = _tomadorQtys[item.n] || 0;
       var tieneQty = qty > 0;
-      var imgUrl = 'https://tckcatalogo.com/img/' + item.img + '.jpg';
+      var imgUrl = 'https://tckcatalogo.com/img/' + encodeURIComponent(item.img + '.jpg').replace(/%25/g,'%').replace(/%2F/g,'/');
       var comp = _tomadorCompetencia[item.n];
       var compLabel = comp ? '💲' + comp.precio.toLocaleString('es-AR') + (comp.nombre ? ' — ' + comp.nombre : '') : '';
       var safeName = item.n.replace(/'/g, "\'").replace(/"/g, '&quot;');
 
       html += '<div class="tomador-item' + (tieneQty ? ' tiene' : '') + (sinStock ? ' sin-stock' : '') + '" id="titem-' + item.img + '">'
-        + '<img class="tomador-item-img" src="' + imgUrl + '" onerror="this.style.display=&quot;none&quot;;this.nextSibling.style.display=&quot;flex&quot;" loading="lazy">'
+        + '<img class="tomador-item-img" src="' + (item.img2 || imgUrl) + '" onerror="this.style.display=&quot;none&quot;;this.nextSibling.style.display=&quot;flex&quot;" loading="lazy">'
         + '<div class="tomador-item-img-placeholder" style="display:none">🍗</div>'
         + '<div class="tomador-item-body">'
         + '<div class="tomador-item-nombre">' + item.n + '</div>'
@@ -6511,7 +6523,7 @@ function tomadorRenderProductos(catId) {
         + '<button class="tomador-qty-btn plus" onclick="tomadorCambiarQty(&quot;' + safeName + '&quot;,1)" ' + (sinStock ? 'disabled' : '') + '>+</button>'
         + '</div>'
         + '<button class="tomador-precio-comp-btn" onclick="tomadorAbrirCompetencia(&quot;' + safeName + '&quot;,&quot;' + item.img + '&quot;)">'
-        + (comp ? '💲 ' + compLabel : '💲 Precio competencia')
+        + (comp ? '✅ Comp: $' + comp.precio.toLocaleString('es-AR') + (comp.nombre ? ' · ' + comp.nombre : '') : '💲 Cargar precio competencia')
         + '</button>'
         + '</div></div>';
     });
@@ -6607,7 +6619,13 @@ function tomadorGuardarCompetencia(nombre, imgId) {
   var btn = document.querySelector('#titem-' + imgId + ' .tomador-precio-comp-btn');
   if (btn) {
     var comp = _tomadorCompetencia[nombre];
-    btn.textContent = comp ? '💲 $' + comp.precio.toLocaleString('es-AR') + (comp.nombre ? ' — ' + comp.nombre : '') : '💲 Precio competencia';
+    if (comp) {
+      btn.textContent = '✅ Comp: $' + comp.precio.toLocaleString('es-AR') + (comp.nombre ? ' · ' + comp.nombre : '');
+      btn.classList.add('tiene-precio');
+    } else {
+      btn.textContent = '💲 Cargar precio competencia';
+      btn.classList.remove('tiene-precio');
+    }
   }
 }
 
