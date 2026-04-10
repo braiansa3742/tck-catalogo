@@ -3880,11 +3880,12 @@ setInterval(actualizarFecha, 60000);
 // ── AUTO-REFRESH 30s ─────────────────────────────────────────────
 setInterval(function() {
   if (!vendedorActual) return;
-  // No refrescar si hay algún panel Xubio activo (dropdown abierto, cliente seleccionado, o flag activo)
+  // No refrescar si hay algún panel Xubio activo o el tomador está abierto
   var xubioEnUso = _xubioActivo
     || document.querySelector('.xubio-dropdown.on') !== null
     || document.querySelector('.xubio-sel.on') !== null;
-  if (xubioEnUso) return;
+  var tomadorEnUso = document.getElementById('tomador-overlay') !== null;
+  if (xubioEnUso || tomadorEnUso) return;
   const antes = todosLosPedidos.length;
   const dupAntes = new Set(todosLosPedidos.filter(p => p.esDuplicado).map(p => p.pedidoId));
   cargarPedidos(true).then(function() {
@@ -4963,6 +4964,21 @@ function cambiarTab(tab) {
 function mostrarTabs() {
   var nav = document.getElementById('tab-nav');
   if (nav) nav.classList.add('visible');
+  var esAdmin = vendedorActual === 'ADMIN';
+  var esCampo = vendedorActual === 'Juan' || vendedorActual === 'Lisandro';
+
+  // Tab Visitas — solo Juan y Lisandro (vendedores de campo)
+  var tabGps = document.getElementById('tab-btn-gps');
+  if (tabGps) tabGps.style.display = esCampo ? '' : 'none';
+
+  // Tab Mapa — solo Admin
+  var tabMapa = document.getElementById('tab-btn-mapa');
+  if (tabMapa) tabMapa.style.display = esAdmin ? '' : 'none';
+
+  // Si el tab activo quedó oculto, ir a Pedidos
+  if ((_tabActual === 'gps' && !esCampo) || (_tabActual === 'mapa' && !esAdmin)) {
+    cambiarTab('pedidos');
+  }
 }
 
 function ocultarTabs() {
@@ -6619,7 +6635,8 @@ function gpsActualizarEstado(checkinActivo) {
     if (icon)   icon.textContent = '📍';
     if (titulo) titulo.textContent = 'Sin check-in activo';
     if (sub)    sub.textContent = 'Registrá tu entrada a un cliente';
-    if (dot) dot.style.display = 'none';
+    var dot3 = document.getElementById('gps-estado-dot');
+    if (dot3) dot3.style.display = 'none';
     var sinDiv2 = document.getElementById('gps-acciones-sin');
     var conDiv2 = document.getElementById('gps-acciones-con');
     if (sinDiv2) sinDiv2.style.display = 'block';
@@ -7221,7 +7238,7 @@ function mapaActualizarLista(checkins, todasVisitas) {
 // Productos del catálogo (copiados del index.html)
 const TOMADOR_CAT = [{"id":"pollos","sec":"POLLOS CONGELADOS","items":[{"n":"Pollo A","p":"x 20 Kg · Premium","pr":86000,"img":"pollo_ginosa"},{"n":"Pollo B","p":"x 20 Kg","pr":72000,"img":"pollo_optimo"},{"n":"Suprema","p":"x 5 Kg","pr":33000,"img":"supremas_bolsa"},{"n":"Suprema IQF","p":"x 15 Kg","pr":102000,"img":"suprema_iqf"}]},{"id":"trozados","sec":"TROZADOS","items":[{"n":"Fino de Ave Cocida","p":"x 10 Kg","pr":62400,"img":"empanada mordida","img2":"https://tckcatalogo.com/img/empanada%20mordida.png"},{"n":"Alita Congelada Granel","p":"x 15 Kg","pr":44000,"img":"alas"},{"n":"MDM - Carne Molida de Pollo","p":"x 20 Kg","pr":34000,"img":"mdm"},{"n":"Cuarto Trasero IQF","p":"x 15 Kg","pr":53000,"img":"patamuslo"}]},{"id":"shaddai","sec":"REBOZADOS EL SHADDAI","items":[{"n":"Medallon de Pollo Clasico","p":"x 6 Kg","pr":28500,"img":"medallon_clasico_v2"},{"n":"Medallon Pollo c/Cheddar","p":"x 6 Kg","pr":47800,"img":"medallon_cheddar_v2"},{"n":"Medallon Pollo JyQ","p":"x 6 Kg","pr":33500,"img":"medallon_jyq_v2"},{"n":"Medallon Pollo y Espinaca","p":"x 6 Kg","pr":33000,"img":"medallon_espinaca_v2"},{"n":"Formita Clasica","p":"x 6 Kg","pr":28500,"img":"formita_clasica_v2"},{"n":"Formitas Pollo JyQ","p":"x 6 Kg","pr":33500,"img":"formita_jyq_v2"},{"n":"Nuggets de Pollo Crocante","p":"x 6 Kg","pr":34500,"img":"nuggets_v2"},{"n":"Bocadito de Papa y Jamon","p":"x 6 Kg","pr":29000,"img":"bocadito_v2"},{"n":"Pechuguitas al Verdeo","p":"x 6 Kg","pr":45500,"img":"pechuguitas_v2"},{"n":"Filet Merluza Finas Hierbas","p":"x 6 Kg","pr":45600,"img":"merluza_hierbas_v2"},{"n":"Filet de Merluza Rebozado","p":"x 6 Kg","pr":43700,"img":"merluza_rebozado"},{"n":"Filet Merluza a Granel","p":"x 10 Kg","pr":80500,"img":"merluza_granel_v2"}]},{"id":"mila","sec":"MILANESAS Y HAMBURGUESAS","items":[{"n":"Milanesa de Nalga","p":"x 5 Kg","pr":68000,"img":"milanesa_nalga_v2"},{"n":"Milanesa de Pollo","p":"x 5 Kg","pr":40500,"img":"milanesa_pollo_v2"},{"n":"Hamburguesa 100% Carne","p":"x 4 Kg","pr":46600,"img":"hamburguesa_carne"}]},{"id":"papas","sec":"McCAIN & BALCARCE","items":[{"n":"Papa Baston Balcarce","p":"x 2,5 Kg","pr":8000,"img":"papa_baston"},{"n":"Pulpa de Palta","p":"x 450 Grs","pr":12200,"img":"pulpa_palta"}]},{"id":"huevos","sec":"HUEVOS","items":[{"n":"Maple N° 2","p":"30 unidades","pr":4800,"img":"huevos_maple"},{"n":"Maple N° 1","p":"30 unidades","pr":5500,"img":"huevos_maple"},{"n":"Cajita 1/2 Docena N° 2","p":"6 unidades","pr":1350,"img":"huevos_cajita"}]},{"id":"verd","sec":"VERDURAS CONGELADAS","items":[{"n":"Arándanos Solimeno","p":"500 Grs","pr":9000,"img":"arandanos"},{"n":"Brocoli","p":"500 Grs","pr":5800,"img":"brocoli"},{"n":"Espinacas","p":"500 Grs","pr":4000,"img":"espinaca"},{"n":"Morron","p":"500 Grs","pr":7000,"img":"morron"},{"n":"Primavera","p":"500 Grs","pr":5000,"img":"primavera"},{"n":"Frutos Rojos","p":"500 Grs","pr":11000,"img":"frutos_rojos"},{"n":"Cebolla","p":"500 Grs","pr":4000,"img":"cebolla"}]}];
 
-const TOMADOR_SIN_STOCK = new Set(['MDM - Carne Molida de Pollo','Filet de Merluza Rebozado','Filet Merluza Finas Hierbas','Pollo Ginosa','Nuggets de Pollo Crocante','Bocadito de Papa y Jamon']);
+const TOMADOR_SIN_STOCK = new Set(['MDM - Carne Molida de Pollo','Filet de Merluza Rebozado','Filet Merluza Finas Hierbas','Pollo A','Nuggets de Pollo Crocante','Bocadito de Papa y Jamon']);
 
 var _tomadorQtys       = {}; // { nombreProducto: cantidad }
 var _tomadorCompetencia = {}; // { nombreProducto: { precio, competencia } }
@@ -7978,7 +7995,7 @@ async function tomadorConfirmarFinal() {
     var pedidoId = 'TCK-' + hoy.toISOString().slice(0,10).replace(/-/g,'') + '-'
       + hoy.toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'}).replace(':','')
       + '-' + (vendedor === 'ADMIN' ? 'ADM' : vendedor.substring(0,3).toUpperCase())
-      + '-CAMPO';
+      + '-C' + Math.random().toString(36).substring(2,6).toUpperCase();
 
     var detalleSheet = lineas.map(function(l) { return l; }).join('\n');
 
