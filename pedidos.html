@@ -6707,22 +6707,6 @@ async function tomadorConfirmar() {
     compLineas.push(nombre + ': $' + c.precio.toLocaleString('es-AR') + (c.nombre ? ' (' + c.nombre + ')' : ''));
   });
 
-  // Armar mensaje WhatsApp
-  var msg = '📦 *PEDIDO EN CAMPO*%0a'
-    + '👤 *Cliente:* ' + cliente + '%0a'
-    + '🧑 *Vendedor:* ' + vendedor + '%0a'
-    + '📅 ' + fecha + ' · ' + hora + '%0a%0a'
-    + lineas.join('%0a') + '%0a%0a'
-    + '💰 *TOTAL: $' + total.toLocaleString('es-AR') + '*';
-
-  if (compLineas.length > 0) {
-    msg += '%0a%0a💲 *Precios competencia:%0a*' + compLineas.join('%0a');
-  }
-
-  // Enviar a WhatsApp del admin
-  var waUrl = 'https://wa.me/' + NUM_ADMIN + '?text=' + msg;
-  window.open(waUrl, '_blank');
-
   // Guardar en Supabase como visita con pedido
   try {
     var vendedorId = await gpsObtenerVendedorId();
