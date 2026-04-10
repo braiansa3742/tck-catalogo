@@ -7091,6 +7091,14 @@ var _tomadorQtys       = {}; // { nombreProducto: cantidad }
 var _tomadorCompetencia = {}; // { nombreProducto: { precio, competencia } }
 var _tomadorCatActual  = 'todos';
 
+// Handlers para bloquear zoom en el tomador
+function _tomadorBlockZoom(e) {
+  if (e.touches && e.touches.length > 1) e.preventDefault(); // pinch zoom
+}
+function _tomadorBlockDblTap(e) {
+  e.preventDefault(); // double-tap zoom
+}
+
 function tomadorAbrir() {
   if (!_gpsCheckinActivo) { toast('Hacé check-in primero', 'err'); return; }
   _tomadorQtys = {};
@@ -7104,11 +7112,33 @@ function tomadorAbrir() {
   overlay.innerHTML = tomadorHTML();
   document.body.appendChild(overlay);
   document.body.style.overflow = 'hidden';
+
+  // Bloquear zoom dentro del tomador
+  overlay.addEventListener('touchmove', _tomadorBlockZoom, { passive: false });
+  overlay.addEventListener('gesturestart', _tomadorBlockZoom, { passive: false });
+  overlay.addEventListener('gesturechange', _tomadorBlockZoom, { passive: false });
+  // Bloquear doble toque en los botones de cantidad
+  overlay.querySelectorAll && setTimeout(function() {
+    var btns = overlay.querySelectorAll('.tomador-qty-btn, .tomador-item');
+    btns.forEach(function(b) {
+      b.addEventListener('dblclick', _tomadorBlockDblTap);
+      b.addEventListener('touchend', function(e) {
+        var now = Date.now();
+        if (b._lastTouch && (now - b._lastTouch) < 300) e.preventDefault();
+        b._lastTouch = now;
+      }, { passive: false });
+    });
+  }, 100);
 }
 
 function tomadorCerrar() {
   var el = document.getElementById('tomador-overlay');
-  if (el) el.remove();
+  if (el) {
+    el.removeEventListener('touchmove', _tomadorBlockZoom);
+    el.removeEventListener('gesturestart', _tomadorBlockZoom);
+    el.removeEventListener('gesturechange', _tomadorBlockZoom);
+    el.remove();
+  }
   document.body.style.overflow = '';
 }
 
