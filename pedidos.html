@@ -5612,7 +5612,7 @@ function gpsIniciarCheckin() {
   modal.innerHTML = '<div class="gps-modal">'
     + '<div class="gps-modal-hdr">'
     + '<div class="gps-modal-titulo">📍 Check-in — ¿A qué cliente?</div>'
-    + '<button class="gps-modal-close" onclick="document.getElementById('gps-modal-checkin').remove()">✕</button>'
+    + '<button class="gps-modal-close" onclick="document.getElementById(&quot;gps-modal-checkin&quot;).remove()">✕</button>'
     + '</div>'
     + '<div style="padding:16px 20px 0">'
     + '<input class="gps-buscar-cliente" id="gps-input-cliente" placeholder="🔍 Buscar cliente en Xubio..." oninput="gpsBuscarClienteXubio(this.value)">'
@@ -5731,23 +5731,22 @@ function gpsVisitaSinPedido() {
   var modal = document.createElement('div');
   modal.className = 'gps-modal-overlay';
   modal.id = 'gps-modal-visita';
-  modal.innerHTML = `
-    <div class="gps-modal">
-      <div class="gps-modal-hdr">
-        <div class="gps-modal-titulo">📋 Visita sin pedido</div>
-        <button class="gps-modal-close" onclick="document.getElementById('gps-modal-visita').remove()">✕</button>
-      </div>
-      <div style="padding:12px 20px 0">
-        <input class="gps-buscar-cliente" id="gps-input-visita" placeholder="🔍 Nombre del cliente..." style="margin-bottom:6px">
-        <div style="font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:900;color:var(--text2);margin:10px 0 6px">¿Por qué no compró?</div>
-      </div>
-      <button class="gps-motivo-btn" onclick="gpsGuardarVisita('Precio alto')">💰 Precio alto</button>
-      <button class="gps-motivo-btn" onclick="gpsGuardarVisita('Compró a la competencia')">🏪 Compró a la competencia</button>
-      <button class="gps-motivo-btn" onclick="gpsGuardarVisita('No necesita por ahora')">📦 No necesita por ahora</button>
-      <button class="gps-motivo-btn" onclick="gpsGuardarVisita('Local cerrado')">🔒 Local cerrado</button>
-      <button class="gps-motivo-btn" onclick="gpsGuardarVisita('Cliente ausente')">🚶 Cliente ausente</button>
-      <button class="gps-motivo-btn" onclick="gpsGuardarVisita('Otro')">💬 Otro motivo</button>
-    </div>`;
+  modal.innerHTML = '<div class="gps-modal">'
+    + '<div class="gps-modal-hdr">'
+    + '<div class="gps-modal-titulo">📋 Visita sin pedido</div>'
+    + '<button class="gps-modal-close" onclick="document.getElementById(&quot;gps-modal-visita&quot;).remove()">✕</button>'
+    + '</div>'
+    + '<div style="padding:12px 20px 0">'
+    + '<input class="gps-buscar-cliente" id="gps-input-visita" placeholder="🔍 Nombre del cliente..." style="margin-bottom:6px">'
+    + '<div style="font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:900;color:var(--text2);margin:10px 0 6px">¿Por qué no compró?</div>'
+    + '</div>'
+    + '<button class="gps-motivo-btn" onclick="gpsGuardarVisita('Precio alto')">💰 Precio alto</button>'
+    + '<button class="gps-motivo-btn" onclick="gpsGuardarVisita('Compró a la competencia')">🏪 Compró a la competencia</button>'
+    + '<button class="gps-motivo-btn" onclick="gpsGuardarVisita('No necesita por ahora')">📦 No necesita por ahora</button>'
+    + '<button class="gps-motivo-btn" onclick="gpsGuardarVisita('Local cerrado')">🔒 Local cerrado</button>'
+    + '<button class="gps-motivo-btn" onclick="gpsGuardarVisita('Cliente ausente')">🚶 Cliente ausente</button>'
+    + '<button class="gps-motivo-btn" onclick="gpsGuardarVisita('Otro')">💬 Otro motivo</button>'
+    + '</div>';
   document.body.appendChild(modal);
 }
 
