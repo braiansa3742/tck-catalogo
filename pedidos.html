@@ -2159,7 +2159,7 @@ input[type="date"] {
   <div class="hdr-right">
     <div class="hdr-fecha" id="hdr-fecha"></div>
     <div id="ultima-actualizacion" style="font-size:10px;color:rgba(255,255,255,.5);text-align:right;letter-spacing:.3px;"></div>
-    <button id="hdr-help-btn" class="hdr-ayuda-btn" onclick="abrirManual()">📖 Cómo usar</button>
+    <button id="hdr-help-btn" class="hdr-ayuda-btn" onclick="abrirManual()">📖 Cómo usar</button><button id="btn-instalar-app" class="hdr-ayuda-btn" onclick="instalarApp()" style="display:none;background:var(--green2);color:#fff;border-color:var(--green2)">📲 Instalar app</button>
   </div>
 </div>
 
@@ -2361,7 +2361,7 @@ input[type="date"] {
     </div>
   </div>
 
-  <!-- ══ VIEW: CAMPO / GPS ══ -->
+  <!-- ══ VIEW: VISITAS / GPS ══ -->
   <div class="view" id="view-gps">
     <div class="gps-wrap">
       <!-- Estado actual -->
@@ -2545,7 +2545,7 @@ input[type="date"] {
   </button>
   <button class="tab-btn" id="tab-btn-gps" onclick="cambiarTab('gps')">
     <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
-    <span>Campo</span>
+    <span>Visitas</span>
   </button>
   <button class="tab-btn" id="tab-btn-reportes" onclick="cambiarTab('reportes')">
     <span class="tab-icon">📈</span>
@@ -5606,68 +5606,62 @@ function gpsActualizarEstado(checkinActivo) {
 
 // Iniciar check-in
 function gpsIniciarCheckin() {
-  // Modal para buscar cliente
   var modal = document.createElement('div');
   modal.className = 'gps-modal-overlay';
   modal.id = 'gps-modal-checkin';
-  modal.innerHTML = `
-    <div class="gps-modal">
-      <div class="gps-modal-hdr">
-        <div class="gps-modal-titulo">📍 Check-in — ¿A qué cliente?</div>
-        <button class="gps-modal-close" onclick="document.getElementById('gps-modal-checkin').remove()">✕</button>
-      </div>
-      <div style="padding:16px 20px 0">
-        <input class="gps-buscar-cliente" id="gps-input-cliente" placeholder="🔍 Buscar cliente..." oninput="gpsFiltrarClientes(this.value)" autofocus>
-        <div id="gps-lista-clientes"></div>
-        <button class="gps-motivo-btn" style="background:var(--cream);margin-top:8px" onclick="gpsCheckinManual()">
-          ✏️ Ingresar nombre manualmente
-        </button>
-      </div>
-    </div>`;
+  modal.innerHTML = '<div class="gps-modal">'
+    + '<div class="gps-modal-hdr">'
+    + '<div class="gps-modal-titulo">📍 Check-in — ¿A qué cliente?</div>'
+    + '<button class="gps-modal-close" onclick="document.getElementById('gps-modal-checkin').remove()">✕</button>'
+    + '</div>'
+    + '<div style="padding:16px 20px 0">'
+    + '<input class="gps-buscar-cliente" id="gps-input-cliente" placeholder="🔍 Buscar cliente en Xubio..." oninput="gpsBuscarClienteXubio(this.value)">'
+    + '<div id="gps-lista-clientes"><div style="color:var(--text3);font-size:13px;padding:8px 0">Escribí al menos 2 letras para buscar</div></div>'
+    + '<button class="gps-motivo-btn" style="background:var(--cream);margin-top:8px" onclick="gpsCheckinManual()">✏️ Ingresar nombre manualmente</button>'
+    + '</div></div>';
   document.body.appendChild(modal);
-  gpsFiltrarClientes('');
   setTimeout(function() { var inp = document.getElementById('gps-input-cliente'); if (inp) inp.focus(); }, 100);
 }
 
-// Filtrar clientes para check-in usando cache de Xubio
-function gpsFiltrarClientes(q) {
+// Buscar cliente en Xubio para GPS (igual que el dropdown de remitos)
+var _gpsTimer = null;
+function gpsBuscarClienteXubio(q) {
   var el = document.getElementById('gps-lista-clientes');
   if (!el) return;
+  clearTimeout(_gpsTimer);
 
   if (!q || q.length < 2) {
-    el.innerHTML = '<div style="color:var(--text3);font-size:13px;padding:10px 0">Escribí al menos 2 letras para buscar</div>';
+    el.innerHTML = '<div style="color:var(--text3);font-size:13px;padding:8px 0">Escribí al menos 2 letras para buscar</div>';
     return;
   }
 
-  // Usar el cache de clientes Xubio que ya existe en el panel
-  var fuente = window._xubioClientesCache || [];
-  if (fuente.length === 0) {
-    el.innerHTML = '<div style="color:var(--text3);font-size:13px;padding:10px 0">Cargando clientes...</div>';
-    // Intentar cargar el cache
-    xubioCargarClientes().then(function() { gpsFiltrarClientes(q); });
-    return;
-  }
+  el.innerHTML = '<div style="color:var(--text3);font-size:13px;padding:8px 0">🔍 Buscando...</div>';
 
-  var qLow = q.toLowerCase();
-  var lista = fuente.filter(function(c) {
-    var nombre = (c.razonSocial || c.nombre || '').toLowerCase();
-    return nombre.includes(qLow);
-  }).slice(0, 8);
-
-  if (lista.length === 0) {
-    el.innerHTML = '<div style="color:var(--text3);font-size:13px;padding:10px 0">No se encontraron clientes</div>';
-    return;
-  }
-
-  el.innerHTML = lista.map(function(c) {
-    var nombre = c.razonSocial || c.nombre || 'Sin nombre';
-    var localidad = c.localidad || '';
-    var safe = nombre.replace(/'/g, "\'");
-    return '<button class="gps-motivo-btn" data-gps-nombre="' + nombre.replace(/"/g, '&quot;') + '" onclick="gpsConfirmarCheckin(this.getAttribute('data-gps-nombre'))">'
-      + '👤 ' + nombre + (localidad ? '<span style="color:var(--text3);font-size:12px"> — ' + localidad + '</span>' : '')
-      + '</button>';
-  }).join('');
+  _gpsTimer = setTimeout(function() {
+    fetch(APPS_SCRIPT_URL + '?accion=buscarClienteXubio&q=' + encodeURIComponent(q))
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        if (!el) return;
+        if (data.status !== 'ok' || !data.clientes || !data.clientes.length) {
+          el.innerHTML = '<div style="color:var(--text3);font-size:13px;padding:8px 0">No se encontraron clientes</div>';
+          return;
+        }
+        el.innerHTML = data.clientes.slice(0, 8).map(function(c) {
+          var nombre = c.razonSocial || c.nombre || 'Sin nombre';
+          var localidad = c.localidad || '';
+          return '<button class="gps-motivo-btn" data-nombre="' + nombre.replace(/"/g,'&quot;') + '" onclick="gpsConfirmarCheckin(this.getAttribute('data-nombre'))">'
+            + '👤 ' + nombre
+            + (localidad ? '<span style="color:var(--text3);font-size:12px;display:block"> 📍 ' + localidad + '</span>' : '')
+            + '</button>';
+        }).join('');
+      })
+      .catch(function() {
+        if (el) el.innerHTML = '<div style="color:var(--text3);font-size:13px;padding:8px 0">Error al buscar</div>';
+      });
+  }, 350);
 }
+
+
 
 // Check-in manual
 function gpsCheckinManual() {
@@ -5788,6 +5782,35 @@ async function gpsGuardarVisita(motivo) {
     gpsCargarHistorial();
   } catch(e) {
     toast('Error al registrar visita', 'err');
+  }
+}
+
+
+// ── PWA INSTALL ──────────────────────────────────────────────────
+var _pwaInstallPrompt = null;
+window.addEventListener('beforeinstallprompt', function(e) {
+  e.preventDefault();
+  _pwaInstallPrompt = e;
+  var btn = document.getElementById('btn-instalar-app');
+  if (btn) btn.style.display = '';
+});
+window.addEventListener('appinstalled', function() {
+  var btn = document.getElementById('btn-instalar-app');
+  if (btn) btn.style.display = 'none';
+  _pwaInstallPrompt = null;
+  toast('✅ App instalada correctamente', 'ok');
+});
+function instalarApp() {
+  if (_pwaInstallPrompt) {
+    _pwaInstallPrompt.prompt();
+    _pwaInstallPrompt.userChoice.then(function(result) {
+      if (result.outcome === 'accepted') {
+        toast('✅ Instalando app...', 'ok');
+      }
+      _pwaInstallPrompt = null;
+    });
+  } else {
+    toast('Para instalar: usá el menú del navegador → "Agregar a pantalla de inicio"', 'ok');
   }
 }
 
