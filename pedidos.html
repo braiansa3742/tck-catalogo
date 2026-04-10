@@ -3793,8 +3793,8 @@ const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxbx9ma8S5wcuRq
 const SHEET_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQDZk6Z5pejrI_djbUYBLEvh-X7H_sLF5ZCW2RQr0Bc03r8LOL17_C3pCmwwyLe2iXf3Fan0tgl7IJG/pub?gid=0&single=true&output=csv';
 const NUM_ADMIN = '5492314475357';
 const PINS = { 'Miguel':'3356', 'Juan':'4256', 'Lisandro':'8020', 'ADMIN':'3050' };
-const SESSION_KEY = 'tck_session';
-const SESSION_HORAS = 24;
+const SESSION_KEY   = 'tck_session';
+const SESSION_HORAS = 720; // 30 días — cada vendedor tiene su propio celular
 
 function guardarSesion(nombre) {
   try {
@@ -4012,6 +4012,11 @@ function verificarPin() {
 }
 
 function login(nombre) {
+  // Limpiar estado GPS anterior antes de iniciar nueva sesión
+  _gpsCheckinActivo = null;
+  _gpsVendedorId    = null;
+  _gpsHizoPedido    = false;
+  _lastTrackPos     = null;
   guardarSesion(nombre);
   vendedorActual = nombre;
   document.getElementById('login-wrap').style.display = 'none';
@@ -4036,6 +4041,14 @@ function login(nombre) {
 
 function salir() {
   trackingDetener();
+  // Limpiar todo el estado GPS para que no se cruce entre vendedores
+  _gpsCheckinActivo = null;
+  _gpsVendedorId    = null;
+  _gpsHizoPedido    = false;
+  _lastTrackPos     = null;
+  _trackingVendorId = null;
+  // Resetear UI del tab Visitas
+  gpsActualizarEstado(null);
   limpiarSesion();
   document.title = 'TCK Ventas';
   vendedorActual = null; pinActual = ''; pinVendedorTemp = null; todosLosPedidos = [];
