@@ -10,6 +10,8 @@
 <meta name="theme-color" content="#8B0000">
 <link rel="apple-touch-icon" href="https://tckcatalogo.com/img/logo-tck.png">
 <link rel="manifest" href="/manifest.json">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;700;900&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -767,6 +769,103 @@ body {
 @keyframes spin { to { transform: rotate(360deg); } }
 
 /* ── TAB NAV ── */
+
+/* ── MAPA ADMIN ── */
+.mapa-wrap { padding: 0 0 80px; }
+.mapa-hdr {
+  padding: 14px 16px 10px;
+  background: linear-gradient(135deg, #4A0000, #8B0000);
+  color: #fff;
+}
+.mapa-hdr-titulo {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 20px;
+  font-weight: 900;
+}
+.mapa-filtros {
+  display: flex;
+  gap: 8px;
+  padding: 10px 14px;
+  overflow-x: auto;
+  background: var(--cream2);
+  border-bottom: 1px solid var(--cream3);
+}
+.mapa-chip {
+  padding: 6px 14px;
+  border-radius: 20px;
+  border: 1.5px solid var(--cream3);
+  background: #fff;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  color: var(--text2);
+  -webkit-tap-highlight-color: transparent;
+}
+.mapa-chip.sel { background: var(--red); color: #fff; border-color: var(--red); }
+#mapa-container {
+  height: 380px;
+  width: 100%;
+  z-index: 1;
+}
+.mapa-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  padding: 12px 14px;
+}
+.mapa-stat {
+  background: #fff;
+  border: 1.5px solid var(--cream3);
+  border-radius: 12px;
+  padding: 10px;
+  text-align: center;
+}
+.mapa-stat-num {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 24px;
+  font-weight: 900;
+  color: var(--red);
+}
+.mapa-stat-label {
+  font-size: 11px;
+  color: var(--text3);
+  margin-top: 2px;
+}
+.mapa-lista-titulo {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 14px;
+  font-weight: 900;
+  color: var(--text2);
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  padding: 0 14px;
+  margin-bottom: 8px;
+}
+.mapa-visita-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--cream2);
+}
+.mapa-visita-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.mapa-visita-info { flex: 1; }
+.mapa-visita-nombre { font-weight: 700; font-size: 14px; color: var(--text); }
+.mapa-visita-detalle { font-size: 12px; color: var(--text3); }
+.mapa-visita-tiempo {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text2);
+}
+
 /* ── GPS / CAMPO ── */
 .gps-wrap { padding: 12px 14px 80px; }
 .gps-estado-card {
@@ -2361,6 +2460,47 @@ input[type="date"] {
     </div>
   </div>
 
+  <!-- ══ VIEW: MAPA ADMIN ══ -->
+  <div class="view" id="view-mapa">
+    <div class="mapa-wrap">
+      <div class="mapa-hdr">
+        <div class="mapa-hdr-titulo">🗺️ Mapa de vendedores</div>
+        <div style="font-size:12px;opacity:.8;margin-top:2px" id="mapa-fecha-label">Hoy</div>
+      </div>
+
+      <!-- Filtro vendedor (solo admin) -->
+      <div class="mapa-filtros" id="mapa-filtros-wrap">
+        <button class="mapa-chip sel" id="mapa-chip-todos" onclick="mapaFiltrar('todos')">👥 Todos</button>
+        <button class="mapa-chip" id="mapa-chip-Miguel" onclick="mapaFiltrar('Miguel')">Miguel</button>
+        <button class="mapa-chip" id="mapa-chip-Juan" onclick="mapaFiltrar('Juan')">Juan</button>
+        <button class="mapa-chip" id="mapa-chip-Lisandro" onclick="mapaFiltrar('Lisandro')">Lisandro</button>
+      </div>
+
+      <!-- Mapa Leaflet -->
+      <div id="mapa-container"></div>
+
+      <!-- Stats -->
+      <div class="mapa-stats">
+        <div class="mapa-stat">
+          <div class="mapa-stat-num" id="mapa-stat-visitados">—</div>
+          <div class="mapa-stat-label">Visitados</div>
+        </div>
+        <div class="mapa-stat">
+          <div class="mapa-stat-num" id="mapa-stat-con-pedido" style="color:var(--green2)">—</div>
+          <div class="mapa-stat-label">Con pedido</div>
+        </div>
+        <div class="mapa-stat">
+          <div class="mapa-stat-num" id="mapa-stat-sin-pedido" style="color:var(--orange)">—</div>
+          <div class="mapa-stat-label">Sin pedido</div>
+        </div>
+      </div>
+
+      <!-- Lista de visitas -->
+      <div class="mapa-lista-titulo">Detalle de visitas</div>
+      <div id="mapa-lista"></div>
+    </div>
+  </div>
+
   <!-- ══ VIEW: VISITAS / GPS ══ -->
   <div class="view" id="view-gps">
     <div class="gps-wrap">
@@ -2546,6 +2686,10 @@ input[type="date"] {
   <button class="tab-btn" id="tab-btn-gps" onclick="cambiarTab('gps')">
     <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
     <span>Visitas</span>
+  </button>
+  <button class="tab-btn" id="tab-btn-mapa" onclick="cambiarTab('mapa')">
+    <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M20.5 3l-.16.03L15 5.1 9 3 3.36 4.9c-.21.07-.36.25-.36.48V20.5c0 .28.22.5.5.5l.16-.03L9 18.9l6 2.1 5.64-1.9c.21-.07.36-.25.36-.48V3.5c0-.28-.22-.5-.5-.5zM15 19l-6-2.11V5l6 2.11V19z"/></svg>
+    <span>Mapa</span>
   </button>
   <button class="tab-btn" id="tab-btn-reportes" onclick="cambiarTab('reportes')">
     <span class="tab-icon">📈</span>
@@ -3823,7 +3967,7 @@ function cambiarTab(tab) {
   _tabActual = tab;
 
   // Views
-  ['pedidos','midia','clientes','gps','reportes'].forEach(function(t) {
+  ['pedidos','midia','clientes','gps','mapa','reportes'].forEach(function(t) {
     var v = document.getElementById('view-' + t);
     var b = document.getElementById('tab-btn-' + t);
     if (v) v.classList.toggle('active', t === tab);
@@ -3834,6 +3978,10 @@ function cambiarTab(tab) {
   if (tab === 'clientes') {
     renderClientes();
     var v = document.getElementById('view-clientes'); if (v) v.scrollTop = 0;
+  }
+  if (tab === 'mapa') {
+    mapaRender();
+    var v = document.getElementById('view-mapa'); if (v) v.scrollTop = 0;
   }
   if (tab === 'gps') {
     gpsCargarHistorial();
@@ -5703,6 +5851,226 @@ function instalarApp() {
   } else {
     toast('Para instalar: usá el menú del navegador → "Agregar a pantalla de inicio"', 'ok');
   }
+}
+
+
+// ═══════════════════════════════════════════════════════
+// MAPA DE VENDEDORES — Leaflet + Supabase
+// ═══════════════════════════════════════════════════════
+
+var _mapaInstance    = null;
+var _mapaFiltro      = 'todos';
+var _mapaVisitas     = [];
+var _mapaMarkers     = [];
+
+// Colores por vendedor
+var COLORES_VENDEDOR = {
+  'Miguel':   '#8B0000',
+  'Juan':     '#1B5E20',
+  'Lisandro': '#1A237E',
+  'Admin':    '#4A0000'
+};
+
+async function mapaRender() {
+  // Solo admin puede ver el mapa completo
+  // Vendedores ven solo sus propias visitas
+  var esAdmin = vendedorActual === 'ADMIN';
+
+  // Ocultar filtros si no es admin
+  var filtrosWrap = document.getElementById('mapa-filtros-wrap');
+  if (filtrosWrap) filtrosWrap.style.display = esAdmin ? 'flex' : 'none';
+
+  // Inicializar mapa si no existe
+  if (!_mapaInstance) {
+    _mapaInstance = L.map('mapa-container', {
+      center: [-34.6037, -58.3816], // Buenos Aires por defecto
+      zoom: 12,
+      zoomControl: true
+    });
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap'
+    }).addTo(_mapaInstance);
+  }
+
+  await mapaCargarVisitas();
+}
+
+async function mapaCargarVisitas() {
+  try {
+    var hoy = new Date();
+    hoy.setHours(0,0,0,0);
+    var desde = hoy.toISOString();
+
+    var esAdmin = vendedorActual === 'ADMIN';
+    var query = 'visitas?fecha=gte.' + desde + '&order=fecha.asc&select=*,vendedores(nombre)';
+
+    if (!esAdmin) {
+      var vendedorId = await gpsObtenerVendedorId();
+      if (vendedorId) query += '&vendedor_id=eq.' + vendedorId;
+    }
+
+    var visitas = await sbFetch(query);
+    _mapaVisitas = visitas || [];
+    mapaActualizar();
+
+  } catch(e) {
+    console.error('Error cargando mapa:', e);
+  }
+}
+
+function mapaFiltrar(vendedor) {
+  _mapaFiltro = vendedor;
+  // Update chips
+  ['todos','Miguel','Juan','Lisandro'].forEach(function(v) {
+    var chip = document.getElementById('mapa-chip-' + v);
+    if (chip) chip.classList.toggle('sel', v === vendedor);
+  });
+  mapaActualizar();
+}
+
+function mapaActualizar() {
+  if (!_mapaInstance) return;
+
+  // Limpiar markers anteriores
+  _mapaMarkers.forEach(function(m) { _mapaInstance.removeLayer(m); });
+  _mapaMarkers = [];
+
+  // Filtrar visitas
+  var visitas = _mapaVisitas.filter(function(v) {
+    if (_mapaFiltro === 'todos') return true;
+    var nombre = v.vendedores ? v.vendedores.nombre : '';
+    return nombre === _mapaFiltro;
+  });
+
+  // Solo checkins con coordenadas
+  var checkins = visitas.filter(function(v) {
+    return v.tipo === 'checkin' && v.lat && v.lng;
+  });
+
+  // Para cada checkin buscar si tiene checkout (para calcular tiempo)
+  var conPedido = 0;
+  var sinPedido = 0;
+  var bounds = [];
+
+  checkins.forEach(function(v, idx) {
+    var vendedorNombre = v.vendedores ? v.vendedores.nombre : 'Vendedor';
+    var color = COLORES_VENDEDOR[vendedorNombre] || '#8B0000';
+
+    // Buscar checkout correspondiente
+    var checkout = visitas.find(function(c) {
+      return c.tipo === 'checkout' &&
+             c.nombre_cliente === v.nombre_cliente &&
+             new Date(c.fecha) > new Date(v.fecha);
+    });
+
+    // Buscar visita sin pedido
+    var sinPed = visitas.find(function(c) {
+      return c.tipo === 'visita_sin_pedido' &&
+             c.nombre_cliente === v.nombre_cliente;
+    });
+
+    var tienePedido = !sinPed; // Si no hay registro de "sin pedido", asumimos que sí
+    if (sinPed) sinPedido++; else conPedido++;
+
+    // Calcular tiempo
+    var tiempoStr = '';
+    if (checkout) {
+      var mins = Math.round((new Date(checkout.fecha) - new Date(v.fecha)) / 60000);
+      tiempoStr = mins + ' min';
+    }
+
+    // Color del marker
+    var markerColor = sinPed ? '#E65100' : color;
+
+    // Crear marker SVG personalizado
+    var iconHtml = '<div style="background:' + markerColor + ';color:#fff;border-radius:50% 50% 50% 0;transform:rotate(-45deg);width:30px;height:30px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:900;box-shadow:0 2px 8px rgba(0,0,0,.3);">'
+      + '<span style="transform:rotate(45deg)">' + (idx + 1) + '</span></div>';
+
+    var icon = L.divIcon({
+      html: iconHtml,
+      iconSize: [30, 30],
+      iconAnchor: [15, 30],
+      className: ''
+    });
+
+    var hora = new Date(v.fecha).toLocaleTimeString('es-AR', {hour:'2-digit',minute:'2-digit'});
+    var popupContent = '<b>' + v.nombre_cliente + '</b><br>'
+      + vendedorNombre + ' · ' + hora
+      + (tiempoStr ? '<br>⏱ ' + tiempoStr : '')
+      + (sinPed ? '<br>❌ ' + sinPed.motivo_no_compra : '<br>✅ Con pedido');
+
+    var marker = L.marker([v.lat, v.lng], {icon: icon})
+      .bindPopup(popupContent)
+      .addTo(_mapaInstance);
+
+    _mapaMarkers.push(marker);
+    bounds.push([v.lat, v.lng]);
+  });
+
+  // Ajustar vista del mapa
+  if (bounds.length > 0) {
+    if (bounds.length === 1) {
+      _mapaInstance.setView(bounds[0], 15);
+    } else {
+      _mapaInstance.fitBounds(bounds, {padding: [30, 30]});
+    }
+  }
+
+  // Actualizar stats
+  var total = checkins.length;
+  var elTotal = document.getElementById('mapa-stat-visitados');
+  var elCon   = document.getElementById('mapa-stat-con-pedido');
+  var elSin   = document.getElementById('mapa-stat-sin-pedido');
+  if (elTotal) elTotal.textContent = total;
+  if (elCon)   elCon.textContent   = conPedido;
+  if (elSin)   elSin.textContent   = sinPedido;
+
+  // Actualizar lista
+  mapaActualizarLista(checkins, visitas);
+
+  // Forzar resize del mapa
+  setTimeout(function() { if (_mapaInstance) _mapaInstance.invalidateSize(); }, 100);
+}
+
+function mapaActualizarLista(checkins, todasVisitas) {
+  var el = document.getElementById('mapa-lista');
+  if (!el) return;
+
+  if (checkins.length === 0) {
+    el.innerHTML = '<div style="text-align:center;color:var(--text3);padding:20px;font-size:14px">No hay visitas registradas hoy</div>';
+    return;
+  }
+
+  el.innerHTML = checkins.map(function(v, idx) {
+    var vendedorNombre = v.vendedores ? v.vendedores.nombre : '';
+    var color = COLORES_VENDEDOR[vendedorNombre] || '#8B0000';
+
+    var checkout = todasVisitas.find(function(c) {
+      return c.tipo === 'checkout' && c.nombre_cliente === v.nombre_cliente && new Date(c.fecha) > new Date(v.fecha);
+    });
+    var sinPed = todasVisitas.find(function(c) {
+      return c.tipo === 'visita_sin_pedido' && c.nombre_cliente === v.nombre_cliente;
+    });
+
+    var hora = new Date(v.fecha).toLocaleTimeString('es-AR', {hour:'2-digit',minute:'2-digit'});
+    var tiempoStr = '';
+    if (checkout) {
+      var mins = Math.round((new Date(checkout.fecha) - new Date(v.fecha)) / 60000);
+      tiempoStr = mins + ' min';
+    }
+
+    var dotColor = sinPed ? '#E65100' : '#2E7D32';
+    var estado = sinPed ? '❌ ' + sinPed.motivo_no_compra : '✅ Con pedido';
+
+    return '<div class="mapa-visita-row">'
+      + '<div style="width:24px;height:24px;border-radius:50%;background:' + dotColor + ';color:#fff;display:flex;align-items:center;justify-content:center;font-family:Barlow Condensed,sans-serif;font-size:12px;font-weight:900;flex-shrink:0">' + (idx+1) + '</div>'
+      + '<div class="mapa-visita-info">'
+      + '<div class="mapa-visita-nombre">' + v.nombre_cliente + '</div>'
+      + '<div class="mapa-visita-detalle">' + vendedorNombre + ' · ' + hora + (tiempoStr ? ' · ⏱ ' + tiempoStr : '') + '</div>'
+      + '<div style="font-size:11px;color:var(--text3)">' + estado + '</div>'
+      + '</div>'
+      + '</div>';
+  }).join('');
 }
 
 
