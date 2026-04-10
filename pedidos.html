@@ -5732,11 +5732,48 @@ async function gpsConfirmarCheckin(nombreCliente) {
       })
     });
 
+    // Guardar ubicación permanente del cliente si tiene coordenadas
+    if (coords.lat && coords.lng) {
+      await gpsGuardarUbicacionCliente(nombreCliente, coords, vendedorId);
+    }
+
     toast('✅ Check-in registrado en ' + nombreCliente, 'ok');
     gpsCargarHistorial();
   } catch(e) {
     toast('Error al registrar check-in', 'err');
     console.error(e);
+  }
+}
+
+// Guardar ubicación permanente del cliente (solo si no tiene una ya)
+async function gpsGuardarUbicacionCliente(nombreCliente, coords, vendedorId) {
+  try {
+    // Buscar si el cliente ya existe en la tabla clientes
+    var existing = await sbFetch('clientes?nombre=eq.' + encodeURIComponent(nombreCliente) + '&select=id,lat,lng');
+    
+    if (existing && existing.length > 0) {
+      // Si ya existe pero no tiene coordenadas, actualizarlas
+      if (!existing[0].lat) {
+        await sbFetch('clientes?id=eq.' + existing[0].id, {
+          method: 'PATCH',
+          body: JSON.stringify({ lat: coords.lat, lng: coords.lng, ultima_visita: new Date().toISOString() })
+        });
+      }
+    } else {
+      // Crear nuevo cliente con coordenadas
+      await sbFetch('clientes', {
+        method: 'POST',
+        body: JSON.stringify({
+          nombre:       nombreCliente,
+          vendedor_id:  vendedorId,
+          lat:          coords.lat,
+          lng:          coords.lng,
+          ultima_visita: new Date().toISOString()
+        })
+      });
+    }
+  } catch(e) {
+    console.warn('No se pudo guardar ubicación cliente:', e);
   }
 }
 
@@ -5862,6 +5899,8 @@ var _mapaInstance    = null;
 var _mapaFiltro      = 'todos';
 var _mapaVisitas     = [];
 var _mapaMarkers     = [];
+var _mapaRuta        = null;
+var _mapaGrayMarkers = [];
 
 // Colores por vendedor
 var COLORES_VENDEDOR = {
@@ -6007,6 +6046,17 @@ function mapaActualizar() {
     bounds.push([v.lat, v.lng]);
   });
 
+  // Dibujar ruta (línea entre checkins en orden cronológico)
+  if (_mapaRuta) { _mapaInstance.removeLayer(_mapaRuta); _mapaRuta = null; }
+  if (bounds.length > 1) {
+    _mapaRuta = L.polyline(bounds, {
+      color: '#8B0000',
+      weight: 2,
+      opacity: 0.5,
+      dashArray: '6,6'
+    }).addTo(_mapaInstance);
+  }
+
   // Ajustar vista del mapa
   if (bounds.length > 0) {
     if (bounds.length === 1) {
@@ -6015,6 +6065,9 @@ function mapaActualizar() {
       _mapaInstance.fitBounds(bounds, {padding: [30, 30]});
     }
   }
+
+  // Mostrar clientes no visitados hoy (en gris)
+  mapaCargarClientesSinVisita(checkins);
 
   // Actualizar stats
   var total = checkins.length;
@@ -6030,6 +6083,40 @@ function mapaActualizar() {
 
   // Forzar resize del mapa
   setTimeout(function() { if (_mapaInstance) _mapaInstance.invalidateSize(); }, 100);
+}
+
+// Cargar clientes sin visita hoy (puntos grises en el mapa)
+async function mapaCargarClientesSinVisita(checkins) {
+  // Limpiar markers grises anteriores
+  _mapaGrayMarkers.forEach(function(m) { _mapaInstance.removeLayer(m); });
+  _mapaGrayMarkers = [];
+
+  try {
+    // Obtener clientes con ubicación guardada
+    var clientes = await sbFetch('clientes?lat=not.is.null&select=id,nombre,lat,lng,localidad&limit=200');
+    if (!clientes || !clientes.length) return;
+
+    // Nombres de clientes ya visitados hoy
+    var visitadosHoy = new Set(checkins.map(function(v) { return v.nombre_cliente; }));
+
+    // Filtrar los no visitados
+    var noVisitados = clientes.filter(function(c) { return !visitadosHoy.has(c.nombre); });
+
+    noVisitados.forEach(function(c) {
+      var iconHtml = '<div style="background:#9E9E9E;color:#fff;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:900;box-shadow:0 1px 4px rgba(0,0,0,.2);opacity:.7">•</div>';
+      var icon = L.divIcon({ html: iconHtml, iconSize: [20,20], iconAnchor: [10,10], className: '' });
+      var marker = L.marker([c.lat, c.lng], {icon: icon})
+        .bindPopup('<b>' + c.nombre + '</b><br><span style="color:#9E9E9E">⚪ No visitado hoy</span>' + (c.localidad ? '<br>' + c.localidad : ''))
+        .addTo(_mapaInstance);
+      _mapaGrayMarkers.push(marker);
+    });
+
+    // Actualizar stats con no visitados
+    var elSin = document.getElementById('mapa-stat-sin-pedido');
+    // Keep existing sin-pedido count separate from unvisited
+  } catch(e) {
+    console.warn('Error cargando clientes sin visita:', e);
+  }
 }
 
 function mapaActualizarLista(checkins, todasVisitas) {
