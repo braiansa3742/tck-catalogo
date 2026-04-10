@@ -3,10 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>TCK Pedidos</title>
+<title>TCK Ventas</title>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="TCK Pedidos">
+<meta name="apple-mobile-web-app-title" content="TCK Ventas">
 <meta name="theme-color" content="#8B0000">
 <link rel="apple-touch-icon" href="https://tckcatalogo.com/img/logo-tck.png">
 <link rel="manifest" href="/manifest.json">
@@ -201,30 +201,30 @@ body {
 /* ── BIENVENIDA ── */
 .bienvenida {
   background: linear-gradient(135deg, #4A0000 0%, #8B0000 60%, #B71C1C 100%);
-  border-radius: 16px;
-  padding: 16px 20px;
+  border-radius: 12px;
+  padding: 10px 14px;
   margin-bottom: 16px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  box-shadow: 0 4px 16px rgba(139,0,0,.2);
+  box-shadow: 0 3px 10px rgba(139,0,0,.2);
 }
 .bienvenida-nombre {
   font-family: 'Barlow Condensed', sans-serif;
-  font-size: 22px;
+  font-size: 16px;
   font-weight: 900;
   color: #fff;
   letter-spacing: .5px;
 }
-.bienvenida-sub { font-size: 12px; color: rgba(255,255,255,.7); margin-top: 2px; }
+.bienvenida-sub { font-size: 11px; color: rgba(255,255,255,.6); margin-top: 1px; }
 .btn-salir {
   background: rgba(255,255,255,.15);
   border: 1px solid rgba(255,255,255,.3);
-  border-radius: 8px;
-  padding: 7px 16px;
+  border-radius: 7px;
+  padding: 5px 12px;
   color: #fff;
   font-family: 'Barlow Condensed', sans-serif;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 700;
   cursor: pointer;
   letter-spacing: .5px;
@@ -1018,6 +1018,9 @@ body {
   justify-content: center;
   color: var(--text2);
   -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
   flex-shrink: 0;
 }
 .tomador-qty-btn.plus { background: var(--red); color: #fff; border-color: var(--red); }
@@ -1532,6 +1535,9 @@ body {
   justify-content: center;
   color: var(--text2);
   -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
   flex-shrink: 0;
 }
 .tomador-qty-btn.plus { background: var(--red); color: #fff; border-color: var(--red); }
@@ -3054,9 +3060,9 @@ input[type="date"] {
 <div class="hdr">
   <div>
     <div style="display:flex;align-items:center;gap:10px;">
-      <img src="https://tckcatalogo.com/img/logo.png" alt="TCK" style="height:42px;width:auto;object-fit:contain;filter:drop-shadow(0 1px 6px rgba(0,0,0,.5))" onerror="this.style.display='none'">
+      <img src="https://tckcatalogo.com/img/logo.png" alt="TCK" style="height:52px;width:auto;object-fit:contain;filter:drop-shadow(0 1px 8px rgba(0,0,0,.6))" onerror="this.style.display='none'">
       <div>
-        <div class="hdr-logo" style="font-size:17px;line-height:1.1">TCK Pedidos</div>
+        <div class="hdr-logo" style="font-size:20px;line-height:1.1">TCK Ventas</div>
         <div class="hdr-sub">Panel de vendedores</div>
       </div>
     </div>
@@ -3931,7 +3937,7 @@ function login(nombre) {
 
 function salir() {
   limpiarSesion();
-  document.title = 'TCK Pedidos';
+  document.title = 'TCK Ventas';
   vendedorActual = null; pinActual = ''; pinVendedorTemp = null; todosLosPedidos = [];
   document.getElementById('login-wrap').style.display = 'flex';
   document.getElementById('panel').classList.remove('on');
@@ -4053,9 +4059,9 @@ function actualizarTitle() {
     return p.estado === 'Pendiente' && (vendedorActual === 'ADMIN' || p.vendedor.toLowerCase().includes(vendedorActual.toLowerCase()));
   }).length;
   if (pend > 0) {
-    document.title = '⏳ ' + pend + ' — TCK Pedidos';
+    document.title = '⏳ ' + pend + ' — TCK Ventas';
   } else {
-    document.title = '✅ TCK Pedidos';
+    document.title = '✅ TCK Ventas';
   }
 }
 
@@ -4428,7 +4434,7 @@ function generarMensaje(modo) {
         msg += '👤 ' + v + ': ' + byVend[v].n + ' ped · $' + byVend[v].m.toLocaleString('es-AR') + '\n';
       });
     }
-    msg += '\n_TCK Pedidos_';
+    msg += '\n_TCK Ventas_';
   }
 
   // ── MODO: Lista de pedidos (sin productos) ───────────────────────
@@ -4452,7 +4458,7 @@ function generarMensaje(modo) {
     } else {
       activos.forEach(function(p){ msg += lineaBase(p) + '\n\n'; });
     }
-    msg += sep + '\n_TCK Pedidos_';
+    msg += sep + '\n_TCK Ventas_';
   }
 
   // ── MODO: Pedidos con productos ──────────────────────────────────
@@ -4484,7 +4490,7 @@ function generarMensaje(modo) {
     } else {
       activos.forEach(function(p){ msg += lineaDetalle(p) + '\n'; });
     }
-    msg += sep + '\n_TCK Pedidos_';
+    msg += sep + '\n_TCK Ventas_';
   }
 
   // ── MODO: Preparar camión ────────────────────────────────────────
@@ -4516,7 +4522,7 @@ function generarMensaje(modo) {
       msg += '     ×' + pr.total + ' unidades  en ' + pedLabel + '\n';
     });
 
-    msg += '\n' + sep + '\n_TCK Pedidos_';
+    msg += '\n' + sep + '\n_TCK Ventas_';
   }
 
   window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank');
@@ -5767,7 +5773,7 @@ function renderInactivos_rep() {
 
 // ── XUBIO INTEGRATION ─────────────────────────────────────────────
 // Cambiar a true cuando estén las credenciales configuradas en Apps Script
-var XUBIO_HABILITADO = true;
+var XUBIO_HABILITADO = false;
 var _xubioActivo   = false;  // pausa el auto-refresh cuando Xubio está en uso
 
 // Estado por pedido: { clienteId, clienteNombre, productoId, productoNombre }
@@ -6391,18 +6397,20 @@ function gpsGetCoords() {
 // Cargar historial del día
 async function gpsCargarHistorial() {
   var vendedorId = await gpsObtenerVendedorId();
-  if (!vendedorId) return;
+  var esAdmin = vendedorActual === 'ADMIN';
+  if (!vendedorId && !esAdmin) return;
 
   var hoy = new Date();
   hoy.setHours(0,0,0,0);
   var ayer = hoy.toISOString();
 
   try {
-    var visitas = await sbFetch(
-      'visitas?vendedor_id=eq.' + vendedorId +
-      '&fecha=gte.' + ayer +
-      '&order=fecha.desc&select=*'
-    );
+    // Admin ve todas las visitas del día, vendedor solo las suyas
+    var url = esAdmin
+      ? 'visitas?fecha=gte.' + ayer + '&order=fecha.desc&select=*'
+      : 'visitas?vendedor_id=eq.' + vendedorId + '&fecha=gte.' + ayer + '&order=fecha.desc&select=*';
+
+    var visitas = await sbFetch(url);
 
     var el = document.getElementById('gps-historial');
     var hdrEl = document.getElementById('gps-historial-hdr');
@@ -7512,7 +7520,7 @@ async function tomadorConfirmarFinal() {
       'border:1.5px solid #FFD700;object-fit:cover;flex-shrink:0;" id="_ped_logo">' +
       '<div style="flex:1;min-width:0;">' +
         '<div style="font-family:Barlow Condensed,sans-serif;font-size:14px;' +
-        'font-weight:900;color:#FFD700;letter-spacing:.5px;">Instalá TCK Pedidos</div>' +
+        'font-weight:900;color:#FFD700;letter-spacing:.5px;">Instalá TCK Ventas</div>' +
         '<div style="font-size:11px;color:rgba(255,255,255,.7);">Acceso rápido desde tu pantalla de inicio</div>' +
       '</div>' +
       '<button id="_ped_inst_btn" style="background:#FFD700;color:#1A0800;border:none;' +
@@ -7554,7 +7562,7 @@ async function tomadorConfirmarFinal() {
     var m = document.createElement('div');
     m.style.cssText = 'position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,.7);display:flex;align-items:flex-end;';
     m.innerHTML = '<div style="background:#fff;width:100%;border-radius:20px 20px 0 0;padding:28px 24px;">' +
-      '<div style="font-family:Barlow Condensed,sans-serif;font-size:22px;font-weight:900;color:#8B0000;margin-bottom:4px;">🐔 TCK Pedidos</div>' +
+      '<div style="font-family:Barlow Condensed,sans-serif;font-size:22px;font-weight:900;color:#8B0000;margin-bottom:4px;">🐔 TCK Ventas</div>' +
       '<div style="font-size:13px;color:#888;margin-bottom:20px;">Instalalo en tu pantalla de inicio</div>' +
       '<div style="font-size:14px;color:#333;line-height:2.2;">' +
         '<div>1️⃣ Tocá <strong>Compartir ⬆️</strong> en Safari</div>' +
