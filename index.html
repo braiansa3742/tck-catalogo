@@ -708,17 +708,19 @@ button,
 
 /* ── Pantalla login ── */
 .cli-login {
-  position: absolute; inset: 0; z-index: 600;
+  position: fixed; inset: 0; z-index: 600;
   background: #0d0000;
   display: flex; flex-direction: column; align-items: center;
-  overflow-y: auto; -webkit-overflow-scrolling: touch;
+  overflow-y: scroll; -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
 }
 .cli-login.gone { display: none; }
 
 .cli-login-top {
-  width: 100%; background: linear-gradient(175deg, #1a0000 0%, #3a0000 60%, #0d0000 100%);
+  width: 100%; flex-shrink: 0;
+  background: linear-gradient(175deg, #1a0000 0%, #3a0000 60%, #0d0000 100%);
   display: flex; flex-direction: column; align-items: center;
-  padding: 40px 24px 32px; position: relative;
+  padding: 36px 24px 28px; position: relative;
 }
 .cli-login-top::after {
   content: ''; position: absolute; bottom: -1px; left: 0; right: 0; height: 40px;
@@ -739,7 +741,7 @@ button,
   text-align: center; margin-top: 2px;
 }
 
-.cli-login-body { width: 100%; max-width: 380px; padding: 32px 24px 40px; }
+.cli-login-body { width: 100%; max-width: 380px; padding: 28px 24px 80px; flex-shrink: 0; }
 
 /* Tabs */
 .cli-tabs {
@@ -1156,7 +1158,7 @@ button,
 </div></div>
 <div class="hdr"><div class="hdr-stripe"></div><div class="hdr-body">
 <div class="hdr-brand"><div class="hdr-brand-name">THE CHICKEN <span>KINGS</span></div><div class="hdr-brand-sub" id="hdr-price-status">Cat&aacute;logo Abril 2026 &middot; Trenque Lauquen</div></div>
-<div class="hdr-right"><div class="cart-pill" id="cart-pill"></div><button class="btn-entrega" onclick="abrirEntregas()">🚚 Entregas</button><button class="hdr-support" id="hdr-support" onclick="toggleFAB()" aria-label="Ayuda"><svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor" style="opacity:.85;flex-shrink:0"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z"/></svg> Ayuda</button><div class="vchip" id="vchip" onclick="cambiarVendedor()"></div></div>
+<div class="hdr-right"><div class="cart-pill" id="cart-pill"></div><button class="btn-entrega" onclick="abrirEntregas()">🚚 Entregas</button><button id="cli-btn-volver-portal" onclick="cliVolverPortal()" style="display:none;background:rgba(255,215,0,.15);border:1.5px solid rgba(255,215,0,.4);border-radius:20px;padding:6px 12px;font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:800;color:var(--gold);cursor:pointer;white-space:nowrap;letter-spacing:.3px">← Mi cuenta</button><button class="hdr-support" id="hdr-support" onclick="toggleFAB()" aria-label="Ayuda"><svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor" style="opacity:.85;flex-shrink:0"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z"/></svg> Ayuda</button><div class="vchip" id="vchip" onclick="cambiarVendedor()"></div></div>
 </div><div class="catnav" id="catnav"></div></div>
 <div class="body" id="body"></div>
 <div class="orderbar">
@@ -1938,6 +1940,9 @@ function confirmarYEnviarWA() {
   }
   }
   document.getElementById('pedido-ok').classList.add('on');
+  // Si hay cliente logueado, mostrar botón "ver mis pedidos"
+  const btnPortal = document.getElementById('pedido-ok-btn-portal');
+  if (btnPortal) btnPortal.style.display = _cliActivo ? 'block' : 'none';
 
   // Resetear flag después de 3 segundos para permitir nuevo pedido
   setTimeout(function() {
@@ -2064,21 +2069,15 @@ function toggleProductosOk() {
   btn.classList.toggle('open', isOpen);
 }
 
-function cerrarPedidoOk() {
-  var el = document.getElementById('pedido-ok');
-  if (!el) return;
-  el.style.transition = 'opacity .3s';
-  el.style.opacity = '0';
-  setTimeout(function() {
-    el.classList.remove('on');
-    el.style.opacity = '';
-    var lista = document.getElementById('pod-productos-lista');
-    var btn = document.getElementById('pod-toggle');
-    if (lista) lista.classList.remove('open');
-    if (btn) btn.classList.remove('open');
-    var bodyEl = document.getElementById('body');
-    if (bodyEl) bodyEl.scrollTop = 0;
-  }, 300);
+function cerrarPedidoOk(){
+  Object.keys(qty).forEach(k=>delete qty[k]);
+  renderBody(); updateBar(); renderDrawer();
+  clearCartLS();
+  document.getElementById('pedido-ok').classList.remove('on');
+  // Si hay cliente logueado, volver al portal en vez del catálogo
+  if (_cliActivo) {
+    cliVolverPortal();
+  }
 }
 </script>
 
@@ -2259,7 +2258,8 @@ document.addEventListener('visibilitychange', function() {
       <span class="pod-arrow">⌄</span>
     </button>
     <div class="pod-productos-lista" id="pod-productos-lista"></div>
-    <button class="pedido-ok-btn" onclick="cerrarPedidoOk()">Hacer otro pedido</button>
+    <button class="pedido-ok-btn" onclick="cerrarPedidoOk()" id="pedido-ok-btn-cerrar">Hacer otro pedido</button>
+    <button class="pedido-ok-btn" onclick="cliVolverPortal()" id="pedido-ok-btn-portal" style="display:none;background:#fff;color:var(--red);border:2px solid var(--red);margin-top:10px">← Ver mis pedidos</button>
   </div>
 </div>
 
@@ -2694,6 +2694,9 @@ function cliEntrarPortal(cli) {
   _cliActivo = cli;
   document.getElementById('cli-login').classList.add('gone');
   document.getElementById('cli-portal').classList.remove('gone');
+  // Mostrar botón volver al portal en el header
+  const btnVolver = document.getElementById('cli-btn-volver-portal');
+  if (btnVolver) btnVolver.style.display = 'block';
   document.getElementById('cli-portal-nombre').textContent = cli.nombre || 'Mi cuenta';
   document.getElementById('cli-portal-sub').textContent =
     [cli.comercio, cli.ciudad].filter(Boolean).join(' · ') || 'Cliente TCK';
@@ -2867,9 +2870,28 @@ function cliNuevoPedido() {
   document.getElementById('cli-portal').classList.add('gone');
   if (_cliActivo && _cliActivo.vendedor) {
     const idx = VEND.findIndex(v => v.nombre === _cliActivo.vendedor);
-    if (idx >= 0) { elegir(idx); return; }
+    if (idx >= 0) {
+      // Vendedor asignado — ir directo al catálogo sin pasar por sv
+      const sv = document.getElementById('sv');
+      sv.classList.add('gone');
+      sv.style.display = 'none';
+      vActivo = VEND[idx];
+      document.getElementById('vchip').textContent = '👤 ' + vActivo.nombre;
+      document.getElementById('d-sub').textContent = 'Para: ' + vActivo.nombre;
+      document.getElementById('hdr-support').classList.add('visible');
+      document.getElementById('d-wa-nom').textContent = vActivo.nombre;
+      saveCartLS();
+      // Mostrar botón volver al portal en header
+      const bv = document.getElementById('cli-btn-volver-portal');
+      if (bv) bv.style.display = 'block';
+      return;
+    }
   }
-  document.getElementById('sv').classList.remove('gone');
+  // Sin vendedor asignado — mostrar selector
+  const sv = document.getElementById('sv');
+  sv.style.display = 'flex';
+  sv.style.flexDirection = 'column';
+  setTimeout(() => sv.classList.remove('gone'), 10);
 }
 
 // ── LOGOUT ────────────────────────────────────────────────────
@@ -2881,6 +2903,22 @@ function cliLogout() {
   document.getElementById('cli-tel').value   = '';
   document.getElementById('cli-clave').value = '';
   cliSetErr('cli-err-login', '');
+  const btnV = document.getElementById('cli-btn-volver-portal');
+  if (btnV) btnV.style.display = 'none';
+}
+
+// Volver al portal desde el catálogo (cliente logueado)
+function cliVolverPortal() {
+  if (!_cliActivo) return;
+  // Ocultar catálogo y pedido-ok
+  const pedOk = document.getElementById('pedido-ok');
+  if (pedOk) pedOk.classList.remove('on');
+  // Vaciar carrito
+  Object.keys(qty).forEach(k => delete qty[k]);
+  renderBody(); updateBar(); renderDrawer(); clearCartLS();
+  // Mostrar portal
+  document.getElementById('cli-portal').classList.remove('gone');
+  cliPortalTab('pedidos'); // recargar pedidos
 }
 
 // ── PRE-RELLENO MODAL DE PEDIDO ───────────────────────────────
