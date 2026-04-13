@@ -951,7 +951,7 @@ button,
       </div>
       <div class="cli-err" id="cli-err-login"></div>
       <button class="cli-submit" id="cli-btn-login" onclick="cliLogin()">Ingresar →</button>
-      <button type="button" onclick="cliOlvideContrasena()" style="background:none;border:none;color:rgba(255,215,0,.5);font-size:12px;cursor:pointer;padding:8px 0;text-align:center;width:100%;font-family:'Barlow',sans-serif;letter-spacing:.3px">¿Olvidaste tu contraseña? Contactá a TCK →</button>
+      <button type="button" onclick="cliOlvideContrasena()" style="background:none;border:none;color:rgba(255,215,0,.5);font-size:12px;cursor:pointer;padding:8px 0;text-align:center;width:100%;font-family:'Barlow',sans-serif;letter-spacing:.3px">¿Olvidaste tu contraseña? Recibí un código SMS →</button>
     </div>
 
     <!-- ── FORM REGISTRO ── -->
@@ -3025,14 +3025,29 @@ function _cliRepetirPedido(pedidoId, detalleEnc) {
 }
 
 // ── RECUPERAR CONTRASEÑA ──────────────────────────────────────
-function cliOlvideContrasena() {
-  const tel = (document.getElementById('cli-tel').value || '').replace(/\D/g, '');
-  const msg = tel
-    ? 'Hola TCK, olvidé mi contraseña. Mi número es el ' + tel + '. ¿Me pueden ayudar a recuperarla?'
-    : 'Hola TCK, olvidé mi contraseña del portal de clientes. ¿Me pueden ayudar?';
-  // Número de TCK admin (Francisco)
-  const numTCK = '5492314475357';
-  window.open('https://wa.me/' + numTCK + '?text=' + encodeURIComponent(msg));
+async function cliOlvideContrasena() {
+  const tel = normTel(document.getElementById('cli-tel').value);
+  if (!tel || tel.length < 8) {
+    cliSetErr('cli-err-login', 'Ingresá tu teléfono primero');
+    document.getElementById('cli-tel').focus();
+    return;
+  }
+  const btn = document.querySelector('#cli-form-login .cli-submit');
+  if (btn) { btn.disabled = true; }
+  try {
+    const exist = await sbGet('clientes_auth?telefono=eq.' + encodeURIComponent(tel) + '&select=id');
+    if (!exist.length) {
+      cliSetErr('cli-err-login', 'No encontramos ese número. ¿Ya tenés cuenta?');
+      if (btn) btn.disabled = false;
+      return;
+    }
+    _otpModo = 'reset';
+    _otpDatosReg = { tel };
+    await otpEnviar(tel);
+  } catch(e) {
+    cliSetErr('cli-err-login', 'Error de conexión. Intentá de nuevo.');
+  }
+  if (btn) btn.disabled = false;
 }
 
 // ── HORARIO ───────────────────────────────────────────────────
