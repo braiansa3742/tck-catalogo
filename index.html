@@ -2002,15 +2002,13 @@ let _otpTimer      = null;  // interval del countdown
 
 // Llamar al Apps Script para enviar/verificar OTP
 async function appsScriptOTP(params) {
-  const url = APPS_SCRIPT_URL + '?' + new URLSearchParams(params).toString();
-  const r = await fetch(url, { mode: 'no-cors' });
-  // no-cors no devuelve respuesta — usamos un workaround con el endpoint sin no-cors
-  const r2 = await fetch(url);
-  return r2.json();
+  const url = SHEETS_ENDPOINT + '?' + new URLSearchParams(params).toString();
+  const r = await fetch(url);
+  return r.json();
 }
 
 async function appsScriptCall(params) {
-  const url = APPS_SCRIPT_URL + '?' + new URLSearchParams(params).toString();
+  const url = SHEETS_ENDPOINT + '?' + new URLSearchParams(params).toString();
   const r = await fetch(url);
   return r.json();
 }
