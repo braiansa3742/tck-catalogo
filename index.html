@@ -734,16 +734,25 @@ button,
 .cli-portal-hdr-sub { font-size: 11px; color: rgba(255,215,0,.65); margin-top: 1px; }
 .cli-portal-hdr-btns { display: flex; gap: 7px; align-items: center; }
 .cli-portal-action-btn {
-  background: rgba(255,255,255,.12); border: 1.5px solid rgba(255,255,255,.18);
-  border-radius: 22px; padding: 7px 14px;
+  background: rgba(255,255,255,.1); border: 1.5px solid rgba(255,255,255,.18);
+  border-radius: 20px; padding: 7px 14px;
   font-family: 'Barlow Condensed', sans-serif; font-size: 13px; font-weight: 800;
-  color: #fff; cursor: pointer; white-space: nowrap; transition: background .15s;
+  color: rgba(255,255,255,.7); cursor: pointer; white-space: nowrap; transition: background .15s;
   letter-spacing: .3px;
 }
-.cli-portal-action-btn.pedir {
-  background: rgba(255,215,0,.2); border-color: rgba(255,215,0,.4); color: var(--gold);
+.cli-portal-action-btn:active { background: rgba(255,255,255,.2); }
+
+/* Botón pedir grande — fuera del header */
+.cli-portal-pedir-btn {
+  display: block; width: calc(100% - 32px); margin: 14px 16px 0;
+  background: linear-gradient(135deg, #8B0000, #c0000c);
+  border: none; border-radius: 16px; padding: 18px 20px;
+  font-family: 'Barlow Condensed', sans-serif; font-size: 22px; font-weight: 900;
+  color: #fff; cursor: pointer; letter-spacing: 1px; text-transform: uppercase;
+  box-shadow: 0 6px 20px rgba(139,0,0,.4); transition: transform .12s, box-shadow .12s;
+  text-align: center; flex-shrink: 0;
 }
-.cli-portal-action-btn:active { background: rgba(255,255,255,.22); }
+.cli-portal-pedir-btn:active { transform: scale(.97); box-shadow: 0 3px 10px rgba(139,0,0,.3); }
 
 .cli-portal-tabs {
   display: flex; background: #fff; border-bottom: 2px solid rgba(139,0,0,.08);
@@ -1044,10 +1053,11 @@ button,
       <div class="cli-portal-hdr-sub" id="cli-portal-sub">Portal TCK</div>
     </div>
     <div class="cli-portal-hdr-btns">
-      <button class="cli-portal-action-btn pedir" onclick="cliNuevoPedido()">🛒 Pedir</button>
       <button class="cli-portal-action-btn" onclick="cliLogout()">Salir</button>
     </div>
   </div>
+
+  <button class="cli-portal-pedir-btn" onclick="cliNuevoPedido()">🛒 Hacer un pedido nuevo</button>
 
   <div class="cli-portal-tabs">
     <button class="cli-portal-tab sel" id="cptab-pedidos" onclick="cliPortalTab('pedidos')">📦 Mis pedidos</button>
