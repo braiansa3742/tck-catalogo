@@ -2589,6 +2589,7 @@ async function cliLogin() {
     const cli = data[0];
     if (cli.clave_hash !== hash) { cliSetErr('cli-err-login', 'Contraseña incorrecta'); btn.disabled = false; btn.textContent = 'Ingresar →'; return; }
     cliGuardar(cli);
+    cliVincularMaster(cli); // vincular con clientes_master en background
     cliEntrarPortal(cli);
   } catch(e) {
     cliSetErr('cli-err-login', 'Error de conexión. Intentá de nuevo.');
@@ -2631,10 +2632,55 @@ async function cliRegistrar() {
     });
     const cli = Array.isArray(nuevo) ? nuevo[0] : nuevo;
     cliGuardar(cli);
+    cliVincularMaster(cli); // crear entrada en clientes_master
     cliEntrarPortal(cli);
   } catch(e) {
     cliSetErr('cli-err-reg', 'Error al crear cuenta. Intentá de nuevo.');
     btn.disabled = false; btn.textContent = 'Crear cuenta →';
+  }
+}
+
+// ── VINCULAR CON clientes_master ─────────────────────────────
+// Se llama al registrarse o loguearse — une clientes_auth con clientes_master
+async function cliVincularMaster(cli) {
+  if (!cli || !cli.id) return;
+  try {
+    // Buscar si ya existe en clientes_master por telefono o cliente_auth_id
+    const tel = (cli.telefono || '').replace(/\D/g, '');
+    let existente = null;
+
+    // 1. Buscar por cliente_auth_id (ya vinculado antes)
+    const porAuth = await sbGet('clientes_master?cliente_auth_id=eq.' + cli.id + '&select=*');
+    if (porAuth && porAuth.length) { existente = porAuth[0]; }
+
+    // 2. Buscar por teléfono
+    if (!existente && tel) {
+      const porTel = await sbGet('clientes_master?telefono=eq.' + encodeURIComponent(tel) + '&select=*');
+      if (porTel && porTel.length) { existente = porTel[0]; }
+    }
+
+    if (existente) {
+      // Actualizar cliente_auth_id si no estaba vinculado
+      const updates = {};
+      if (!existente.cliente_auth_id) updates.cliente_auth_id = cli.id;
+      if (!existente.telefono && tel) updates.telefono = tel;
+      if (!existente.vendedor && cli.vendedor) updates.vendedor = cli.vendedor;
+      if (Object.keys(updates).length) {
+        await sbPatch('clientes_master?id=eq.' + existente.id, updates);
+      }
+    } else {
+      // Crear entrada nueva en clientes_master
+      await sbPost('clientes_master', {
+        nombre_canonical: cli.nombre || '',
+        cliente_auth_id:  cli.id,
+        telefono:         tel || null,
+        ciudad:           cli.ciudad || null,
+        vendedor:         cli.vendedor || null,
+        variantes_nombre: cli.nombre ? [cli.nombre] : []
+      });
+    }
+  } catch(e) {
+    console.warn('cliVincularMaster:', e);
   }
 }
 
