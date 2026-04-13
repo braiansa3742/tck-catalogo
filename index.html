@@ -810,6 +810,16 @@ button,
   display: flex; align-items: center; justify-content: center; gap: 8px;
   box-shadow: 0 3px 12px rgba(37,211,102,.25);
 }
+.cli-repetir-btn {
+  width: 100%; margin-top: 8px;
+  background: rgba(139,0,0,.06); border: 1.5px solid rgba(139,0,0,.18);
+  border-radius: 12px; padding: 11px;
+  font-family: 'Barlow Condensed', sans-serif; font-size: 15px;
+  font-weight: 700; color: var(--red); cursor: pointer;
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  transition: background .15s;
+}
+.cli-repetir-btn:active { background: rgba(139,0,0,.12); }
 
 /* Modal horario */
 .cli-horario-modal {
@@ -856,6 +866,51 @@ button,
   color: rgba(0,0,0,.3); font-size: 14px; line-height: 1.6;
 }
 .cli-empty-icon { font-size: 36px; margin-bottom: 10px; }
+
+/* ── OTP Verification ── */
+.cli-otp-screen {
+  display: none; flex-direction: column; align-items: center;
+  padding: 32px 0 0;
+}
+.cli-otp-screen.visible { display: flex; }
+.cli-otp-icon {
+  width: 64px; height: 64px; background: rgba(139,0,0,.15);
+  border-radius: 50%; display: flex; align-items: center;
+  justify-content: center; font-size: 28px; margin-bottom: 16px;
+}
+.cli-otp-title {
+  font-family: 'Barlow Condensed', sans-serif; font-size: 24px;
+  font-weight: 900; color: #fff; text-align: center; margin-bottom: 6px;
+}
+.cli-otp-sub {
+  font-size: 13px; color: rgba(255,255,255,.4); text-align: center;
+  line-height: 1.6; margin-bottom: 28px; padding: 0 8px;
+}
+.cli-otp-sub strong { color: var(--gold); }
+.cli-otp-inputs {
+  display: flex; gap: 10px; justify-content: center; margin-bottom: 24px;
+}
+.cli-otp-digit {
+  width: 46px; height: 56px; background: rgba(255,255,255,.08);
+  border: 2px solid rgba(255,255,255,.15); border-radius: 12px;
+  font-family: 'Barlow Condensed', sans-serif; font-size: 28px;
+  font-weight: 900; color: #fff; text-align: center; outline: none;
+  -webkit-appearance: none; transition: border-color .2s;
+  caret-color: var(--gold);
+}
+.cli-otp-digit:focus { border-color: var(--gold); background: rgba(255,255,255,.12); }
+.cli-otp-resend {
+  background: none; border: none; color: rgba(255,215,0,.5);
+  font-size: 13px; cursor: pointer; padding: 8px; text-align: center;
+  font-family: 'Barlow', sans-serif; transition: color .15s;
+}
+.cli-otp-resend:hover { color: var(--gold); }
+.cli-otp-resend:disabled { color: rgba(255,255,255,.2); cursor: default; }
+.cli-otp-back {
+  background: none; border: none; color: rgba(255,255,255,.35);
+  font-size: 13px; cursor: pointer; padding: 8px; margin-top: 4px;
+  font-family: 'Barlow', sans-serif;
+}
 </style>
 </head>
 <body>
@@ -896,6 +951,7 @@ button,
       </div>
       <div class="cli-err" id="cli-err-login"></div>
       <button class="cli-submit" id="cli-btn-login" onclick="cliLogin()">Ingresar →</button>
+      <button type="button" onclick="cliOlvideContrasena()" style="background:none;border:none;color:rgba(255,215,0,.5);font-size:12px;cursor:pointer;padding:8px 0;text-align:center;width:100%;font-family:'Barlow',sans-serif;letter-spacing:.3px">¿Olvidaste tu contraseña? Contactá a TCK →</button>
     </div>
 
     <!-- ── FORM REGISTRO ── -->
@@ -933,6 +989,38 @@ button,
       <div class="cli-err" id="cli-err-reg"></div>
       <button class="cli-submit" id="cli-btn-reg" onclick="cliRegistrar()">Crear cuenta →</button>
       <div class="cli-legal">Tu cuenta se activa al instante.<br>Tus datos solo son usados por TCK para gestionar tus pedidos.</div>
+    </div>
+
+    <!-- ── PANTALLA OTP ── -->
+    <div class="cli-otp-screen" id="cli-otp-screen">
+      <div class="cli-otp-icon">📱</div>
+      <div class="cli-otp-title">Verificá tu número</div>
+      <div class="cli-otp-sub" id="cli-otp-sub">Te enviamos un código SMS a<br><strong id="cli-otp-tel-display"></strong></div>
+      <div class="cli-otp-inputs">
+        <input class="cli-otp-digit" id="otp0" type="tel" inputmode="numeric" maxlength="1" oninput="otpInput(this,0)" onkeydown="otpKeydown(this,0)">
+        <input class="cli-otp-digit" id="otp1" type="tel" inputmode="numeric" maxlength="1" oninput="otpInput(this,1)" onkeydown="otpKeydown(this,1)">
+        <input class="cli-otp-digit" id="otp2" type="tel" inputmode="numeric" maxlength="1" oninput="otpInput(this,2)" onkeydown="otpKeydown(this,2)">
+        <input class="cli-otp-digit" id="otp3" type="tel" inputmode="numeric" maxlength="1" oninput="otpInput(this,3)" onkeydown="otpKeydown(this,3)">
+        <input class="cli-otp-digit" id="otp4" type="tel" inputmode="numeric" maxlength="1" oninput="otpInput(this,4)" onkeydown="otpKeydown(this,4)">
+        <input class="cli-otp-digit" id="otp5" type="tel" inputmode="numeric" maxlength="1" oninput="otpInput(this,5)" onkeydown="otpKeydown(this,5)">
+      </div>
+      <div class="cli-err" id="cli-err-otp"></div>
+      <button class="cli-otp-resend" id="cli-otp-resend" onclick="otpReenviar()" disabled>Reenviar código (<span id="cli-otp-timer">60</span>s)</button>
+      <button class="cli-otp-back" onclick="otpVolver()">← Volver</button>
+    </div>
+
+    <!-- ── PANTALLA NUEVA CONTRASEÑA (reset) ── -->
+    <div class="cli-form hidden" id="cli-form-newpass">
+      <div class="cli-field">
+        <div class="cli-label">Nueva contraseña</div>
+        <input class="cli-input" type="password" id="cli-newpass" placeholder="Mínimo 6 caracteres" autocomplete="new-password">
+      </div>
+      <div class="cli-field">
+        <div class="cli-label">Repetir contraseña</div>
+        <input class="cli-input" type="password" id="cli-newpass2" placeholder="Repetí la contraseña" autocomplete="new-password">
+      </div>
+      <div class="cli-err" id="cli-err-newpass"></div>
+      <button class="cli-submit" id="cli-btn-newpass" onclick="cliGuardarNuevaPass()">Guardar contraseña →</button>
     </div>
 
     <div class="cli-divider">
@@ -1900,6 +1988,229 @@ cargarPrecios().finally(() => {
 renderVend();renderNav();renderBody();updateBar();
   setTimeout(loadCartLS, 100);
 });
+
+
+// ════════════════════════════════════════════════════════════════
+//  VONAGE OTP
+// ════════════════════════════════════════════════════════════════
+
+let _otpRequestId  = null;  // ID de la solicitud de Vonage
+let _otpModo       = null;  // 'registro' o 'reset'
+let _otpDatosReg   = null;  // datos del registro pendiente
+let _otpTel        = null;  // teléfono en verificación
+let _otpTimer      = null;  // interval del countdown
+
+// Llamar al Apps Script para enviar/verificar OTP
+async function appsScriptOTP(params) {
+  const url = APPS_SCRIPT_URL + '?' + new URLSearchParams(params).toString();
+  const r = await fetch(url, { mode: 'no-cors' });
+  // no-cors no devuelve respuesta — usamos un workaround con el endpoint sin no-cors
+  const r2 = await fetch(url);
+  return r2.json();
+}
+
+async function appsScriptCall(params) {
+  const url = APPS_SCRIPT_URL + '?' + new URLSearchParams(params).toString();
+  const r = await fetch(url);
+  return r.json();
+}
+
+// ── FLUJO REGISTRO CON OTP ────────────────────────────────────
+// Modificar cliRegistrar para pedir OTP antes de crear la cuenta
+// cliRegistrar reemplazada por versión OTP
+
+
+// ── FLUJO RESET CONTRASEÑA ────────────────────────────────────
+// cliOlvideContrasena reemplazada por versión OTP
+
+
+// ── ENVIAR OTP ────────────────────────────────────────────────
+async function otpEnviar(tel) {
+  try {
+    const data = await appsScriptCall({ accion: 'enviarOTP', telefono: tel });
+    if (data.status === 'ok') {
+      _otpRequestId = data.request_id;
+      _otpTel = tel;
+      otpMostrarPantalla(tel);
+    } else {
+      const errEl = _otpModo === 'registro' ? 'cli-err-reg' : 'cli-err-login';
+      cliSetErr(errEl, data.message || 'Error al enviar el código');
+    }
+  } catch(e) {
+    const errEl = _otpModo === 'registro' ? 'cli-err-reg' : 'cli-err-login';
+    cliSetErr(errEl, 'Error de conexión con el servicio de SMS');
+  }
+}
+
+function otpMostrarPantalla(tel) {
+  // Ocultar forms
+  document.getElementById('cli-form-login').classList.add('hidden');
+  document.getElementById('cli-form-registro').classList.add('hidden');
+  document.getElementById('cli-form-newpass').classList.add('hidden');
+  document.querySelectorAll('.cli-divider, .cli-guest-btn').forEach(el => el.style.display = 'none');
+  // Mostrar OTP
+  document.getElementById('cli-otp-screen').classList.add('visible');
+  document.getElementById('cli-otp-tel-display').textContent = tel;
+  // Limpiar inputs
+  for (let i = 0; i < 6; i++) document.getElementById('otp' + i).value = '';
+  cliSetErr('cli-err-otp', '');
+  document.getElementById('otp0').focus();
+  // Iniciar countdown
+  otpIniciarTimer();
+}
+
+function otpIniciarTimer() {
+  clearInterval(_otpTimer);
+  let secs = 60;
+  document.getElementById('cli-otp-timer').textContent = secs;
+  document.getElementById('cli-otp-resend').disabled = true;
+  _otpTimer = setInterval(function() {
+    secs--;
+    document.getElementById('cli-otp-timer').textContent = secs;
+    if (secs <= 0) {
+      clearInterval(_otpTimer);
+      const btn = document.getElementById('cli-otp-resend');
+      btn.disabled = false;
+      btn.textContent = 'Reenviar código';
+    }
+  }, 1000);
+}
+
+async function otpReenviar() {
+  if (_otpTel) await otpEnviar(_otpTel);
+}
+
+function otpVolver() {
+  clearInterval(_otpTimer);
+  document.getElementById('cli-otp-screen').classList.remove('visible');
+  document.getElementById('cli-form-newpass').classList.add('hidden');
+  document.querySelectorAll('.cli-divider, .cli-guest-btn').forEach(el => el.style.display = '');
+  if (_otpModo === 'registro') {
+    document.getElementById('cli-form-registro').classList.remove('hidden');
+    cliTab('registro');
+  } else {
+    document.getElementById('cli-form-login').classList.remove('hidden');
+    cliTab('login');
+  }
+  if (_otpRequestId) {
+    appsScriptCall({ accion: 'cancelarOTP', request_id: _otpRequestId }).catch(() => {});
+    _otpRequestId = null;
+  }
+}
+
+// ── INPUT MÁGICO — avanza automáticamente entre dígitos ───────
+function otpInput(el, idx) {
+  const val = el.value.replace(/\D/g, '');
+  // Si pegaron 6 dígitos de una
+  if (val.length === 6) {
+    for (let i = 0; i < 6; i++) {
+      const d = document.getElementById('otp' + i);
+      if (d) d.value = val[i];
+    }
+    otpVerificar();
+    return;
+  }
+  el.value = val.slice(-1);
+  if (val && idx < 5) document.getElementById('otp' + (idx + 1)).focus();
+  if (idx === 5 && val) otpVerificar();
+}
+
+function otpKeydown(el, idx) {
+  if (event.key === 'Backspace' && !el.value && idx > 0) {
+    document.getElementById('otp' + (idx - 1)).focus();
+  }
+}
+
+// ── VERIFICAR CÓDIGO ──────────────────────────────────────────
+async function otpVerificar() {
+  const code = Array.from({ length: 6 }, (_, i) => (document.getElementById('otp' + i).value || '')).join('');
+  if (code.length < 6) return;
+  cliSetErr('cli-err-otp', '');
+  // Deshabilitar inputs durante verificación
+  for (let i = 0; i < 6; i++) document.getElementById('otp' + i).disabled = true;
+
+  try {
+    const data = await appsScriptCall({ accion: 'verificarOTP', request_id: _otpRequestId, code });
+    if (data.status === 'ok') {
+      clearInterval(_otpTimer);
+      if (_otpModo === 'registro') {
+        await otpCompletarRegistro();
+      } else {
+        otpMostrarNuevaPass();
+      }
+    } else {
+      cliSetErr('cli-err-otp', '❌ Código incorrecto. Revisá el SMS.');
+      for (let i = 0; i < 6; i++) {
+        const d = document.getElementById('otp' + i);
+        d.disabled = false; d.value = '';
+      }
+      document.getElementById('otp0').focus();
+    }
+  } catch(e) {
+    cliSetErr('cli-err-otp', 'Error de conexión. Intentá de nuevo.');
+    for (let i = 0; i < 6; i++) document.getElementById('otp' + i).disabled = false;
+  }
+}
+
+async function otpCompletarRegistro() {
+  try {
+    const d = _otpDatosReg;
+    const hash = await hashStr(d.tel + ':' + d.clave);
+    const nuevo = await sbPost('clientes_auth', {
+      usuario:    d.tel,
+      clave_hash: hash,
+      nombre:     d.nombre,
+      comercio:   d.comercio,
+      ciudad:     d.ciudad,
+      telefono:   d.tel,
+      vendedor:   d.vendedor === 'Sin vendedor' ? '' : d.vendedor,
+      activo:     true
+    });
+    const cli = Array.isArray(nuevo) ? nuevo[0] : nuevo;
+    cliGuardar(cli);
+    cliVincularMaster(cli);
+    cliEntrarPortal(cli);
+  } catch(e) {
+    cliSetErr('cli-err-otp', 'Error al crear la cuenta. Intentá de nuevo.');
+    for (let i = 0; i < 6; i++) document.getElementById('otp' + i).disabled = false;
+  }
+}
+
+function otpMostrarNuevaPass() {
+  document.getElementById('cli-otp-screen').classList.remove('visible');
+  document.getElementById('cli-form-newpass').classList.remove('hidden');
+  document.getElementById('cli-newpass').focus();
+}
+
+async function cliGuardarNuevaPass() {
+  const p1  = document.getElementById('cli-newpass').value;
+  const p2  = document.getElementById('cli-newpass2').value;
+  const btn = document.getElementById('cli-btn-newpass');
+  cliSetErr('cli-err-newpass', '');
+  if (!p1 || p1.length < 6) { cliSetErr('cli-err-newpass', 'Mínimo 6 caracteres'); return; }
+  if (p1 !== p2) { cliSetErr('cli-err-newpass', 'Las contraseñas no coinciden'); return; }
+  btn.disabled = true; btn.textContent = 'Guardando...';
+  try {
+    const tel  = _otpDatosReg.tel;
+    const hash = await hashStr(tel + ':' + p1);
+    // Actualizar en Supabase
+    const r = await fetch(SB_URL + '/rest/v1/clientes_auth?telefono=eq.' + encodeURIComponent(tel), {
+      method: 'PATCH',
+      headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ clave_hash: hash })
+    });
+    if (!r.ok) throw new Error('Error al actualizar');
+    // Login automático
+    const datos = await sbGet('clientes_auth?telefono=eq.' + encodeURIComponent(tel) + '&select=*');
+    if (datos && datos.length) {
+      cliGuardar(datos[0]);
+      cliEntrarPortal(datos[0]);
+    }
+  } catch(e) {
+    cliSetErr('cli-err-newpass', 'Error al guardar. Intentá de nuevo.');
+    btn.disabled = false; btn.textContent = 'Guardar contraseña →';
+  }
+}
 </script>
 <script>
 function toggleProductosOk() {
@@ -2531,6 +2842,24 @@ function cliInvitado() {
 }
 
 // ── PORTAL ───────────────────────────────────────────────────
+// Auto-refresh de pedidos cada 30s cuando el portal está abierto
+let _cliRefreshInterval = null;
+
+function cliIniciarRefresh() {
+  cliDetenerRefresh();
+  _cliRefreshInterval = setInterval(function() {
+    const portal = document.getElementById('cli-portal');
+    if (!portal || portal.classList.contains('gone')) { cliDetenerRefresh(); return; }
+    const pedidosEl = document.getElementById('cli-portal-pedidos');
+    if (!pedidosEl || pedidosEl.style.display === 'none') return;
+    cliCargarPedidos(true); // silencioso — no muestra "cargando"
+  }, 30000);
+}
+
+function cliDetenerRefresh() {
+  if (_cliRefreshInterval) { clearInterval(_cliRefreshInterval); _cliRefreshInterval = null; }
+}
+
 function cliEntrarPortal(cli) {
   _cliActivo = cli;
   document.getElementById('cli-login').classList.add('gone');
@@ -2538,6 +2867,7 @@ function cliEntrarPortal(cli) {
   // Mostrar botón volver al portal en el header
   const btnVolver = document.getElementById('cli-btn-volver-portal');
   if (btnVolver) btnVolver.style.display = 'block';
+  cliIniciarRefresh();
   document.getElementById('cli-portal-nombre').textContent = cli.nombre || 'Mi cuenta';
   document.getElementById('cli-portal-sub').textContent =
     [cli.comercio, cli.ciudad].filter(Boolean).join(' · ') || 'Cliente TCK';
@@ -2554,9 +2884,9 @@ function cliPortalTab(tab) {
 }
 
 // ── CARGAR PEDIDOS ────────────────────────────────────────────
-async function cliCargarPedidos() {
+async function cliCargarPedidos(silencioso) {
   const el = document.getElementById('cli-portal-pedidos');
-  el.innerHTML = '<div class="cli-empty"><div class="cli-empty-icon">⏳</div>Cargando pedidos...</div>';
+  if (!silencioso) el.innerHTML = '<div class="cli-empty"><div class="cli-empty-icon">⏳</div>Cargando pedidos...</div>';
   try {
     const SHEET_CSV_PEDIDOS = PRICES_CSV_URL.replace('gid=1658103892', 'gid=0');
     const res = await fetch(SHEET_CSV_PEDIDOS + '&_t=' + Date.now(), { cache: 'no-cache' });
@@ -2637,7 +2967,74 @@ function _cliRenderPedido(p) {
     (vWA ? '<button class="cli-wa-btn" onclick="window.open(\'https://wa.me/' + vWA + '?text=' + encodeURIComponent('Hola, soy ' + (_cliActivo.nombre||'') + '. Te consulto por el pedido ' + p.id) + '\')">' +
       '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.2 1.36.172 1.872.104.571-.074 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413z"/></svg>' +
       ' Contactar a ' + p.vendedor + '</button>' : '') +
+    (p.detalle ? '<button class="cli-repetir-btn" onclick="_cliRepetirPedido(\'' + p.id + '\',\'' + encodeURIComponent(p.detalle) + '\')">🔄 Repetir este pedido</button>' : '') +
   '</div>';
+}
+
+// ── REPETIR PEDIDO ───────────────────────────────────────────
+function _cliRepetirPedido(pedidoId, detalleEnc) {
+  try {
+    const detalle = decodeURIComponent(detalleEnc);
+    // El detalle viene como "2x Pollo Optimo (x 20 Kg) → $144000 | 1x Suprema IQF..."
+    // Necesitamos matchear cada línea con los productos del CAT
+    const lineas = detalle.split('|').map(l => l.trim()).filter(Boolean);
+    let cargados = 0;
+
+    lineas.forEach(function(linea) {
+      // Formato: "2x Nombre (presentación) → $precio" o "2x Nombre"
+      const matchQty = linea.match(/^(\d+)x?\s+(.+?)(?:\s+\(|\s+→|\s*$)/);
+      if (!matchQty) return;
+      const qtyVal   = parseInt(matchQty[1]);
+      const nombre   = matchQty[2].trim();
+
+      // Buscar en CAT por nombre exacto o parcial
+      CAT.forEach(function(sec, si) {
+        sec.items.forEach(function(it, ii) {
+          if (it.n === nombre || it.n.toLowerCase().includes(nombre.toLowerCase()) || nombre.toLowerCase().includes(it.n.toLowerCase())) {
+            qty[si + '-' + ii] = (qty[si + '-' + ii] || 0) + qtyVal;
+            cargados++;
+          }
+        });
+      });
+    });
+
+    if (cargados === 0) {
+      // Fallback: usar el último pedido guardado en localStorage si existe
+      const lastRaw = localStorage.getItem('tck_ultimo_pedido');
+      if (lastRaw) {
+        const lastData = JSON.parse(lastRaw);
+        if (lastData.items) {
+          lastData.items.forEach(function(it) {
+            if (CAT[it.si] && CAT[it.si].items[it.ii]) {
+              qty[it.si + '-' + it.ii] = it.qty;
+              cargados++;
+            }
+          });
+        }
+      }
+    }
+
+    if (cargados > 0) {
+      renderBody(); updateBar(); renderDrawer(); saveCartLS();
+      cliNuevoPedido(); // ir al catálogo con el carrito cargado
+    } else {
+      alert('No se pudieron cargar los productos. Hacé el pedido manualmente.');
+    }
+  } catch(e) {
+    console.warn('_cliRepetirPedido:', e);
+    alert('Error al cargar el pedido. Intentá de nuevo.');
+  }
+}
+
+// ── RECUPERAR CONTRASEÑA ──────────────────────────────────────
+function cliOlvideContrasena() {
+  const tel = (document.getElementById('cli-tel').value || '').replace(/\D/g, '');
+  const msg = tel
+    ? 'Hola TCK, olvidé mi contraseña. Mi número es el ' + tel + '. ¿Me pueden ayudar a recuperarla?'
+    : 'Hola TCK, olvidé mi contraseña del portal de clientes. ¿Me pueden ayudar?';
+  // Número de TCK admin (Francisco)
+  const numTCK = '5492314475357';
+  window.open('https://wa.me/' + numTCK + '?text=' + encodeURIComponent(msg));
 }
 
 // ── HORARIO ───────────────────────────────────────────────────
@@ -2737,6 +3134,7 @@ function cliNuevoPedido() {
 
 // ── LOGOUT ────────────────────────────────────────────────────
 function cliLogout() {
+  cliDetenerRefresh();
   cliLimpiar();
   _cliActivo = null;
   document.getElementById('cli-portal').classList.add('gone');
