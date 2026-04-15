@@ -595,10 +595,11 @@ button,
 .cli-login {
   position: fixed; inset: 0; z-index: 600;
   background: #0d0000;
-  display: flex; flex-direction: column; align-items: center;
+  display: none; flex-direction: column; align-items: center;
   overflow-y: scroll; -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
 }
+.cli-login.visible { display: flex; }
 .cli-login.gone { display: none; }
 
 .cli-login-top {
@@ -2984,7 +2985,9 @@ async function cliVincularMaster(cli) {
 
 // ── INVITADO ─────────────────────────────────────────────────
 function cliInvitado() {
-  document.getElementById('cli-login').classList.add('gone');
+  const loginEl = document.getElementById('cli-login');
+  loginEl.classList.remove('visible');
+  loginEl.classList.add('gone');
 }
 
 // ── PORTAL ───────────────────────────────────────────────────
@@ -3041,6 +3044,7 @@ function cliEntrarPortal(cli) {
 function ocultarLoginModal() {
   const loginEl = document.getElementById('cli-login');
   if (!loginEl) return;
+  loginEl.classList.remove('visible');
   loginEl.classList.add('gone');
 }
 
@@ -3048,13 +3052,7 @@ function mostrarLoginParaCuenta() {
   const loginEl = document.getElementById('cli-login');
   if (!loginEl) return;
   loginEl.classList.remove('gone');
-  loginEl.style.position = 'fixed';
-  loginEl.style.zIndex = '9999';
-  loginEl.style.top = '0';
-  loginEl.style.left = '0';
-  loginEl.style.width = '100%';
-  loginEl.style.height = '100%';
-  loginEl.style.overflowY = 'auto';
+  loginEl.classList.add('visible');
   // Agregar botón volver si no existe
   if (!document.getElementById('btn-omitir-login')) {
     const btn = document.createElement('button');
@@ -3366,6 +3364,7 @@ function cliLogout() {
   _cliActivo = null;
   document.getElementById('cli-portal').classList.add('gone');
   document.getElementById('cli-login').classList.remove('gone');
+  document.getElementById('cli-login').classList.add('visible');
   document.getElementById('cli-tel').value   = '';
   document.getElementById('cli-clave').value = '';
   cliSetErr('cli-err-login', '');
