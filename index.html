@@ -1096,55 +1096,33 @@ button,
   </div>
 </div>
 
-<div class="sv" id="sv"><div class="sv-bg"></div><div class="sv-dots"></div><div class="sv-dots2"></div><div class="sv-inner">
+<!-- ── MODAL SELECTOR DE VENDEDOR ── -->
+<!-- Aparece solo cuando el cliente toca "Enviar pedido" sin vendedor asignado -->
+<div id="sv-modal-overlay" style="display:none;position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.6);backdrop-filter:blur(3px);align-items:flex-end;justify-content:center;">
+  <div id="sv-modal-sheet" style="background:#fff;border-radius:24px 24px 0 0;width:100%;max-width:480px;padding:24px 20px 40px;box-shadow:0 -8px 40px rgba(0,0,0,.25);transform:translateY(100%);transition:transform .35s cubic-bezier(.34,1.56,.64,1);">
 
-<!-- Logo -->
-<div class="sv-logo-wrap"><img style="width:100%;height:auto;display:block;" src="img/logo.png" alt="TCK Logo" decoding="async" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><div style="display:none;align-items:center;justify-content:center;width:100%;padding:8px 0;"><span style="font-family:'Barlow Condensed',sans-serif;font-size:28px;font-weight:900;color:var(--gold);letter-spacing:2px;">THE CHICKEN KINGS</span></div></div>
+    <!-- Handle -->
+    <div style="width:40px;height:4px;background:#ddd;border-radius:2px;margin:0 auto 20px;"></div>
 
-<!-- Título principal -->
-<div class="sv-main-title">Ingres&aacute; al cat&aacute;logo TCK</div>
-<div class="sv-main-sub">Si ya sos cliente, eleg&iacute; tu vendedor. Si no, registrate.</div>
+    <!-- Título -->
+    <div style="font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:900;color:#1A0800;margin-bottom:4px;text-align:center;">¿Quién es tu vendedor?</div>
+    <div style="font-size:13px;color:#9C7050;text-align:center;margin-bottom:20px;line-height:1.5;">Elegí a tu vendedor habitual de TCK para que reciba tu pedido</div>
 
-<!-- BLOQUE 1: Cliente existente -->
-<div class="sv-block">
-  <div class="sv-block-title">Ya soy cliente</div>
-  <div class="sv-cards" id="sv-cards"></div>
-  <button class="sv-no-vendor" onclick="noSeMiVendedor()">
-    <span>&#x1F4AC; No s&eacute; qu&eacute; vendedor me corresponde &rarr;</span>
-  </button>
-  <div class="sv-block-hint">Eleg&iacute; tu vendedor habitual. Si no sab&eacute;s cu&aacute;l te corresponde, us&aacute; el bot&oacute;n de arriba.</div>
+    <!-- Cards de vendedores -->
+    <div id="sv-modal-cards" style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px;"></div>
+
+    <!-- No sé mi vendedor -->
+    <button onclick="elegirSinVendedor()" style="width:100%;padding:13px;background:#FFF8F0;border:1.5px dashed #E8D5BB;border-radius:14px;font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:700;color:#9C7050;cursor:pointer;letter-spacing:.3px;-webkit-tap-highlight-color:transparent;">
+      💬 No sé cuál me corresponde
+    </button>
+    <div style="font-size:11px;color:#C4A882;text-align:center;margin-top:8px;">Si no sabés, tu pedido va directo a administración</div>
+
+  </div>
 </div>
 
-<!-- Divisor -->
-<div class="sv-divider">
-  <div class="sv-divider-bar"></div>
-  <div class="sv-divider-txt">o si sos nuevo</div>
-  <div class="sv-divider-bar"></div>
-</div>
-
-<!-- BLOQUE 2: Cliente nuevo -->
-<div class="sv-new-block">
-  <div class="sv-new-block-title">&#x1F195; Soy cliente nuevo</div>
-  <div class="sv-new-block-sub">Dej&aacute;nos tus datos y administraci&oacute;n te asigna un vendedor para que puedas comprar.</div>
-  <button class="sv-new-block-btn" onclick="abrirModal('modal-nuevo')">&#x1F4DD; Quiero ser cliente</button>
-</div>
-
-<!-- Footer -->
-<div class="sv-footer-new">Tu pedido se enviar&aacute; por WhatsApp a tu vendedor o a administraci&oacute;n.<br>Precios sujetos a cambio sin previo aviso.</div>
-
-<!-- Elementos heredados (ocultos por CSS pero necesarios para compatibilidad) -->
-<div class="sv-subtitle" style="display:none">Cat&aacute;logo Abril 2026 &middot; Trenque Lauquen</div>
-<div class="sv-line" style="display:none"><div class="sv-line-bar"></div><div class="sv-line-star">&#x2605;</div><div class="sv-line-bar"></div></div>
-<div class="sv-ask" style="display:none">Presion&aacute; a tu vendedor</div>
-<div class="sv-footer" style="display:none">Tu pedido ir&aacute; directo al WhatsApp de tu vendedor</div>
-<div class="sv-bottom-row">
-  <button class="sv-ig-pill" onclick="abrirIG()">
-    <div class="sv-ig-circle">
-      <svg viewBox="0 0 24 24" width="13" height="13" fill="#fff"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
-    </div>
-    <span>@tck.ok &middot; Instagram</span>
-  </button>
-</div>
+<!-- sv vacío — mantenido por compatibilidad con elegir() -->
+<div class="sv gone" id="sv" style="display:none;"><div class="sv-bg"></div><div class="sv-dots"></div><div class="sv-dots2"></div><div class="sv-inner">
+<div class="sv-cards" id="sv-cards"></div>
 </div></div>
 <div class="hdr"><div class="hdr-stripe"></div><div class="hdr-body">
 <div class="hdr-brand"><div class="hdr-brand-name">THE CHICKEN <span>KINGS</span></div><div class="hdr-brand-sub" id="hdr-price-status">Cat&aacute;logo Abril 2026 &middot; Trenque Lauquen</div></div>
@@ -1285,41 +1263,38 @@ function renderVend(){
 }
 
 function elegir(i){
-  vActivo=VEND[i];
-  const sv=document.getElementById('sv');
-  sv.classList.add('gone');
-  document.getElementById('vchip').textContent='👤 '+vActivo.nombre;
-  document.getElementById('d-sub').textContent='Para: '+vActivo.nombre;
+  vActivo = VEND[i];
+  // Actualizar UI del header
+  const vchip = document.getElementById('vchip');
+  if (vchip) {
+    vchip.textContent = '👤 ' + vActivo.nombre;
+    vchip.style.display = '';
+  }
+  // Actualizar drawer
+  const dsub = document.getElementById('d-sub');
+  if (dsub) dsub.textContent = 'Para: ' + vActivo.nombre;
+  const dwanom = document.getElementById('d-wa-nom');
+  if (dwanom) dwanom.textContent = vActivo.nombre;
   document.getElementById('hdr-support').classList.add('visible');
   cerrarFAB();
-  document.getElementById('d-wa-nom').textContent=vActivo.nombre;
-  setTimeout(()=>sv.style.display='none',400);
   saveCartLS();
-  // Si hay cliente logueado sin vendedor, guardar el vendedor elegido permanentemente
+  // Si hay cliente logueado sin vendedor, guardarlo
   if (_cliActivo && !_cliActivo.vendedor) {
     _cliActivo.vendedor = vActivo.nombre;
-    cliGuardar(_cliActivo); // actualizar sesión local
-    // Guardar en Supabase en background
+    cliGuardar(_cliActivo);
     fetch(SB_URL + '/rest/v1/clientes_auth?id=eq.' + _cliActivo.id, {
       method: 'PATCH',
       headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY, 'Content-Type': 'application/json' },
       body: JSON.stringify({ vendedor: vActivo.nombre })
     }).catch(() => {});
-    // Ocultar vchip
-    const vchip = document.getElementById('vchip');
-    if (vchip) vchip.style.display = 'none';
   }
 }
 
 function cambiarVendedor(){
-  // Si hay cliente logueado con vendedor asignado, no permitir cambiar
+  // Si hay cliente logueado con vendedor fijo, no permitir cambiar
   if (_cliActivo && _cliActivo.vendedor) return;
-  Object.keys(qty).forEach(k=>delete qty[k]);
-  renderBody();updateBar();
-  const sv=document.getElementById('sv');
-  sv.style.display='flex';
-  sv.style.flexDirection='column';
-  setTimeout(()=>sv.classList.remove('gone'),10);
+  // Abrir el modal de selección
+  abrirSvModal();
 }
 
 function renderNav(){
@@ -1682,9 +1657,82 @@ function guardarDatosCliente(nombre, comercio, localidad, telefono){
 }
 
 // Reemplaza el sendWA directo — abre modal primero
-function sendWA(){
-  if(!vActivo) return;
-  const{t,c}=T(); if(!c) return;
+// ── MODAL SELECTOR DE VENDEDOR ────────────────────────────────
+
+function renderSvModal() {
+  const cont = document.getElementById('sv-modal-cards');
+  if (!cont) return;
+  cont.innerHTML = VEND.map((v, i) =>
+    '<button onclick="elegirDesdeModal(' + i + ')" style="width:100%;background:#FFF8F0;border:1.5px solid #E8D5BB;border-radius:16px;padding:14px 16px;display:flex;align-items:center;gap:14px;cursor:pointer;transition:background .15s,border-color .15s;-webkit-tap-highlight-color:transparent;text-align:left;" ' +
+    'onmouseenter="this.style.background=\'#FFF0E0\';this.style.borderColor=\'#8B0000\'" ' +
+    'onmouseleave="this.style.background=\'#FFF8F0\';this.style.borderColor=\'#E8D5BB\'">' +
+    // Avatar — preparado para foto futura
+    '<div style="width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#8B0000,#B71C1C);display:flex;align-items:center;justify-content:center;font-family:\'Barlow Condensed\',sans-serif;font-size:22px;font-weight:900;color:#FFD700;flex-shrink:0;overflow:hidden;">' +
+    // Si en el futuro tiene foto: '<img src="img/vendedores/' + v.nombre.toLowerCase() + '.jpg" style="width:100%;height:100%;object-fit:cover;" onerror="this.style.display=\'none\'">'
+    v.nombre[0].toUpperCase() +
+    '</div>' +
+    '<div style="flex:1;">' +
+    '<div style="font-family:\'Barlow Condensed\',sans-serif;font-size:20px;font-weight:900;color:#1A0800;line-height:1;">' + v.nombre + '</div>' +
+    '<div style="font-size:12px;color:#9C7050;margin-top:2px;">Vendedor TCK</div>' +
+    '</div>' +
+    '<div style="font-size:20px;color:#C4A882;">›</div>' +
+    '</button>'
+  ).join('');
+}
+
+function abrirSvModal() {
+  const overlay = document.getElementById('sv-modal-overlay');
+  const sheet   = document.getElementById('sv-modal-sheet');
+  if (!overlay || !sheet) return;
+  overlay.style.display = 'flex';
+  setTimeout(() => { sheet.style.transform = 'translateY(0)'; }, 10);
+  // Cerrar tocando el fondo
+  overlay.onclick = function(e) {
+    if (e.target === overlay) cerrarSvModal();
+  };
+}
+
+function cerrarSvModal() {
+  const overlay = document.getElementById('sv-modal-overlay');
+  const sheet   = document.getElementById('sv-modal-sheet');
+  if (!overlay || !sheet) return;
+  sheet.style.transform = 'translateY(100%)';
+  setTimeout(() => { overlay.style.display = 'none'; }, 350);
+}
+
+function elegirDesdeModal(idx) {
+  elegir(idx);
+  // Guardar en localStorage para que persista
+  try { localStorage.setItem('tck_vendedor_link', idx); } catch(e) {}
+  cerrarSvModal();
+  // Continuar con el pedido
+  setTimeout(() => {
+    document.getElementById('wa-preview-vendedor').textContent = vActivo.nombre;
+    cargarDatosCliente();
+    cliPreRellenarModal();
+    abrirModal('modal-cliente-id');
+  }, 380);
+}
+
+function elegirSinVendedor() {
+  // Asignar admin como destino del pedido
+  vActivo = { nombre: 'Administración', wa: '5492314475357' };
+  cerrarSvModal();
+  setTimeout(() => {
+    document.getElementById('wa-preview-vendedor').textContent = 'Administración';
+    cargarDatosCliente();
+    cliPreRellenarModal();
+    abrirModal('modal-cliente-id');
+  }, 380);
+}
+
+function sendWA() {
+  if (!vActivo) {
+    // Sin vendedor → mostrar modal de selección
+    abrirSvModal();
+    return;
+  }
+  const {t, c} = T(); if (!c) return;
   document.getElementById('wa-preview-vendedor').textContent = vActivo.nombre;
   cargarDatosCliente();
   cliPreRellenarModal();
@@ -2006,25 +2054,26 @@ function clearCartLS() {
 }
 
 // ── LINK DE VENDEDOR (?v=miguel) ─────────────────────────────
-// Lee el parámetro v de la URL y autoselecciona el vendedor
 (function() {
   const params = new URLSearchParams(window.location.search);
   const vParam = (params.get('v') || '').toLowerCase().trim();
   if (vParam) {
     const idx = VEND.findIndex(v => v.nombre.toLowerCase() === vParam);
-    if (idx >= 0) {
-      // Guardar en localStorage para que persista si recargan
-      try { localStorage.setItem('tck_vendedor_link', idx); } catch(e) {}
-    }
+    if (idx >= 0) try { localStorage.setItem('tck_vendedor_link', idx); } catch(e) {}
   }
 })();
 
 cargarPrecios().finally(() => {
   mostrarRepFab();
-
   renderVend(); renderNav(); renderBody(); updateBar();
 
-  // Autoseleccionar vendedor del link o del carrito guardado
+  // 1. Ocultar siempre el sv y el login — catálogo directo
+  const sv = document.getElementById('sv');
+  if (sv) { sv.classList.add('gone'); sv.style.display = 'none'; }
+  const loginEl = document.getElementById('cli-login');
+  if (loginEl) loginEl.classList.add('gone');
+
+  // 2. Autoseleccionar vendedor: del ?v= → del localStorage → ninguno
   const params = new URLSearchParams(window.location.search);
   const vParam = (params.get('v') || '').toLowerCase().trim();
   let vendedorAutoIdx = -1;
@@ -2033,7 +2082,6 @@ cargarPrecios().finally(() => {
     vendedorAutoIdx = VEND.findIndex(v => v.nombre.toLowerCase() === vParam);
   }
   if (vendedorAutoIdx < 0) {
-    // Intentar del localStorage (link previo)
     try {
       const stored = localStorage.getItem('tck_vendedor_link');
       if (stored !== null) vendedorAutoIdx = parseInt(stored);
@@ -2041,19 +2089,12 @@ cargarPrecios().finally(() => {
   }
 
   if (vendedorAutoIdx >= 0 && VEND[vendedorAutoIdx]) {
-    // Vendedor detectado del link → saltear pantalla de selección y login
-    elegir(vendedorAutoIdx);
-    // Ocultar la pantalla de selección de vendedor
-    const sv = document.getElementById('sv');
-    if (sv) { sv.classList.add('gone'); sv.style.display = 'none'; }
-    // Saltar el login — ir directo al catálogo
-    const loginEl = document.getElementById('cli-login');
-    if (loginEl) loginEl.classList.add('gone');
-  } else {
-    // Sin link de vendedor → saltar login igual, mostrar selección de vendedor
-    const loginEl = document.getElementById('cli-login');
-    if (loginEl) loginEl.classList.add('gone');
+    elegir(vendedorAutoIdx); // asigna vActivo silenciosamente
   }
+  // Si no hay vendedor, vActivo queda null → al pedir aparece el modal
+
+  // 3. Renderizar cards del modal de vendedor
+  renderSvModal();
 
   setTimeout(loadCartLS, 100);
 });
