@@ -1948,6 +1948,21 @@ function confirmarYEnviarWA() {
   const btnPortal = document.getElementById('pedido-ok-btn-portal');
   if (btnPortal) btnPortal.style.display = _cliActivo ? 'block' : 'none';
 
+  // Popup de registro — solo si NO está logueado
+  if (!_cliActivo) {
+    setTimeout(() => mostrarPopupRegistro(nombre, telefono), 1800);
+  } else {
+    // Cliente logueado — si es el segundo pedido y le falta negocio/ciudad, mostrar paso 2
+    try {
+      const count = parseInt(localStorage.getItem('tck_pedidos_count') || '0');
+      const perfilIncompleto = !_cliActivo.comercio && !_cliActivo.ciudad;
+      if (count >= 1 && perfilIncompleto) {
+        setTimeout(() => mostrarPopupPerfil(), 1800);
+      }
+      localStorage.setItem('tck_pedidos_count', String(count + 1));
+    } catch(e) {}
+  }
+
   // Resetear flag después de 3 segundos para permitir nuevo pedido
   setTimeout(function() {
     _enviandoPedido = false;
@@ -2267,8 +2282,8 @@ async function otpCompletarRegistro() {
       usuario:    d.tel,
       clave_hash: hash,
       nombre:     d.nombre,
-      comercio:   d.comercio,
-      ciudad:     d.ciudad,
+      comercio:   d.comercio || null,
+      ciudad:     d.ciudad   || null,
       telefono:   d.tel,
       vendedor:   d.vendedor === 'Sin vendedor' ? '' : d.vendedor,
       activo:     true
@@ -2276,10 +2291,23 @@ async function otpCompletarRegistro() {
     const cli = Array.isArray(nuevo) ? nuevo[0] : nuevo;
     cliGuardar(cli);
     cliVincularMaster(cli);
-    cliEntrarPortal(cli);
+    // Marcar que es primer pedido — al segundo pedido mostramos paso 2
+    try { localStorage.setItem('tck_pedidos_count', '1'); } catch(e) {}
+    ocultarLoginModal();
+    // Toast de bienvenida simple
+    setTimeout(() => {
+      const t = document.createElement('div');
+      t.style.cssText = 'position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:#1B5E20;color:#fff;padding:12px 22px;border-radius:20px;font-family:Barlow Condensed,sans-serif;font-size:15px;font-weight:700;z-index:9999;box-shadow:0 4px 16px rgba(0,0,0,.2);white-space:nowrap;';
+      t.textContent = '✅ ¡Cuenta creada! Ya podés ver tus pedidos';
+      document.body.appendChild(t);
+      setTimeout(() => t.remove(), 3500);
+    }, 300);
   } catch(e) {
     cliSetErr('cli-err-otp', 'Error al crear la cuenta. Intentá de nuevo.');
-    for (let i = 0; i < 6; i++) document.getElementById('otp' + i).disabled = false;
+    for (let i = 0; i < 4; i++) {
+      const el = document.getElementById('otp' + i);
+      if (el) el.disabled = false;
+    }
   }
 }
 
@@ -3405,6 +3433,224 @@ document.addEventListener('gestureend', function(e) { e.preventDefault(); }, {pa
 document.addEventListener('touchmove', function(e) {
   if (e.touches && e.touches.length > 1) e.preventDefault();
 }, {passive: false});
+</script>
+
+<!-- ══════════════════════════════════════════════════════════════
+     REGISTRO PROGRESIVO — PASO 1: Crear cuenta (post primer pedido)
+═══════════════════════════════════════════════════════════════ -->
+<div id="reg-popup-1" style="display:none;position:fixed;inset:0;z-index:600;background:rgba(0,0,0,.55);backdrop-filter:blur(3px);align-items:flex-end;justify-content:center;">
+  <div id="reg-popup-1-sheet" style="background:#fff;border-radius:24px 24px 0 0;width:100%;max-width:480px;padding:24px 20px 44px;transform:translateY(100%);transition:transform .38s cubic-bezier(.34,1.56,.64,1);box-shadow:0 -8px 40px rgba(0,0,0,.2);">
+
+    <div style="width:40px;height:4px;background:#ddd;border-radius:2px;margin:0 auto 18px;"></div>
+
+    <!-- Ícono + título -->
+    <div style="text-align:center;margin-bottom:16px;">
+      <div style="font-size:36px;margin-bottom:8px;">🎉</div>
+      <div style="font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:900;color:#1A0800;margin-bottom:4px;">¡Pedido enviado!</div>
+      <div style="font-size:13px;color:#9C7050;line-height:1.5;max-width:280px;margin:0 auto;">Creá tu cuenta gratis para ver tus entregas y repetir pedidos con un toque</div>
+    </div>
+
+    <!-- Beneficios -->
+    <div style="background:#FFF8F0;border-radius:14px;padding:12px 14px;margin-bottom:18px;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+        <span style="font-size:18px;">🚚</span>
+        <span style="font-size:13px;color:#5C3A1E;">Ver cuándo llega tu mercadería</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+        <span style="font-size:18px;">🔁</span>
+        <span style="font-size:13px;color:#5C3A1E;">Repetir este pedido con un toque</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span style="font-size:18px;">📋</span>
+        <span style="font-size:13px;color:#5C3A1E;">Ver historial de tus pedidos</span>
+      </div>
+    </div>
+
+    <!-- Campos -->
+    <div style="margin-bottom:10px;">
+      <div style="font-size:11px;font-weight:700;color:#9C7050;text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px;">Contraseña</div>
+      <input id="rp1-clave" type="password" placeholder="Mínimo 6 caracteres" autocomplete="new-password"
+        style="width:100%;padding:12px 14px;border:1.5px solid #E8D5BB;border-radius:12px;font-family:'Barlow',sans-serif;font-size:15px;color:#1A0800;background:#FDFAF7;outline:none;box-sizing:border-box;">
+    </div>
+    <div id="rp1-err" style="color:#C62828;font-size:12px;min-height:16px;margin-bottom:8px;text-align:center;"></div>
+
+    <button id="rp1-btn" onclick="regPaso1Confirmar()"
+      style="width:100%;padding:14px;background:linear-gradient(135deg,#8B0000,#B71C1C);border:none;border-radius:14px;font-family:'Barlow Condensed',sans-serif;font-size:17px;font-weight:900;color:#FFD700;cursor:pointer;letter-spacing:.5px;margin-bottom:10px;-webkit-tap-highlight-color:transparent;">
+      Crear mi cuenta →
+    </button>
+    <button onclick="cerrarPopupReg1()"
+      style="width:100%;padding:11px;background:none;border:none;font-family:'Barlow',sans-serif;font-size:13px;color:#C4A882;cursor:pointer;">
+      Ahora no
+    </button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     REGISTRO PROGRESIVO — PASO 2: Completar perfil (negocio + ciudad)
+═══════════════════════════════════════════════════════════════ -->
+<div id="reg-popup-2" style="display:none;position:fixed;inset:0;z-index:600;background:rgba(0,0,0,.55);backdrop-filter:blur(3px);align-items:flex-end;justify-content:center;">
+  <div id="reg-popup-2-sheet" style="background:#fff;border-radius:24px 24px 0 0;width:100%;max-width:480px;padding:24px 20px 44px;transform:translateY(100%);transition:transform .38s cubic-bezier(.34,1.56,.64,1);box-shadow:0 -8px 40px rgba(0,0,0,.2);">
+
+    <div style="width:40px;height:4px;background:#ddd;border-radius:2px;margin:0 auto 18px;"></div>
+
+    <div style="text-align:center;margin-bottom:18px;">
+      <div style="font-size:32px;margin-bottom:8px;">🏪</div>
+      <div style="font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:900;color:#1A0800;margin-bottom:4px;">Un paso más</div>
+      <div style="font-size:13px;color:#9C7050;line-height:1.5;max-width:280px;margin:0 auto;">Completá los datos de tu negocio para que tu vendedor te conozca mejor</div>
+    </div>
+
+    <!-- Barra de progreso -->
+    <div style="background:#F5EDE0;border-radius:20px;height:6px;margin-bottom:18px;overflow:hidden;">
+      <div style="background:linear-gradient(90deg,#8B0000,#B71C1C);height:100%;width:66%;border-radius:20px;transition:width .4s;"></div>
+    </div>
+
+    <div style="margin-bottom:10px;">
+      <div style="font-size:11px;font-weight:700;color:#9C7050;text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px;">Nombre del negocio <span style="font-weight:400;color:#C4A882;">(opcional)</span></div>
+      <input id="rp2-comercio" type="text" placeholder="Rotisería, almacén, etc." autocapitalize="words"
+        style="width:100%;padding:12px 14px;border:1.5px solid #E8D5BB;border-radius:12px;font-family:'Barlow',sans-serif;font-size:15px;color:#1A0800;background:#FDFAF7;outline:none;box-sizing:border-box;margin-bottom:10px;">
+      <div style="font-size:11px;font-weight:700;color:#9C7050;text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px;">Ciudad</div>
+      <input id="rp2-ciudad" type="text" placeholder="Tu ciudad" autocapitalize="words"
+        style="width:100%;padding:12px 14px;border:1.5px solid #E8D5BB;border-radius:12px;font-family:'Barlow',sans-serif;font-size:15px;color:#1A0800;background:#FDFAF7;outline:none;box-sizing:border-box;">
+    </div>
+    <div id="rp2-err" style="color:#C62828;font-size:12px;min-height:16px;margin-bottom:8px;text-align:center;"></div>
+
+    <button id="rp2-btn" onclick="regPaso2Confirmar()"
+      style="width:100%;padding:14px;background:linear-gradient(135deg,#8B0000,#B71C1C);border:none;border-radius:14px;font-family:'Barlow Condensed',sans-serif;font-size:17px;font-weight:900;color:#FFD700;cursor:pointer;letter-spacing:.5px;margin-bottom:10px;-webkit-tap-highlight-color:transparent;">
+      Listo, guardar →
+    </button>
+    <button onclick="cerrarPopupReg2()"
+      style="width:100%;padding:11px;background:none;border:none;font-family:'Barlow',sans-serif;font-size:13px;color:#C4A882;cursor:pointer;">
+      Completar después
+    </button>
+  </div>
+</div>
+
+<script>
+// ── REGISTRO PROGRESIVO ────────────────────────────────────────
+
+let _regNombrePendiente = '';
+let _regTelPendiente    = '';
+
+function mostrarPopupRegistro(nombre, telefono) {
+  _regNombrePendiente = nombre || '';
+  _regTelPendiente    = normTel(telefono || '');
+  const overlay = document.getElementById('reg-popup-1');
+  const sheet   = document.getElementById('reg-popup-1-sheet');
+  if (!overlay || !sheet) return;
+  overlay.style.display = 'flex';
+  setTimeout(() => { sheet.style.transform = 'translateY(0)'; }, 10);
+}
+
+function cerrarPopupReg1() {
+  const sheet = document.getElementById('reg-popup-1-sheet');
+  if (sheet) sheet.style.transform = 'translateY(100%)';
+  setTimeout(() => {
+    const overlay = document.getElementById('reg-popup-1');
+    if (overlay) overlay.style.display = 'none';
+  }, 380);
+}
+
+async function regPaso1Confirmar() {
+  const clave = document.getElementById('rp1-clave').value;
+  const btn   = document.getElementById('rp1-btn');
+  const err   = document.getElementById('rp1-err');
+  err.textContent = '';
+
+  if (!clave || clave.length < 6) { err.textContent = 'La contraseña debe tener al menos 6 caracteres'; return; }
+  if (!_regNombrePendiente) { err.textContent = 'Falta el nombre — volvé a intentar'; return; }
+  if (!_regTelPendiente || _regTelPendiente.length < 8) { err.textContent = 'Falta el teléfono — volvé a intentar'; return; }
+
+  btn.disabled = true; btn.textContent = 'Creando cuenta...';
+
+  try {
+    // Verificar que el teléfono no exista ya
+    const exist = await sbGet('clientes_auth?telefono=eq.' + encodeURIComponent(_regTelPendiente) + '&select=id');
+    if (exist.length) {
+      err.textContent = 'Ese teléfono ya tiene cuenta. Usá "Mi cuenta" para ingresar.';
+      btn.disabled = false; btn.textContent = 'Crear mi cuenta →'; return;
+    }
+    // Guardar datos y arrancar OTP
+    _otpDatosReg = {
+      nombre:   _regNombrePendiente,
+      comercio: '',
+      ciudad:   '',
+      tel:      _regTelPendiente,
+      vendedor: vActivo ? vActivo.nombre : '',
+      clave:    clave
+    };
+    _otpModo = 'registro';
+    await otpEnviar(_regTelPendiente);
+    btn.disabled = false; btn.textContent = 'Crear mi cuenta →';
+    // Cerrar este popup — el OTP se muestra sobre el cli-login
+    cerrarPopupReg1();
+    // Mostrar pantalla de OTP
+    mostrarLoginParaCuenta();
+    // Ir a la pantalla de OTP directamente (ya tiene los datos cargados)
+  } catch(e) {
+    err.textContent = 'Error de conexión. Intentá de nuevo.';
+    btn.disabled = false; btn.textContent = 'Crear mi cuenta →';
+  }
+}
+
+function mostrarPopupPerfil() {
+  const overlay = document.getElementById('reg-popup-2');
+  const sheet   = document.getElementById('reg-popup-2-sheet');
+  if (!overlay || !sheet) return;
+  // Pre-completar si hay datos
+  if (_cliActivo) {
+    const c = document.getElementById('rp2-comercio');
+    const ci = document.getElementById('rp2-ciudad');
+    if (c && _cliActivo.comercio) c.value = _cliActivo.comercio;
+    if (ci && _cliActivo.ciudad)  ci.value = _cliActivo.ciudad;
+  }
+  overlay.style.display = 'flex';
+  setTimeout(() => { sheet.style.transform = 'translateY(0)'; }, 10);
+}
+
+function cerrarPopupReg2() {
+  const sheet = document.getElementById('reg-popup-2-sheet');
+  if (sheet) sheet.style.transform = 'translateY(100%)';
+  setTimeout(() => {
+    const overlay = document.getElementById('reg-popup-2');
+    if (overlay) overlay.style.display = 'none';
+  }, 380);
+}
+
+async function regPaso2Confirmar() {
+  const comercio = (document.getElementById('rp2-comercio').value || '').trim();
+  const ciudad   = (document.getElementById('rp2-ciudad').value || '').trim();
+  const btn      = document.getElementById('rp2-btn');
+  const err      = document.getElementById('rp2-err');
+  err.textContent = '';
+
+  if (!ciudad) { err.textContent = 'Ingresá tu ciudad'; return; }
+  if (!_cliActivo) { cerrarPopupReg2(); return; }
+
+  btn.disabled = true; btn.textContent = 'Guardando...';
+  try {
+    await fetch(SB_URL + '/rest/v1/clientes_auth?id=eq.' + _cliActivo.id, {
+      method: 'PATCH',
+      headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ comercio: comercio || null, ciudad: ciudad })
+    });
+    // Actualizar sesión local
+    _cliActivo.comercio = comercio;
+    _cliActivo.ciudad   = ciudad;
+    cliGuardar(_cliActivo);
+    cerrarPopupReg2();
+    // Toast de bienvenida
+    setTimeout(() => {
+      const t = document.createElement('div');
+      t.style.cssText = 'position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:#1B5E20;color:#fff;padding:10px 20px;border-radius:20px;font-family:Barlow Condensed,sans-serif;font-size:15px;font-weight:700;z-index:9999;box-shadow:0 4px 16px rgba(0,0,0,.2);white-space:nowrap;';
+      t.textContent = '✅ ¡Perfil completo! Bienvenido/a';
+      document.body.appendChild(t);
+      setTimeout(() => t.remove(), 3000);
+    }, 400);
+  } catch(e) {
+    err.textContent = 'Error al guardar. Intentá de nuevo.';
+    btn.disabled = false; btn.textContent = 'Listo, guardar →';
+  }
+}
 </script>
 </body>
 </html>
