@@ -1148,7 +1148,7 @@ button,
 </div></div>
 <div class="hdr"><div class="hdr-stripe"></div><div class="hdr-body">
 <div class="hdr-brand"><div class="hdr-brand-name">THE CHICKEN <span>KINGS</span></div><div class="hdr-brand-sub" id="hdr-price-status">Cat&aacute;logo Abril 2026 &middot; Trenque Lauquen</div></div>
-<div class="hdr-right"><div class="cart-pill" id="cart-pill"></div><button id="cli-btn-volver-portal" onclick="cliVolverPortal()" style="display:none;background:rgba(255,215,0,.15);border:1.5px solid rgba(255,215,0,.4);border-radius:20px;padding:6px 12px;font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:800;color:var(--gold);cursor:pointer;white-space:nowrap;letter-spacing:.3px">← Mi cuenta</button><button class="hdr-support" id="hdr-support" onclick="toggleFAB()" aria-label="Ayuda"><svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor" style="opacity:.85;flex-shrink:0"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z"/></svg> Ayuda</button><div class="vchip" id="vchip" onclick="cambiarVendedor()"></div></div>
+<div class="hdr-right"><div class="cart-pill" id="cart-pill"></div><button id="cli-btn-volver-portal" onclick="cliVolverPortal()" style="display:none;background:rgba(255,215,0,.15);border:1.5px solid rgba(255,215,0,.4);border-radius:20px;padding:6px 12px;font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:800;color:var(--gold);cursor:pointer;white-space:nowrap;letter-spacing:.3px">← Mi cuenta</button><button id="cli-btn-micuenta" onclick="mostrarLoginParaCuenta()" style="background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:20px;padding:5px 10px;font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;color:rgba(255,255,255,.7);cursor:pointer;white-space:nowrap;letter-spacing:.3px;">👤 Mi cuenta</button><button class="hdr-support" id="hdr-support" onclick="toggleFAB()" aria-label="Ayuda"><svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor" style="opacity:.85;flex-shrink:0"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z"/></svg> Ayuda</button><div class="vchip" id="vchip" onclick="cambiarVendedor()"></div></div>
 </div><div class="catnav" id="catnav"></div></div>
 <div class="body" id="body"></div>
 <div class="orderbar">
@@ -1685,57 +1685,10 @@ function guardarDatosCliente(nombre, comercio, localidad, telefono){
 function sendWA(){
   if(!vActivo) return;
   const{t,c}=T(); if(!c) return;
-
-  // Si no está logueado, mostrar login antes de continuar
-  if (!_cliActivo) {
-    _pendienteTrasSendWA = true;
-    mostrarLoginModal();
-    return;
-  }
-
   document.getElementById('wa-preview-vendedor').textContent = vActivo.nombre;
   cargarDatosCliente();
   cliPreRellenarModal();
   abrirModal('modal-cliente-id');
-}
-
-// Flag para continuar con el pedido tras login exitoso
-let _pendienteTrasSendWA = false;
-
-function mostrarLoginModal() {
-  // Mostrar el panel de login como modal/overlay encima del catálogo
-  const loginEl = document.getElementById('cli-login');
-  if (!loginEl) return;
-  loginEl.classList.remove('gone');
-  loginEl.style.position = 'fixed';
-  loginEl.style.zIndex = '9999';
-  loginEl.style.top = '0';
-  loginEl.style.left = '0';
-  loginEl.style.width = '100%';
-  loginEl.style.height = '100%';
-  loginEl.style.overflowY = 'auto';
-  // Mostrar botón para volver sin loguearse (solo ver catálogo)
-  _asegurarBtnOmitirLogin();
-}
-
-function _asegurarBtnOmitirLogin() {
-  if (document.getElementById('btn-omitir-login')) return;
-  const loginEl = document.getElementById('cli-login');
-  const btn = document.createElement('button');
-  btn.id = 'btn-omitir-login';
-  btn.textContent = '← Volver al catálogo';
-  btn.style.cssText = 'display:block;width:100%;max-width:340px;margin:12px auto 0;background:none;border:none;color:rgba(255,255,255,.5);font-size:13px;cursor:pointer;padding:10px;text-align:center;font-family:Barlow,sans-serif;';
-  btn.onclick = function() {
-    _pendienteTrasSendWA = false;
-    ocultarLoginModal();
-  };
-  loginEl.appendChild(btn);
-}
-
-function ocultarLoginModal() {
-  const loginEl = document.getElementById('cli-login');
-  if (!loginEl) return;
-  loginEl.classList.add('gone');
 }
 
 // Confirmar datos y enviar WA
@@ -2988,31 +2941,24 @@ function cliEntrarPortal(cli) {
   _cliActivo = cli;
   ocultarLoginModal();
 
-  // Si vino del carrito (tocó "Enviar pedido" sin estar logueado)
-  if (_pendienteTrasSendWA) {
-    _pendienteTrasSendWA = false;
-    // Asignar vendedor del link si el cliente no tiene uno
-    if (!cli.vendedor && vActivo) {
-      _cliActivo.vendedor = vActivo.nombre;
-      cliGuardar(_cliActivo);
-      fetch(SB_URL + '/rest/v1/clientes_auth?id=eq.' + cli.id, {
-        method: 'PATCH',
-        headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ vendedor: vActivo.nombre })
-      }).catch(() => {});
-    }
-    // Continuar directo con el pedido
-    document.getElementById('wa-preview-vendedor').textContent = vActivo ? vActivo.nombre : '';
-    cargarDatosCliente();
-    cliPreRellenarModal();
-    abrirModal('modal-cliente-id');
-    return;
+  // Asignar vendedor del link si el cliente no tiene uno
+  if (!cli.vendedor && vActivo) {
+    _cliActivo.vendedor = vActivo.nombre;
+    cliGuardar(_cliActivo);
+    fetch(SB_URL + '/rest/v1/clientes_auth?id=eq.' + cli.id, {
+      method: 'PATCH',
+      headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ vendedor: vActivo.nombre })
+    }).catch(() => {});
   }
 
-  // Flujo normal — mostrar portal de mi cuenta
+  // Mostrar portal de mi cuenta
   document.getElementById('cli-portal').classList.remove('gone');
   const btnVolver = document.getElementById('cli-btn-volver-portal');
   if (btnVolver) btnVolver.style.display = 'block';
+  // Ocultar botón "Mi cuenta" del header (ya tiene "← Mi cuenta")
+  const btnMiCuenta = document.getElementById('cli-btn-micuenta');
+  if (btnMiCuenta) btnMiCuenta.style.display = 'none';
   const vchip = document.getElementById('vchip');
   if (vchip) vchip.style.display = 'none';
   cliIniciarRefresh();
@@ -3021,6 +2967,34 @@ function cliEntrarPortal(cli) {
     [cli.comercio, cli.ciudad].filter(Boolean).join(' · ') || 'Cliente TCK';
   cliPortalTab('pedidos');
   cliCargarPerfil();
+}
+
+function ocultarLoginModal() {
+  const loginEl = document.getElementById('cli-login');
+  if (!loginEl) return;
+  loginEl.classList.add('gone');
+}
+
+function mostrarLoginParaCuenta() {
+  const loginEl = document.getElementById('cli-login');
+  if (!loginEl) return;
+  loginEl.classList.remove('gone');
+  loginEl.style.position = 'fixed';
+  loginEl.style.zIndex = '9999';
+  loginEl.style.top = '0';
+  loginEl.style.left = '0';
+  loginEl.style.width = '100%';
+  loginEl.style.height = '100%';
+  loginEl.style.overflowY = 'auto';
+  // Agregar botón volver si no existe
+  if (!document.getElementById('btn-omitir-login')) {
+    const btn = document.createElement('button');
+    btn.id = 'btn-omitir-login';
+    btn.textContent = '← Volver al catálogo';
+    btn.style.cssText = 'display:block;width:100%;max-width:340px;margin:12px auto 0;background:none;border:none;color:rgba(255,255,255,.5);font-size:13px;cursor:pointer;padding:10px;text-align:center;font-family:Barlow,sans-serif;';
+    btn.onclick = function() { ocultarLoginModal(); };
+    loginEl.appendChild(btn);
+  }
 }
 
 function cliPortalTab(tab) {
