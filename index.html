@@ -1015,8 +1015,6 @@ button,
         <input class="cli-otp-digit" id="otp1" type="tel" inputmode="numeric" maxlength="1" oninput="otpInput(this,1)" onkeydown="otpKeydown(this,1)">
         <input class="cli-otp-digit" id="otp2" type="tel" inputmode="numeric" maxlength="1" oninput="otpInput(this,2)" onkeydown="otpKeydown(this,2)">
         <input class="cli-otp-digit" id="otp3" type="tel" inputmode="numeric" maxlength="1" oninput="otpInput(this,3)" onkeydown="otpKeydown(this,3)">
-        <input class="cli-otp-digit" id="otp4" type="tel" inputmode="numeric" maxlength="1" oninput="otpInput(this,4)" onkeydown="otpKeydown(this,4)">
-        <input class="cli-otp-digit" id="otp5" type="tel" inputmode="numeric" maxlength="1" oninput="otpInput(this,5)" onkeydown="otpKeydown(this,5)">
       </div>
       <div class="cli-err" id="cli-err-otp"></div>
       <button class="cli-otp-resend" id="cli-otp-resend" onclick="otpReenviar()" disabled>Reenviar código (<span id="cli-otp-timer">60</span>s)</button>
@@ -2070,19 +2068,16 @@ async function otpEnviar(tel) {
 }
 
 function otpMostrarPantalla(tel) {
-  // Ocultar forms
+  const OTP_LEN = 4;
   document.getElementById('cli-form-login').classList.add('hidden');
   document.getElementById('cli-form-registro').classList.add('hidden');
   document.getElementById('cli-form-newpass').classList.add('hidden');
   document.querySelectorAll('.cli-divider, .cli-guest-btn').forEach(el => el.style.display = 'none');
-  // Mostrar OTP
   document.getElementById('cli-otp-screen').classList.add('visible');
   document.getElementById('cli-otp-tel-display').textContent = tel;
-  // Limpiar inputs
-  for (let i = 0; i < 6; i++) document.getElementById('otp' + i).value = '';
+  for (let i = 0; i < OTP_LEN; i++) document.getElementById('otp' + i).value = '';
   cliSetErr('cli-err-otp', '');
   document.getElementById('otp0').focus();
-  // Iniciar countdown
   otpIniciarTimer();
 }
 
@@ -2138,8 +2133,8 @@ function otpInput(el, idx) {
     return;
   }
   el.value = val.slice(-1);
-  if (val && idx < 5) document.getElementById('otp' + (idx + 1)).focus();
-  if (idx === 5 && val) otpVerificar();
+  if (val && idx < 3) document.getElementById('otp' + (idx + 1)).focus();
+  if (idx === 3 && val) otpVerificar();
 }
 
 function otpKeydown(el, idx) {
@@ -2150,11 +2145,11 @@ function otpKeydown(el, idx) {
 
 // ── VERIFICAR CÓDIGO ──────────────────────────────────────────
 async function otpVerificar() {
-  const code = Array.from({ length: 6 }, (_, i) => (document.getElementById('otp' + i).value || '')).join('');
-  if (code.length < 6) return;
+  const OTP_LEN = 4;
+  const code = Array.from({ length: OTP_LEN }, (_, i) => (document.getElementById('otp' + i).value || '')).join('');
+  if (code.length < OTP_LEN) return;
   cliSetErr('cli-err-otp', '');
-  // Deshabilitar inputs durante verificación
-  for (let i = 0; i < 6; i++) document.getElementById('otp' + i).disabled = true;
+  for (let i = 0; i < OTP_LEN; i++) document.getElementById('otp' + i).disabled = true;
 
   try {
     const data = await appsScriptCall({ accion: 'verificarOTP', request_id: _otpRequestId, code });
@@ -2163,11 +2158,13 @@ async function otpVerificar() {
       if (_otpModo === 'registro') {
         await otpCompletarRegistro();
       } else {
+        // modo reset — mostrar pantalla de nueva contraseña
+        _otpDatosReg = { tel: _otpTel };
         otpMostrarNuevaPass();
       }
     } else {
       cliSetErr('cli-err-otp', '❌ Código incorrecto. Revisá el SMS.');
-      for (let i = 0; i < 6; i++) {
+      for (let i = 0; i < OTP_LEN; i++) {
         const d = document.getElementById('otp' + i);
         d.disabled = false; d.value = '';
       }
@@ -2175,7 +2172,7 @@ async function otpVerificar() {
     }
   } catch(e) {
     cliSetErr('cli-err-otp', 'Error de conexión. Intentá de nuevo.');
-    for (let i = 0; i < 6; i++) document.getElementById('otp' + i).disabled = false;
+    for (let i = 0; i < OTP_LEN; i++) document.getElementById('otp' + i).disabled = false;
   }
 }
 
@@ -2755,9 +2752,9 @@ function cliSetErr(id, msg, ok) {
 
 // ── LOGIN ─────────────────────────────────────────────────────
 async function cliLogin() {
-  const tel  = normTel(document.getElementById('cli-tel').value);
+  const tel   = normTel(document.getElementById('cli-tel').value);
   const clave = document.getElementById('cli-clave').value;
-  const btn  = document.getElementById('cli-btn-login');
+  const btn   = document.getElementById('cli-btn-login');
   cliSetErr('cli-err-login', '');
   if (!tel || !clave) { cliSetErr('cli-err-login', 'Completá teléfono y contraseña'); return; }
   btn.disabled = true; btn.textContent = 'Verificando...';
@@ -2768,7 +2765,7 @@ async function cliLogin() {
     const cli = data[0];
     if (cli.clave_hash !== hash) { cliSetErr('cli-err-login', 'Contraseña incorrecta'); btn.disabled = false; btn.textContent = 'Ingresar →'; return; }
     cliGuardar(cli);
-    cliVincularMaster(cli); // vincular con clientes_master en background
+    cliVincularMaster(cli);
     cliEntrarPortal(cli);
   } catch(e) {
     cliSetErr('cli-err-login', 'Error de conexión. Intentá de nuevo.');
