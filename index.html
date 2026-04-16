@@ -1666,10 +1666,10 @@ function renderSvModal() {
   const cont = document.getElementById('sv-modal-cards');
   if (!cont) return;
   cont.innerHTML = VEND.map((v, i) =>
-    '<button onclick="elegirDesdeModal(' + i + ')" style="width:100%;background:#FFF8F0;border:1.5px solid #E8D5BB;border-radius:16px;padding:14px 16px;display:flex;align-items:center;gap:14px;cursor:pointer;transition:background .15s,border-color .15s;-webkit-tap-highlight-color:transparent;text-align:left;" ' +
+    '<button onclick="elegirDesdeModal(' + i + ')" style="width:100%;background:#FFF8F0;border:1.5px solid #E8D5BB;border-radius:16px;padding:16px 18px;display:flex;align-items:center;gap:16px;cursor:pointer;transition:background .15s,border-color .15s;-webkit-tap-highlight-color:transparent;text-align:left;" ' +
     'onmouseenter="this.style.background=\'#FFF0E0\';this.style.borderColor=\'#8B0000\'" ' +
     'onmouseleave="this.style.background=\'#FFF8F0\';this.style.borderColor=\'#E8D5BB\'">' +
-    '<div style="width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#8B0000,#B71C1C);display:flex;align-items:center;justify-content:center;font-family:\'Barlow Condensed\',sans-serif;font-size:22px;font-weight:900;color:#FFD700;flex-shrink:0;overflow:hidden;">' +
+    '<div style="width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,#8B0000,#B71C1C);display:flex;align-items:center;justify-content:center;font-family:\'Barlow Condensed\',sans-serif;font-size:32px;font-weight:900;color:#FFD700;flex-shrink:0;overflow:hidden;">' +
     '<img src="https://tckcatalogo.com/img/' + v.nombre.toLowerCase() + '.jpg" style="width:100%;height:100%;object-fit:cover;">' +
     '</div>' +
     '<div style="flex:1;">' +
@@ -1982,8 +1982,48 @@ const PRICES_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQDZk6Z5
 
 let _preciosDesdeSheets = false;
 
+const PRECIOS_CACHE_KEY = 'tck_precios_cache';
+const PRECIOS_CACHE_TTL = 30 * 60 * 1000; // 30 minutos
+
+function aplicarPriceMap(priceMap) {
+  let actualizados = 0;
+  CAT.forEach(sec => sec.items.forEach(it => {
+    if (priceMap[it.n]) {
+      it.pr = priceMap[it.n].precio;
+      if (priceMap[it.n].precioKg > 0) {
+        it.pu = '&#x2248;$' + priceMap[it.n].precioKg.toLocaleString('es-AR') + ' / kg';
+      }
+      actualizados++;
+    }
+  }));
+  return actualizados;
+}
+
 async function cargarPrecios() {
   const el = document.getElementById('hdr-price-status');
+
+  // ── 1. Intentar caché local primero ──
+  try {
+    const cached = localStorage.getItem(PRECIOS_CACHE_KEY);
+    if (cached) {
+      const { ts, priceMap } = JSON.parse(cached);
+      if (Date.now() - ts < PRECIOS_CACHE_TTL) {
+        const n = aplicarPriceMap(priceMap);
+        _preciosDesdeSheets = true;
+        if (el) el.innerHTML = 'Precios actualizados &middot; Trenque Lauquen';
+        console.log('[TCK Precios] ' + n + ' productos desde caché local');
+        // Refrescar en background sin bloquear
+        _refrescarPreciosBg();
+        return;
+      }
+    }
+  } catch(e) {}
+
+  // ── 2. Sin caché válida — cargar desde Sheet ──
+  await _fetchYGuardarPrecios(el);
+}
+
+async function _fetchYGuardarPrecios(el) {
   try {
     const res = await fetch(PRICES_CSV_URL + '&_t=' + Date.now(), { cache: 'no-cache' });
     if (!res.ok) throw new Error('HTTP ' + res.status);
@@ -2001,16 +2041,11 @@ async function cargarPrecios() {
         priceMap[nombre] = { precio, precioKg };
       }
     }
-    let actualizados = 0;
-    CAT.forEach(sec => sec.items.forEach(it => {
-      if (priceMap[it.n]) {
-        it.pr = priceMap[it.n].precio;
-        if (priceMap[it.n].precioKg > 0) {
-          it.pu = '&#x2248;$' + priceMap[it.n].precioKg.toLocaleString('es-AR') + ' / kg';
-        }
-        actualizados++;
-      }
-    }));
+    const actualizados = aplicarPriceMap(priceMap);
+    // Guardar en caché
+    try {
+      localStorage.setItem(PRECIOS_CACHE_KEY, JSON.stringify({ ts: Date.now(), priceMap }));
+    } catch(e) {}
     _preciosDesdeSheets = true;
     if (el) el.innerHTML = 'Precios actualizados &middot; Trenque Lauquen';
     console.log('[TCK Precios] ' + actualizados + ' productos actualizados desde Sheets');
@@ -2019,6 +2054,32 @@ async function cargarPrecios() {
     if (el) el.innerHTML = 'Precios estimados &middot; Trenque Lauquen <span style="color:rgba(255,200,0,.7);font-size:8px;" title="Sin conexi\u00f3n a precios en tiempo real">&#9432;</span>';
     console.warn('[TCK Precios] Usando precios del HTML (fallback):', e.message);
   }
+}
+
+function _refrescarPreciosBg() {
+  // Refrescar silenciosamente en background sin bloquear el render
+  setTimeout(async () => {
+    try {
+      const res = await fetch(PRICES_CSV_URL + '&_t=' + Date.now(), { cache: 'no-cache' });
+      if (!res.ok) return;
+      const csv  = await res.text();
+      const lines = csv.trim().split('\n');
+      const priceMap = {};
+      for (let i = 1; i < lines.length; i++) {
+        const cols = parseCsvLine(lines[i]);
+        if (cols.length < 2) continue;
+        const nombre   = cols[0].trim().replace(/^"|"$/g, '');
+        const precio   = parseInt(cols[1].trim().replace(/^"|"$/g, '').replace(/[^\d]/g, ''));
+        const precioKg = cols[2] ? parseInt(cols[2].trim().replace(/^"|"$/g, '').replace(/[^\d]/g, '')) : 0;
+        const activo   = cols[5] ? cols[5].trim().replace(/^"|"$/g, '').toUpperCase() : 'SI';
+        if (nombre && !isNaN(precio) && activo !== 'NO') priceMap[nombre] = { precio, precioKg };
+      }
+      aplicarPriceMap(priceMap);
+      localStorage.setItem(PRECIOS_CACHE_KEY, JSON.stringify({ ts: Date.now(), priceMap }));
+      renderBody(); // Re-renderizar con precios frescos
+      console.log('[TCK Precios] Caché actualizada en background');
+    } catch(e) {}
+  }, 100);
 }
 
 function parseCsvLine(line) {
