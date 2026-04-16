@@ -1268,7 +1268,7 @@ function elegir(i){
   // Actualizar UI del header
   const vchip = document.getElementById('vchip');
   if (vchip) {
-    var fotoVend = 'https://tckcatalogo.com/img/vendedores/' + (vActivo.nombre||'').toLowerCase() + '.jpg';
+    var fotoVend = 'https://tckcatalogo.com/img/' + (vActivo.nombre||'').toLowerCase() + '.jpg';
     vchip.innerHTML = '<img id="vchip-foto" src="' + fotoVend + '" style="width:20px;height:20px;border-radius:50%;object-fit:cover;margin-right:5px;vertical-align:middle;"> ' + vActivo.nombre;
     var vf = document.getElementById('vchip-foto'); if(vf) vf.onerror = function(){ this.style.display='none'; };
     vchip.style.display = '';
@@ -1670,7 +1670,7 @@ function renderSvModal() {
     'onmouseenter="this.style.background=\'#FFF0E0\';this.style.borderColor=\'#8B0000\'" ' +
     'onmouseleave="this.style.background=\'#FFF8F0\';this.style.borderColor=\'#E8D5BB\'">' +
     '<div style="width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#8B0000,#B71C1C);display:flex;align-items:center;justify-content:center;font-family:\'Barlow Condensed\',sans-serif;font-size:22px;font-weight:900;color:#FFD700;flex-shrink:0;overflow:hidden;">' +
-    '<img src="https://tckcatalogo.com/img/vendedores/' + v.nombre.toLowerCase() + '.jpg" style="width:100%;height:100%;object-fit:cover;">' +
+    '<img src="https://tckcatalogo.com/img/' + v.nombre.toLowerCase() + '.jpg" style="width:100%;height:100%;object-fit:cover;">' +
     '</div>' +
     '<div style="flex:1;">' +
     '<div style="font-family:\'Barlow Condensed\',sans-serif;font-size:20px;font-weight:900;color:#1A0800;line-height:1;">' + v.nombre + '</div>' +
@@ -3313,7 +3313,7 @@ function cliCargarPerfil() {
   const el = document.getElementById('cli-perfil-data');
   if (!_cliActivo || !el) return;
   const vend = _cliActivo.vendedor || '';
-  const fotoVendPerfil = vend ? 'https://tckcatalogo.com/img/vendedores/' + vend.toLowerCase() + '.jpg' : '';
+  const fotoVendPerfil = vend ? 'https://tckcatalogo.com/img/' + vend.toLowerCase() + '.jpg' : '';
   const rows = [
     { l: 'Nombre',   v: _cliActivo.nombre   || '—' },
     { l: 'Negocio',  v: _cliActivo.comercio || '—' },
@@ -3355,7 +3355,7 @@ function cliNuevoPedido() {
       sv.classList.add('gone');
       sv.style.display = 'none';
       vActivo = VEND[idx];
-      var _fv = 'https://tckcatalogo.com/img/vendedores/' + (vActivo.nombre||'').toLowerCase() + '.jpg';
+      var _fv = 'https://tckcatalogo.com/img/' + (vActivo.nombre||'').toLowerCase() + '.jpg';
       document.getElementById('vchip').innerHTML = '<img id="vchip-foto2" src="' + _fv + '" style="width:20px;height:20px;border-radius:50%;object-fit:cover;margin-right:5px;vertical-align:middle;"> ' + vActivo.nombre;
       var vf2 = document.getElementById('vchip-foto2'); if(vf2) vf2.onerror = function(){ this.style.display='none'; };
       document.getElementById('d-sub').textContent = 'Para: ' + vActivo.nombre;
