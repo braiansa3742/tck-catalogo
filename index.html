@@ -1269,7 +1269,8 @@ function elegir(i){
   const vchip = document.getElementById('vchip');
   if (vchip) {
     var fotoVend = 'https://tckcatalogo.com/img/vendedores/' + (vActivo.nombre||'').toLowerCase() + '.jpg';
-    vchip.innerHTML = '<img src="' + fotoVend + '" style="width:20px;height:20px;border-radius:50%;object-fit:cover;margin-right:5px;vertical-align:middle;" onerror="this.style.display='none'"> ' + vActivo.nombre;
+    vchip.innerHTML = '<img id="vchip-foto" src="' + fotoVend + '" style="width:20px;height:20px;border-radius:50%;object-fit:cover;margin-right:5px;vertical-align:middle;"> ' + vActivo.nombre;
+    var vf = document.getElementById('vchip-foto'); if(vf) vf.onerror = function(){ this.style.display='none'; };
     vchip.style.display = '';
   }
   // Actualizar drawer
@@ -1669,7 +1670,7 @@ function renderSvModal() {
     'onmouseenter="this.style.background=\'#FFF0E0\';this.style.borderColor=\'#8B0000\'" ' +
     'onmouseleave="this.style.background=\'#FFF8F0\';this.style.borderColor=\'#E8D5BB\'">' +
     '<div style="width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#8B0000,#B71C1C);display:flex;align-items:center;justify-content:center;font-family:\'Barlow Condensed\',sans-serif;font-size:22px;font-weight:900;color:#FFD700;flex-shrink:0;overflow:hidden;">' +
-    '<img src="https://tckcatalogo.com/img/vendedores/' + v.nombre.toLowerCase() + '.jpg" style="width:100%;height:100%;object-fit:cover;" onerror="this.style.display=\'none\'">' +
+    '<img src="https://tckcatalogo.com/img/vendedores/' + v.nombre.toLowerCase() + '.jpg" style="width:100%;height:100%;object-fit:cover;">' +
     '</div>' +
     '<div style="flex:1;">' +
     '<div style="font-family:\'Barlow Condensed\',sans-serif;font-size:20px;font-weight:900;color:#1A0800;line-height:1;">' + v.nombre + '</div>' +
@@ -3319,21 +3320,28 @@ function cliCargarPerfil() {
     { l: 'Ciudad',   v: _cliActivo.ciudad   || '—' },
     { l: 'Teléfono', v: _cliActivo.telefono || '—' },
   ];
-  el.innerHTML =
-    // Card vendedor con foto destacada
-    (vend ? '<div style="display:flex;align-items:center;gap:14px;padding:14px 16px;background:linear-gradient(135deg,#FFF8F0,#FFF0E0);border-radius:12px;margin-bottom:10px;border:1.5px solid #E8D5BB;">' +
-      '<img src="' + fotoVendPerfil + '" style="width:54px;height:54px;border-radius:50%;object-fit:cover;border:2px solid #E8D5BB;flex-shrink:0;" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">' +
-      '<div style="width:54px;height:54px;border-radius:50%;background:linear-gradient(135deg,#8B0000,#B71C1C);display:none;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:900;color:#FFD700;flex-shrink:0;">' + vend[0].toUpperCase() + '</div>' +
-      '<div><div style="font-size:11px;color:#9C7050;font-weight:600;text-transform:uppercase;letter-spacing:.8px;margin-bottom:2px;">Tu vendedor</div>' +
-      '<div style="font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:900;color:#1A0800;">' + vend + '</div>' +
-      '<div style="font-size:11px;color:#9C7050;">Vendedor TCK</div></div></div>'
-    : '<div style="padding:12px 16px;background:#F5F5F5;border-radius:12px;margin-bottom:10px;font-size:13px;color:#9C7050;text-align:center;">Sin vendedor asignado</div>') +
-    rows.map(r =>
-      '<div class="cli-perfil-row">' +
-        '<span class="cli-perfil-label">' + r.l + '</span>' +
-        '<span class="cli-perfil-val">' + r.v + '</span>' +
-      '</div>'
-    ).join('');
+  // Card vendedor con foto
+  var vendCard = '';
+  if (vend) {
+    vendCard = '<div style="display:flex;align-items:center;gap:14px;padding:14px 16px;background:linear-gradient(135deg,#FFF8F0,#FFF0E0);border-radius:12px;margin-bottom:10px;border:1.5px solid #E8D5BB;">'
+      + '<img id="perfil-foto-vend" src="' + fotoVendPerfil + '" style="width:54px;height:54px;border-radius:50%;object-fit:cover;border:2px solid #E8D5BB;flex-shrink:0;">'
+      + '<div>'
+      + '<div style="font-size:11px;color:#9C7050;font-weight:600;text-transform:uppercase;letter-spacing:.8px;margin-bottom:2px;">Tu vendedor</div>'
+      + '<div style="font-family:Barlow Condensed,sans-serif;font-size:20px;font-weight:900;color:#1A0800;">' + vend + '</div>'
+      + '<div style="font-size:11px;color:#9C7050;">Vendedor TCK</div>'
+      + '</div></div>';
+  } else {
+    vendCard = '<div style="padding:12px 16px;background:#F5F5F5;border-radius:12px;margin-bottom:10px;font-size:13px;color:#9C7050;text-align:center;">Sin vendedor asignado</div>';
+  }
+  el.innerHTML = vendCard + rows.map(r =>
+    '<div class="cli-perfil-row">'
+      + '<span class="cli-perfil-label">' + r.l + '</span>'
+      + '<span class="cli-perfil-val">' + r.v + '</span>'
+    + '</div>'
+  ).join('');
+  // Onerror fuera del string
+  var fotoEl = document.getElementById('perfil-foto-vend');
+  if (fotoEl) fotoEl.onerror = function() { this.style.display = 'none'; };
 }
 
 // ── NUEVO PEDIDO DESDE PORTAL ─────────────────────────────────
@@ -3348,7 +3356,8 @@ function cliNuevoPedido() {
       sv.style.display = 'none';
       vActivo = VEND[idx];
       var _fv = 'https://tckcatalogo.com/img/vendedores/' + (vActivo.nombre||'').toLowerCase() + '.jpg';
-      document.getElementById('vchip').innerHTML = '<img src="' + _fv + '" style="width:20px;height:20px;border-radius:50%;object-fit:cover;margin-right:5px;vertical-align:middle;" onerror="this.style.display='none'"> ' + vActivo.nombre;
+      document.getElementById('vchip').innerHTML = '<img id="vchip-foto2" src="' + _fv + '" style="width:20px;height:20px;border-radius:50%;object-fit:cover;margin-right:5px;vertical-align:middle;"> ' + vActivo.nombre;
+      var vf2 = document.getElementById('vchip-foto2'); if(vf2) vf2.onerror = function(){ this.style.display='none'; };
       document.getElementById('d-sub').textContent = 'Para: ' + vActivo.nombre;
       document.getElementById('hdr-support').classList.add('visible');
       document.getElementById('d-wa-nom').textContent = vActivo.nombre;
