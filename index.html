@@ -1,6 +1,69 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+<!-- ═══════════════════════════════════════════════════════════════════════
+     TCK CATÁLOGO — ESTADO GLOBAL
+     ──────────────────────────────────────────────────────────────────────
+     Todas las variables de estado mutable y constantes de configuración
+     se declaran acá, antes que cualquier otro script. Esto evita errores
+     de Temporal Dead Zone cuando funciones de inicialización async
+     (callbacks de fetch, .finally() con cache hit, event listeners) se
+     ejecutan antes de que el parseo del archivo termine.
+     Los datos estáticos grandes (CAT, VEND, _imgmap) permanecen más abajo
+     por legibilidad — no tienen problema de TDZ porque no son leídos
+     durante la fase de parseo inicial sino solo desde funciones.
+     ═══════════════════════════════════════════════════════════════════════ -->
+<script>
+// ── Estado de la sesión / vendedor / cliente ──────────────────────
+let vActivo              = null;  // Vendedor activo (objeto de VEND)
+let _cliActivo           = null;  // Cliente logueado (null = no logueado)
+let _cliRefreshInterval  = null;  // Interval para refresh de datos del cliente
+let _cliPedidosCache     = [];    // Cache local de pedidos del cliente
+let _cliHorarioPedId     = null;  // ID del pedido editando horario
+let _enviandoPedido      = false; // Lock anti-doble-click al enviar pedido
+
+// ── Estado del carrito ────────────────────────────────────────────
+const qty = {};                   // Cantidades por item: {"secIdx-itemIdx": cantidad}
+
+// ── Estado del gesto "hold" (mantener presionado +/-) ─────────────
+let holdTimeout   = null;
+let holdInterval  = null;
+let holdTriggered = false;
+
+// ── Estado de precios (sincronización con Google Sheets) ──────────
+let _preciosDesdeSheets = false;  // Flag: ¿los precios vienen del Sheet o del HTML?
+
+// ── Estado del flujo OTP (Vonage) ─────────────────────────────────
+let _otpRequestId    = null;      // ID de la solicitud Vonage en curso
+let _otpModo         = null;      // 'registro' | 'reset'
+let _otpDatosReg     = null;      // Datos del registro pendiente
+let _otpTel          = null;      // Teléfono en verificación
+let _otpTimer        = null;      // Interval del countdown
+
+// ── Estado del registro (paso previo a OTP) ───────────────────────
+let _regNombrePendiente = '';
+let _regTelPendiente    = '';
+
+// ── Constantes de configuración ───────────────────────────────────
+const SB_URL   = 'https://frhevcgxcuqkkakwnmrw.supabase.co';
+const SB_KEY   = 'sb_publishable_rRuseS1OttY_jisrsBc3qg_JBCE8vkH';
+const SHEETS_ENDPOINT = 'https://script.google.com/macros/s/AKfycbxbx9ma8S5wcuRqFXjRyFYvIo_kLwc5Px4eE4Y7-CqPmIfJbI3VBEP4I9qSV8s0owMMYg/exec';
+const PRICES_CSV_URL  = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQDZk6Z5pejrI_djbUYBLEvh-X7H_sLF5ZCW2RQr0Bc03r8LOL17_C3pCmwwyLe2iXf3Fan0tgl7IJG/pub?gid=1658103892&single=true&output=csv';
+
+// ── Claves de localStorage ────────────────────────────────────────
+const LS_KEY              = 'tck_cliente_id';
+const LS_ULTIMO           = 'tck_ultimo_pedido';
+const CLI_KEY             = 'tck_cli_v2';
+const PRECIOS_CACHE_KEY   = 'tck_precios_cache';
+
+// ── Otros parámetros ──────────────────────────────────────────────
+const PRECIOS_CACHE_TTL   = 30 * 60 * 1000; // 30 minutos
+const ADMIN_NO_VENDOR_WA  = '5492314475357';
+
+// ── Helpers universales ───────────────────────────────────────────
+const fmt = n => '$' + Math.round(n).toLocaleString('es-AR');
+</script>
+
 <!-- Google Analytics -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-5B3G4JZZS3"></script>
 <script>
@@ -1265,9 +1328,7 @@ const SIN_STOCK = new Set([
 
 const CAT=[{"id": "pollos", "sec": "POLLOS CONGELADOS", "col1": "#B71C1C", "col2": "#7B0000", "shaddai": false, "items": [{"n": "Pollo Ginosa", "p": "x 20 Kg", "pr": 86000, "img": "pollo_ginosa", "badge": "POLLO PREMIUM", "badge_tipo": "gold", "pu": "&#x2248;$4,300 / kg"}, {"n": "Pollo Optimo", "p": "x 20 Kg", "pr": 72000, "img": "pollo_optimo", "badge": "&#x2605; MAS PEDIDO", "badge_tipo": "red", "pu": "&#x2248;$3,600 / kg"}, {"n": "Suprema", "p": "x 5 Kg", "pr": 33000, "img": "supremas_bolsa", "badge": "&#x2605; MAS PEDIDO", "badge_tipo": "red", "pu": "&#x2248;$6,600 / kg"}, {"n": "Suprema IQF", "p": "x 15 Kg", "pr": 102000, "img": "suprema_iqf", "pu": "&#x2248;$6,800 / kg"}, {"n": "Suprema B IQF", "p": "x 20 Kg", "pr": 136000, "img": "suprema_iqf", "pu": "&#x2248;$6,800 / kg"}]}, {"id": "trozados", "sec": "TROZADOS", "col1": "#6D2C00", "col2": "#3B1500", "shaddai": false, "items": [{"n": "Fino de Ave Cocida", "p": "Cocida y desmenuzada · x 10 Kg", "pr": 62400, "img2": "img/empanada mordida.png", "pu": "&#x2248;$6,240 / kg", "badge": "&#x2605; NUEVO", "badge_tipo": "red"}, {"n": "Alita Congelada Granel", "p": "x 15 Kg", "pr": 44000, "img": "alas", "pu": "&#x2248;$2,933 / kg"}, {"n": "MDM - Carne Molida de Pollo", "p": "Ideal relleno empanadas · x 20 Kg", "pr": 34000, "img": "mdm", "badge": "&#x25BC; OPORTUNIDAD", "badge_tipo": "oport", "pu": "&#x2248;$1,700 / kg"}, {"n": "Cuarto Trasero IQF", "p": "x 15 Kg", "pr": 53000, "img": "patamuslo", "badge": "&#x2605; MAS PEDIDO", "badge_tipo": "red", "pu": "&#x2248;$3,533 / kg"}]}, {"id": "shaddai", "sec": "REBOZADOS EL SHADDAI", "col1": "#922B21", "col2": "#5C1A14", "shaddai": true, "items": [{"n": "Medallon de Pollo Clasico", "p": "x 6 Kg", "pr": 28500, "img": "medallon_clasico_v2", "pu": "&#x2248;$4,750 / kg"}, {"n": "Medallon Pollo c/Cheddar", "p": "x 6 Kg", "pr": 47800, "img": "medallon_cheddar_v2", "pu": "&#x2248;$7,967 / kg"}, {"n": "Medallon Pollo JyQ", "p": "x 6 Kg", "pr": 33500, "img": "medallon_jyq_v2", "pu": "&#x2248;$5,583 / kg"}, {"n": "Medallon Pollo y Espinaca", "p": "x 6 Kg", "pr": 33000, "img": "medallon_espinaca_v2", "pu": "&#x2248;$5,500 / kg"}, {"n": "Formita Clasica", "p": "x 6 Kg", "pr": 28500, "img": "formita_clasica_v2", "pu": "&#x2248;$4,750 / kg"}, {"n": "Formitas Pollo JyQ", "p": "x 6 Kg", "pr": 33500, "img": "formita_jyq_v2", "pu": "&#x2248;$5,583 / kg"}, {"n": "Nuggets de Pollo Crocante", "p": "x 6 Kg", "pr": 34500, "img": "nuggets_v2", "pu": "&#x2248;$5,750 / kg"}, {"n": "Bocadito de Papa y Jamon", "p": "x 6 Kg", "pr": 29000, "img": "bocadito_v2", "pu": "&#x2248;$4,833 / kg"}, {"n": "Pechuguitas al Verdeo", "p": "x 6 Kg", "pr": 45500, "img": "pechuguitas_v2", "pu": "&#x2248;$7,583 / kg"}, {"n": "Filet Merluza Finas Hierbas", "p": "x 6 Kg", "pr": 45600, "img": "merluza_hierbas_v2", "pu": "&#x2248;$7,600 / kg"}, {"n": "Filet de Merluza Rebozado", "p": "x 6 Kg", "pr": 43700, "img": "merluza_rebozado", "pu": "&#x2248;$7,283 / kg"}]}, {"id": "mila", "sec": "MILANESAS Y HAMBURGUESAS", "col1": "#7B241C", "col2": "#4A1510", "shaddai": false, "items": [{"n": "Milanesa de Nalga", "p": "x 5 Kg", "pr": 68000, "img": "milanesa_nalga_v2", "pu": "&#x2248;$13,600 / kg"}, {"n": "Milanesa de Pollo", "p": "x 5 Kg", "pr": 40500, "img": "milanesa_pollo_v2", "pu": "&#x2248;$5,300 / kg"}, {"n": "Hamburguesa 100% Carne", "p": "x 4 Kg (100g c/u)", "pr": 46600, "img": "hamburguesa_carne", "pu": "&#x2248;$1,165 / unidad"}]}, {"id": "papas_mccain", "sec": "McCAIN & BALCARCE", "col1": "#BA4A00", "col2": "#7A3000", "shaddai": false, "items": [{"n": "Pulpa de Palta", "p": "Pickers by McCain · x 450 Grs", "pr": 12200, "img": "pulpa_palta", "pu": ""}, {"n": "Papa Baston Balcarce", "p": "x 2,5 Kg", "pr": 8000, "img": "papa_baston", "badge": "&#x2605; MAS PEDIDO", "badge_tipo": "red", "pu": "&#x2248;$3,200 / kg"}]}, {"id": "huevos", "sec": "HUEVOS", "col1": "#D4A000", "col2": "#8B6500", "shaddai": false, "items": [{"n": "Maple N° 2", "p": "30 unidades", "pr": 4800, "img": "huevos_maple", "pu": ""}, {"n": "Maple N° 1", "p": "30 unidades", "pr": 5500, "img": "huevos_maple", "pu": ""}, {"n": "Cajita 1/2 Docena N° 2", "p": "6 unidades", "pr": 1350, "img": "huevos_cajita", "pu": ""}]}, {"id": "verd", "sec": "VERDURAS CONGELADAS", "col1": "#1E8449", "col2": "#0E4D29", "shaddai": false, "items": [{"n": "Arándanos Solimeno", "p": "500 Grs", "pr": 9000, "img": "arandanos", "pu": ""}, {"n": "Brocoli", "p": "500 Grs", "pr": 5800, "img": "brocoli", "pu": ""}, {"n": "Espinacas", "p": "500 Grs", "pr": 4000, "img": "espinaca", "pu": ""}, {"n": "Morron", "p": "500 Grs", "pr": 7000, "img": "morron", "pu": ""}, {"n": "Primavera", "p": "500 Grs", "pr": 5000, "img": "primavera", "pu": ""}, {"n": "Frutos Rojos", "p": "500 Grs", "pr": 11000, "img": "frutos_rojos", "pu": ""}, {"n": "Cebolla", "p": "500 Grs", "pr": 4000, "img": "cebolla", "pu": ""}]}, {"id": "pastas", "sec": "PASTAS LA CASERIANA", "col1": "#1A5276", "col2": "#0D2B3E", "shaddai": false, "items": [{"n": "Ravioles de Calabaza", "p": "500 Grs", "pr": 2700, "img": "ravioles", "pu": ""}, {"n": "Raviolones Espinaca y Mozz", "p": "Masa Integral · 500 Grs", "pr": 3900, "img": "ravioles", "pu": ""}, {"n": "Gnoquis de Papa", "p": "500 Grs", "pr": 2100, "img": "gnoquis", "pu": ""}, {"n": "Gnoquis de Espinaca", "p": "500 Grs", "pr": 2100, "img": "gnoquis_espinaca", "pu": ""}, {"n": "Sorrentinos Jamon y Queso", "p": "500 Grs", "pr": 4200, "img": "sorrentinos", "pu": ""}, {"n": "Sorrentinos Ricota 4 Quesos", "p": "400 Grs", "pr": 2600, "img": "sorrentinos", "pu": ""}]}, {"id": "veggie", "sec": "VEGGIE LA CASERIANA", "col1": "#4A7C35", "col2": "#2A4D1A", "shaddai": false, "items": [{"n": "Hamburguesa de Garbanzos", "p": "x 400 g", "pr": 4200, "img": "veggie_garbanzos", "pu": "&#x2248;$1.050 / unidad"}, {"n": "Hamburguesa de Lentejas", "p": "x 400 g", "pr": 4200, "img": "veggie_lentejas", "pu": "&#x2248;$1.050 / unidad"}, {"n": "Hamburguesa de Quinoa", "p": "x 400 g", "pr": 4200, "img": "veggie_quinoa", "pu": "&#x2248;$1.050 / unidad"}, {"n": "Hamburguesa de Arvejas", "p": "x 400 g", "pr": 4200, "img": "arvejas", "pu": "&#x2248;$1.050 / unidad"}, {"n": "Hamburguesa de Hongos", "p": "x 400 g", "pr": 4200, "img": "veggie_hongos", "pu": "&#x2248;$1.050 / unidad"}, {"n": "Hamburguesa de Espinaca", "p": "x 400 g", "pr": 4200, "img": "veggie_espinaca", "pu": "&#x2248;$1.050 / unidad"}, {"n": "Hamburguesa Mexicana", "p": "x 400 g", "pr": 4200, "img": "veggie_mexicana", "pu": "&#x2248;$1.050 / unidad"}, {"n": "Hamburguesa 5 Vegetales", "p": "x 400 g", "pr": 4200, "img": "veggie_5veg", "pu": "&#x2248;$1.050 / unidad"}]}];
 
-const qty={};
-let vActivo=null;
-const fmt=n=>'$'+Math.round(n).toLocaleString('es-AR');
+// qty, vActivo, fmt declarados en bloque de estado global (top del archivo)
 function T(){let t=0,c=0;CAT.forEach((s,si)=>s.items.forEach((it,ii)=>{const q=qty[si+'-'+ii]||0;t+=it.pr*q;c+=q;}));return{t,c};}
 
 function renderVend(){
@@ -1299,13 +1360,10 @@ function elegir(i){
   cerrarFAB();
   saveCartLS();
   // Si hay cliente logueado sin vendedor, guardarlo
-  // Guard: _cliActivo se declara más abajo en el archivo (línea ~2914).
-  // Si elegir() corre antes de esa declaración (init con ?v=) tira ReferenceError.
-  var _cli = (typeof _cliActivo !== 'undefined') ? _cliActivo : null;
-  if (_cli && !_cli.vendedor) {
-    _cli.vendedor = vActivo.nombre;
-    cliGuardar(_cli);
-    fetch(SB_URL + '/rest/v1/clientes_auth?id=eq.' + _cli.id, {
+  if (_cliActivo && !_cliActivo.vendedor) {
+    _cliActivo.vendedor = vActivo.nombre;
+    cliGuardar(_cliActivo);
+    fetch(SB_URL + '/rest/v1/clientes_auth?id=eq.' + _cliActivo.id, {
       method: 'PATCH',
       headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY, 'Content-Type': 'application/json' },
       body: JSON.stringify({ vendedor: vActivo.nombre })
@@ -1315,8 +1373,7 @@ function elegir(i){
 
 function cambiarVendedor(){
   // Si hay cliente logueado con vendedor fijo, no permitir cambiar
-  var _cli = (typeof _cliActivo !== 'undefined') ? _cliActivo : null;
-  if (_cli && _cli.vendedor) return;
+  if (_cliActivo && _cliActivo.vendedor) return;
   // Abrir el modal de selección
   abrirSvModal();
 }
@@ -1447,9 +1504,7 @@ function renderDrawer(){
 
 function clearCart(){Object.keys(qty).forEach(k=>delete qty[k]);renderBody();updateBar();renderDrawer();clearCartLS();if(typeof mostrarRepFab==='function')mostrarRepFab();}
 
-let holdTimeout=null;
-let holdInterval=null;
-let holdTriggered=false;
+// holdTimeout, holdInterval, holdTriggered declarados en bloque de estado global
 
 function holdStart(ev,key,si,ii,dir){
   holdEnd();
@@ -1656,8 +1711,7 @@ function enviarVisita(){
 
 
 // ── NO SÉ MI VENDEDOR ─────────────────────────────────────────
-// Para cambiar el destino, modificar ADMIN_NO_VENDOR_WA:
-const ADMIN_NO_VENDOR_WA = '5492314475357';
+// ADMIN_NO_VENDOR_WA declarado en bloque de estado global
 function noSeMiVendedor(){
   const msg = '👋 *Hola TCK!*\nNo sé quién es mi vendedor asignado.\n¿Me pueden ayudar a ingresar al catálogo?';
   window.open('https://wa.me/'+ADMIN_NO_VENDOR_WA+'?text='+encodeURIComponent(msg),'_blank');
@@ -1665,7 +1719,7 @@ function noSeMiVendedor(){
 
 
 // ── IDENTIFICACIÓN CLIENTE ANTES DE WA ─────────────────────────
-const LS_KEY = 'tck_cliente_id';
+// LS_KEY declarado en bloque de estado global
 
 function cargarDatosCliente(){
   try{
@@ -1766,7 +1820,7 @@ function sendWA() {
 
 // Confirmar datos y enviar WA
 // ── GOOGLE SHEETS ENDPOINT ─────────────────────────────────────
-const SHEETS_ENDPOINT = 'https://script.google.com/macros/s/AKfycbxbx9ma8S5wcuRqFXjRyFYvIo_kLwc5Px4eE4Y7-CqPmIfJbI3VBEP4I9qSV8s0owMMYg/exec';
+// SHEETS_ENDPOINT declarado en bloque de estado global
 
 async function saveOrderToSheets(payload) {
   try {
@@ -1793,7 +1847,7 @@ async function saveOrderToSheets(payload) {
   }
 }
 
-let _enviandoPedido = false;
+// _enviandoPedido declarado en bloque de estado global
 
 function cliPreRellenarModal() {
   // Si hay cliente logueado, pre-rellenar sus datos en el modal
@@ -2002,12 +2056,8 @@ function confirmarYEnviarWA() {
 
 
 // ── PRECIOS DESDE GOOGLE SHEETS ─────────────────────────────────
-const PRICES_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQDZk6Z5pejrI_djbUYBLEvh-X7H_sLF5ZCW2RQr0Bc03r8LOL17_C3pCmwwyLe2iXf3Fan0tgl7IJG/pub?gid=1658103892&single=true&output=csv';
-
-let _preciosDesdeSheets = false;
-
-const PRECIOS_CACHE_KEY = 'tck_precios_cache';
-const PRECIOS_CACHE_TTL = 30 * 60 * 1000; // 30 minutos
+// PRICES_CSV_URL, _preciosDesdeSheets, PRECIOS_CACHE_KEY, PRECIOS_CACHE_TTL
+// declarados en bloque de estado global
 
 function aplicarPriceMap(priceMap) {
   let actualizados = 0;
@@ -2205,11 +2255,8 @@ cargarPrecios().finally(() => {
 //  VONAGE OTP
 // ════════════════════════════════════════════════════════════════
 
-let _otpRequestId  = null;  // ID de la solicitud de Vonage
-let _otpModo       = null;  // 'registro' o 'reset'
-let _otpDatosReg   = null;  // datos del registro pendiente
-let _otpTel        = null;  // teléfono en verificación
-let _otpTimer      = null;  // interval del countdown
+// _otpRequestId, _otpModo, _otpDatosReg, _otpTel, _otpTimer
+// declarados en bloque de estado global
 
 // Llamar al Apps Script para enviar/verificar OTP
 async function appsScriptOTP(params) {
@@ -2756,7 +2803,7 @@ document.addEventListener('visibilitychange', function() {
 </script>
 <script>
 // ── HISTORIAL: ÚLTIMO PEDIDO ─────────────────────────────────────
-const LS_ULTIMO = 'tck_ultimo_pedido';
+// LS_ULTIMO declarado en bloque de estado global
 
 function guardarUltimoPedido() {
   try {
@@ -2819,7 +2866,7 @@ function mostrarRepFab() {
     }).join('<br>');
     if (data.items.length > 3) preview += '<br>+' + (data.items.length - 3) + ' más';
 
-    var fmt = function(n) { return '$' + Math.round(n).toLocaleString('es-AR'); };
+    // fmt es global (declarado en bloque de estado global)
 
     document.getElementById('rep-fab-items').innerHTML = preview;
     document.getElementById('rep-fab-total').textContent = fmt(data.total);
@@ -2875,8 +2922,7 @@ function checkRepFabVisibility() {
 // ═══════════════════════════════════════════════════════════════
 //  SUPABASE — CLIENTES TCK
 // ═══════════════════════════════════════════════════════════════
-const SB_URL = 'https://frhevcgxcuqkkakwnmrw.supabase.co';
-const SB_KEY = 'sb_publishable_rRuseS1OttY_jisrsBc3qg_JBCE8vkH';
+// SB_URL y SB_KEY declarados en bloque de estado global
 
 async function sbGet(path) {
   const r = await fetch(SB_URL + '/rest/v1/' + path, {
@@ -2915,8 +2961,7 @@ function normTel(t) {
 }
 
 // ── SESIÓN ────────────────────────────────────────────────────
-const CLI_KEY = 'tck_cli_v2';
-let _cliActivo = null;
+// CLI_KEY y _cliActivo declarados en bloque de estado global
 
 function cliGuardar(cli) {
   try { localStorage.setItem(CLI_KEY, JSON.stringify({ cli, exp: Date.now() + 30*24*3600*1000 })); } catch(e) {}
@@ -3077,7 +3122,7 @@ function cliInvitado() {
 
 // ── PORTAL ───────────────────────────────────────────────────
 // Auto-refresh de pedidos cada 30s cuando el portal está abierto
-let _cliRefreshInterval = null;
+// _cliRefreshInterval declarado en bloque de estado global
 
 function cliIniciarRefresh() {
   cliDetenerRefresh();
@@ -3159,7 +3204,7 @@ function cliPortalTab(tab) {
 
 // ── CARGAR PEDIDOS ────────────────────────────────────────────
 // Cache de pedidos — evita que desaparezcan entre refreshes
-let _cliPedidosCache = [];
+// _cliPedidosCache declarado en bloque de estado global
 
 async function cliCargarPedidos(silencioso) {
   const el = document.getElementById('cli-portal-pedidos');
@@ -3347,7 +3392,7 @@ async function cliOlvideContrasena() {
 }
 
 // ── HORARIO ───────────────────────────────────────────────────
-let _cliHorarioPedId = null;
+// _cliHorarioPedId declarado en bloque de estado global
 
 async function _cliAbrirHorario(pedidoId) {
   _cliHorarioPedId = pedidoId;
@@ -3630,9 +3675,7 @@ document.addEventListener('touchmove', function(e) {
 
 <script>
 // ── REGISTRO PROGRESIVO ────────────────────────────────────────
-
-let _regNombrePendiente = '';
-let _regTelPendiente    = '';
+// _regNombrePendiente y _regTelPendiente declarados en bloque de estado global
 
 function mostrarPopupRegistro(nombre, telefono) {
   _regNombrePendiente = nombre || '';
