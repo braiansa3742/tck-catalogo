@@ -1566,13 +1566,16 @@ function cerrarModalFondo(e,id){if(e.target===document.getElementById(id))cerrar
 function toggleFAB(){
   const m=document.getElementById('fab-menu');
   const o=document.getElementById('fab-overlay');
+  if(!m||!o)return;
   const on=m.classList.contains('on');
   m.classList.toggle('on',!on);
   o.classList.toggle('on',!on);
 }
 function cerrarFAB(){
-  document.getElementById('fab-menu').classList.remove('on');
-  document.getElementById('fab-overlay').classList.remove('on');
+  const m=document.getElementById('fab-menu');
+  const o=document.getElementById('fab-overlay');
+  if(m)m.classList.remove('on');
+  if(o)o.classList.remove('on');
 }
 function req(id,label){
   const v=(document.getElementById(id).value||'').trim();
