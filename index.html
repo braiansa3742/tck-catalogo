@@ -1440,7 +1440,7 @@ function renderDrawer(){
   saveCartLS();
 }
 
-function clearCart(){Object.keys(qty).forEach(k=>delete qty[k]);renderBody();updateBar();renderDrawer();clearCartLS();mostrarRepFab();}
+function clearCart(){Object.keys(qty).forEach(k=>delete qty[k]);renderBody();updateBar();renderDrawer();clearCartLS();if(typeof mostrarRepFab==='function')mostrarRepFab();}
 
 let holdTimeout=null;
 let holdInterval=null;
@@ -2157,7 +2157,7 @@ function clearCartLS() {
 })();
 
 cargarPrecios().finally(() => {
-  mostrarRepFab();
+  if (typeof mostrarRepFab === 'function') mostrarRepFab();
   renderVend(); renderNav(); renderBody(); updateBar();
 
   // 1. Ocultar siempre el sv y el login — catálogo directo
