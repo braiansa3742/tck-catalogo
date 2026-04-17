@@ -1294,14 +1294,18 @@ function elegir(i){
   if (dsub) dsub.textContent = 'Para: ' + vActivo.nombre;
   const dwanom = document.getElementById('d-wa-nom');
   if (dwanom) dwanom.textContent = vActivo.nombre;
-  document.getElementById('hdr-support').classList.add('visible');
+  const hdrSup = document.getElementById('hdr-support');
+  if (hdrSup) hdrSup.classList.add('visible');
   cerrarFAB();
   saveCartLS();
   // Si hay cliente logueado sin vendedor, guardarlo
-  if (_cliActivo && !_cliActivo.vendedor) {
-    _cliActivo.vendedor = vActivo.nombre;
-    cliGuardar(_cliActivo);
-    fetch(SB_URL + '/rest/v1/clientes_auth?id=eq.' + _cliActivo.id, {
+  // Guard: _cliActivo se declara más abajo en el archivo (línea ~2914).
+  // Si elegir() corre antes de esa declaración (init con ?v=) tira ReferenceError.
+  var _cli = (typeof _cliActivo !== 'undefined') ? _cliActivo : null;
+  if (_cli && !_cli.vendedor) {
+    _cli.vendedor = vActivo.nombre;
+    cliGuardar(_cli);
+    fetch(SB_URL + '/rest/v1/clientes_auth?id=eq.' + _cli.id, {
       method: 'PATCH',
       headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY, 'Content-Type': 'application/json' },
       body: JSON.stringify({ vendedor: vActivo.nombre })
@@ -1311,7 +1315,8 @@ function elegir(i){
 
 function cambiarVendedor(){
   // Si hay cliente logueado con vendedor fijo, no permitir cambiar
-  if (_cliActivo && _cliActivo.vendedor) return;
+  var _cli = (typeof _cliActivo !== 'undefined') ? _cliActivo : null;
+  if (_cli && _cli.vendedor) return;
   // Abrir el modal de selección
   abrirSvModal();
 }
