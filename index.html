@@ -961,6 +961,275 @@ button,
   line-height: 1.7; margin-top: 8px; padding: 0 8px;
 }
 
+/* ═══════════════════════════════════════════════════════════════
+   v2.6.2 — FLUJO DE REGISTRO REDISEÑADO (4 pasos con PIN)
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Contenedor del nuevo flujo — vive dentro de .cli-login */
+.cli-flow {
+  display: none;
+  flex-direction: column;
+  gap: 14px;
+  padding: 30px 20px 20px;
+  background: linear-gradient(180deg, #FAF4EC 0%, #FFE082 100%);
+  text-align: center;
+  border-radius: 14px;
+  margin: 10px 0;
+  color: #5C3A1E;
+}
+.cli-flow.active { display: flex; }
+
+.cli-flow-ico {
+  width: 64px; height: 64px;
+  background: linear-gradient(135deg, #8B0000, #C62828);
+  border: 2px solid #FFD700;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 28px;
+  margin: 0 auto;
+  box-shadow: 0 4px 14px rgba(139,0,0,.3);
+  color: #FFD700;
+  flex-shrink: 0;
+}
+.cli-flow-ico.success {
+  background: linear-gradient(135deg, #2E7D32, #1B5E20);
+  box-shadow: 0 5px 16px rgba(46,125,50,.4);
+  font-size: 36px;
+  width: 78px; height: 78px;
+}
+
+.cli-flow-titulo {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 22px;
+  font-weight: 900;
+  color: #8B0000;
+  letter-spacing: .5px;
+  line-height: 1.1;
+  margin: 4px 0 0;
+}
+.cli-flow-sub {
+  font-size: 13px;
+  color: #5C3A1E;
+  line-height: 1.45;
+  opacity: .85;
+  padding: 0 6px;
+  margin: 0;
+}
+.cli-flow-sub b { color: #8B0000; }
+
+.cli-flow-campo {
+  text-align: left;
+  margin-top: 4px;
+}
+.cli-flow-campo-label {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  color: #8B0000;
+  letter-spacing: .6px;
+  margin-bottom: 4px;
+  text-transform: uppercase;
+}
+.cli-flow-input {
+  width: 100%;
+  padding: 13px;
+  border: 2px solid #FFD700;
+  border-radius: 10px;
+  background: #FFFFFF;
+  font-family: 'Barlow', sans-serif;
+  font-size: 15px;
+  color: #5C3A1E;
+  transition: border-color .15s;
+}
+.cli-flow-input:focus {
+  outline: none;
+  border-color: #8B0000;
+  box-shadow: 0 0 0 3px rgba(139,0,0,.1);
+}
+
+.cli-flow-btn {
+  background: linear-gradient(135deg, #8B0000, #C62828);
+  color: #FFD700;
+  border: 2px solid #FFD700;
+  padding: 13px;
+  border-radius: 12px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 14px;
+  font-weight: 900;
+  letter-spacing: 1px;
+  margin-top: 4px;
+  box-shadow: 0 3px 10px rgba(139,0,0,.4);
+  cursor: pointer;
+  transition: transform .1s, opacity .15s;
+}
+.cli-flow-btn:active { transform: scale(0.98); }
+.cli-flow-btn:disabled {
+  background: #999;
+  border-color: #ccc;
+  opacity: .5;
+  box-shadow: none;
+  cursor: not-allowed;
+}
+
+.cli-flow-link {
+  font-size: 12px;
+  color: #8B0000;
+  text-decoration: underline;
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 6px;
+  font-family: 'Barlow', sans-serif;
+  margin-top: 2px;
+}
+.cli-flow-link:active { opacity: .6; }
+
+.cli-flow-error {
+  color: #D32F2F;
+  font-size: 12px;
+  font-weight: 600;
+  margin-top: -6px;
+  min-height: 14px;
+  text-align: center;
+}
+
+/* Cajas de OTP y PIN (4 inputs grandes) */
+.cli-flow-cajas {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  margin: 6px 0;
+}
+.cli-flow-caja {
+  width: 50px; height: 56px;
+  border: 2px solid #FFD700;
+  border-radius: 10px;
+  background: #FFFFFF;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 24px;
+  font-weight: 900;
+  color: #8B0000;
+  text-align: center;
+  padding: 0;
+  -moz-appearance: textfield;
+  transition: all .15s;
+}
+.cli-flow-caja::-webkit-outer-spin-button,
+.cli-flow-caja::-webkit-inner-spin-button {
+  -webkit-appearance: none; margin: 0;
+}
+.cli-flow-caja:focus {
+  outline: none;
+  border-color: #8B0000;
+  box-shadow: 0 0 0 3px rgba(139,0,0,.15);
+}
+.cli-flow-caja.filled {
+  background: #FFF8E1;
+}
+
+.cli-flow-confirmar-pin-label {
+  font-size: 11px;
+  color: #8B0000;
+  opacity: .75;
+  margin: 4px 0;
+}
+
+.cli-flow-timer {
+  font-size: 12px;
+  color: #8B0000;
+  margin-top: 2px;
+  font-weight: 600;
+  opacity: .85;
+}
+.cli-flow-reenvio {
+  font-size: 12px;
+  color: #8B0000;
+  text-decoration: underline;
+  opacity: .5;
+  cursor: not-allowed;
+  background: none;
+  border: none;
+  padding: 4px;
+  font-family: 'Barlow', sans-serif;
+}
+.cli-flow-reenvio.enabled {
+  opacity: 1;
+  cursor: pointer;
+}
+
+/* Cupón de éxito */
+.cli-flow-cupon {
+  background: linear-gradient(135deg, #FFD700, #E6A500);
+  color: #8B0000;
+  padding: 14px;
+  border-radius: 12px;
+  margin-top: 8px;
+  border: 2px dashed #8B0000;
+}
+.cli-flow-cupon-top {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 14px;
+  font-weight: 900;
+  letter-spacing: .5px;
+  opacity: .85;
+}
+.cli-flow-cupon-pct {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 32px;
+  font-weight: 900;
+  line-height: 1.05;
+  letter-spacing: 1px;
+  margin: 2px 0;
+}
+.cli-flow-cupon-sub {
+  font-size: 10.5px;
+  font-weight: 600;
+  opacity: .85;
+  font-family: 'Barlow', sans-serif;
+}
+
+/* Indicador de pasos (arriba del flow) */
+.cli-flow-pasos {
+  display: flex;
+  justify-content: center;
+  gap: 5px;
+  margin-bottom: 6px;
+}
+.cli-flow-paso-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: rgba(139,0,0,.25);
+  transition: background .2s;
+}
+.cli-flow-paso-dot.active {
+  background: #8B0000;
+  width: 20px;
+  border-radius: 4px;
+}
+.cli-flow-paso-dot.done {
+  background: #2E7D32;
+}
+
+/* Botón volver pequeño arriba izquierda */
+.cli-flow-volver {
+  position: absolute;
+  top: 16px; left: 16px;
+  background: rgba(139,0,0,.1);
+  color: #8B0000;
+  border: 1.5px solid rgba(139,0,0,.3);
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  font-size: 16px;
+  font-weight: 900;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Barlow Condensed', sans-serif;
+}
+.cli-flow-volver:active { background: rgba(139,0,0,.2); }
+
 /* ── Portal del cliente ── */
 .cli-portal {
   position: absolute; inset: 0; z-index: 590;
@@ -1815,13 +2084,156 @@ button,
   <!-- Body del form -->
   <div class="cli-login-body">
 
-    <div class="cli-tabs">
+    <!-- ══════════════════════════════════════════════════════════
+         v2.6.2 — Nuevo flujo de registro/login con PIN 4 dígitos
+         5 pantallas posibles: tel → OTP → PIN → éxito / login PIN
+         ══════════════════════════════════════════════════════════ -->
+
+    <!-- PANTALLA 1: Ingresar teléfono -->
+    <div class="cli-flow" id="cli-flow-tel" style="position:relative">
+      <div class="cli-flow-pasos">
+        <div class="cli-flow-paso-dot active"></div>
+        <div class="cli-flow-paso-dot"></div>
+        <div class="cli-flow-paso-dot"></div>
+      </div>
+      <div class="cli-flow-ico" id="cli-flow-tel-ico">📱</div>
+      <div class="cli-flow-titulo" id="cli-flow-tel-titulo">Crear cuenta TCK</div>
+      <div class="cli-flow-sub" id="cli-flow-tel-sub">Registrate en 30 segundos y ganá <b>10% OFF</b> en tu primera compra <b>(hasta $20.000)</b>.</div>
+
+      <div class="cli-flow-campo">
+        <div class="cli-flow-campo-label">Tu teléfono (WhatsApp)</div>
+        <input class="cli-flow-input" type="tel" id="cli-flow-tel-input" placeholder="Ej: 2392000000" inputmode="numeric" autocomplete="tel">
+      </div>
+
+      <div class="cli-flow-error" id="cli-flow-tel-err"></div>
+
+      <button class="cli-flow-btn" id="cli-flow-tel-btn" onclick="cliFlowTelSiguiente()">Enviar código →</button>
+
+      <button class="cli-flow-link" onclick="cliFlowSwitch('login')" id="cli-flow-tel-switch">¿Ya tenés cuenta? Iniciá sesión</button>
+    </div>
+
+    <!-- PANTALLA 2: Ingresar OTP -->
+    <div class="cli-flow" id="cli-flow-otp" style="position:relative">
+      <button class="cli-flow-volver" onclick="cliFlowVolver('otp')" aria-label="Volver">←</button>
+      <div class="cli-flow-pasos">
+        <div class="cli-flow-paso-dot done"></div>
+        <div class="cli-flow-paso-dot active"></div>
+        <div class="cli-flow-paso-dot"></div>
+      </div>
+      <div class="cli-flow-ico">💬</div>
+      <div class="cli-flow-titulo">Verificá tu número</div>
+      <div class="cli-flow-sub">Te enviamos un código por SMS a<br><b id="cli-flow-otp-tel">+54 9 2392 000 000</b></div>
+
+      <div class="cli-flow-cajas">
+        <input class="cli-flow-caja" type="tel" inputmode="numeric" maxlength="1" id="cli-flow-otp-0"
+               oninput="cliFlowOtpInput(this,0)" onkeydown="cliFlowOtpKeydown(this,0)">
+        <input class="cli-flow-caja" type="tel" inputmode="numeric" maxlength="1" id="cli-flow-otp-1"
+               oninput="cliFlowOtpInput(this,1)" onkeydown="cliFlowOtpKeydown(this,1)">
+        <input class="cli-flow-caja" type="tel" inputmode="numeric" maxlength="1" id="cli-flow-otp-2"
+               oninput="cliFlowOtpInput(this,2)" onkeydown="cliFlowOtpKeydown(this,2)">
+        <input class="cli-flow-caja" type="tel" inputmode="numeric" maxlength="1" id="cli-flow-otp-3"
+               oninput="cliFlowOtpInput(this,3)" onkeydown="cliFlowOtpKeydown(this,3)">
+      </div>
+
+      <div class="cli-flow-error" id="cli-flow-otp-err"></div>
+
+      <div class="cli-flow-timer" id="cli-flow-otp-timer">Expira en 02:00</div>
+      <button class="cli-flow-reenvio" id="cli-flow-otp-reenvio" onclick="cliFlowOtpReenviar()" disabled>Reenviar código en <span id="cli-flow-otp-reenvio-sec">30</span>s</button>
+
+      <button class="cli-flow-btn" id="cli-flow-otp-btn" onclick="cliFlowOtpVerificar()" disabled>Verificar</button>
+    </div>
+
+    <!-- PANTALLA 3: Elegir PIN -->
+    <div class="cli-flow" id="cli-flow-pin" style="position:relative">
+      <button class="cli-flow-volver" onclick="cliFlowVolver('pin')" aria-label="Volver">←</button>
+      <div class="cli-flow-pasos">
+        <div class="cli-flow-paso-dot done"></div>
+        <div class="cli-flow-paso-dot done"></div>
+        <div class="cli-flow-paso-dot active"></div>
+      </div>
+      <div class="cli-flow-ico">🔐</div>
+      <div class="cli-flow-titulo">Elegí tu PIN</div>
+      <div class="cli-flow-sub">4 dígitos fáciles de recordar. <b>Evitá PINs obvios</b> como 1234 o 0000.</div>
+
+      <div class="cli-flow-cajas">
+        <input class="cli-flow-caja" type="password" inputmode="numeric" maxlength="1" id="cli-flow-pin-0"
+               oninput="cliFlowPinInput(this,0,'pin')" onkeydown="cliFlowPinKeydown(this,0,'pin')">
+        <input class="cli-flow-caja" type="password" inputmode="numeric" maxlength="1" id="cli-flow-pin-1"
+               oninput="cliFlowPinInput(this,1,'pin')" onkeydown="cliFlowPinKeydown(this,1,'pin')">
+        <input class="cli-flow-caja" type="password" inputmode="numeric" maxlength="1" id="cli-flow-pin-2"
+               oninput="cliFlowPinInput(this,2,'pin')" onkeydown="cliFlowPinKeydown(this,2,'pin')">
+        <input class="cli-flow-caja" type="password" inputmode="numeric" maxlength="1" id="cli-flow-pin-3"
+               oninput="cliFlowPinInput(this,3,'pin')" onkeydown="cliFlowPinKeydown(this,3,'pin')">
+      </div>
+
+      <div class="cli-flow-confirmar-pin-label">Confirmá ingresando de nuevo</div>
+
+      <div class="cli-flow-cajas">
+        <input class="cli-flow-caja" type="password" inputmode="numeric" maxlength="1" id="cli-flow-pin2-0"
+               oninput="cliFlowPinInput(this,0,'pin2')" onkeydown="cliFlowPinKeydown(this,0,'pin2')">
+        <input class="cli-flow-caja" type="password" inputmode="numeric" maxlength="1" id="cli-flow-pin2-1"
+               oninput="cliFlowPinInput(this,1,'pin2')" onkeydown="cliFlowPinKeydown(this,1,'pin2')">
+        <input class="cli-flow-caja" type="password" inputmode="numeric" maxlength="1" id="cli-flow-pin2-2"
+               oninput="cliFlowPinInput(this,2,'pin2')" onkeydown="cliFlowPinKeydown(this,2,'pin2')">
+        <input class="cli-flow-caja" type="password" inputmode="numeric" maxlength="1" id="cli-flow-pin2-3"
+               oninput="cliFlowPinInput(this,3,'pin2')" onkeydown="cliFlowPinKeydown(this,3,'pin2')">
+      </div>
+
+      <div class="cli-flow-error" id="cli-flow-pin-err"></div>
+
+      <button class="cli-flow-btn" id="cli-flow-pin-btn" onclick="cliFlowPinGuardar()" disabled>Crear cuenta →</button>
+    </div>
+
+    <!-- PANTALLA 4: Éxito con cupón -->
+    <div class="cli-flow" id="cli-flow-exito" style="position:relative">
+      <div class="cli-flow-ico success">✓</div>
+      <div class="cli-flow-titulo">¡Bienvenido a TCK!</div>
+      <div class="cli-flow-sub">Ya podés hacer pedidos con tu cuenta.</div>
+
+      <div class="cli-flow-cupon">
+        <div class="cli-flow-cupon-top">🎁 Primera compra</div>
+        <div class="cli-flow-cupon-pct">10% OFF</div>
+        <div class="cli-flow-cupon-sub">En tu próximo pedido · Hasta $20.000 de ahorro</div>
+      </div>
+
+      <button class="cli-flow-btn" onclick="cliFlowExitoCerrar()">Ver catálogo →</button>
+
+      <button class="cli-flow-link" onclick="cliFlowCompletarDatos()">Completar mis datos</button>
+    </div>
+
+    <!-- PANTALLA 5: Login con PIN (para cliente existente) -->
+    <div class="cli-flow" id="cli-flow-login-pin" style="position:relative">
+      <button class="cli-flow-volver" onclick="cliFlowVolver('loginpin')" aria-label="Volver">←</button>
+      <div class="cli-flow-ico">🔐</div>
+      <div class="cli-flow-titulo" id="cli-flow-login-pin-titulo">Hola, <span id="cli-flow-login-pin-nombre">cliente</span></div>
+      <div class="cli-flow-sub">Ingresá tu PIN de 4 dígitos</div>
+
+      <div class="cli-flow-cajas">
+        <input class="cli-flow-caja" type="password" inputmode="numeric" maxlength="1" id="cli-flow-lpin-0"
+               oninput="cliFlowLoginPinInput(this,0)" onkeydown="cliFlowLoginPinKeydown(this,0)">
+        <input class="cli-flow-caja" type="password" inputmode="numeric" maxlength="1" id="cli-flow-lpin-1"
+               oninput="cliFlowLoginPinInput(this,1)" onkeydown="cliFlowLoginPinKeydown(this,1)">
+        <input class="cli-flow-caja" type="password" inputmode="numeric" maxlength="1" id="cli-flow-lpin-2"
+               oninput="cliFlowLoginPinInput(this,2)" onkeydown="cliFlowLoginPinKeydown(this,2)">
+        <input class="cli-flow-caja" type="password" inputmode="numeric" maxlength="1" id="cli-flow-lpin-3"
+               oninput="cliFlowLoginPinInput(this,3)" onkeydown="cliFlowLoginPinKeydown(this,3)">
+      </div>
+
+      <div class="cli-flow-error" id="cli-flow-lpin-err"></div>
+
+      <button class="cli-flow-btn" id="cli-flow-lpin-btn" onclick="cliFlowLoginPinVerificar()" disabled>Ingresar</button>
+
+      <button class="cli-flow-link" onclick="cliFlowOlvidePin()">Olvidé mi PIN</button>
+    </div>
+
+    <!-- Forms antiguos ocultos — se mantienen por compatibilidad -->
+    <div class="cli-tabs" style="display:none">
       <button class="cli-tab sel" id="cli-tab-login" onclick="cliTab('login')">Ingresar</button>
       <button class="cli-tab" id="cli-tab-reg" onclick="cliTab('registro')">Registrarme</button>
     </div>
 
-    <!-- ── FORM LOGIN ── -->
-    <div class="cli-form" id="cli-form-login">
+    <!-- ── FORM LOGIN (antiguo, oculto) ── -->
+    <div class="cli-form hidden" id="cli-form-login" style="display:none">
       <div class="cli-field">
         <div class="cli-label">Teléfono WhatsApp</div>
         <input class="cli-input" type="tel" id="cli-tel" placeholder="Ej: 2392000000" autocomplete="tel" inputmode="numeric">
@@ -1835,8 +2247,8 @@ button,
       <button type="button" onclick="cliOlvideContrasena()" style="background:none;border:none;color:rgba(255,215,0,.5);font-size:12px;cursor:pointer;padding:8px 0;text-align:center;width:100%;font-family:'Barlow',sans-serif;letter-spacing:.3px">¿Olvidaste tu contraseña? Recibí un código SMS →</button>
     </div>
 
-    <!-- ── FORM REGISTRO ── -->
-    <div class="cli-form hidden" id="cli-form-registro">
+    <!-- ── FORM REGISTRO (antiguo, oculto) ── -->
+    <div class="cli-form hidden" id="cli-form-registro" style="display:none">
       <div class="cli-field">
         <div class="cli-label">Nombre y apellido</div>
         <input class="cli-input" type="text" id="cli-reg-nombre" placeholder="Tu nombre completo" autocapitalize="words">
@@ -4560,6 +4972,584 @@ function cliBannerCerrar() {
   if (b) b.classList.add('hidden');
   try { localStorage.setItem('tck_banner_reg_cerrado', '1'); } catch(e) {}
 }
+
+// ═══════════════════════════════════════════════════════════════════════
+// v2.6.2 — FLUJO DE REGISTRO/LOGIN CON PIN DE 4 DÍGITOS
+// ═══════════════════════════════════════════════════════════════════════
+
+// Estado del flow actual
+let _flowTel         = '';       // Teléfono ingresado en paso 1
+let _flowOtpOK       = false;    // OTP verificado
+let _flowPinActual   = '';       // Primer PIN ingresado (para comparar)
+let _flowModo        = 'registro'; // 'registro' | 'login' | 'recupero'
+let _flowClienteData = null;     // Datos del cliente para login con PIN
+let _flowOtpTimer    = null;     // Interval del timer OTP
+let _flowReenvioTimer= null;     // Interval del timer de reenvío
+let _flowPinIntentos = 0;        // Contador de intentos fallidos (login PIN)
+
+// PINs débiles prohibidos
+const PINS_DEBILES = ['0000','1111','2222','3333','4444','5555','6666','7777','8888','9999','1234','4321','0123','0987','9876'];
+
+// ── Mostrar una pantalla del flow (oculta las demás) ────────────
+function cliFlowShow(step) {
+  const pantallas = ['tel','otp','pin','exito','login-pin'];
+  pantallas.forEach(p => {
+    const el = document.getElementById('cli-flow-' + p);
+    if (el) el.classList.remove('active');
+  });
+  const el = document.getElementById('cli-flow-' + step);
+  if (el) el.classList.add('active');
+  // Ocultar divider + guest btn en pantallas finales
+  const divider = document.querySelector('.cli-divider');
+  const guest = document.querySelector('.cli-guest-btn');
+  const hideExtras = (step === 'exito' || step === 'pin' || step === 'login-pin');
+  if (divider) divider.style.display = hideExtras ? 'none' : '';
+  if (guest)   guest.style.display   = hideExtras ? 'none' : '';
+}
+
+// ── Arranque del flow: decide si mostrar registro o login según LS ──
+function cliFlowIniciar(modo) {
+  _flowModo = modo || 'registro';
+
+  // Setup según modo
+  const titulo = document.getElementById('cli-flow-tel-titulo');
+  const sub = document.getElementById('cli-flow-tel-sub');
+  const ico = document.getElementById('cli-flow-tel-ico');
+  const switchBtn = document.getElementById('cli-flow-tel-switch');
+
+  if (_flowModo === 'login') {
+    if (titulo) titulo.textContent = 'Iniciá sesión';
+    if (sub) sub.innerHTML = 'Ingresá tu teléfono registrado.';
+    if (ico) ico.textContent = '👤';
+    if (switchBtn) switchBtn.textContent = '¿No tenés cuenta? Registrate';
+    // Precargar tel guardado si existe
+    try {
+      const t = localStorage.getItem('tck_cli_tel');
+      if (t) {
+        const inp = document.getElementById('cli-flow-tel-input');
+        if (inp) inp.value = t;
+      }
+    } catch(e) {}
+  } else if (_flowModo === 'recupero') {
+    if (titulo) titulo.textContent = 'Recuperar PIN';
+    if (sub) sub.innerHTML = 'Te enviaremos un código por SMS a tu teléfono registrado para crear un <b>nuevo PIN</b>.';
+    if (ico) ico.textContent = '🔑';
+    if (switchBtn) switchBtn.textContent = 'Volver al login';
+  } else {
+    // registro
+    if (titulo) titulo.textContent = 'Crear cuenta TCK';
+    if (sub) sub.innerHTML = 'Registrate en 30 segundos y ganá <b>10% OFF</b> en tu primera compra <b>(hasta $20.000)</b>.';
+    if (ico) ico.textContent = '📱';
+    if (switchBtn) switchBtn.textContent = '¿Ya tenés cuenta? Iniciá sesión';
+  }
+
+  // Reset estado
+  _flowTel = '';
+  _flowOtpOK = false;
+  _flowPinActual = '';
+  _flowClienteData = null;
+
+  cliFlowShow('tel');
+}
+
+// ── Cambiar entre modo registro/login desde el link ──
+function cliFlowSwitch(modo) {
+  if (modo === 'login' && _flowModo !== 'login') {
+    cliFlowIniciar('login');
+  } else {
+    cliFlowIniciar('registro');
+  }
+}
+
+// ── Volver al paso anterior ──
+function cliFlowVolver(desde) {
+  if (desde === 'otp' || desde === 'pin') {
+    cliFlowIniciar(_flowModo);
+  } else if (desde === 'loginpin') {
+    cliFlowIniciar('login');
+  }
+}
+
+// ── PASO 1: Validar teléfono y decidir flujo ──
+async function cliFlowTelSiguiente() {
+  const inp = document.getElementById('cli-flow-tel-input');
+  const btn = document.getElementById('cli-flow-tel-btn');
+  const err = document.getElementById('cli-flow-tel-err');
+  err.textContent = '';
+
+  const tel = normTel(inp.value);
+  if (!tel || tel.length < 8) {
+    err.textContent = 'Ingresá un teléfono válido';
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Verificando...';
+
+  try {
+    // Verificar si existe en DB
+    const data = await sbGet('clientes_auth?telefono=eq.' + encodeURIComponent(tel) + '&activo=eq.true&select=*');
+    const existe = data && data.length > 0;
+
+    _flowTel = tel;
+
+    if (_flowModo === 'login') {
+      if (!existe) {
+        err.textContent = 'Este teléfono no está registrado. Creá tu cuenta.';
+        btn.disabled = false;
+        btn.textContent = 'Enviar código →';
+        return;
+      }
+      // Cliente existe → pedir PIN
+      _flowClienteData = data[0];
+      const nombreEl = document.getElementById('cli-flow-login-pin-nombre');
+      if (nombreEl) {
+        const nom = (_flowClienteData.nombre || 'cliente').split(/\s+/)[0];
+        nombreEl.textContent = nom;
+      }
+      _flowPinIntentos = 0;
+      cliFlowShow('login-pin');
+      setTimeout(() => {
+        const p0 = document.getElementById('cli-flow-lpin-0');
+        if (p0) p0.focus();
+      }, 100);
+      btn.disabled = false;
+      btn.textContent = 'Enviar código →';
+    } else if (_flowModo === 'recupero') {
+      if (!existe) {
+        err.textContent = 'Este teléfono no está registrado.';
+        btn.disabled = false;
+        btn.textContent = 'Enviar código →';
+        return;
+      }
+      _flowClienteData = data[0];
+      await cliFlowEnviarOtp();
+      btn.disabled = false;
+      btn.textContent = 'Enviar código →';
+    } else {
+      // Modo registro
+      if (existe) {
+        err.textContent = 'Este teléfono ya tiene una cuenta. Usá "Iniciá sesión".';
+        btn.disabled = false;
+        btn.textContent = 'Enviar código →';
+        return;
+      }
+      await cliFlowEnviarOtp();
+      btn.disabled = false;
+      btn.textContent = 'Enviar código →';
+    }
+  } catch(e) {
+    err.textContent = 'Error de conexión. Intentá de nuevo.';
+    btn.disabled = false;
+    btn.textContent = 'Enviar código →';
+  }
+}
+
+// ── PASO 2: Enviar OTP via Vonage (reutiliza infraestructura) ──
+async function cliFlowEnviarOtp() {
+  try {
+    const data = await appsScriptCall({ accion: 'enviarOTP', telefono: _flowTel });
+    if (data.status !== 'ok') {
+      const err = document.getElementById('cli-flow-tel-err');
+      if (err) err.textContent = 'No pudimos enviar el código. Intentá de nuevo.';
+      return;
+    }
+    _otpRequestId = data.request_id;
+    _flowOtpOK = false;
+    // Mostrar tel formateado
+    const telDisplay = document.getElementById('cli-flow-otp-tel');
+    if (telDisplay) telDisplay.textContent = '+54 9 ' + _flowTel.replace(/(\d{4})(\d{6})/, '$1 $2');
+    // Limpiar inputs OTP
+    for (let i = 0; i < 4; i++) {
+      const d = document.getElementById('cli-flow-otp-' + i);
+      if (d) { d.value = ''; d.disabled = false; d.classList.remove('filled'); }
+    }
+    const errOtp = document.getElementById('cli-flow-otp-err');
+    if (errOtp) errOtp.textContent = '';
+    const btnOk = document.getElementById('cli-flow-otp-btn');
+    if (btnOk) btnOk.disabled = true;
+
+    cliFlowShow('otp');
+    setTimeout(() => {
+      const i0 = document.getElementById('cli-flow-otp-0');
+      if (i0) i0.focus();
+    }, 100);
+
+    // Iniciar timers
+    cliFlowStartOtpTimer();
+  } catch(e) {
+    const err = document.getElementById('cli-flow-tel-err');
+    if (err) err.textContent = 'Error al enviar código. Intentá más tarde.';
+  }
+}
+
+function cliFlowStartOtpTimer() {
+  // Timer de expiración (2 minutos)
+  if (_flowOtpTimer) clearInterval(_flowOtpTimer);
+  let seg = 120;
+  const timerEl = document.getElementById('cli-flow-otp-timer');
+  const update = () => {
+    const m = Math.floor(seg/60);
+    const s = seg % 60;
+    if (timerEl) timerEl.textContent = 'Expira en ' + m + ':' + String(s).padStart(2,'0');
+    seg--;
+    if (seg < 0) {
+      clearInterval(_flowOtpTimer);
+      if (timerEl) timerEl.textContent = 'El código expiró';
+    }
+  };
+  update();
+  _flowOtpTimer = setInterval(update, 1000);
+
+  // Timer de reenvío (30 segundos)
+  if (_flowReenvioTimer) clearInterval(_flowReenvioTimer);
+  let reenvio = 30;
+  const reenvioBtn = document.getElementById('cli-flow-otp-reenvio');
+  const reenvioSec = document.getElementById('cli-flow-otp-reenvio-sec');
+  if (reenvioBtn) {
+    reenvioBtn.disabled = true;
+    reenvioBtn.classList.remove('enabled');
+    reenvioBtn.innerHTML = 'Reenviar código en <span id="cli-flow-otp-reenvio-sec">30</span>s';
+  }
+  const updateRe = () => {
+    reenvio--;
+    const sec = document.getElementById('cli-flow-otp-reenvio-sec');
+    if (sec) sec.textContent = reenvio;
+    if (reenvio <= 0) {
+      clearInterval(_flowReenvioTimer);
+      if (reenvioBtn) {
+        reenvioBtn.disabled = false;
+        reenvioBtn.classList.add('enabled');
+        reenvioBtn.textContent = 'Reenviar código';
+      }
+    }
+  };
+  _flowReenvioTimer = setInterval(updateRe, 1000);
+}
+
+async function cliFlowOtpReenviar() {
+  const btn = document.getElementById('cli-flow-otp-reenvio');
+  if (btn && btn.disabled) return;
+  try {
+    const data = await appsScriptCall({ accion: 'enviarOTP', telefono: _flowTel });
+    if (data.status === 'ok') {
+      _otpRequestId = data.request_id;
+      cliFlowStartOtpTimer();
+    }
+  } catch(e) {}
+}
+
+function cliFlowOtpInput(el, idx) {
+  const val = el.value.replace(/\D/g, '');
+  el.value = val;
+  if (val) el.classList.add('filled'); else el.classList.remove('filled');
+  if (val && idx < 3) {
+    const next = document.getElementById('cli-flow-otp-' + (idx+1));
+    if (next) next.focus();
+  }
+  // Auto-verificar si está completo
+  const code = [0,1,2,3].map(i => (document.getElementById('cli-flow-otp-' + i)||{}).value || '').join('');
+  const btn = document.getElementById('cli-flow-otp-btn');
+  if (btn) btn.disabled = code.length < 4;
+  if (code.length === 4) cliFlowOtpVerificar();
+}
+function cliFlowOtpKeydown(el, idx) {
+  return function(e) {
+    if (e.key === 'Backspace' && !el.value && idx > 0) {
+      const prev = document.getElementById('cli-flow-otp-' + (idx-1));
+      if (prev) prev.focus();
+    }
+  };
+}
+// Arreglo del closure: usar attach directo
+document.addEventListener('DOMContentLoaded', function() {
+  for (let i = 0; i < 4; i++) {
+    const el = document.getElementById('cli-flow-otp-' + i);
+    if (el) {
+      el.addEventListener('keydown', function(e) {
+        if (e.key === 'Backspace' && !el.value && i > 0) {
+          const prev = document.getElementById('cli-flow-otp-' + (i-1));
+          if (prev) { prev.focus(); prev.value = ''; prev.classList.remove('filled'); }
+        }
+      });
+    }
+    // PINs y login PIN
+    ['pin','pin2','lpin'].forEach(prefix => {
+      const elP = document.getElementById('cli-flow-' + prefix + '-' + i);
+      if (elP) {
+        elP.addEventListener('keydown', function(e) {
+          if (e.key === 'Backspace' && !elP.value && i > 0) {
+            const prev = document.getElementById('cli-flow-' + prefix + '-' + (i-1));
+            if (prev) { prev.focus(); prev.value = ''; prev.classList.remove('filled'); }
+          }
+        });
+      }
+    });
+  }
+});
+
+async function cliFlowOtpVerificar() {
+  const code = [0,1,2,3].map(i => (document.getElementById('cli-flow-otp-' + i)||{}).value || '').join('');
+  if (code.length < 4) return;
+  const err = document.getElementById('cli-flow-otp-err');
+  if (err) err.textContent = '';
+  for (let i = 0; i < 4; i++) {
+    const d = document.getElementById('cli-flow-otp-' + i);
+    if (d) d.disabled = true;
+  }
+  const btn = document.getElementById('cli-flow-otp-btn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Verificando...'; }
+
+  try {
+    const data = await appsScriptCall({ accion: 'verificarOTP', request_id: _otpRequestId, code });
+    if (data.status === 'ok') {
+      clearInterval(_flowOtpTimer);
+      clearInterval(_flowReenvioTimer);
+      _flowOtpOK = true;
+      if (_flowModo === 'recupero') {
+        // Ir directo a elegir nuevo PIN (reutiliza la pantalla de PIN)
+        cliFlowShow('pin');
+        setTimeout(() => {
+          const p0 = document.getElementById('cli-flow-pin-0');
+          if (p0) p0.focus();
+        }, 100);
+      } else {
+        // Registro: ir a elegir PIN
+        cliFlowShow('pin');
+        setTimeout(() => {
+          const p0 = document.getElementById('cli-flow-pin-0');
+          if (p0) p0.focus();
+        }, 100);
+      }
+    } else {
+      if (err) err.textContent = '❌ Código incorrecto. Revisá el SMS.';
+      for (let i = 0; i < 4; i++) {
+        const d = document.getElementById('cli-flow-otp-' + i);
+        if (d) { d.disabled = false; d.value = ''; d.classList.remove('filled'); }
+      }
+      const i0 = document.getElementById('cli-flow-otp-0');
+      if (i0) i0.focus();
+      if (btn) { btn.disabled = true; btn.textContent = 'Verificar'; }
+    }
+  } catch(e) {
+    if (err) err.textContent = 'Error de conexión. Intentá de nuevo.';
+    for (let i = 0; i < 4; i++) {
+      const d = document.getElementById('cli-flow-otp-' + i);
+      if (d) d.disabled = false;
+    }
+    if (btn) { btn.disabled = false; btn.textContent = 'Verificar'; }
+  }
+}
+
+// ── PASO 3: Input de PIN (con confirmación) ──
+function cliFlowPinInput(el, idx, grupo) {
+  const val = el.value.replace(/\D/g, '');
+  el.value = val;
+  if (val) el.classList.add('filled'); else el.classList.remove('filled');
+  if (val && idx < 3) {
+    const next = document.getElementById('cli-flow-' + grupo + '-' + (idx+1));
+    if (next) next.focus();
+  }
+  cliFlowPinCheck();
+}
+function cliFlowPinKeydown(el, idx, grupo) {} // placeholder (keydown se maneja via DOMContentLoaded)
+
+function cliFlowPinCheck() {
+  const pin1 = [0,1,2,3].map(i => (document.getElementById('cli-flow-pin-' + i)||{}).value || '').join('');
+  const pin2 = [0,1,2,3].map(i => (document.getElementById('cli-flow-pin2-' + i)||{}).value || '').join('');
+  const err  = document.getElementById('cli-flow-pin-err');
+  const btn  = document.getElementById('cli-flow-pin-btn');
+
+  if (pin1.length === 4 && pin2.length === 4) {
+    if (pin1 !== pin2) {
+      if (err) err.textContent = 'Los PINs no coinciden';
+      if (btn) btn.disabled = true;
+      return;
+    }
+    if (PINS_DEBILES.indexOf(pin1) !== -1) {
+      if (err) err.textContent = 'Ese PIN es muy común. Elegí otro.';
+      if (btn) btn.disabled = true;
+      return;
+    }
+    // Si todos los dígitos son iguales (1111, 2222...) → débil
+    if (/^(\d)\1{3}$/.test(pin1)) {
+      if (err) err.textContent = 'Evitá PINs con todos los dígitos iguales.';
+      if (btn) btn.disabled = true;
+      return;
+    }
+    if (err) err.textContent = '';
+    if (btn) btn.disabled = false;
+  } else {
+    if (err) err.textContent = '';
+    if (btn) btn.disabled = true;
+  }
+}
+
+async function cliFlowPinGuardar() {
+  const pin = [0,1,2,3].map(i => (document.getElementById('cli-flow-pin-' + i)||{}).value || '').join('');
+  if (pin.length !== 4) return;
+  const btn = document.getElementById('cli-flow-pin-btn');
+  const err = document.getElementById('cli-flow-pin-err');
+  if (btn) { btn.disabled = true; btn.textContent = 'Guardando...'; }
+
+  try {
+    const hash = await hashStr(_flowTel + ':' + pin);
+
+    if (_flowModo === 'recupero') {
+      // Actualizar PIN del cliente existente
+      const r = await fetch(SB_URL + '/rest/v1/clientes_auth?telefono=eq.' + encodeURIComponent(_flowTel), {
+        method: 'PATCH',
+        headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ clave_hash: hash })
+      });
+      if (!r.ok) throw new Error('Error al actualizar');
+      // Login automático
+      const datos = await sbGet('clientes_auth?telefono=eq.' + encodeURIComponent(_flowTel) + '&select=*');
+      if (datos && datos.length) {
+        cliGuardar(datos[0]);
+        cliVincularMaster(datos[0]);
+        cliEntrarPortal(datos[0]);
+      }
+    } else {
+      // Crear nuevo cliente (registro)
+      const vendedorLink = vActivo ? vActivo.nombre : '';
+      const nuevo = await sbPost('clientes_auth', {
+        usuario:    _flowTel,
+        clave_hash: hash,
+        nombre:     '',        // se completa después
+        telefono:   _flowTel,
+        vendedor:   vendedorLink,
+        activo:     true
+      });
+      const cli = Array.isArray(nuevo) ? nuevo[0] : nuevo;
+      cliGuardar(cli);
+      cliVincularMaster(cli);
+      // Marcar cupón de primera compra disponible
+      try { localStorage.setItem('tck_cupon_1ra_compra', '1'); } catch(e) {}
+      // Mostrar pantalla de éxito
+      cliFlowShow('exito');
+    }
+  } catch(e) {
+    if (err) err.textContent = 'Error al guardar. Intentá de nuevo.';
+    if (btn) { btn.disabled = false; btn.textContent = 'Crear cuenta →'; }
+  }
+}
+
+function cliFlowExitoCerrar() {
+  // Cerrar modal y actualizar botón header
+  ocultarLoginModal();
+  if (typeof cliActualizarBotonHeader === 'function') cliActualizarBotonHeader();
+  // Ocultar banner
+  const banner = document.getElementById('banner-registro');
+  if (banner) banner.classList.add('hidden');
+}
+
+function cliFlowCompletarDatos() {
+  // Cerrar flow y abrir portal (tab perfil)
+  ocultarLoginModal();
+  setTimeout(() => {
+    mostrarLoginParaCuenta();
+    if (_cliActivo) {
+      cliEntrarPortal(_cliActivo);
+      setTimeout(() => { if (typeof cliPortalTab === 'function') cliPortalTab('perfil'); }, 200);
+    }
+  }, 100);
+}
+
+// ── LOGIN CON PIN (cliente existente) ──
+function cliFlowLoginPinInput(el, idx) {
+  const val = el.value.replace(/\D/g, '');
+  el.value = val;
+  if (val) el.classList.add('filled'); else el.classList.remove('filled');
+  if (val && idx < 3) {
+    const next = document.getElementById('cli-flow-lpin-' + (idx+1));
+    if (next) next.focus();
+  }
+  const pin = [0,1,2,3].map(i => (document.getElementById('cli-flow-lpin-' + i)||{}).value || '').join('');
+  const btn = document.getElementById('cli-flow-lpin-btn');
+  if (btn) btn.disabled = pin.length < 4;
+  if (pin.length === 4) cliFlowLoginPinVerificar();
+}
+function cliFlowLoginPinKeydown() {}
+
+async function cliFlowLoginPinVerificar() {
+  const pin = [0,1,2,3].map(i => (document.getElementById('cli-flow-lpin-' + i)||{}).value || '').join('');
+  if (pin.length !== 4) return;
+  const err = document.getElementById('cli-flow-lpin-err');
+  const btn = document.getElementById('cli-flow-lpin-btn');
+  if (err) err.textContent = '';
+
+  // Rate limit
+  if (_flowPinIntentos >= 5) {
+    if (err) err.textContent = 'Demasiados intentos. Usá "Olvidé mi PIN".';
+    return;
+  }
+
+  if (btn) { btn.disabled = true; btn.textContent = 'Verificando...'; }
+  try {
+    const hash = await hashStr(_flowTel + ':' + pin);
+    if (!_flowClienteData) {
+      // No debería pasar, pero por si acaso recargamos
+      const data = await sbGet('clientes_auth?telefono=eq.' + encodeURIComponent(_flowTel) + '&activo=eq.true&select=*');
+      if (!data.length) {
+        if (err) err.textContent = 'Error al verificar. Volvé al inicio.';
+        if (btn) { btn.disabled = false; btn.textContent = 'Ingresar'; }
+        return;
+      }
+      _flowClienteData = data[0];
+    }
+
+    if (_flowClienteData.clave_hash === hash) {
+      // Login OK
+      cliGuardar(_flowClienteData);
+      cliVincularMaster(_flowClienteData);
+      cliEntrarPortal(_flowClienteData);
+    } else {
+      _flowPinIntentos++;
+      const rest = 5 - _flowPinIntentos;
+      if (rest > 0) {
+        if (err) err.textContent = '❌ PIN incorrecto. Te quedan ' + rest + ' intento' + (rest===1?'':'s') + '.';
+      } else {
+        if (err) err.textContent = 'Demasiados intentos. Usá "Olvidé mi PIN".';
+      }
+      // Limpiar inputs
+      for (let i = 0; i < 4; i++) {
+        const d = document.getElementById('cli-flow-lpin-' + i);
+        if (d) { d.value = ''; d.classList.remove('filled'); }
+      }
+      const p0 = document.getElementById('cli-flow-lpin-0');
+      if (p0) p0.focus();
+      if (btn) { btn.disabled = true; btn.textContent = 'Ingresar'; }
+    }
+  } catch(e) {
+    if (err) err.textContent = 'Error de conexión. Intentá de nuevo.';
+    if (btn) { btn.disabled = false; btn.textContent = 'Ingresar'; }
+  }
+}
+
+function cliFlowOlvidePin() {
+  // Pasar a modo recupero — empieza de nuevo el flow
+  cliFlowIniciar('recupero');
+  // Pre-cargar teléfono
+  const inp = document.getElementById('cli-flow-tel-input');
+  if (inp && _flowTel) inp.value = _flowTel;
+}
+
+// ── Override de mostrarLoginParaCuenta para usar el nuevo flow ──
+// La función original está más arriba — agregamos hook aquí.
+(function() {
+  const _origMostrar = window.mostrarLoginParaCuenta;
+  window.mostrarLoginParaCuenta = function() {
+    if (typeof _origMostrar === 'function') _origMostrar();
+    // Si no está logueado, arrancar el flow
+    if (!_cliActivo) {
+      // Determinar modo según LS
+      let telGuardado = null;
+      try { telGuardado = localStorage.getItem('tck_cli_tel'); } catch(e) {}
+      cliFlowIniciar(telGuardado ? 'login' : 'registro');
+    }
+  };
+})();
 
 function cliPortalTab(tab) {
   document.getElementById('cptab-pedidos').classList.toggle('sel', tab === 'pedidos');
