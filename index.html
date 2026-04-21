@@ -2,7 +2,16 @@
 <html lang="es">
 <head>
 <!-- ═══════════════════════════════════════════════════════════════════════
-     TCK CATÁLOGO — v2.6.7 — 21/04/2026
+     TCK CATÁLOGO — v2.6.8 — 21/04/2026
+     ──────────────────────────────────────────────────────────────────────
+     Cambios v2.6.8 (sobre v2.6.7):
+       - Fix UX login: el botón del paso "ingresar teléfono" ahora dice
+         "Ingresar PIN →" en modo login (antes decía siempre "Enviar código →",
+         lo cual era incorrecto porque en login NO se envía OTP, va directo al PIN).
+       - Registro y recupero siguen diciendo "Enviar código →" (son los modos
+         que sí envían OTP por SMS).
+       - Nuevo helper cliFlowTelBtnTextoPorModo() + texto seteado en
+         cliFlowIniciar() para cada modo.
      ──────────────────────────────────────────────────────────────────────
      Cambios v2.6.7 (sobre v2.6.6):
        - Eliminada categoría completa VEGGIE LA CASERIANA (8 hamburguesas veggie).
@@ -5322,12 +5331,15 @@ function cliFlowIniciar(modo) {
   const sub = document.getElementById('cli-flow-tel-sub');
   const ico = document.getElementById('cli-flow-tel-ico');
   const switchBtn = document.getElementById('cli-flow-tel-switch');
+  // v2.6.8: texto del botón de submit según modo
+  const btn = document.getElementById('cli-flow-tel-btn');
 
   if (_flowModo === 'login') {
     if (titulo) titulo.textContent = 'Iniciá sesión';
     if (sub) sub.innerHTML = 'Ingresá tu teléfono registrado.';
     if (ico) ico.textContent = '👤';
     if (switchBtn) switchBtn.textContent = '¿No tenés cuenta? Registrate';
+    if (btn) btn.textContent = 'Ingresar PIN →';
     // Precargar tel guardado si existe
     try {
       const t = localStorage.getItem('tck_cli_tel');
@@ -5341,12 +5353,14 @@ function cliFlowIniciar(modo) {
     if (sub) sub.innerHTML = 'Te enviaremos un código por SMS a tu teléfono registrado para crear un <b>nuevo PIN</b>.';
     if (ico) ico.textContent = '🔑';
     if (switchBtn) switchBtn.textContent = 'Volver al login';
+    if (btn) btn.textContent = 'Enviar código →';
   } else {
     // registro
     if (titulo) titulo.textContent = 'Crear cuenta TCK';
     if (sub) sub.innerHTML = 'Registrate en 30 segundos y ganá <b>10% OFF</b> en tu primera compra <b>(hasta $20.000)</b>.';
     if (ico) ico.textContent = '📱';
     if (switchBtn) switchBtn.textContent = '¿Ya tenés cuenta? Iniciá sesión';
+    if (btn) btn.textContent = 'Enviar código →';
   }
 
   // Reset estado
@@ -5356,6 +5370,12 @@ function cliFlowIniciar(modo) {
   _flowClienteData = null;
 
   cliFlowShow('tel');
+}
+
+// v2.6.8: helper para restaurar el texto del botón de submit tel según modo activo
+function cliFlowTelBtnTextoPorModo() {
+  if (_flowModo === 'login') return 'Ingresar PIN →';
+  return 'Enviar código →'; // registro + recupero
 }
 
 // ── Cambiar entre modo registro/login desde el link ──
@@ -5403,7 +5423,7 @@ async function cliFlowTelSiguiente() {
       if (!existe) {
         err.textContent = 'Este teléfono no está registrado. Creá tu cuenta.';
         btn.disabled = false;
-        btn.textContent = 'Enviar código →';
+        btn.textContent = cliFlowTelBtnTextoPorModo();
         return;
       }
       // Cliente existe → pedir PIN
@@ -5420,34 +5440,34 @@ async function cliFlowTelSiguiente() {
         if (p0) p0.focus();
       }, 100);
       btn.disabled = false;
-      btn.textContent = 'Enviar código →';
+      btn.textContent = cliFlowTelBtnTextoPorModo();
     } else if (_flowModo === 'recupero') {
       if (!existe) {
         err.textContent = 'Este teléfono no está registrado.';
         btn.disabled = false;
-        btn.textContent = 'Enviar código →';
+        btn.textContent = cliFlowTelBtnTextoPorModo();
         return;
       }
       _flowClienteData = data[0];
       await cliFlowEnviarOtp();
       btn.disabled = false;
-      btn.textContent = 'Enviar código →';
+      btn.textContent = cliFlowTelBtnTextoPorModo();
     } else {
       // Modo registro
       if (existe) {
         err.textContent = 'Este teléfono ya tiene una cuenta. Usá "Iniciá sesión".';
         btn.disabled = false;
-        btn.textContent = 'Enviar código →';
+        btn.textContent = cliFlowTelBtnTextoPorModo();
         return;
       }
       await cliFlowEnviarOtp();
       btn.disabled = false;
-      btn.textContent = 'Enviar código →';
+      btn.textContent = cliFlowTelBtnTextoPorModo();
     }
   } catch(e) {
     err.textContent = 'Error de conexión. Intentá de nuevo.';
     btn.disabled = false;
-    btn.textContent = 'Enviar código →';
+    btn.textContent = cliFlowTelBtnTextoPorModo();
   }
 }
 
