@@ -1184,11 +1184,24 @@ button,
   background: #FFF8E1;
 }
 
+/* v2.6.4: pulse de atención cuando el cursor salta a confirmación */
+.cli-flow-caja.pulse-attention {
+  animation: cajaPulseAttention 0.7s ease-in-out 2;
+  border-color: #8B0000;
+}
+@keyframes cajaPulseAttention {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(139,0,0,0); transform: scale(1); }
+  50%      { box-shadow: 0 0 0 6px rgba(139,0,0,.18); transform: scale(1.04); }
+}
+
 .cli-flow-confirmar-pin-label {
-  font-size: 11px;
+  font-size: 12px;
   color: #8B0000;
-  opacity: .75;
-  margin: 4px 0;
+  opacity: .9;
+  margin: 8px 0 2px;
+  font-weight: 700;
+  font-family: 'Barlow Condensed', sans-serif;
+  letter-spacing: .4px;
 }
 
 .cli-flow-timer {
@@ -2223,7 +2236,7 @@ button,
                oninput="cliFlowPinInput(this,3,'pin')" onkeydown="cliFlowPinKeydown(this,3,'pin')">
       </div>
 
-      <div class="cli-flow-confirmar-pin-label">Confirmá ingresando de nuevo</div>
+      <div class="cli-flow-confirmar-pin-label">↓ Repetí el PIN para confirmar ↓</div>
 
       <div class="cli-flow-cajas">
         <input class="cli-flow-caja" type="password" inputmode="numeric" maxlength="1" id="cli-flow-pin2-0"
@@ -5518,6 +5531,25 @@ function cliFlowPinInput(el, idx, grupo) {
     const next = document.getElementById('cli-flow-' + grupo + '-' + (idx+1));
     if (next) next.focus();
   }
+  // v2.6.4: cuando se completa el PIN principal (grupo 'pin'), saltar a confirmación
+  if (val && idx === 3 && grupo === 'pin') {
+    setTimeout(function() {
+      const confirm0 = document.getElementById('cli-flow-pin2-0');
+      if (confirm0) {
+        confirm0.focus();
+        // Scroll suave para que la fila de confirmación quede visible
+        confirm0.scrollIntoView({behavior: 'smooth', block: 'center'});
+        // Pulse visual sobre las 4 cajas de confirmación
+        for (let i = 0; i < 4; i++) {
+          const c = document.getElementById('cli-flow-pin2-' + i);
+          if (c) {
+            c.classList.add('pulse-attention');
+            setTimeout(((cc) => () => cc.classList.remove('pulse-attention'))(c), 1400);
+          }
+        }
+      }
+    }, 80);
+  }
   cliFlowPinCheck();
 }
 function cliFlowPinKeydown(el, idx, grupo) {} // placeholder (keydown se maneja via DOMContentLoaded)
@@ -5594,6 +5626,14 @@ async function cliFlowPinGuardar() {
       cliVincularMaster(cli);
       // Marcar cupón de primera compra disponible
       try { localStorage.setItem('tck_cupon_1ra_compra', '1'); } catch(e) {}
+      // v2.6.4: AUTO-LOGIN — setear _cliActivo y refrescar UI inmediatamente.
+      // Antes: se mostraba pantalla éxito pero la sesión quedaba fantasma
+      // (en LS pero no en memoria), el usuario tenía que loguearse a mano.
+      _cliActivo = cli;
+      if (typeof cliActualizarBotonHeader === 'function') cliActualizarBotonHeader();
+      // Ocultar banner si estaba visible
+      const banner = document.getElementById('banner-registro');
+      if (banner) banner.classList.add('hidden');
       // Mostrar pantalla de éxito
       cliFlowShow('exito');
     }
@@ -5610,6 +5650,14 @@ function cliFlowExitoCerrar() {
   // Ocultar banner
   const banner = document.getElementById('banner-registro');
   if (banner) banner.classList.add('hidden');
+  // v2.6.4: toast verde confirmando que está logueado
+  if (_cliActivo) {
+    const t = document.createElement('div');
+    t.style.cssText = 'position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,#2E7D32,#1B5E20);color:#fff;padding:12px 22px;border-radius:24px;font-family:Barlow Condensed,sans-serif;font-size:14px;font-weight:800;z-index:9999;box-shadow:0 6px 20px rgba(0,0,0,.3);white-space:nowrap;letter-spacing:.4px;';
+    t.textContent = '✓ Sesión iniciada · Tu cupón 10% está activo';
+    document.body.appendChild(t);
+    setTimeout(() => { t.style.transition = 'opacity .4s'; t.style.opacity = '0'; setTimeout(() => t.remove(), 400); }, 3000);
+  }
 }
 
 function cliFlowCompletarDatos() {
