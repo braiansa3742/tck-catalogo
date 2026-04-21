@@ -2,6 +2,18 @@
 <html lang="es">
 <head>
 <!-- ═══════════════════════════════════════════════════════════════════════
+     TCK CATÁLOGO — v2.6.6 — 21/04/2026
+     ──────────────────────────────────────────────────────────────────────
+     Cambios v2.6.6 (sobre v2.6.5):
+       - Cupón 10% primera compra EXCLUYE categorías: pollos, trozados y ofertas (combos).
+       - Nueva constante CUPON_EXCLUYE_CAT_IDS + helper cuponEsElegibleCat(secId).
+       - T() separa subtotalElegible del subtotal total; descuento se calcula solo
+         sobre subtotalElegible (tope $20k sigue vigente).
+       - Badge "🚫 No suma al 10%" en cards de pollos/trozados cuando el cliente
+         tiene cupón disponible.
+       - Aviso en la caja del cupón del drawer: "Se aplica sobre $X. No incluye
+         pollos, trozados ni ofertas." (solo si hay excluidos en el carrito).
+     ──────────────────────────────────────────────────────────────────────
      TCK CATÁLOGO — ESTADO GLOBAL
      ──────────────────────────────────────────────────────────────────────
      Todas las variables de estado mutable y constantes de configuración
@@ -407,6 +419,32 @@ button,
   opacity: .75;
   margin-top: 3px;
   font-style: italic;
+}
+/* v2.6.6: aviso de qué no suma al cupón (en el drawer) */
+.d-cupon-excl-aviso {
+  font-size: 10.5px;
+  color: #6B4226;
+  opacity: .85;
+  margin-top: 4px;
+  line-height: 1.25;
+}
+/* v2.6.6: badge en la card cuando la categoría no suma al cupón */
+.badge-no-cupon {
+  position: absolute;
+  left: 6px;
+  bottom: 6px;
+  background: rgba(255,255,255,.92);
+  color: #8B6D3F;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: .3px;
+  padding: 3px 7px;
+  border-radius: 6px;
+  border: 1px solid rgba(139,109,63,.28);
+  text-transform: uppercase;
+  z-index: 3;
+  pointer-events: none;
+  box-shadow: 0 1px 3px rgba(0,0,0,.08);
 }
 .d-tot-row.subtotal .d-tot-amt {
   font-size: 22px;
@@ -2524,6 +2562,10 @@ button,
     <span class="d-cupon-detalle-monto" id="d-cupon-monto">−$0</span>
   </div>
   <div class="d-cupon-tope-aviso" id="d-cupon-tope-aviso" style="display:none">Tope de $20.000 alcanzado</div>
+  <!-- v2.6.6: aviso de exclusión -->
+  <div class="d-cupon-excl-aviso" id="d-cupon-excl-aviso" style="display:none">
+    Se aplica sobre <b id="d-cupon-elegible-monto">$0</b>. No incluye pollos, trozados ni ofertas.
+  </div>
 </div>
 <div class="d-tot-row"><div class="d-tot-lbl">Total Estimado</div><div class="d-tot-amt" id="d-tot"></div></div>
 <button class="d-wa" onclick="sendWA()"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.125.558 4.122 1.532 5.852L.057 23.737a.5.5 0 00.606.606l5.885-1.475A11.945 11.945 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22a9.944 9.944 0 01-5.073-1.386l-.363-.214-3.771.945.963-3.655-.236-.378A9.954 9.954 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg> Enviar a <span id="d-wa-nom" style="margin-left:4px"></span></button>
@@ -2686,6 +2728,13 @@ const CAT=[{"id": "pollos", "sec": "POLLOS CONGELADOS", "col1": "#B71C1C", "col2
 // ═══════════════════════════════════════════════════════════════════════
 const CUPON_PCT  = 10;       // 10% de descuento
 const CUPON_TOPE = 20000;    // Tope $20.000 de ahorro
+// v2.6.6: categorías EXCLUIDAS del cupón 10% (no suman al descuento)
+// Pollos, Trozados y Ofertas/combos no aplican al cupón.
+const CUPON_EXCLUYE_CAT_IDS = ['pollos', 'trozados'];
+// Helper: ¿esta categoría suma al cupón?
+function cuponEsElegibleCat(secId) {
+  return !CUPON_EXCLUYE_CAT_IDS.includes(secId);
+}
 
 // Devuelve true si el cliente logueado tiene cupón disponible
 function cuponDisponible() {
@@ -2737,10 +2786,14 @@ async function cuponMarcarUsado() {
 
 function T(){
   let tProd=0, cProd=0;
+  // v2.6.6: separar el subtotal elegible (no pollo/trozados) del no elegible
+  let tProdElegible = 0;
   CAT.forEach((s,si)=>s.items.forEach((it,ii)=>{
     const q = qty[si+'-'+ii]||0;
-    tProd += it.pr*q;
+    const lineTotal = it.pr*q;
+    tProd += lineTotal;
     cProd += q;
+    if (cuponEsElegibleCat(s.id)) tProdElegible += lineTotal;
   }));
   let tCombos=0, cCombos=0;
   (_combosData||[]).forEach(c => {
@@ -2750,10 +2803,11 @@ function T(){
   });
   const subtotal = tProd + tCombos;
   const c = cProd + cCombos;
-  // v2.6.3: aplicar cupón 10% primera compra (tope $20k)
-  const descuento = cuponCalcularDescuento(subtotal);
+  // v2.6.6: el cupón se calcula SOLO sobre subtotal elegible (no pollo/trozados/combos)
+  const subtotalElegible = tProdElegible; // combos siempre excluidos
+  const descuento = cuponCalcularDescuento(subtotalElegible);
   const t = subtotal - descuento;
-  return {t, c, tCombos, cCombos, tProductos:tProd, cProductos:cProd, subtotal, descuento};
+  return {t, c, tCombos, cCombos, tProductos:tProd, cProductos:cProd, subtotal, subtotalElegible, descuento};
 }
 
 function renderVend(){
@@ -2842,11 +2896,15 @@ function renderBody(){
       const sinStock = SIN_STOCK.has(it.n);
       const bdg=it.badge?('<div class="card-badge-wrap"><div class="badge-'+(it.badge_tipo||'red')+'">'+it.badge+'</div></div>'):'';
       const bdgSinStock = sinStock ? '<div class="badge-sinstock">Sin stock</div>' : '';
+      // v2.6.6: badge "No suma al 10%" en categorías excluidas si el cliente tiene cupón disponible
+      const bdgNoCupon = (!cuponEsElegibleCat(sec.id) && typeof cuponDisponible === 'function' && cuponDisponible())
+        ? '<div class="badge-no-cupon">🚫 No suma al 10%</div>'
+        : '';
       const pkg=it.pu?('<div class="card-pkg">'+it.pu+'</div>'):'<div class="card-pkg hidden">-</div>';
       const qsub=q>0?'<div class="qsub">'+fmt(it.pr*q)+'</div>':'';
       return '<div class="card'+(it.img2?' card-dual':'')+( sec.shaddai?' shaddai':'')+(q>0?' has-qty':'')+(sinStock?' card-sinstock':'')+'" data-key="'+key+'">'
         +(it.img2
-        ? ('<div class="card-img-area" style="position:relative;display:flex;gap:2px;">'+bdgSinStock+bdg
+        ? ('<div class="card-img-area" style="position:relative;display:flex;gap:2px;">'+bdgSinStock+bdg+bdgNoCupon
           +'<img class="card-img card-img-left" src="'
           +(_imgmap[it.n] ? 'img/'+_imgmap[it.n] : ('img/'+encodeURIComponent(it.n+'.jpg').replace(/%25/g,'%').replace(/%2F/g,'/')))
           +'" alt="'+it.n+'" loading="lazy" decoding="async" style="flex:1;min-width:0;height:160px;object-fit:cover;padding:0;">'
@@ -2854,7 +2912,7 @@ function renderBody(){
           +'</div>'
           +'<div style="display:flex;gap:2px;padding:2px 4px 0;"><div style="flex:1;font-size:9px;color:var(--text3);text-align:center;font-style:italic;">Producto</div><div style="flex:1;font-size:9px;color:var(--text3);text-align:center;font-style:italic;">Uso ideal</div></div>'
           +'<div class="card-sep"></div>')
-        : ('<div class="card-img-area">'+bdgSinStock+bdg
+        : ('<div class="card-img-area">'+bdgSinStock+bdg+bdgNoCupon
           +'<img class="card-img" src="img/'+encodeURIComponent(_imgmap[it.n]||it.n+'.jpg').replace(/%25/g,'%').replace(/%2F/g,'/')+'" alt="'+it.n+'" loading="lazy" decoding="async">'
           +'</div><div class="card-sep"></div>'))
         +'<div class="card-body">'
@@ -3284,6 +3342,8 @@ function renderDrawer(){
   const cuponBox = document.getElementById('d-cupon-box');
   const cuponMonto = document.getElementById('d-cupon-monto');
   const cuponTope = document.getElementById('d-cupon-tope-aviso');
+  const cuponExcl = document.getElementById('d-cupon-excl-aviso');
+  const cuponElegibleMonto = document.getElementById('d-cupon-elegible-monto');
   const subRow = document.getElementById('d-subtotal-row');
   const subEl = document.getElementById('d-subtotal');
   if (subTot.descuento > 0) {
@@ -3292,9 +3352,14 @@ function renderDrawer(){
     if (cuponTope) cuponTope.style.display = (subTot.descuento >= CUPON_TOPE) ? 'block' : 'none';
     if (subRow) subRow.style.display = '';
     if (subEl) subEl.textContent = fmt(subTot.subtotal);
+    // v2.6.6: mostrar aviso si hay productos no elegibles en el carrito
+    const hayExcluidos = (subTot.subtotal - (subTot.subtotalElegible||0)) > 0.5;
+    if (cuponExcl) cuponExcl.style.display = hayExcluidos ? 'block' : 'none';
+    if (cuponElegibleMonto) cuponElegibleMonto.textContent = fmt(subTot.subtotalElegible||0);
   } else {
     if (cuponBox) cuponBox.classList.remove('on');
     if (subRow) subRow.style.display = 'none';
+    if (cuponExcl) cuponExcl.style.display = 'none';
   }
   document.getElementById('d-tot').textContent=fmt(t);
   foot.style.display='block';
