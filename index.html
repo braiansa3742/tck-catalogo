@@ -1675,23 +1675,6 @@ button,
 <div class="hdr-brand"><div class="hdr-brand-name">THE CHICKEN <span>KINGS</span></div><div class="hdr-brand-sub" id="hdr-price-status">Cat&aacute;logo Abril 2026 &middot; Trenque Lauquen</div></div>
 <div class="hdr-right"><div class="cart-pill" id="cart-pill"></div><button id="cli-btn-volver-portal" onclick="cliVolverPortal()" style="display:none;background:rgba(255,215,0,.15);border:1.5px solid rgba(255,215,0,.4);border-radius:20px;padding:6px 12px;font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:800;color:var(--gold);cursor:pointer;white-space:nowrap;letter-spacing:.3px">← Mi cuenta</button><button id="cli-btn-micuenta" onclick="mostrarLoginParaCuenta()" style="background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:20px;padding:5px 10px;font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;color:rgba(255,255,255,.7);cursor:pointer;white-space:nowrap;letter-spacing:.3px;">👤 Mi cuenta</button><button class="hdr-support" id="hdr-support" onclick="toggleFAB()" aria-label="Ayuda"><svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor" style="opacity:.85;flex-shrink:0"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z"/></svg> Ayuda</button><div class="vchip" id="vchip" onclick="cambiarVendedor()"></div></div>
 </div><div class="catnav" id="catnav"></div></div>
-<!-- ═══════════════════════════════════════════════════════════════
-     COMBOS OFERTAS (v2.2) — se puebla desde Supabase en combosCargar()
-     ═══════════════════════════════════════════════════════════════ -->
-<div id="combos-section" style="display:none;">
-  <div class="combos-title-wrap">
-    <span class="combos-flame">🔥</span>
-    <div class="combos-title">OFERTAS</div>
-    <span class="combos-flame">🔥</span>
-  </div>
-  <div style="text-align:center">
-    <div class="combos-subtitle">⚡ HASTA AGOTAR STOCK ⚡</div>
-  </div>
-  <div class="combos-urgencia">🕐 Oferta por tiempo limitado · Aprovechá ahora</div>
-  <div class="combos-scroll" id="combos-scroll"></div>
-  <div class="combos-dots" id="combos-dots"></div>
-</div>
-
 <div class="body" id="body"></div>
 <div class="orderbar">
 <div class="ob-empty" id="ob-empty"><div class="ob-empty-t">Arm&aacute; tu pedido</div><div class="ob-empty-s">Sum&aacute; productos y envi&aacute;lo por WhatsApp</div></div>
@@ -1903,7 +1886,22 @@ function jump(id,btn){
 }
 
 function renderBody(){
-  document.getElementById('body').innerHTML=CAT.map((sec,si)=>{
+  // v2.3: incluir combos-section al INICIO del body para que scrollee junto con el catálogo
+  const combosHtml = '<div id="combos-section" style="display:none;">'
+    + '<div class="combos-title-wrap">'
+    +   '<span class="combos-flame">🔥</span>'
+    +   '<div class="combos-title">OFERTAS</div>'
+    +   '<span class="combos-flame">🔥</span>'
+    + '</div>'
+    + '<div style="text-align:center">'
+    +   '<div class="combos-subtitle">⚡ HASTA AGOTAR STOCK ⚡</div>'
+    + '</div>'
+    + '<div class="combos-urgencia">🕐 Oferta por tiempo limitado · Aprovechá ahora</div>'
+    + '<div class="combos-scroll" id="combos-scroll"></div>'
+    + '<div class="combos-dots" id="combos-dots"></div>'
+    + '</div>';
+
+  document.getElementById('body').innerHTML = combosHtml + CAT.map((sec,si)=>{
     const items=sec.items.map((it,ii)=>{
       // Ocultar productos sin stock temporal
       if (OCULTOS.has(it.n)) return '';
@@ -1950,6 +1948,11 @@ function renderBody(){
       +'<div class="sec-grid">'+items+'</div>'
       +'</div>';
   }).join('');
+
+  // v2.3: re-render de combos por si ya cargaron (caso: combosCargar terminó antes que renderBody)
+  if (typeof combosRender === 'function' && _combosData && _combosData.length > 0) {
+    combosRender();
+  }
 }
 
 function chg(key,si,ii,d){
