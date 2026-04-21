@@ -2718,6 +2718,8 @@ async function cuponMarcarUsado() {
   _cliActivo.cupon_1ra_compra_usado_en = new Date().toISOString();
   _cliActivo.cupon_1ra_compra_disponible = false;
   cliGuardar(_cliActivo);
+  // v2.6.5: quitar badge dorado del botón header
+  if (typeof cliQuitarBadgeCupon === 'function') cliQuitarBadgeCupon();
   // PATCH en Supabase (silencioso si las columnas no existen)
   try {
     await fetch(SB_URL + '/rest/v1/clientes_auth?id=eq.' + _cliActivo.id, {
@@ -4123,6 +4125,20 @@ cargarPrecios().finally(() => {
   setTimeout(function() {
     if (typeof cliActualizarBotonHeader === 'function') cliActualizarBotonHeader();
     if (typeof cliBannerMostrar === 'function') cliBannerMostrar();
+    // v2.6.5: si ya hay sesión cargada de LS y tiene cupón, mostrar badge dorado en header
+    // (no toast — eso es solo para login fresco, no para reload)
+    if (_cliActivo && typeof cuponDisponible === 'function' && cuponDisponible()) {
+      const btn = document.getElementById('cli-btn-micuenta');
+      if (btn && !btn.querySelector('.badge-cupon')) {
+        const badge = document.createElement('span');
+        badge.className = 'badge-cupon';
+        badge.textContent = '🎁';
+        badge.title = 'Tenés un cupón 10% OFF disponible';
+        badge.style.cssText = 'position:absolute;top:-4px;right:-4px;width:16px;height:16px;background:#FFD700;color:#8B0000;border-radius:50%;font-size:10px;display:flex;align-items:center;justify-content:center;border:1.5px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.3);font-weight:900;line-height:1;';
+        btn.style.position = 'relative';
+        btn.appendChild(badge);
+      }
+    }
   }, 300);
 });
 
@@ -5154,6 +5170,45 @@ function cliBannerCerrar() {
   try { localStorage.setItem('tck_banner_reg_cerrado', '1'); } catch(e) {}
 }
 
+// v2.6.5: Notificar al cliente que tiene cupón disponible (post-login)
+// Se llama después de cualquier login exitoso. Si tiene cupón, muestra
+// toast verde + agrega badge dorado al botón header.
+function cliPostLoginNotificarCupon() {
+  if (!_cliActivo) return;
+  if (typeof cuponDisponible !== 'function' || !cuponDisponible()) return;
+
+  // Toast informativo
+  setTimeout(function() {
+    const t = document.createElement('div');
+    t.style.cssText = 'position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,#FFD700,#E6A500);color:#8B0000;padding:14px 22px;border-radius:24px;font-family:Barlow Condensed,sans-serif;font-size:14px;font-weight:900;z-index:9999;box-shadow:0 6px 20px rgba(0,0,0,.3);letter-spacing:.4px;border:2px solid #8B0000;text-align:center;max-width:340px;';
+    t.innerHTML = '🎁 Tenés un cupón <b>10% OFF</b> activo<br><span style="font-size:11px;font-weight:600;font-family:Barlow,sans-serif;">Aplicable en tu próximo pedido (hasta $20.000)</span>';
+    document.body.appendChild(t);
+    setTimeout(() => { t.style.transition = 'opacity .5s'; t.style.opacity = '0'; setTimeout(() => t.remove(), 500); }, 4500);
+  }, 400);
+
+  // Agregar badge dorado al botón header (clase visual)
+  setTimeout(function() {
+    const btn = document.getElementById('cli-btn-micuenta');
+    if (btn && !btn.querySelector('.badge-cupon')) {
+      const badge = document.createElement('span');
+      badge.className = 'badge-cupon';
+      badge.textContent = '🎁';
+      badge.title = 'Tenés un cupón 10% OFF disponible';
+      badge.style.cssText = 'position:absolute;top:-4px;right:-4px;width:16px;height:16px;background:#FFD700;color:#8B0000;border-radius:50%;font-size:10px;display:flex;align-items:center;justify-content:center;border:1.5px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.3);font-weight:900;line-height:1;';
+      btn.style.position = 'relative';
+      btn.appendChild(badge);
+    }
+  }, 200);
+}
+
+// v2.6.5: Limpiar el badge del cupón cuando ya no aplica (después de usarlo)
+function cliQuitarBadgeCupon() {
+  const btn = document.getElementById('cli-btn-micuenta');
+  if (!btn) return;
+  const badge = btn.querySelector('.badge-cupon');
+  if (badge) badge.remove();
+}
+
 // ═══════════════════════════════════════════════════════════════════════
 // v2.6.2 — FLUJO DE REGISTRO/LOGIN CON PIN DE 4 DÍGITOS
 // ═══════════════════════════════════════════════════════════════════════
@@ -5609,6 +5664,8 @@ async function cliFlowPinGuardar() {
         cliGuardar(datos[0]);
         cliVincularMaster(datos[0]);
         cliEntrarPortal(datos[0]);
+        // v2.6.5: notificar cupón si tiene
+        if (typeof cliPostLoginNotificarCupon === 'function') cliPostLoginNotificarCupon();
       }
     } else {
       // Crear nuevo cliente (registro)
@@ -5658,6 +5715,19 @@ function cliFlowExitoCerrar() {
     document.body.appendChild(t);
     setTimeout(() => { t.style.transition = 'opacity .4s'; t.style.opacity = '0'; setTimeout(() => t.remove(), 400); }, 3000);
   }
+  // v2.6.5: agregar badge dorado al botón header (igual que en login con cupón)
+  setTimeout(function() {
+    const btn = document.getElementById('cli-btn-micuenta');
+    if (btn && !btn.querySelector('.badge-cupon') && typeof cuponDisponible === 'function' && cuponDisponible()) {
+      const badge = document.createElement('span');
+      badge.className = 'badge-cupon';
+      badge.textContent = '🎁';
+      badge.title = 'Tenés un cupón 10% OFF disponible';
+      badge.style.cssText = 'position:absolute;top:-4px;right:-4px;width:16px;height:16px;background:#FFD700;color:#8B0000;border-radius:50%;font-size:10px;display:flex;align-items:center;justify-content:center;border:1.5px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.3);font-weight:900;line-height:1;';
+      btn.style.position = 'relative';
+      btn.appendChild(badge);
+    }
+  }, 350);
 }
 
 function cliFlowCompletarDatos() {
@@ -5720,6 +5790,8 @@ async function cliFlowLoginPinVerificar() {
       cliGuardar(_flowClienteData);
       cliVincularMaster(_flowClienteData);
       cliEntrarPortal(_flowClienteData);
+      // v2.6.5: notificar cupón si tiene
+      if (typeof cliPostLoginNotificarCupon === 'function') cliPostLoginNotificarCupon();
     } else {
       _flowPinIntentos++;
       const rest = 5 - _flowPinIntentos;
@@ -6080,22 +6152,43 @@ function cliNuevoPedido() {
 
 // ── LOGOUT ────────────────────────────────────────────────────
 function cliLogout() {
+  // v2.6.5: confirmación previa para evitar logout accidental
+  if (!confirm('¿Querés cerrar sesión?')) return;
+
   cliDetenerRefresh();
   _cliPedidosCache = []; // limpiar cache de pedidos al cerrar sesión
   cliLimpiar();
   _cliActivo = null;
-  document.getElementById('cli-portal').classList.add('gone');
-  document.getElementById('cli-login').classList.remove('gone');
-  document.getElementById('cli-login').classList.add('visible');
-  document.getElementById('cli-tel').value   = '';
-  document.getElementById('cli-clave').value = '';
-  cliSetErr('cli-err-login', '');
+  // Limpiar campos del form viejo (compatibilidad)
+  const t = document.getElementById('cli-tel');
+  const c = document.getElementById('cli-clave');
+  if (t) t.value = '';
+  if (c) c.value = '';
+  if (typeof cliSetErr === 'function') cliSetErr('cli-err-login', '');
+  // v2.6.5: cerrar TANTO el portal COMO el modal de login → volver al catálogo
+  const portal = document.getElementById('cli-portal');
+  if (portal) portal.classList.add('gone');
+  const loginEl = document.getElementById('cli-login');
+  if (loginEl) {
+    loginEl.classList.remove('visible');
+    loginEl.classList.add('gone');
+  }
   const btnV = document.getElementById('cli-btn-volver-portal');
   if (btnV) btnV.style.display = 'none';
   const vchip = document.getElementById('vchip');
   if (vchip) vchip.style.display = '';
   // v2.6.1: actualizar botón header al estado no-logueado
   if (typeof cliActualizarBotonHeader === 'function') cliActualizarBotonHeader();
+  // v2.6.5: limpiar badge del cupón también
+  if (typeof cliQuitarBadgeCupon === 'function') cliQuitarBadgeCupon();
+  // v2.6.5: toast informativo
+  setTimeout(function() {
+    const toast = document.createElement('div');
+    toast.style.cssText = 'position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:#555;color:#fff;padding:10px 20px;border-radius:20px;font-family:Barlow Condensed,sans-serif;font-size:13px;font-weight:700;z-index:9999;box-shadow:0 4px 14px rgba(0,0,0,.25);letter-spacing:.4px;';
+    toast.textContent = '✓ Sesión cerrada';
+    document.body.appendChild(toast);
+    setTimeout(() => { toast.style.transition = 'opacity .35s'; toast.style.opacity = '0'; setTimeout(() => toast.remove(), 350); }, 1800);
+  }, 100);
 }
 
 // Volver al portal desde el catálogo (cliente logueado)
