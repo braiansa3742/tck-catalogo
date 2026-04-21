@@ -25,6 +25,14 @@ let _enviandoPedido      = false; // Lock anti-doble-click al enviar pedido
 // ── Estado del carrito ────────────────────────────────────────────
 const qty = {};                   // Cantidades por item: {"secIdx-itemIdx": cantidad}
 
+// ── Estado de combos (v2 — combos OFERTAS) ────────────────────────
+// qtyCombo: { 'combo_crujiente': cantidad, 'combo_rendidor': cantidad }
+const qtyCombo = {};
+// _combosData: lista cargada desde Supabase con {id, nombre, productos, precio_combo, ...}
+let _combosData = [];
+// Límite de combos por compra (se carga de Supabase, default 2)
+const MAX_COMBOS_POR_COMPRA = 2;
+
 // ── Estado del gesto "hold" (mantener presionado +/-) ─────────────
 let holdTimeout   = null;
 let holdInterval  = null;
@@ -1002,6 +1010,366 @@ button,
   font-size: 13px; cursor: pointer; padding: 8px; margin-top: 4px;
   font-family: 'Barlow', sans-serif;
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   COMBOS OFERTAS (v2) — sección horizontal arriba del catálogo
+   ═══════════════════════════════════════════════════════════════ */
+#combos-section {
+  background: linear-gradient(180deg, #1a0000 0%, #2d0606 100%);
+  padding: 14px 0 16px;
+  position: relative;
+  border-bottom: 3px solid var(--gold);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+}
+#combos-section::before {
+  content: '';
+  position: absolute; top:0; left:0; right:0; height:3px;
+  background: linear-gradient(90deg, var(--gold), var(--gold2), var(--gold));
+  box-shadow: 0 0 8px rgba(255,215,0,0.5);
+}
+.combos-title-wrap {
+  display: flex; align-items: center; justify-content: center;
+  gap: 8px; margin-bottom: 2px;
+}
+.combos-title {
+  color: var(--gold);
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 900; font-size: 22px; letter-spacing: 2px;
+  text-shadow: 0 2px 8px rgba(255,215,0,0.3);
+}
+.combos-flame { font-size: 20px; animation: comboPulse 2s ease-in-out infinite; }
+@keyframes comboPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.15); }
+}
+.combos-subtitle {
+  text-align: center; color: #fff;
+  font-size: 10px; font-weight: 700; letter-spacing: 2.5px;
+  opacity: 0.85; margin-bottom: 12px;
+}
+.combos-scroll {
+  display: flex; gap: 12px;
+  padding: 0 14px 8px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.combos-scroll::-webkit-scrollbar { display: none; }
+.combo-card {
+  flex-shrink: 0;
+  width: 285px;
+  scroll-snap-align: start;
+  background: #fff;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.35);
+  position: relative;
+  display: flex; flex-direction: column;
+}
+.combo-card.agotado { opacity: 0.55; filter: grayscale(0.3); }
+.combo-img-wrap {
+  height: 160px;
+  position: relative;
+  background: linear-gradient(135deg, #FFB74D, #E65100);
+  display: flex; align-items: center; justify-content: center;
+  overflow: hidden;
+}
+.combo-img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+}
+.combo-img-placeholder {
+  font-size: 52px;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+.combo-badge-oferta {
+  position: absolute; top: 10px; left: 10px;
+  background: linear-gradient(135deg, #FF6D00, #C62828);
+  color: #FFD700;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 900; font-size: 11px;
+  padding: 5px 10px; border-radius: 8px;
+  letter-spacing: 1px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+  border: 1px solid rgba(255,215,0,0.5);
+}
+.combo-badge-agotado {
+  position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%, -50%) rotate(-12deg);
+  background: rgba(198,40,40,0.95);
+  color: #fff;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 900; font-size: 26px;
+  padding: 8px 20px; border-radius: 8px;
+  letter-spacing: 3px;
+  border: 3px solid #fff;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+  z-index: 2;
+}
+.combo-body {
+  padding: 14px 16px 16px;
+  display: flex; flex-direction: column;
+  flex: 1;
+}
+.combo-nombre {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 900; font-size: 20px;
+  color: var(--red);
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+  line-height: 1.1;
+}
+.combo-incluye {
+  background: var(--cream);
+  border-radius: 8px;
+  padding: 8px 10px;
+  margin-bottom: 10px;
+  border-left: 3px solid var(--gold);
+}
+.combo-incluye-label {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 10px; font-weight: 800;
+  color: var(--text3);
+  letter-spacing: 1.2px;
+  margin-bottom: 3px;
+}
+.combo-incluye-item {
+  font-size: 12px; font-weight: 600;
+  color: var(--text2);
+  margin-bottom: 2px;
+  line-height: 1.3;
+}
+.combo-incluye-item::before {
+  content: '✓ ';
+  color: #2E7D32;
+  font-weight: 900;
+}
+.combo-precios {
+  display: flex; align-items: baseline;
+  gap: 8px; flex-wrap: wrap;
+  margin-bottom: 6px;
+}
+.combo-precio-tachado {
+  font-size: 13px;
+  color: #999;
+  text-decoration: line-through;
+  font-weight: 600;
+}
+.combo-precio-off {
+  background: #2E7D32;
+  color: #fff;
+  font-size: 10px; font-weight: 900;
+  padding: 2px 7px; border-radius: 4px;
+  font-family: 'Barlow Condensed', sans-serif;
+  letter-spacing: 0.5px;
+}
+.combo-precio-combo {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 26px; font-weight: 900;
+  color: var(--red);
+  margin-bottom: 10px;
+  letter-spacing: 0.5px;
+}
+.combo-barra-wrap {
+  margin-bottom: 10px;
+}
+.combo-progreso {
+  background: #f0f0f0;
+  border-radius: 6px;
+  height: 8px;
+  overflow: hidden;
+  margin-bottom: 4px;
+  position: relative;
+}
+.combo-progreso-barra {
+  background: linear-gradient(90deg, #FF6D00, #C62828);
+  height: 100%;
+  border-radius: 6px;
+  transition: width 0.3s;
+  box-shadow: 0 0 6px rgba(255,109,0,0.3);
+}
+.combo-progreso-texto {
+  font-size: 10px;
+  color: var(--text3);
+  font-weight: 700;
+  letter-spacing: 0.3px;
+}
+.combo-legal {
+  font-size: 9px;
+  color: var(--text3);
+  font-style: italic;
+  margin-bottom: 10px;
+  line-height: 1.3;
+}
+.combo-qty-row {
+  display: flex; align-items: center;
+  gap: 8px;
+  margin-top: auto;
+}
+.combo-btn-qty {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  border: 2px solid var(--red);
+  background: #fff;
+  color: var(--red);
+  font-size: 18px;
+  font-weight: 900;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  font-family: 'Barlow Condensed', sans-serif;
+  transition: all 0.15s;
+}
+.combo-btn-qty:hover { background: var(--red); color: #fff; }
+.combo-btn-qty:disabled { opacity: 0.3; cursor: not-allowed; }
+.combo-qty-val {
+  flex: 1;
+  text-align: center;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 18px;
+  font-weight: 900;
+  color: var(--text);
+}
+.combo-btn-add {
+  flex: 1;
+  background: linear-gradient(135deg, var(--red), var(--red3));
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 10px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 14px; font-weight: 900;
+  letter-spacing: 0.8px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.combo-btn-add:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(139,0,0,0.3); }
+.combo-btn-add:disabled {
+  background: #999;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+/* Dots de navegación para mobile */
+.combos-dots {
+  display: flex; justify-content: center;
+  gap: 6px;
+  margin-top: 8px;
+}
+.combos-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: rgba(255,215,0,0.3);
+  transition: all 0.2s;
+}
+.combos-dot.active {
+  background: var(--gold);
+  width: 18px;
+  border-radius: 3px;
+}
+
+/* Indicador de "hay más" (hint al usuario) */
+.combos-hint {
+  position: absolute;
+  right: 8px; top: 50%;
+  transform: translateY(-50%);
+  color: var(--gold);
+  font-size: 22px;
+  pointer-events: none;
+  opacity: 0.6;
+  animation: comboHint 1.5s ease-in-out infinite;
+  z-index: 1;
+}
+@keyframes comboHint {
+  0%, 100% { transform: translateY(-50%) translateX(0); opacity: 0.4; }
+  50% { transform: translateY(-50%) translateX(4px); opacity: 0.8; }
+}
+
+/* Mensaje de aviso (límite / agotado) */
+.combo-toast {
+  position: fixed;
+  bottom: 120px; left: 50%;
+  transform: translateX(-50%) translateY(40px);
+  background: linear-gradient(135deg, #C62828, #8B0000);
+  color: #fff;
+  padding: 12px 20px;
+  border-radius: 12px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 800;
+  font-size: 14px;
+  letter-spacing: 0.5px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+  z-index: 10000;
+  opacity: 0;
+  pointer-events: none;
+  transition: all 0.3s;
+  max-width: 320px;
+  text-align: center;
+}
+.combo-toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* En el drawer (carrito expandido) */
+.d-combo-group {
+  background: linear-gradient(135deg, #FFF8E1, #FFECB3);
+  border-left: 4px solid var(--gold);
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin-bottom: 10px;
+}
+.d-combo-title {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 900;
+  font-size: 14px;
+  color: var(--red);
+  margin-bottom: 4px;
+  display: flex; align-items: center; gap: 6px;
+}
+.d-combo-item {
+  font-size: 12px;
+  color: var(--text2);
+  margin-left: 10px;
+  margin-bottom: 2px;
+}
+.d-combo-precio {
+  display: flex; justify-content: space-between;
+  align-items: center;
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px dashed rgba(139,0,0,0.2);
+}
+.d-combo-precio-val {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 900;
+  color: var(--red);
+  font-size: 16px;
+}
+.d-combo-qty {
+  display: flex; align-items: center;
+  gap: 6px;
+}
+.d-combo-qty-btn {
+  width: 24px; height: 24px;
+  border-radius: 50%;
+  border: 1.5px solid var(--red);
+  background: #fff;
+  color: var(--red);
+  font-size: 13px;
+  font-weight: 900;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Barlow Condensed', sans-serif;
+}
+.d-combo-qty-val {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 14px;
+  font-weight: 900;
+  min-width: 18px;
+  text-align: center;
+}
 </style>
 </head>
 <body>
@@ -1205,6 +1573,20 @@ button,
 <div class="hdr-brand"><div class="hdr-brand-name">THE CHICKEN <span>KINGS</span></div><div class="hdr-brand-sub" id="hdr-price-status">Cat&aacute;logo Abril 2026 &middot; Trenque Lauquen</div></div>
 <div class="hdr-right"><div class="cart-pill" id="cart-pill"></div><button id="cli-btn-volver-portal" onclick="cliVolverPortal()" style="display:none;background:rgba(255,215,0,.15);border:1.5px solid rgba(255,215,0,.4);border-radius:20px;padding:6px 12px;font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:800;color:var(--gold);cursor:pointer;white-space:nowrap;letter-spacing:.3px">← Mi cuenta</button><button id="cli-btn-micuenta" onclick="mostrarLoginParaCuenta()" style="background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:20px;padding:5px 10px;font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;color:rgba(255,255,255,.7);cursor:pointer;white-space:nowrap;letter-spacing:.3px;">👤 Mi cuenta</button><button class="hdr-support" id="hdr-support" onclick="toggleFAB()" aria-label="Ayuda"><svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor" style="opacity:.85;flex-shrink:0"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z"/></svg> Ayuda</button><div class="vchip" id="vchip" onclick="cambiarVendedor()"></div></div>
 </div><div class="catnav" id="catnav"></div></div>
+<!-- ═══════════════════════════════════════════════════════════════
+     COMBOS OFERTAS (v2) — se puebla desde Supabase en combosCargar()
+     ═══════════════════════════════════════════════════════════════ -->
+<div id="combos-section" style="display:none;">
+  <div class="combos-title-wrap">
+    <span class="combos-flame">🔥</span>
+    <div class="combos-title">OFERTAS</div>
+    <span class="combos-flame">🔥</span>
+  </div>
+  <div class="combos-subtitle">HASTA AGOTAR STOCK</div>
+  <div class="combos-scroll" id="combos-scroll"></div>
+  <div class="combos-dots" id="combos-dots"></div>
+</div>
+
 <div class="body" id="body"></div>
 <div class="orderbar">
 <div class="ob-empty" id="ob-empty"><div class="ob-empty-t">Arm&aacute; tu pedido</div><div class="ob-empty-s">Sum&aacute; productos y envi&aacute;lo por WhatsApp</div></div>
@@ -1334,7 +1716,24 @@ const SIN_STOCK = new Set([
 const CAT=[{"id": "pollos", "sec": "POLLOS CONGELADOS", "col1": "#B71C1C", "col2": "#7B0000", "shaddai": false, "items": [{"n": "Pollo Ginosa", "p": "x 20 Kg", "pr": 86000, "img": "pollo_ginosa", "badge": "POLLO PREMIUM", "badge_tipo": "gold", "pu": "&#x2248;$4,300 / kg"}, {"n": "Pollo Optimo", "p": "x 20 Kg", "pr": 72000, "img": "pollo_optimo", "badge": "&#x2605; MAS PEDIDO", "badge_tipo": "red", "pu": "&#x2248;$3,600 / kg"}, {"n": "Suprema", "p": "x 5 Kg", "pr": 33000, "img": "supremas_bolsa", "badge": "&#x2605; MAS PEDIDO", "badge_tipo": "red", "pu": "&#x2248;$6,600 / kg"}, {"n": "Suprema IQF", "p": "x 15 Kg", "pr": 102000, "img": "suprema_iqf", "pu": "&#x2248;$6,800 / kg"}, {"n": "Suprema B IQF", "p": "x 20 Kg", "pr": 136000, "img": "suprema_iqf", "pu": "&#x2248;$6,800 / kg"}]}, {"id": "trozados", "sec": "TROZADOS", "col1": "#6D2C00", "col2": "#3B1500", "shaddai": false, "items": [{"n": "Fino de Ave Cocida", "p": "Cocida y desmenuzada · x 10 Kg", "pr": 62400, "img2": "img/empanada mordida.png", "pu": "&#x2248;$6,240 / kg", "badge": "&#x2605; NUEVO", "badge_tipo": "red"}, {"n": "Alita Congelada Granel", "p": "x 15 Kg", "pr": 44000, "img": "alas", "pu": "&#x2248;$2,933 / kg"}, {"n": "MDM - Carne Molida de Pollo", "p": "Ideal relleno empanadas · x 20 Kg", "pr": 34000, "img": "mdm", "badge": "&#x25BC; OPORTUNIDAD", "badge_tipo": "oport", "pu": "&#x2248;$1,700 / kg"}, {"n": "Cuarto Trasero IQF", "p": "x 15 Kg", "pr": 53000, "img": "patamuslo", "badge": "&#x2605; MAS PEDIDO", "badge_tipo": "red", "pu": "&#x2248;$3,533 / kg"}]}, {"id": "shaddai", "sec": "REBOZADOS EL SHADDAI", "col1": "#922B21", "col2": "#5C1A14", "shaddai": true, "items": [{"n": "Medallon de Pollo Clasico", "p": "x 6 Kg", "pr": 28500, "img": "medallon_clasico_v2", "pu": "&#x2248;$4,750 / kg"}, {"n": "Medallon Pollo c/Cheddar", "p": "x 6 Kg", "pr": 47800, "img": "medallon_cheddar_v2", "pu": "&#x2248;$7,967 / kg"}, {"n": "Medallon Pollo JyQ", "p": "x 6 Kg", "pr": 33500, "img": "medallon_jyq_v2", "pu": "&#x2248;$5,583 / kg"}, {"n": "Medallon Pollo y Espinaca", "p": "x 6 Kg", "pr": 33000, "img": "medallon_espinaca_v2", "pu": "&#x2248;$5,500 / kg"}, {"n": "Formita Clasica", "p": "x 6 Kg", "pr": 28500, "img": "formita_clasica_v2", "pu": "&#x2248;$4,750 / kg"}, {"n": "Formitas Pollo JyQ", "p": "x 6 Kg", "pr": 33500, "img": "formita_jyq_v2", "pu": "&#x2248;$5,583 / kg"}, {"n": "Nuggets de Pollo Crocante", "p": "x 6 Kg", "pr": 34500, "img": "nuggets_v2", "pu": "&#x2248;$5,750 / kg"}, {"n": "Bocadito de Papa y Jamon", "p": "x 6 Kg", "pr": 29000, "img": "bocadito_v2", "pu": "&#x2248;$4,833 / kg"}, {"n": "Pechuguitas al Verdeo", "p": "x 6 Kg", "pr": 45500, "img": "pechuguitas_v2", "pu": "&#x2248;$7,583 / kg"}, {"n": "Filet Merluza Finas Hierbas", "p": "x 6 Kg", "pr": 45600, "img": "merluza_hierbas_v2", "pu": "&#x2248;$7,600 / kg"}, {"n": "Filet de Merluza Rebozado", "p": "x 6 Kg", "pr": 43700, "img": "merluza_rebozado", "pu": "&#x2248;$7,283 / kg"}]}, {"id": "mila", "sec": "MILANESAS Y HAMBURGUESAS", "col1": "#7B241C", "col2": "#4A1510", "shaddai": false, "items": [{"n": "Milanesa de Nalga", "p": "x 5 Kg", "pr": 68000, "img": "milanesa_nalga_v2", "pu": "&#x2248;$13,600 / kg"}, {"n": "Milanesa de Pollo", "p": "x 5 Kg", "pr": 40500, "img": "milanesa_pollo_v2", "pu": "&#x2248;$5,300 / kg"}, {"n": "Hamburguesa 100% Carne", "p": "x 4 Kg (100g c/u)", "pr": 46600, "img": "hamburguesa_carne", "pu": "&#x2248;$1,165 / unidad"}]}, {"id": "papas_mccain", "sec": "McCAIN & BALCARCE", "col1": "#BA4A00", "col2": "#7A3000", "shaddai": false, "items": [{"n": "Pulpa de Palta", "p": "Pickers by McCain · x 450 Grs", "pr": 12200, "img": "pulpa_palta", "pu": ""}, {"n": "Papa Baston Balcarce", "p": "x 2,5 Kg", "pr": 8000, "img": "papa_baston", "badge": "&#x2605; MAS PEDIDO", "badge_tipo": "red", "pu": "&#x2248;$3,200 / kg"}]}, {"id": "huevos", "sec": "HUEVOS", "col1": "#D4A000", "col2": "#8B6500", "shaddai": false, "items": [{"n": "Maple N° 2", "p": "30 unidades", "pr": 4800, "img": "huevos_maple", "pu": ""}, {"n": "Maple N° 1", "p": "30 unidades", "pr": 5500, "img": "huevos_maple", "pu": ""}, {"n": "Cajita 1/2 Docena N° 2", "p": "6 unidades", "pr": 1350, "img": "huevos_cajita", "pu": ""}]}, {"id": "verd", "sec": "VERDURAS CONGELADAS", "col1": "#1E8449", "col2": "#0E4D29", "shaddai": false, "items": [{"n": "Arándanos Solimeno", "p": "500 Grs", "pr": 9000, "img": "arandanos", "pu": ""}, {"n": "Brocoli", "p": "500 Grs", "pr": 5800, "img": "brocoli", "pu": ""}, {"n": "Espinacas", "p": "500 Grs", "pr": 4000, "img": "espinaca", "pu": ""}, {"n": "Morron", "p": "500 Grs", "pr": 7000, "img": "morron", "pu": ""}, {"n": "Primavera", "p": "500 Grs", "pr": 5000, "img": "primavera", "pu": ""}, {"n": "Frutos Rojos", "p": "500 Grs", "pr": 11000, "img": "frutos_rojos", "pu": ""}, {"n": "Cebolla", "p": "500 Grs", "pr": 4000, "img": "cebolla", "pu": ""}]}, {"id": "pastas", "sec": "PASTAS LA CASERIANA", "col1": "#1A5276", "col2": "#0D2B3E", "shaddai": false, "items": [{"n": "Ravioles de Calabaza", "p": "500 Grs", "pr": 2700, "img": "ravioles", "pu": ""}, {"n": "Raviolones Espinaca y Mozz", "p": "Masa Integral · 500 Grs", "pr": 3900, "img": "ravioles", "pu": ""}, {"n": "Gnoquis de Papa", "p": "500 Grs", "pr": 2100, "img": "gnoquis", "pu": ""}, {"n": "Gnoquis de Espinaca", "p": "500 Grs", "pr": 2100, "img": "gnoquis_espinaca", "pu": ""}, {"n": "Sorrentinos Jamon y Queso", "p": "500 Grs", "pr": 4200, "img": "sorrentinos", "pu": ""}, {"n": "Sorrentinos Ricota 4 Quesos", "p": "400 Grs", "pr": 2600, "img": "sorrentinos", "pu": ""}]}, {"id": "veggie", "sec": "VEGGIE LA CASERIANA", "col1": "#4A7C35", "col2": "#2A4D1A", "shaddai": false, "items": [{"n": "Hamburguesa de Garbanzos", "p": "x 400 g", "pr": 4200, "img": "veggie_garbanzos", "pu": "&#x2248;$1.050 / unidad"}, {"n": "Hamburguesa de Lentejas", "p": "x 400 g", "pr": 4200, "img": "veggie_lentejas", "pu": "&#x2248;$1.050 / unidad"}, {"n": "Hamburguesa de Quinoa", "p": "x 400 g", "pr": 4200, "img": "veggie_quinoa", "pu": "&#x2248;$1.050 / unidad"}, {"n": "Hamburguesa de Arvejas", "p": "x 400 g", "pr": 4200, "img": "arvejas", "pu": "&#x2248;$1.050 / unidad"}, {"n": "Hamburguesa de Hongos", "p": "x 400 g", "pr": 4200, "img": "veggie_hongos", "pu": "&#x2248;$1.050 / unidad"}, {"n": "Hamburguesa de Espinaca", "p": "x 400 g", "pr": 4200, "img": "veggie_espinaca", "pu": "&#x2248;$1.050 / unidad"}, {"n": "Hamburguesa Mexicana", "p": "x 400 g", "pr": 4200, "img": "veggie_mexicana", "pu": "&#x2248;$1.050 / unidad"}, {"n": "Hamburguesa 5 Vegetales", "p": "x 400 g", "pr": 4200, "img": "veggie_5veg", "pu": "&#x2248;$1.050 / unidad"}]}];
 
 // qty, vActivo, fmt declarados en bloque de estado global (top del archivo)
-function T(){let t=0,c=0;CAT.forEach((s,si)=>s.items.forEach((it,ii)=>{const q=qty[si+'-'+ii]||0;t+=it.pr*q;c+=q;}));return{t,c};}
+// v2: T() ahora incluye combos. Retorna {t, c, tCombos, cCombos, tProductos, cProductos}
+function T(){
+  let tProd=0, cProd=0;
+  CAT.forEach((s,si)=>s.items.forEach((it,ii)=>{
+    const q = qty[si+'-'+ii]||0;
+    tProd += it.pr*q;
+    cProd += q;
+  }));
+  let tCombos=0, cCombos=0;
+  (_combosData||[]).forEach(c => {
+    const q = qtyCombo[c.id]||0;
+    tCombos += (c.precio_combo||0) * q;
+    cCombos += q;
+  });
+  const t = tProd + tCombos;
+  const c = cProd + cCombos;
+  return {t, c, tCombos, cCombos, tProductos:tProd, cProductos:cProd};
+}
 
 function renderVend(){
   document.getElementById('sv-cards').innerHTML=VEND.map((v,i)=>
@@ -1484,6 +1883,261 @@ function updateBar(){
   cp.textContent=has?c+' \u00b7 '+fmt(t):'';
 }
 
+// ═══════════════════════════════════════════════════════════════════
+// COMBOS OFERTAS (v2) — sistema completo
+// ═══════════════════════════════════════════════════════════════════
+
+// Carga combos activos desde Supabase al iniciar el catálogo
+async function combosCargar() {
+  try {
+    const r = await fetch(SB_URL + '/rest/v1/combos?activo=eq.true&order=orden.asc', {
+      headers: {
+        'apikey': SB_KEY,
+        'Authorization': 'Bearer ' + SB_KEY
+      }
+    });
+    if (!r.ok) { console.warn('[combos] Supabase response not ok:', r.status); return; }
+    const data = await r.json();
+    _combosData = Array.isArray(data) ? data : [];
+    combosRender();
+    // Si habían combos en localStorage, actualizar barra y drawer con el total
+    if (Object.keys(qtyCombo).length > 0) {
+      updateBar();
+      if (document.getElementById('drawer') && document.getElementById('drawer').classList.contains('on')) renderDrawer();
+    }
+  } catch (e) {
+    console.error('[combos] Error al cargar combos:', e);
+    _combosData = [];
+  }
+}
+
+// Renderiza la sección de OFERTAS con los combos
+function combosRender() {
+  const sec = document.getElementById('combos-section');
+  const scroll = document.getElementById('combos-scroll');
+  const dots = document.getElementById('combos-dots');
+  if (!sec || !scroll) return;
+
+  // Filtrar combos activos y con productos válidos
+  const combosValidos = (_combosData||[]).filter(c => c && c.id && c.productos);
+  if (combosValidos.length === 0) {
+    sec.style.display = 'none';
+    return;
+  }
+
+  sec.style.display = 'block';
+
+  // Render de cada combo
+  scroll.innerHTML = combosValidos.map(c => {
+    const qtyActual = qtyCombo[c.id] || 0;
+    const vendidosVisibles = (c.stock_offset||0) + (c.vendidos||0);
+    const stockTotal = c.stock_total || 50;
+    const disponiblesReales = stockTotal - (c.vendidos||0);
+    const disponiblesVisibles = stockTotal - vendidosVisibles;
+    const porcentajeBarra = Math.min(100, Math.round((vendidosVisibles / stockTotal) * 100));
+    const agotado = disponiblesReales <= 0 || !c.activo;
+    const ahorro = (c.precio_lista||0) - (c.precio_combo||0);
+
+    // Productos del combo para el listado
+    let items = '';
+    try {
+      const prods = typeof c.productos === 'string' ? JSON.parse(c.productos) : c.productos;
+      items = (prods||[]).map(p => '<div class="combo-incluye-item">' + (p.qty||1) + 'x ' + (p.nombre||'') + '</div>').join('');
+    } catch(e) {
+      items = '<div class="combo-incluye-item">' + (c.descripcion||'') + '</div>';
+    }
+
+    // Imagen con fallback
+    const imgHtml = c.imagen_url
+      ? '<img class="combo-img" src="' + c.imagen_url + '" alt="' + c.nombre + '" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\'" loading="lazy">'
+        + '<div class="combo-img-placeholder" style="display:none;position:absolute;inset:0;align-items:center;justify-content:center">🔥</div>'
+      : '<div class="combo-img-placeholder">🔥</div>';
+
+    return '<div class="combo-card' + (agotado?' agotado':'') + '" data-combo-id="' + c.id + '">' +
+      '<div class="combo-img-wrap">' +
+        imgHtml +
+        '<div class="combo-badge-oferta">🔥 -' + (c.descuento_pct||7) + '% OFF</div>' +
+        (agotado ? '<div class="combo-badge-agotado">AGOTADO</div>' : '') +
+      '</div>' +
+      '<div class="combo-body">' +
+        '<div class="combo-nombre">' + (c.nombre||'Combo') + '</div>' +
+        '<div class="combo-incluye">' +
+          '<div class="combo-incluye-label">LLEVÁS</div>' +
+          items +
+        '</div>' +
+        '<div class="combo-precios">' +
+          '<span class="combo-precio-tachado">' + fmt(c.precio_lista||0) + '</span>' +
+          '<span class="combo-precio-off">AHORRÁS ' + fmt(ahorro) + '</span>' +
+        '</div>' +
+        '<div class="combo-precio-combo">' + fmt(c.precio_combo||0) + '</div>' +
+        '<div class="combo-barra-wrap">' +
+          '<div class="combo-progreso"><div class="combo-progreso-barra" style="width:' + porcentajeBarra + '%"></div></div>' +
+          '<div class="combo-progreso-texto">🔥 ' + vendidosVisibles + ' vendidos · Quedan ' + disponiblesVisibles + ' combos</div>' +
+        '</div>' +
+        '<div class="combo-legal">Fotos a modo ilustrativo · Máx. ' + (c.max_por_compra||2) + ' por compra · Stock limitado</div>' +
+        (qtyActual > 0
+          ? '<div class="combo-qty-row">' +
+              '<button class="combo-btn-qty" onclick="combosRestar(\'' + c.id + '\')" aria-label="Quitar combo">−</button>' +
+              '<div class="combo-qty-val">' + qtyActual + ' en carrito</div>' +
+              '<button class="combo-btn-qty" onclick="combosSumar(\'' + c.id + '\')" aria-label="Sumar combo">+</button>' +
+            '</div>'
+          : '<button class="combo-btn-add" onclick="combosSumar(\'' + c.id + '\')"' + (agotado?' disabled':'') + '>' +
+              (agotado ? 'AGOTADO' : '+ AGREGAR AL PEDIDO') +
+            '</button>'
+        ) +
+      '</div>' +
+    '</div>';
+  }).join('');
+
+  // Dots de navegación (1 por combo)
+  if (dots) {
+    if (combosValidos.length > 1) {
+      dots.innerHTML = combosValidos.map((_, i) => '<div class="combos-dot' + (i===0?' active':'') + '"></div>').join('');
+      // Actualizar dot activo en scroll
+      scroll.onscroll = function() {
+        const cards = scroll.querySelectorAll('.combo-card');
+        let activeIdx = 0;
+        const scrollLeft = scroll.scrollLeft;
+        const cardWidth = cards[0] ? cards[0].offsetWidth + 12 : 297;
+        activeIdx = Math.round(scrollLeft / cardWidth);
+        dots.querySelectorAll('.combos-dot').forEach((d,i) => d.classList.toggle('active', i===activeIdx));
+      };
+    } else {
+      dots.innerHTML = '';
+    }
+  }
+}
+
+// Muestra un toast de aviso
+function combosToast(msg, durMs) {
+  const el = document.getElementById('combo-toast');
+  if (!el) return;
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(el._toastTimer);
+  el._toastTimer = setTimeout(() => el.classList.remove('show'), durMs || 3000);
+}
+
+// Sumar 1 combo al carrito (respetando límite y stock)
+function combosSumar(comboId) {
+  const combo = (_combosData||[]).find(c => c.id === comboId);
+  if (!combo) return;
+
+  const disponiblesReales = (combo.stock_total||0) - (combo.vendidos||0);
+  if (disponiblesReales <= 0 || !combo.activo) {
+    combosToast('Este combo ya se agotó. ¡Gracias por el interés!');
+    combosCargar(); // Refrescar para mostrar como AGOTADO
+    return;
+  }
+
+  const actual = qtyCombo[comboId] || 0;
+  const maxPorCompra = combo.max_por_compra || 2;
+
+  if (actual >= maxPorCompra) {
+    combosToast('Ya alcanzaste el límite de ' + maxPorCompra + ' combos por compra.');
+    return;
+  }
+
+  if (actual + 1 > disponiblesReales) {
+    combosToast('Solo quedan ' + disponiblesReales + ' combo(s) disponibles.');
+    return;
+  }
+
+  qtyCombo[comboId] = actual + 1;
+  combosRender();
+  updateBar();
+  if (document.getElementById('drawer') && document.getElementById('drawer').classList.contains('on')) renderDrawer();
+  saveCartLS();
+}
+
+// Restar 1 combo del carrito
+function combosRestar(comboId) {
+  const actual = qtyCombo[comboId] || 0;
+  if (actual <= 0) return;
+  if (actual === 1) {
+    delete qtyCombo[comboId];
+  } else {
+    qtyCombo[comboId] = actual - 1;
+  }
+  combosRender();
+  updateBar();
+  if (document.getElementById('drawer') && document.getElementById('drawer').classList.contains('on')) renderDrawer();
+  saveCartLS();
+}
+
+// Genera las líneas del WA para los combos
+function combosLineasWA() {
+  const lineas = [];
+  (_combosData||[]).forEach(c => {
+    const q = qtyCombo[c.id] || 0;
+    if (q <= 0) return;
+    const comboLineas = [];
+    comboLineas.push('🔥 *' + (c.nombre||'Combo').toUpperCase() + '* × ' + q);
+    // Items que incluye
+    try {
+      const prods = typeof c.productos === 'string' ? JSON.parse(c.productos) : c.productos;
+      (prods||[]).forEach(p => {
+        comboLineas.push('   ✓ ' + ((p.qty||1)*q) + 'x ' + (p.nombre||''));
+      });
+    } catch(e) {
+      comboLineas.push('   ✓ ' + (c.descripcion||''));
+    }
+    comboLineas.push('   💰 ' + fmt((c.precio_combo||0) * q) + ' (-' + (c.descuento_pct||7) + '%)');
+    lineas.push(...comboLineas);
+    lineas.push('');
+  });
+  return lineas;
+}
+
+// Descuenta stock en Supabase al confirmar pedido
+async function combosConsumirStock() {
+  const consumidos = [];
+  (_combosData||[]).forEach(c => {
+    const q = qtyCombo[c.id] || 0;
+    if (q > 0) consumidos.push({id: c.id, qty: q, nombre: c.nombre});
+  });
+  if (consumidos.length === 0) return { ok: true, consumidos: [] };
+
+  // Descontar uno por uno con PATCH increment
+  for (const item of consumidos) {
+    try {
+      // Leer actual
+      const rGet = await fetch(SB_URL + '/rest/v1/combos?id=eq.' + encodeURIComponent(item.id) + '&select=vendidos,stock_total', {
+        headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY }
+      });
+      if (!rGet.ok) throw new Error('GET failed');
+      const arr = await rGet.json();
+      if (!arr || !arr.length) throw new Error('Combo no encontrado');
+      const actual = arr[0].vendidos || 0;
+      const nuevo = actual + item.qty;
+
+      // Update
+      const rPatch = await fetch(SB_URL + '/rest/v1/combos?id=eq.' + encodeURIComponent(item.id), {
+        method: 'PATCH',
+        headers: {
+          'apikey': SB_KEY,
+          'Authorization': 'Bearer ' + SB_KEY,
+          'Content-Type': 'application/json',
+          'Prefer': 'return=minimal'
+        },
+        body: JSON.stringify({ vendidos: nuevo })
+      });
+      if (!rPatch.ok) throw new Error('PATCH failed ' + rPatch.status);
+    } catch(e) {
+      console.error('[combos] Error descontando stock de ' + item.id + ':', e);
+      // Continuamos con los demás combos aunque uno falle
+    }
+  }
+
+  return { ok: true, consumidos };
+}
+
+// Limpiar carrito de combos (se llama al vaciar el pedido)
+function combosLimpiar() {
+  Object.keys(qtyCombo).forEach(k => delete qtyCombo[k]);
+  combosRender();
+}
+
 function openDrawer(){renderDrawer();document.getElementById('drawer').classList.add('on');document.getElementById('overlay').classList.add('on');}
 function closeDrawer(){document.getElementById('drawer').classList.remove('on');document.getElementById('overlay').classList.remove('on');}
 
@@ -1492,6 +2146,33 @@ function renderDrawer(){
   const body=document.getElementById('d-body');const foot=document.getElementById('d-foot');
   if(!c){body.innerHTML='<div class="d-empty">Todav\u00eda no agregaste productos</div>';foot.style.display='none';return;}
   let html='';
+
+  // v2: Combos primero, destacados con estilo especial
+  (_combosData||[]).forEach(combo => {
+    const q = qtyCombo[combo.id] || 0;
+    if (q <= 0) return;
+    let itemsHtml = '';
+    try {
+      const prods = typeof combo.productos === 'string' ? JSON.parse(combo.productos) : combo.productos;
+      itemsHtml = (prods||[]).map(p => '<div class="d-combo-item">' + ((p.qty||1)*q) + 'x ' + (p.nombre||'') + '</div>').join('');
+    } catch(e) {
+      itemsHtml = '<div class="d-combo-item">' + (combo.descripcion||'') + '</div>';
+    }
+    html += '<div class="d-combo-group">' +
+      '<div class="d-combo-title">🔥 ' + combo.nombre + ' × ' + q + '</div>' +
+      itemsHtml +
+      '<div class="d-combo-precio">' +
+        '<div class="d-combo-qty">' +
+          '<button class="d-combo-qty-btn" onclick="combosRestar(\'' + combo.id + '\')" aria-label="Quitar">−</button>' +
+          '<span class="d-combo-qty-val">' + q + '</span>' +
+          '<button class="d-combo-qty-btn" onclick="combosSumar(\'' + combo.id + '\')" aria-label="Sumar">+</button>' +
+        '</div>' +
+        '<div class="d-combo-precio-val">' + fmt((combo.precio_combo||0) * q) + '</div>' +
+      '</div>' +
+    '</div>';
+  });
+
+  // Productos individuales del catálogo
   CAT.forEach((s,si)=>s.items.forEach((it,ii)=>{
     const q=qty[si+'-'+ii]||0;
     if(q>0) html+='<div class="ci">'
@@ -1507,7 +2188,7 @@ function renderDrawer(){
   saveCartLS();
 }
 
-function clearCart(){Object.keys(qty).forEach(k=>delete qty[k]);renderBody();updateBar();renderDrawer();clearCartLS();if(typeof mostrarRepFab==='function')mostrarRepFab();}
+function clearCart(){Object.keys(qty).forEach(k=>delete qty[k]);combosLimpiar();renderBody();updateBar();renderDrawer();clearCartLS();if(typeof mostrarRepFab==='function')mostrarRepFab();}
 
 // holdTimeout, holdInterval, holdTriggered declarados en bloque de estado global
 
@@ -1914,6 +2595,23 @@ function confirmarYEnviarWA() {
   let itemsTotales = 0;
   let productosCount = 0;
 
+  // v2: Combos primero en el mensaje WA (destacados)
+  const lineasCombosWA = combosLineasWA();
+  let combosCount = 0;
+  let combosUnidades = 0;
+  (_combosData||[]).forEach(combo => {
+    const q = qtyCombo[combo.id] || 0;
+    if (q > 0) {
+      combosCount++;
+      combosUnidades += q;
+    }
+  });
+  if (lineasCombosWA.length > 0) {
+    lineasProductos.push('🔥 *OFERTAS — COMBOS*');
+    lineasProductos.push('');
+    lineasProductos.push(...lineasCombosWA);
+  }
+
   CAT.forEach((s,si) => s.items.forEach((it,ii) => {
     const q = qty[si+'-'+ii] || 0;
     if(q > 0) {
@@ -1923,6 +2621,10 @@ function confirmarYEnviarWA() {
       productosCount++;
     }
   }));
+
+  // Totales finales (combos + productos)
+  itemsTotales += combosUnidades;
+  productosCount += combosCount;
 
   // ── Mensaje WhatsApp ────────────────────────────────────────
   let L = [
@@ -1980,6 +2682,9 @@ function confirmarYEnviarWA() {
   saveOrderToSheets(payload);
   guardarUltimoPedido();  // Guardar para "Repetir pedido"
 
+  // v2: Descontar stock de combos en Supabase (fire-and-forget)
+  combosConsumirStock().catch(e => console.error('[combos] Error al consumir stock:', e));
+
   // ── Abrir WhatsApp ──────────────────────────────────────────
   window.open('https://wa.me/' + vActivo.wa + '?text=' + encodeURIComponent(mensajeCompleto), '_blank');
 
@@ -2002,6 +2707,8 @@ function confirmarYEnviarWA() {
 
   // Snapshot del carrito ANTES de vaciarlo
   const qtySnapshot = Object.assign({}, qty);
+  const qtyComboSnapshot = Object.assign({}, qtyCombo);
+  const combosSnapshot = (_combosData||[]).slice();
 
   // Vaciar carrito
   clearCart();
@@ -2010,6 +2717,17 @@ function confirmarYEnviarWA() {
   const prodLista = document.getElementById('pod-productos-lista');
   if (prodLista) {
     let prodHtml = '';
+    // v2: Combos primero
+    combosSnapshot.forEach(combo => {
+      const q = qtyComboSnapshot[combo.id] || 0;
+      if (q > 0) {
+        prodHtml += '<div class="pod-prod-item" style="background:linear-gradient(135deg,#FFF8E1,#FFECB3);border-left:3px solid #FFD700;padding-left:8px">' +
+          '<div class="pod-prod-nombre">🔥 ' + (combo.nombre||'Combo') + ' × ' + q + '</div>' +
+          '<div class="pod-prod-detalle">' + fmt((combo.precio_combo||0) * q) + ' (-' + (combo.descuento_pct||7) + '%)</div>' +
+          '</div>';
+      }
+    });
+    // Productos individuales
     CAT.forEach((s, si) => s.items.forEach((it, ii) => {
       const q = qtySnapshot[si+'-'+ii] || 0;
       if (q > 0) {
@@ -2187,6 +2905,7 @@ function saveCartLS() {
   try {
     localStorage.setItem('tck_cart', JSON.stringify({
       qty: qty,
+      qtyCombo: qtyCombo,
       vActivo: vActivo ? VEND.indexOf(vActivo) : -1
     }));
   } catch(e) {}
@@ -2201,6 +2920,11 @@ function loadCartLS() {
     if (data.qty) {
       Object.keys(data.qty).forEach(function(k) { if (data.qty[k] > 0) qty[k] = data.qty[k]; });
       renderBody(); updateBar(); renderDrawer();
+    }
+    // v2: Restaurar combos del carrito
+    if (data.qtyCombo) {
+      Object.keys(data.qtyCombo).forEach(function(k) { if (data.qtyCombo[k] > 0) qtyCombo[k] = data.qtyCombo[k]; });
+      // combosRender se llama después cuando combosCargar termine
     }
   } catch(e) {}
 }
@@ -2222,6 +2946,9 @@ function clearCartLS() {
 cargarPrecios().finally(() => {
   if (typeof mostrarRepFab === 'function') mostrarRepFab();
   renderVend(); renderNav(); renderBody(); updateBar();
+
+  // v2: Cargar combos de Supabase (fire-and-forget, no bloquea el init)
+  combosCargar();
 
   // 1. Ocultar siempre el sv y el login — catálogo directo
   const sv = document.getElementById('sv');
@@ -3591,6 +4318,9 @@ document.addEventListener('touchmove', function(e) {
 <!-- ══════════════════════════════════════════════════════════════
      REGISTRO PROGRESIVO — PASO 1: Crear cuenta (post primer pedido)
 ═══════════════════════════════════════════════════════════════ -->
+<!-- Toast flotante para combos (aviso de límite / agotado) -->
+<div id="combo-toast" class="combo-toast"></div>
+
 <div id="reg-popup-1" style="display:none;position:fixed;inset:0;z-index:600;background:rgba(0,0,0,.55);backdrop-filter:blur(3px);align-items:flex-end;justify-content:center;">
   <div id="reg-popup-1-sheet" style="background:#fff;border-radius:24px 24px 0 0;width:100%;max-width:480px;padding:24px 20px 44px;transform:translateY(100%);transition:transform .38s cubic-bezier(.34,1.56,.64,1);box-shadow:0 -8px 40px rgba(0,0,0,.2);">
 
