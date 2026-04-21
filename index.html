@@ -360,6 +360,63 @@ button,
 .d-tot-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
 .d-tot-lbl{font-family:'Barlow Condensed',sans-serif;font-size:15px;color:var(--text3);letter-spacing:1.5px;text-transform:uppercase}
 .d-tot-amt{font-family:'Barlow Condensed',sans-serif;font-size:36px;font-weight:900;color:var(--red)}
+
+/* v2.6.3: bloque del cupón 10% primera compra */
+.d-cupon-box {
+  display: none;
+  background: linear-gradient(135deg, #FFF8E1, #FFE082);
+  border: 2px dashed #8B0000;
+  border-radius: 10px;
+  padding: 10px 12px;
+  margin-bottom: 12px;
+  position: relative;
+  overflow: hidden;
+}
+.d-cupon-box.on { display: block; }
+.d-cupon-titulo {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 13px;
+  font-weight: 900;
+  color: #8B0000;
+  letter-spacing: .5px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+.d-cupon-detalle {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-family: 'Barlow', sans-serif;
+}
+.d-cupon-detalle-label {
+  font-size: 11px;
+  color: #5C3A1E;
+  opacity: .85;
+}
+.d-cupon-detalle-monto {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 18px;
+  font-weight: 900;
+  color: #1B5E20;
+}
+.d-cupon-tope-aviso {
+  font-size: 10px;
+  color: #8B0000;
+  opacity: .75;
+  margin-top: 3px;
+  font-style: italic;
+}
+.d-tot-row.subtotal .d-tot-amt {
+  font-size: 22px;
+  color: var(--text2);
+  text-decoration: line-through;
+  opacity: .65;
+}
+.d-tot-row.subtotal .d-tot-lbl {
+  font-size: 13px;
+}
 .d-wa{width:100%;background:linear-gradient(135deg,#25D366,#18a045);border:none;border-radius:12px;padding:14px;font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:800;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:9px;box-shadow:0 3px 12px rgba(37,211,102,.25)}
 .d-wa:active{opacity:.9}
 .d-wa svg{width:20px;height:20px;fill:#fff}
@@ -2442,6 +2499,19 @@ button,
 <div class="d-hdr"><div><div class="d-title">Tu pedido</div><div class="d-sub" id="d-sub"></div></div><button class="d-x" onclick="closeDrawer()">&#x2715;</button></div>
 <div class="d-body" id="d-body"></div>
 <div class="d-foot" id="d-foot" style="display:none">
+<!-- v2.6.3: subtotal tachado (solo visible cuando aplica el cupón) -->
+<div class="d-tot-row subtotal" id="d-subtotal-row" style="display:none">
+  <div class="d-tot-lbl">Subtotal</div><div class="d-tot-amt" id="d-subtotal"></div>
+</div>
+<!-- v2.6.3: bloque del cupón aplicado -->
+<div class="d-cupon-box" id="d-cupon-box">
+  <div class="d-cupon-titulo">🎁 Cupón 10% OFF aplicado</div>
+  <div class="d-cupon-detalle">
+    <span class="d-cupon-detalle-label">Tu descuento de bienvenida</span>
+    <span class="d-cupon-detalle-monto" id="d-cupon-monto">−$0</span>
+  </div>
+  <div class="d-cupon-tope-aviso" id="d-cupon-tope-aviso" style="display:none">Tope de $20.000 alcanzado</div>
+</div>
 <div class="d-tot-row"><div class="d-tot-lbl">Total Estimado</div><div class="d-tot-amt" id="d-tot"></div></div>
 <button class="d-wa" onclick="sendWA()"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.125.558 4.122 1.532 5.852L.057 23.737a.5.5 0 00.606.606l5.885-1.475A11.945 11.945 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22a9.944 9.944 0 01-5.073-1.386l-.363-.214-3.771.945.963-3.655-.236-.378A9.954 9.954 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg> Enviar a <span id="d-wa-nom" style="margin-left:4px"></span></button>
 <button class="d-clear" onclick="clearCart()">Vaciar pedido</button>
@@ -2598,6 +2668,58 @@ const CAT=[{"id": "pollos", "sec": "POLLOS CONGELADOS", "col1": "#B71C1C", "col2
 
 // qty, vActivo, fmt declarados en bloque de estado global (top del archivo)
 // v2: T() ahora incluye combos. Retorna {t, c, tCombos, cCombos, tProductos, cProductos}
+// ═══════════════════════════════════════════════════════════════════════
+// v2.6.3 — CUPÓN 10% PRIMERA COMPRA (tope $20.000)
+// ═══════════════════════════════════════════════════════════════════════
+const CUPON_PCT  = 10;       // 10% de descuento
+const CUPON_TOPE = 20000;    // Tope $20.000 de ahorro
+
+// Devuelve true si el cliente logueado tiene cupón disponible
+function cuponDisponible() {
+  if (!_cliActivo) return false;
+  // Doble verificación: LS + DB
+  let lsFlag = null;
+  try { lsFlag = localStorage.getItem('tck_cupon_1ra_compra'); } catch(e) {}
+  // Si el cliente tiene la columna y dice que ya lo usó → no
+  if (_cliActivo.cupon_1ra_compra_usado_en) return false;
+  // Si LS dice que está disponible → sí
+  if (lsFlag === '1') return true;
+  // Si la columna existe y dice disponible → sí
+  if (_cliActivo.cupon_1ra_compra_disponible === true) return true;
+  return false;
+}
+
+// Calcula el descuento en pesos para un subtotal dado
+function cuponCalcularDescuento(subtotal) {
+  if (!cuponDisponible()) return 0;
+  if (subtotal <= 0) return 0;
+  const descuentoBruto = subtotal * (CUPON_PCT / 100);
+  return Math.min(descuentoBruto, CUPON_TOPE);
+}
+
+// Marca el cupón como usado (DB + LS) — fire-and-forget
+async function cuponMarcarUsado() {
+  if (!_cliActivo) return;
+  try { localStorage.removeItem('tck_cupon_1ra_compra'); } catch(e) {}
+  // Actualizar memoria
+  _cliActivo.cupon_1ra_compra_usado_en = new Date().toISOString();
+  _cliActivo.cupon_1ra_compra_disponible = false;
+  cliGuardar(_cliActivo);
+  // PATCH en Supabase (silencioso si las columnas no existen)
+  try {
+    await fetch(SB_URL + '/rest/v1/clientes_auth?id=eq.' + _cliActivo.id, {
+      method: 'PATCH',
+      headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        cupon_1ra_compra_disponible: false,
+        cupon_1ra_compra_usado_en: new Date().toISOString()
+      })
+    });
+  } catch(e) {
+    console.warn('[cupon] No se pudo marcar como usado en DB (puede que las columnas no existan):', e);
+  }
+}
+
 function T(){
   let tProd=0, cProd=0;
   CAT.forEach((s,si)=>s.items.forEach((it,ii)=>{
@@ -2611,9 +2733,12 @@ function T(){
     tCombos += (c.precio_combo||0) * q;
     cCombos += q;
   });
-  const t = tProd + tCombos;
+  const subtotal = tProd + tCombos;
   const c = cProd + cCombos;
-  return {t, c, tCombos, cCombos, tProductos:tProd, cProductos:cProd};
+  // v2.6.3: aplicar cupón 10% primera compra (tope $20k)
+  const descuento = cuponCalcularDescuento(subtotal);
+  const t = subtotal - descuento;
+  return {t, c, tCombos, cCombos, tProductos:tProd, cProductos:cProd, subtotal, descuento};
 }
 
 function renderVend(){
@@ -3139,6 +3264,23 @@ function renderDrawer(){
       +'<button class="ci-rm" onclick="chg(\''+(si+'-'+ii)+'\','+si+','+ii+',-'+q+')">&#x2715;</button></div>';
   }));
   body.innerHTML=html;
+  // v2.6.3: render del cupón si aplica
+  const subTot = T();
+  const cuponBox = document.getElementById('d-cupon-box');
+  const cuponMonto = document.getElementById('d-cupon-monto');
+  const cuponTope = document.getElementById('d-cupon-tope-aviso');
+  const subRow = document.getElementById('d-subtotal-row');
+  const subEl = document.getElementById('d-subtotal');
+  if (subTot.descuento > 0) {
+    if (cuponBox) cuponBox.classList.add('on');
+    if (cuponMonto) cuponMonto.textContent = '−' + fmt(subTot.descuento);
+    if (cuponTope) cuponTope.style.display = (subTot.descuento >= CUPON_TOPE) ? 'block' : 'none';
+    if (subRow) subRow.style.display = '';
+    if (subEl) subEl.textContent = fmt(subTot.subtotal);
+  } else {
+    if (cuponBox) cuponBox.classList.remove('on');
+    if (subRow) subRow.style.display = 'none';
+  }
   document.getElementById('d-tot').textContent=fmt(t);
   foot.style.display='block';
 
@@ -3482,6 +3624,10 @@ async function saveOrderToSheets(payload) {
       estado:         payload.estado,
       origen:         payload.origen
     });
+    // v2.6.3: solo agregar campos del cupón si están presentes
+    if (payload.descuento)     params.set('descuento',     String(payload.descuento));
+    if (payload.subtotal)      params.set('subtotal',      String(payload.subtotal));
+    if (payload.cuponAplicado) params.set('cuponAplicado', payload.cuponAplicado);
     const url = SHEETS_ENDPOINT + '?' + params.toString();
     await fetch(url, { method: 'GET', mode: 'no-cors' });
     console.log('[TCK Sheets] Pedido enviado via GET');
@@ -3547,7 +3693,7 @@ function confirmarYEnviarWA() {
 
   // ── Construir detalle del pedido ────────────────────────────
   const sep = '━━━━━━━━━━━━━━━';
-  const {t, c} = T();
+  const {t, c, subtotal, descuento} = T();
   let lineasProductos = [];
   let itemsTotales = 0;
   let productosCount = 0;
@@ -3593,10 +3739,23 @@ function confirmarYEnviarWA() {
   L.push('📍 *Localidad:* ' + localidad);
   L.push('', sep, '');
   L = L.concat(lineasProductos);
-  L.push(sep, '', '💰 *TOTAL FINAL*', '👉 ' + fmt(t), '', sep, '',
-    '📋 ¿Podés confirmarme si el pedido está tomado?',
-    '🚚 ¿Cuándo me llegará la entrega?'
-  );
+  // v2.6.3: si aplica cupón, mostrar subtotal + descuento + total
+  if (descuento > 0) {
+    L.push(sep, '',
+      '📊 *Subtotal:* ' + fmt(subtotal),
+      '🎁 *Cupón 10% OFF:* −' + fmt(descuento) + (descuento >= CUPON_TOPE ? ' (tope $20.000)' : ''),
+      '',
+      '💰 *TOTAL FINAL*', '👉 ' + fmt(t),
+      '', sep, '',
+      '📋 ¿Podés confirmarme si el pedido está tomado?',
+      '🚚 ¿Cuándo me llegará la entrega?'
+    );
+  } else {
+    L.push(sep, '', '💰 *TOTAL FINAL*', '👉 ' + fmt(t), '', sep, '',
+      '📋 ¿Podés confirmarme si el pedido está tomado?',
+      '🚚 ¿Cuándo me llegará la entrega?'
+    );
+  }
 
   const mensajeCompleto = L.join('\n');
 
@@ -3632,7 +3791,11 @@ function confirmarYEnviarWA() {
     detallePedido:  detalleSinHeader,
     estado:         'Pendiente',
     origen:         _cliActivo ? 'web_cliente' : 'Catalogo Web TCK',
-    cliente_id:     _cliIdPedido || ''
+    cliente_id:     _cliIdPedido || '',
+    // v2.6.3: si aplica cupón, mandar subtotal + descuento al Sheet
+    subtotal:       descuento > 0 ? subtotal : '',
+    descuento:      descuento > 0 ? descuento : '',
+    cuponAplicado:  descuento > 0 ? 'CUPON-1RA-COMPRA-10PCT' : ''
   };
 
   // Fire-and-forget: no await, WhatsApp se abre siempre
@@ -3641,6 +3804,11 @@ function confirmarYEnviarWA() {
 
   // v2: Descontar stock de combos en Supabase (fire-and-forget)
   combosConsumirStock().catch(e => console.error('[combos] Error al consumir stock:', e));
+
+  // v2.6.3: Marcar cupón como usado si se aplicó (fire-and-forget)
+  if (descuento > 0) {
+    cuponMarcarUsado().catch(e => console.error('[cupon] Error al marcar como usado:', e));
+  }
 
   // ── Abrir WhatsApp ──────────────────────────────────────────
   window.open('https://wa.me/' + vActivo.wa + '?text=' + encodeURIComponent(mensajeCompleto), '_blank');
