@@ -2,7 +2,19 @@
 <html lang="es">
 <head>
 <!-- ═══════════════════════════════════════════════════════════════════════
-     TCK CATÁLOGO — v2.6.8 — 21/04/2026
+     TCK CATÁLOGO — v2.7.0 — 21/04/2026
+     ──────────────────────────────────────────────────────────────────────
+     Cambios v2.7.0 (sobre v2.6.8) — REDISEÑO PANEL CLIENTE:
+       - Nav inferior de 2 tabs (Mis pedidos / Mi perfil) tipo tckventas.
+       - CTA "Hacer pedido nuevo" ahora es un FAB dorado flotante arriba de
+         la nav (pill con gradient + borde dorado). Desaparece en tab perfil.
+       - Botón salir del header pasa a ícono circular ⏻ (antes decía "Salir").
+       - Mi perfil rediseñado:
+         · Círculo de progreso SVG (%) con texto motivacional según nivel.
+         · Card del vendedor con botón WhatsApp directo (wa.me/...).
+         · Datos con íconos en círculos crema. Campos vacíos en rojo con
+           "Falta completar" (preparación para v2.7.1).
+       - Paleta unificada al estándar TCK (fondo crema #FAF4EC).
      ──────────────────────────────────────────────────────────────────────
      Cambios v2.6.8 (sobre v2.6.7):
        - Fix UX login: el botón del paso "ingresar teléfono" ahora dice
@@ -1355,7 +1367,7 @@ button,
 /* ── Portal del cliente ── */
 .cli-portal {
   position: absolute; inset: 0; z-index: 590;
-  background: #f7f0f0; display: flex; flex-direction: column; overflow: hidden;
+  background: #FAF4EC; display: flex; flex-direction: column; overflow: hidden;
 }
 .cli-portal.gone { display: none; }
 
@@ -1365,86 +1377,125 @@ button,
   display: flex; align-items: center; justify-content: space-between;
   flex-shrink: 0;
   box-shadow: 0 3px 16px rgba(0,0,0,.25);
+  border-bottom: 3px solid #D4A574;
 }
 .cli-portal-hdr-logo {
   height: 32px; width: auto; object-fit: contain;
   filter: brightness(0) invert(1); opacity: .9;
 }
-.cli-portal-hdr-info { display: flex; flex-direction: column; flex: 1; padding: 0 12px; }
+.cli-portal-hdr-info { display: flex; flex-direction: column; flex: 1; padding: 0 12px; min-width: 0; }
 .cli-portal-hdr-name {
   font-family: 'Barlow Condensed', sans-serif; font-size: 19px;
   font-weight: 900; color: #fff; letter-spacing: .5px; line-height: 1.1;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
-.cli-portal-hdr-sub { font-size: 11px; color: rgba(255,215,0,.65); margin-top: 1px; }
+.cli-portal-hdr-sub { font-size: 11px; color: rgba(255,215,0,.7); margin-top: 1px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .cli-portal-hdr-btns { display: flex; gap: 7px; align-items: center; }
 .cli-portal-action-btn {
-  background: rgba(255,255,255,.1); border: 1.5px solid rgba(255,255,255,.18);
-  border-radius: 20px; padding: 7px 14px;
-  font-family: 'Barlow Condensed', sans-serif; font-size: 13px; font-weight: 800;
-  color: rgba(255,255,255,.7); cursor: pointer; white-space: nowrap; transition: background .15s;
-  letter-spacing: .3px;
+  background: rgba(255,255,255,.12); border: 1.5px solid rgba(255,255,255,.22);
+  border-radius: 50%; width: 38px; height: 38px; padding: 0;
+  font-size: 16px; color: #fff; cursor: pointer;
+  display: grid; place-items: center;
+  transition: background .15s;
 }
-.cli-portal-action-btn:active { background: rgba(255,255,255,.2); }
+.cli-portal-action-btn:active { background: rgba(255,255,255,.22); }
 
-.cli-portal-pedir-wrap {
-  position: sticky; bottom: 0; left: 0; right: 0; z-index: 10;
-  padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
-  background: linear-gradient(to top, #f7f0f0 60%, transparent);
+/* v2.7.0: FAB "Hacer pedido nuevo" flotante */
+.cli-portal-fab {
+  position: absolute; bottom: 96px; left: 50%; transform: translateX(-50%);
+  background: linear-gradient(135deg, #D4A574, #b8884f);
+  color: #2a0000;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 900; font-size: 15px; letter-spacing: .5px;
+  padding: 13px 26px;
+  border-radius: 100px;
+  border: 2px solid rgba(255,215,0,.55);
+  box-shadow: 0 10px 28px rgba(180,130,60,.45), 0 3px 10px rgba(0,0,0,.15);
+  display: flex; align-items: center; gap: 8px;
+  z-index: 12;
+  cursor: pointer;
+  white-space: nowrap;
+  text-transform: uppercase;
+  transition: transform .14s, box-shadow .14s;
+}
+.cli-portal-fab:active { transform: translateX(-50%) scale(.96); box-shadow: 0 4px 14px rgba(180,130,60,.35); }
+.cli-portal-fab-ico { font-size: 17px; }
+
+/* v2.7.0: Nav inferior tipo tckventas (2 tabs) */
+.cli-portal-nav {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  background: linear-gradient(180deg, rgba(250,244,236,0) 0%, rgba(250,244,236,.95) 30%, #FAF4EC 55%);
+  padding: 44px 14px calc(14px + env(safe-area-inset-bottom));
+  z-index: 8;
   pointer-events: none;
 }
-.cli-portal-pedir-btn {
-  display: block; width: 100%;
-  background: linear-gradient(135deg, #C8960C, #FFD700);
-  border: none; border-radius: 16px; padding: 18px 20px;
-  font-family: 'Barlow Condensed', sans-serif; font-size: 24px; font-weight: 900;
-  color: #3a0000; cursor: pointer; letter-spacing: 1px; text-transform: uppercase;
-  box-shadow: 0 6px 24px rgba(200,150,12,.45); transition: transform .12s, box-shadow .12s;
-  text-align: center; pointer-events: all;
+.cli-portal-nav-row {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  background: #fff;
+  border-radius: 18px;
+  padding: 6px;
+  box-shadow: 0 8px 24px rgba(139,0,0,.12), 0 2px 6px rgba(0,0,0,.05);
+  border: 1px solid rgba(212,165,116,.25);
+  pointer-events: auto;
 }
-.cli-portal-pedir-btn:active { transform: scale(.97); box-shadow: 0 3px 12px rgba(200,150,12,.3); }
+.cli-portal-nav-btn {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 3px;
+  background: transparent;
+  border: none;
+  padding: 9px 6px 8px;
+  border-radius: 14px;
+  cursor: pointer;
+  font-family: 'Barlow Condensed', sans-serif;
+  color: #6a5644;
+  transition: all .18s;
+}
+.cli-portal-nav-btn-ico { font-size: 20px; line-height: 1; }
+.cli-portal-nav-btn-lbl { font-size: 12px; font-weight: 800; letter-spacing: .3px; text-transform: uppercase; }
+.cli-portal-nav-btn.sel {
+  background: linear-gradient(135deg, #8B0000, #6a0000);
+  color: #fff;
+  box-shadow: 0 3px 10px rgba(139,0,0,.28);
+}
 
-.cli-portal-tabs {
-  display: flex; background: #fff; border-bottom: 2px solid rgba(139,0,0,.08);
-  flex-shrink: 0;
-}
-.cli-portal-tab {
-  flex: 1; padding: 13px 8px; border: none; background: transparent;
-  font-family: 'Barlow Condensed', sans-serif; font-size: 14px; font-weight: 700;
-  color: rgba(0,0,0,.35); cursor: pointer; border-bottom: 3px solid transparent;
-  margin-bottom: -2px; transition: all .15s; letter-spacing: .3px;
-}
-.cli-portal-tab.sel { color: var(--red); border-bottom-color: var(--red); }
-
-.cli-portal-body { flex: 1; overflow-y: auto; padding: 16px 16px 100px; }
+.cli-portal-body { flex: 1; overflow-y: auto; padding: 14px 14px 170px; }
 
 /* Pedido card en portal */
 .cli-pedido-card {
-  background: #fff; border-radius: 16px; padding: 16px;
-  margin-bottom: 12px; box-shadow: 0 2px 10px rgba(0,0,0,.07);
-  border: 1.5px solid rgba(139,0,0,.07);
+  background: #fff; border-radius: 16px; padding: 14px;
+  margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,.05);
+  border: 1px solid rgba(139,0,0,.08);
 }
-.cli-pedido-id { font-size: 10px; color: rgba(0,0,0,.3); font-weight: 600; letter-spacing: .5px; margin-bottom: 6px; }
+.cli-pedido-top {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 8px; margin-bottom: 8px;
+}
+.cli-pedido-id { font-size: 10px; color: #a08d7a; font-weight: 600; letter-spacing: .5px; }
 .cli-pedido-estado {
-  display: inline-flex; align-items: center; gap: 5px;
-  padding: 4px 11px; border-radius: 20px;
-  font-size: 11px; font-weight: 800; letter-spacing: .5px;
-  text-transform: uppercase; margin-bottom: 10px;
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 3px 9px; border-radius: 100px;
+  font-size: 10px; font-weight: 800; letter-spacing: .4px;
+  text-transform: uppercase;
 }
-.cli-pedido-estado.pendiente { background: #FFF8E1; color: #E65100; }
-.cli-pedido-estado.confirmado { background: #E8F5E9; color: #2E7D32; }
-.cli-pedido-estado.entregado { background: #E3F2FD; color: #1565C0; }
-.cli-pedido-estado.cancelado { background: #FFEBEE; color: #C62828; }
+.cli-pedido-estado.pendiente { background: #FEF3C7; color: #B45309; }
+.cli-pedido-estado.confirmado { background: #DBEAFE; color: #1D4ED8; }
+.cli-pedido-estado.entregado { background: #DCFCE7; color: #15803D; }
+.cli-pedido-estado.cancelado { background: #FEE2E2; color: #C62828; }
 .cli-pedido-items {
-  font-size: 13px; color: rgba(0,0,0,.55); line-height: 1.5;
-  margin-bottom: 10px; padding-bottom: 10px;
-  border-bottom: 1px solid rgba(0,0,0,.05);
+  font-size: 12.5px; color: #4a3a2a; line-height: 1.45;
+  padding: 8px 0; border-bottom: 1px dashed rgba(139,0,0,.12);
 }
-.cli-pedido-footer { display: flex; align-items: center; justify-content: space-between; }
+.cli-pedido-footer {
+  display: flex; align-items: baseline; justify-content: space-between;
+  padding-top: 10px;
+}
 .cli-pedido-total {
-  font-family: 'Barlow Condensed', sans-serif; font-size: 22px;
-  font-weight: 900; color: var(--red);
+  font-family: 'Barlow Condensed', sans-serif; font-size: 24px;
+  font-weight: 900; color: var(--red); line-height: 1;
 }
-.cli-pedido-fecha { font-size: 11px; color: rgba(0,0,0,.3); }
+.cli-pedido-fecha { font-size: 10.5px; color: #a08d7a; }
 
 .cli-horario-btn {
   width: 100%; margin-top: 12px;
@@ -1506,18 +1557,112 @@ button,
 }
 .cli-horario-opt-ciudad { font-size: 12px; color: rgba(0,0,0,.45); margin-top: 2px; }
 
-/* Perfil */
-.cli-perfil-card {
-  background: #fff; border-radius: 16px; padding: 4px 16px;
-  box-shadow: 0 2px 10px rgba(0,0,0,.06);
+/* v2.7.0: Perfil rediseñado */
+.cli-perfil-progreso {
+  background: linear-gradient(135deg, #FFF8E8, #FFF0D0);
+  border: 1px solid #D4A574;
+  border-radius: 16px;
+  padding: 14px;
+  margin-bottom: 14px;
+  display: flex; align-items: center; gap: 14px;
 }
-.cli-perfil-row {
-  display: flex; justify-content: space-between; align-items: center;
-  padding: 13px 0; border-bottom: 1px solid rgba(0,0,0,.05);
+.cli-perfil-progreso-circle {
+  width: 58px; height: 58px; flex-shrink: 0;
+  position: relative;
+  display: grid; place-items: center;
 }
-.cli-perfil-row:last-child { border-bottom: none; }
-.cli-perfil-label { font-size: 12px; color: rgba(0,0,0,.4); font-weight: 600; }
-.cli-perfil-val { font-size: 14px; color: rgba(0,0,0,.8); font-weight: 700; text-align: right; max-width: 60%; }
+.cli-perfil-progreso-pct {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 900; font-size: 17px; color: #8B0000;
+  position: relative; z-index: 2;
+}
+.cli-perfil-progreso-bg { position: absolute; inset: 0; }
+.cli-perfil-progreso-info { flex: 1; min-width: 0; }
+.cli-perfil-progreso-titulo {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 15px; font-weight: 800; color: #2a0000; line-height: 1.15;
+}
+.cli-perfil-progreso-sub { font-size: 11.5px; color: #6a5644; margin-top: 2px; line-height: 1.35; }
+
+.cli-perfil-vend {
+  background: linear-gradient(135deg, #fff, #FFF8F0);
+  border: 1px solid #E8D5BB;
+  border-radius: 16px;
+  padding: 14px;
+  margin-bottom: 14px;
+  display: flex; align-items: center; gap: 12px;
+}
+.cli-perfil-vend-foto {
+  width: 54px; height: 54px; border-radius: 50%;
+  object-fit: cover;
+  border: 2.5px solid #D4A574;
+  flex-shrink: 0;
+  background: linear-gradient(135deg, #8B0000, #D4A574);
+}
+.cli-perfil-vend-foto-fallback {
+  width: 54px; height: 54px; border-radius: 50%;
+  background: linear-gradient(135deg, #8B0000, #D4A574);
+  display: grid; place-items: center;
+  color: #fff; font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 900; font-size: 24px;
+  border: 2.5px solid #D4A574;
+  flex-shrink: 0;
+}
+.cli-perfil-vend-info { flex: 1; min-width: 0; }
+.cli-perfil-vend-label {
+  font-size: 10px; color: #9C7050; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .8px;
+}
+.cli-perfil-vend-nombre {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 20px; font-weight: 900; color: #1A0800; line-height: 1;
+  margin-top: 1px;
+}
+.cli-perfil-vend-rol { font-size: 10.5px; color: #9C7050; margin-top: 1px; }
+.cli-perfil-vend-wa {
+  width: 42px; height: 42px; border-radius: 50%;
+  background: linear-gradient(135deg, #25D366, #18a045);
+  display: grid; place-items: center;
+  color: #fff; font-size: 18px;
+  border: none; cursor: pointer;
+  box-shadow: 0 4px 12px rgba(37,211,102,.32);
+  flex-shrink: 0;
+  text-decoration: none;
+  transition: transform .12s;
+}
+.cli-perfil-vend-wa:active { transform: scale(.92); }
+
+.cli-perfil-datos {
+  background: #fff;
+  border-radius: 16px;
+  padding: 4px 14px;
+  margin-bottom: 14px;
+  border: 1px solid rgba(139,0,0,.08);
+  box-shadow: 0 2px 8px rgba(0,0,0,.04);
+}
+.cli-perfil-dato {
+  display: flex; align-items: center; gap: 10px;
+  padding: 11px 0;
+  border-bottom: 1px solid rgba(139,0,0,.07);
+}
+.cli-perfil-dato:last-child { border-bottom: none; }
+.cli-perfil-dato-ico {
+  width: 32px; height: 32px; border-radius: 50%;
+  background: #FAF0E5;
+  display: grid; place-items: center;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+.cli-perfil-dato-info { flex: 1; min-width: 0; }
+.cli-perfil-dato-label {
+  font-size: 10.5px; color: #9c7050; font-weight: 600;
+  text-transform: uppercase; letter-spacing: .4px;
+}
+.cli-perfil-dato-val {
+  font-size: 14px; color: #1A0800; font-weight: 600;
+  margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.cli-perfil-dato-val.vacio { color: #c8362a; font-style: italic; font-weight: 500; }
 
 .cli-empty {
   text-align: center; padding: 48px 20px;
@@ -2460,13 +2605,8 @@ button,
       <div class="cli-portal-hdr-sub" id="cli-portal-sub">Portal TCK</div>
     </div>
     <div class="cli-portal-hdr-btns">
-      <button class="cli-portal-action-btn" onclick="cliLogout()">Salir</button>
+      <button class="cli-portal-action-btn" onclick="cliLogout()" title="Cerrar sesión" aria-label="Cerrar sesión">⏻</button>
     </div>
-  </div>
-
-  <div class="cli-portal-tabs">
-    <button class="cli-portal-tab sel" id="cptab-pedidos" onclick="cliPortalTab('pedidos')">📦 Mis pedidos</button>
-    <button class="cli-portal-tab" id="cptab-perfil" onclick="cliPortalTab('perfil')">👤 Mi perfil</button>
   </div>
 
   <div class="cli-portal-body">
@@ -2474,10 +2614,27 @@ button,
       <div class="cli-empty"><div class="cli-empty-icon">📦</div>Cargando pedidos...</div>
     </div>
     <div id="cli-portal-perfil" style="display:none">
-      <div class="cli-perfil-card" id="cli-perfil-data"></div>
+      <div id="cli-perfil-data"></div>
     </div>
-    <div class="cli-portal-pedir-wrap">
-      <button class="cli-portal-pedir-btn" onclick="cliNuevoPedido()">🛒 Hacer un pedido nuevo</button>
+  </div>
+
+  <!-- v2.7.0: FAB flotante "Hacer pedido nuevo" -->
+  <button class="cli-portal-fab" id="cli-portal-fab" onclick="cliNuevoPedido()">
+    <span class="cli-portal-fab-ico">🛒</span>
+    Hacer pedido nuevo
+  </button>
+
+  <!-- v2.7.0: Nav inferior 2 tabs tipo tckventas/tckadmin -->
+  <div class="cli-portal-nav">
+    <div class="cli-portal-nav-row">
+      <button class="cli-portal-nav-btn sel" id="cptab-pedidos" onclick="cliPortalTab('pedidos')">
+        <span class="cli-portal-nav-btn-ico">📦</span>
+        <span class="cli-portal-nav-btn-lbl">Mis pedidos</span>
+      </button>
+      <button class="cli-portal-nav-btn" id="cptab-perfil" onclick="cliPortalTab('perfil')">
+        <span class="cli-portal-nav-btn-ico">👤</span>
+        <span class="cli-portal-nav-btn-lbl">Mi perfil</span>
+      </button>
     </div>
   </div>
 </div>
@@ -5934,7 +6091,11 @@ function cliPortalTab(tab) {
   document.getElementById('cptab-perfil').classList.toggle('sel', tab === 'perfil');
   document.getElementById('cli-portal-pedidos').style.display = tab === 'pedidos' ? 'block' : 'none';
   document.getElementById('cli-portal-perfil').style.display  = tab === 'perfil'  ? 'block' : 'none';
+  // v2.7.0: mostrar FAB solo en tab Mis pedidos (en perfil no tiene sentido)
+  const fab = document.getElementById('cli-portal-fab');
+  if (fab) fab.style.display = (tab === 'pedidos') ? 'flex' : 'none';
   if (tab === 'pedidos') cliCargarPedidos();
+  if (tab === 'perfil') cliCargarPerfil();
 }
 
 // ── CARGAR PEDIDOS ────────────────────────────────────────────
@@ -6173,40 +6334,124 @@ function cliCerrarHorario() {
   _cliHorarioPedId = null;
 }
 
-// ── PERFIL ────────────────────────────────────────────────────
+// ── PERFIL (v2.7.0: rediseño con progreso + WA + iconos) ──────
 function cliCargarPerfil() {
   const el = document.getElementById('cli-perfil-data');
   if (!_cliActivo || !el) return;
-  const vend = _cliActivo.vendedor || '';
-  const fotoVendPerfil = vend ? 'https://tckcatalogo.com/img/' + vend.toLowerCase() + '.jpg' : '';
-  const rows = [
-    { l: 'Nombre',   v: _cliActivo.nombre   || '—' },
-    { l: 'Negocio',  v: _cliActivo.comercio || '—' },
-    { l: 'Ciudad',   v: _cliActivo.ciudad   || '—' },
-    { l: 'Teléfono', v: _cliActivo.telefono || '—' },
+
+  // v2.7.0: calcular % de perfil completo (4 campos actuales)
+  // Próxima versión v2.7.1 sumará direccion + cuit_dni + email (7 campos totales)
+  const camposPerfil = [
+    !!_cliActivo.nombre,
+    !!_cliActivo.comercio,
+    !!_cliActivo.ciudad,
+    !!_cliActivo.telefono
   ];
-  // Card vendedor con foto
-  var vendCard = '';
-  if (vend) {
-    vendCard = '<div style="display:flex;align-items:center;gap:14px;padding:14px 16px;background:linear-gradient(135deg,#FFF8F0,#FFF0E0);border-radius:12px;margin-bottom:10px;border:1.5px solid #E8D5BB;">'
-      + '<img id="perfil-foto-vend" src="' + fotoVendPerfil + '" style="width:54px;height:54px;border-radius:50%;object-fit:cover;border:2px solid #E8D5BB;flex-shrink:0;">'
-      + '<div>'
-      + '<div style="font-size:11px;color:#9C7050;font-weight:600;text-transform:uppercase;letter-spacing:.8px;margin-bottom:2px;">Tu vendedor</div>'
-      + '<div style="font-family:Barlow Condensed,sans-serif;font-size:20px;font-weight:900;color:#1A0800;">' + vend + '</div>'
-      + '<div style="font-size:11px;color:#9C7050;">Vendedor TCK</div>'
-      + '</div></div>';
+  const completos = camposPerfil.filter(Boolean).length;
+  const totalCampos = camposPerfil.length;
+  const pct = Math.round((completos / totalCampos) * 100);
+
+  // Texto motivacional según el porcentaje
+  let progTitulo, progSub;
+  if (pct === 100) {
+    progTitulo = 'Tu perfil está completo';
+    progSub = 'Todos tus datos están cargados. Tus pedidos llegan más rápido.';
+  } else if (pct >= 75) {
+    progTitulo = 'Te falta poco (' + pct + '%)';
+    progSub = 'Completá los datos que faltan para entregas más rápidas y sin errores.';
+  } else if (pct >= 50) {
+    progTitulo = 'Tu perfil está al ' + pct + '%';
+    progSub = 'Completá tus datos para que podamos entregarte más rápido.';
   } else {
-    vendCard = '<div style="padding:12px 16px;background:#F5F5F5;border-radius:12px;margin-bottom:10px;font-size:13px;color:#9C7050;text-align:center;">Sin vendedor asignado</div>';
+    progTitulo = 'Tu perfil está al ' + pct + '%';
+    progSub = 'Todavía te faltan datos importantes. Completalos para mejorar tu experiencia.';
   }
-  el.innerHTML = vendCard + rows.map(r =>
-    '<div class="cli-perfil-row">'
-      + '<span class="cli-perfil-label">' + r.l + '</span>'
-      + '<span class="cli-perfil-val">' + r.v + '</span>'
+
+  // SVG círculo de progreso (radio 25, circunf ~157)
+  const circunf = 157;
+  const offset = circunf - (pct / 100) * circunf;
+  const progresoCard = '<div class="cli-perfil-progreso">'
+    + '<div class="cli-perfil-progreso-circle">'
+    +   '<svg class="cli-perfil-progreso-bg" viewBox="0 0 58 58">'
+    +     '<circle cx="29" cy="29" r="25" fill="none" stroke="rgba(139,0,0,.12)" stroke-width="5"/>'
+    +     '<circle cx="29" cy="29" r="25" fill="none" stroke="#8B0000" stroke-width="5" '
+    +       'stroke-dasharray="' + circunf + '" stroke-dashoffset="' + offset + '" '
+    +       'stroke-linecap="round" transform="rotate(-90 29 29)"/>'
+    +   '</svg>'
+    +   '<div class="cli-perfil-progreso-pct">' + pct + '%</div>'
     + '</div>'
-  ).join('');
-  // Onerror fuera del string
-  var fotoEl = document.getElementById('perfil-foto-vend');
-  if (fotoEl) fotoEl.onerror = function() { this.style.display = 'none'; };
+    + '<div class="cli-perfil-progreso-info">'
+    +   '<div class="cli-perfil-progreso-titulo">' + progTitulo + '</div>'
+    +   '<div class="cli-perfil-progreso-sub">' + progSub + '</div>'
+    + '</div>'
+    + '</div>';
+
+  // Vendedor card con WhatsApp
+  const vend = _cliActivo.vendedor || '';
+  let vendCard = '';
+  if (vend) {
+    const vendObj = (typeof VEND !== 'undefined' ? VEND.find(v => v.nombre === vend) : null);
+    const vendTel = vendObj && vendObj.wa ? vendObj.wa : '';
+    const fotoVendPerfil = 'https://tckcatalogo.com/img/' + vend.toLowerCase() + '.jpg';
+    const inicial = (vend[0] || 'V').toUpperCase();
+    // Mensaje inicial al vendedor
+    const nombreCli = _cliActivo.nombre || 'un cliente';
+    const msg = encodeURIComponent('Hola ' + vend + ', soy ' + nombreCli + ' del catálogo TCK. Necesito consultarte algo.');
+    const waHref = vendTel
+      ? 'https://wa.me/' + vendTel + '?text=' + msg
+      : '#';
+    const waBtn = vendTel
+      ? '<a class="cli-perfil-vend-wa" href="' + waHref + '" target="_blank" rel="noopener" aria-label="WhatsApp con ' + vend + '">💬</a>'
+      : '';
+
+    vendCard = '<div class="cli-perfil-vend">'
+      + '<img class="cli-perfil-vend-foto" id="cli-perfil-vend-foto" src="' + fotoVendPerfil + '" alt="' + vend + '">'
+      + '<div class="cli-perfil-vend-info">'
+      +   '<div class="cli-perfil-vend-label">Tu vendedor</div>'
+      +   '<div class="cli-perfil-vend-nombre">' + vend + '</div>'
+      +   '<div class="cli-perfil-vend-rol">Vendedor TCK</div>'
+      + '</div>'
+      + waBtn
+      + '</div>';
+  } else {
+    vendCard = '<div style="padding:12px 16px;background:#F5F5F5;border-radius:12px;margin-bottom:14px;font-size:13px;color:#9C7050;text-align:center;">Sin vendedor asignado</div>';
+  }
+
+  // Datos con íconos
+  const datosRows = [
+    { ico: '👤', l: 'Nombre',   v: _cliActivo.nombre   || '' },
+    { ico: '🏪', l: 'Negocio',  v: _cliActivo.comercio || '' },
+    { ico: '🏙️', l: 'Ciudad',   v: _cliActivo.ciudad   || '' },
+    { ico: '📱', l: 'Teléfono', v: _cliActivo.telefono || '' }
+  ];
+  const datosCard = '<div class="cli-perfil-datos">'
+    + datosRows.map(r => {
+        const tieneVal = !!r.v;
+        const valClass = tieneVal ? 'cli-perfil-dato-val' : 'cli-perfil-dato-val vacio';
+        const valTxt = tieneVal ? r.v : 'Falta completar';
+        return '<div class="cli-perfil-dato">'
+          + '<div class="cli-perfil-dato-ico">' + r.ico + '</div>'
+          + '<div class="cli-perfil-dato-info">'
+          +   '<div class="cli-perfil-dato-label">' + r.l + '</div>'
+          +   '<div class="' + valClass + '">' + valTxt + '</div>'
+          + '</div>'
+          + '</div>';
+      }).join('')
+    + '</div>';
+
+  el.innerHTML = progresoCard + vendCard + datosCard;
+
+  // Onerror sobre la foto del vendedor: si falla, muestro fallback con inicial
+  const fotoEl = document.getElementById('cli-perfil-vend-foto');
+  if (fotoEl) {
+    fotoEl.onerror = function() {
+      const inicial = (vend[0] || 'V').toUpperCase();
+      const fallback = document.createElement('div');
+      fallback.className = 'cli-perfil-vend-foto-fallback';
+      fallback.textContent = inicial;
+      this.parentNode.replaceChild(fallback, this);
+    };
+  }
 }
 
 // ── NUEVO PEDIDO DESDE PORTAL ─────────────────────────────────
