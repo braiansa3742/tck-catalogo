@@ -2,43 +2,37 @@
 <html lang="es">
 <head>
 <!-- ═══════════════════════════════════════════════════════════════════════
-     TCK CATÁLOGO — v2.7.0 — 21/04/2026
+     TCK CATÁLOGO — v2.7.1 — 21/04/2026
+     ──────────────────────────────────────────────────────────────────────
+     Cambios v2.7.1 (sobre v2.7.0) — PULIDO PROFESIONAL UX/UI:
+       - FAB flotante reemplazado por CTA integrado ARRIBA de la nav
+         (soluciona overlap visual, jerarquía clara, look pro).
+       - Mis pedidos: cards con icon-actions (WA + repetir) en esquina
+         superior derecha en lugar de botones full-width. Pedidos
+         cancelados/entregados atenuados (opacity .72) como "archivados".
+       - Mi perfil:
+         · Al 100%: tira chica verde 32px "✓ Perfil completo" (antes card grande).
+         · Íconos de datos ahora son SVG de línea (Lucide-style) en vez de emoji.
+         · Nueva sección "Próxima entrega" con fecha del próximo viaje del
+           camión según la ciudad del cliente (Trenque = diario).
+         · Nueva sección "Tu cupón" visible si cupon_1ra_compra_disponible.
+         · Nueva sección "Total comprado" con métricas de pedidos entregados.
      ──────────────────────────────────────────────────────────────────────
      Cambios v2.7.0 (sobre v2.6.8) — REDISEÑO PANEL CLIENTE:
        - Nav inferior de 2 tabs (Mis pedidos / Mi perfil) tipo tckventas.
-       - CTA "Hacer pedido nuevo" ahora es un FAB dorado flotante arriba de
-         la nav (pill con gradient + borde dorado). Desaparece en tab perfil.
-       - Botón salir del header pasa a ícono circular ⏻ (antes decía "Salir").
-       - Mi perfil rediseñado:
-         · Círculo de progreso SVG (%) con texto motivacional según nivel.
-         · Card del vendedor con botón WhatsApp directo (wa.me/...).
-         · Datos con íconos en círculos crema. Campos vacíos en rojo con
-           "Falta completar" (preparación para v2.7.1).
-       - Paleta unificada al estándar TCK (fondo crema #FAF4EC).
+       - CTA "Hacer pedido nuevo" flotante (v2.7.1 lo integra a la nav).
+       - Botón salir del header pasa a ícono circular ⏻.
+       - Mi perfil rediseñado con progreso + vendedor + datos con íconos.
      ──────────────────────────────────────────────────────────────────────
      Cambios v2.6.8 (sobre v2.6.7):
        - Fix UX login: el botón del paso "ingresar teléfono" ahora dice
-         "Ingresar PIN →" en modo login (antes decía siempre "Enviar código →",
-         lo cual era incorrecto porque en login NO se envía OTP, va directo al PIN).
-       - Registro y recupero siguen diciendo "Enviar código →" (son los modos
-         que sí envían OTP por SMS).
-       - Nuevo helper cliFlowTelBtnTextoPorModo() + texto seteado en
-         cliFlowIniciar() para cada modo.
+         "Ingresar PIN →" en modo login (antes "Enviar código →").
      ──────────────────────────────────────────────────────────────────────
      Cambios v2.6.7 (sobre v2.6.6):
-       - Eliminada categoría completa VEGGIE LA CASERIANA (8 hamburguesas veggie).
-       - CAT ya no incluye {id:"veggie"}. Filtros de labels (cleanPres) se dejan
-         intactos por si la categoría vuelve en el futuro.
+       - Eliminada categoría completa VEGGIE LA CASERIANA.
      ──────────────────────────────────────────────────────────────────────
      Cambios v2.6.6 (sobre v2.6.5):
-       - Cupón 10% primera compra EXCLUYE categorías: pollos, trozados y ofertas (combos).
-       - Nueva constante CUPON_EXCLUYE_CAT_IDS + helper cuponEsElegibleCat(secId).
-       - T() separa subtotalElegible del subtotal total; descuento se calcula solo
-         sobre subtotalElegible (tope $20k sigue vigente).
-       - Badge "🚫 No suma al 10%" en cards de pollos/trozados cuando el cliente
-         tiene cupón disponible.
-       - Aviso en la caja del cupón del drawer: "Se aplica sobre $X. No incluye
-         pollos, trozados ni ofertas." (solo si hay excluidos en el carrito).
+       - Cupón 10% primera compra EXCLUYE categorías: pollos, trozados y ofertas.
      ──────────────────────────────────────────────────────────────────────
      TCK CATÁLOGO — ESTADO GLOBAL
      ──────────────────────────────────────────────────────────────────────
@@ -1402,34 +1396,45 @@ button,
 .cli-portal-action-btn:active { background: rgba(255,255,255,.22); }
 
 /* v2.7.0: FAB "Hacer pedido nuevo" flotante */
+/* v2.7.1: DEPRECADO — ahora es CTA integrado arriba de la nav, ver .cli-portal-cta */
 .cli-portal-fab {
-  position: absolute; bottom: 96px; left: 50%; transform: translateX(-50%);
+  display: none !important; /* Retrocompat: si queda el elemento en DOM no molesta */
+}
+
+/* v2.7.1: CTA integrado arriba de la nav (reemplaza el FAB flotante) */
+.cli-portal-cta {
+  display: block;
+  width: 100%;
   background: linear-gradient(135deg, #D4A574, #b8884f);
   color: #2a0000;
   font-family: 'Barlow Condensed', sans-serif;
-  font-weight: 900; font-size: 15px; letter-spacing: .5px;
-  padding: 13px 26px;
+  font-weight: 900; font-size: 16px; letter-spacing: .6px;
+  padding: 14px 20px;
   border-radius: 100px;
   border: 2px solid rgba(255,215,0,.55);
-  box-shadow: 0 10px 28px rgba(180,130,60,.45), 0 3px 10px rgba(0,0,0,.15);
-  display: flex; align-items: center; gap: 8px;
-  z-index: 12;
+  box-shadow: 0 6px 18px rgba(180,130,60,.35), 0 2px 6px rgba(0,0,0,.12);
   cursor: pointer;
-  white-space: nowrap;
   text-transform: uppercase;
   transition: transform .14s, box-shadow .14s;
+  display: flex; align-items: center; justify-content: center; gap: 10px;
 }
-.cli-portal-fab:active { transform: translateX(-50%) scale(.96); box-shadow: 0 4px 14px rgba(180,130,60,.35); }
-.cli-portal-fab-ico { font-size: 17px; }
+.cli-portal-cta:active {
+  transform: scale(.985);
+  box-shadow: 0 3px 10px rgba(180,130,60,.3);
+}
+.cli-portal-cta-ico { font-size: 18px; line-height: 1; }
 
 /* v2.7.0: Nav inferior tipo tckventas (2 tabs) */
 .cli-portal-nav {
   position: absolute; bottom: 0; left: 0; right: 0;
-  background: linear-gradient(180deg, rgba(250,244,236,0) 0%, rgba(250,244,236,.95) 30%, #FAF4EC 55%);
-  padding: 44px 14px calc(14px + env(safe-area-inset-bottom));
+  background: linear-gradient(180deg, rgba(250,244,236,0) 0%, rgba(250,244,236,.95) 25%, #FAF4EC 50%);
+  padding: 30px 14px calc(12px + env(safe-area-inset-bottom));
   z-index: 8;
   pointer-events: none;
+  display: flex; flex-direction: column; gap: 10px;
 }
+.cli-portal-nav > * { pointer-events: auto; }
+
 .cli-portal-nav-row {
   display: grid; grid-template-columns: 1fr 1fr;
   gap: 6px;
@@ -1438,7 +1443,6 @@ button,
   padding: 6px;
   box-shadow: 0 8px 24px rgba(139,0,0,.12), 0 2px 6px rgba(0,0,0,.05);
   border: 1px solid rgba(212,165,116,.25);
-  pointer-events: auto;
 }
 .cli-portal-nav-btn {
   display: flex; flex-direction: column; align-items: center; justify-content: center;
@@ -1460,17 +1464,25 @@ button,
   box-shadow: 0 3px 10px rgba(139,0,0,.28);
 }
 
-.cli-portal-body { flex: 1; overflow-y: auto; padding: 14px 14px 170px; }
+.cli-portal-body { flex: 1; overflow-y: auto; padding: 14px 14px 190px; }
 
-/* Pedido card en portal */
+/* Pedido card en portal — v2.7.1 compacto con icon-actions */
 .cli-pedido-card {
   background: #fff; border-radius: 16px; padding: 14px;
   margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,.05);
   border: 1px solid rgba(139,0,0,.08);
+  position: relative;
+  transition: opacity .2s;
 }
+/* v2.7.1: cancelados/entregados van atenuados (pedidos "archivados") */
+.cli-pedido-card.atenuado { opacity: .72; }
+.cli-pedido-card.atenuado:active { opacity: 1; }
+
 .cli-pedido-top {
   display: flex; align-items: center; justify-content: space-between;
   gap: 8px; margin-bottom: 8px;
+  padding-right: 80px; /* v2.7.1: reserva espacio para icon-actions */
+  min-height: 24px;
 }
 .cli-pedido-id { font-size: 10px; color: #a08d7a; font-weight: 600; letter-spacing: .5px; }
 .cli-pedido-estado {
@@ -1483,6 +1495,33 @@ button,
 .cli-pedido-estado.confirmado { background: #DBEAFE; color: #1D4ED8; }
 .cli-pedido-estado.entregado { background: #DCFCE7; color: #15803D; }
 .cli-pedido-estado.cancelado { background: #FEE2E2; color: #C62828; }
+
+/* v2.7.1: icon-actions en esquina superior derecha (Contactar/Repetir) */
+.cli-pedido-actions {
+  position: absolute; top: 12px; right: 12px;
+  display: flex; gap: 6px;
+  z-index: 2;
+}
+.cli-pedido-action {
+  width: 32px; height: 32px; border-radius: 50%;
+  display: grid; place-items: center;
+  border: none; cursor: pointer;
+  transition: transform .12s, box-shadow .12s;
+  text-decoration: none;
+  box-shadow: 0 2px 6px rgba(0,0,0,.1);
+}
+.cli-pedido-action:active { transform: scale(.9); }
+.cli-pedido-action.wa {
+  background: linear-gradient(135deg, #25D366, #1a9e4e);
+  color: #fff;
+}
+.cli-pedido-action.repetir {
+  background: #fff;
+  color: var(--red);
+  border: 1.5px solid rgba(139,0,0,.22);
+}
+.cli-pedido-action svg { width: 15px; height: 15px; }
+
 .cli-pedido-items {
   font-size: 12.5px; color: #4a3a2a; line-height: 1.45;
   padding: 8px 0; border-bottom: 1px dashed rgba(139,0,0,.12);
@@ -1497,6 +1536,7 @@ button,
 }
 .cli-pedido-fecha { font-size: 10.5px; color: #a08d7a; }
 
+/* Selector de horario (viejo flujo, se mantiene debajo) */
 .cli-horario-btn {
   width: 100%; margin-top: 12px;
   background: rgba(139,0,0,.05); border: 1.5px dashed rgba(139,0,0,.2);
@@ -1510,25 +1550,6 @@ button,
   border-radius: 12px; padding: 11px 14px; font-size: 13px;
   color: #2E7D32; font-weight: 700; text-align: center;
 }
-.cli-wa-btn {
-  width: 100%; margin-top: 10px;
-  background: linear-gradient(135deg, #25D366, #1a9e4e);
-  border: none; border-radius: 12px; padding: 12px;
-  font-family: 'Barlow Condensed', sans-serif; font-size: 15px;
-  font-weight: 800; color: #fff; cursor: pointer;
-  display: flex; align-items: center; justify-content: center; gap: 8px;
-  box-shadow: 0 3px 12px rgba(37,211,102,.25);
-}
-.cli-repetir-btn {
-  width: 100%; margin-top: 8px;
-  background: rgba(139,0,0,.06); border: 1.5px solid rgba(139,0,0,.18);
-  border-radius: 12px; padding: 11px;
-  font-family: 'Barlow Condensed', sans-serif; font-size: 15px;
-  font-weight: 700; color: var(--red); cursor: pointer;
-  display: flex; align-items: center; justify-content: center; gap: 6px;
-  transition: background .15s;
-}
-.cli-repetir-btn:active { background: rgba(139,0,0,.12); }
 
 /* Modal horario */
 .cli-horario-modal {
@@ -1557,7 +1578,31 @@ button,
 }
 .cli-horario-opt-ciudad { font-size: 12px; color: rgba(0,0,0,.45); margin-top: 2px; }
 
-/* v2.7.0: Perfil rediseñado */
+/* v2.7.0/v2.7.1: Perfil rediseñado */
+
+/* v2.7.1: Tira compacta cuando perfil está completo */
+.cli-perfil-completo-tira {
+  background: linear-gradient(135deg, #E8F5E9, #DCFCE7);
+  border: 1px solid #86EFAC;
+  border-radius: 12px;
+  padding: 8px 14px;
+  margin-bottom: 12px;
+  display: flex; align-items: center; gap: 10px;
+  min-height: 32px;
+}
+.cli-perfil-completo-check {
+  width: 22px; height: 22px; border-radius: 50%;
+  background: #15803D; color: #fff;
+  display: grid; place-items: center;
+  font-size: 13px; font-weight: 900;
+  flex-shrink: 0;
+}
+.cli-perfil-completo-txt {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 13px; font-weight: 700; color: #166534;
+  letter-spacing: .3px;
+}
+
 .cli-perfil-progreso {
   background: linear-gradient(135deg, #FFF8E8, #FFF0D0);
   border: 1px solid #D4A574;
@@ -1623,7 +1668,7 @@ button,
   width: 42px; height: 42px; border-radius: 50%;
   background: linear-gradient(135deg, #25D366, #18a045);
   display: grid; place-items: center;
-  color: #fff; font-size: 18px;
+  color: #fff;
   border: none; cursor: pointer;
   box-shadow: 0 4px 12px rgba(37,211,102,.32);
   flex-shrink: 0;
@@ -1631,6 +1676,7 @@ button,
   transition: transform .12s;
 }
 .cli-perfil-vend-wa:active { transform: scale(.92); }
+.cli-perfil-vend-wa svg { width: 20px; height: 20px; }
 
 .cli-perfil-datos {
   background: #fff;
@@ -1641,18 +1687,19 @@ button,
   box-shadow: 0 2px 8px rgba(0,0,0,.04);
 }
 .cli-perfil-dato {
-  display: flex; align-items: center; gap: 10px;
-  padding: 11px 0;
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 0;
   border-bottom: 1px solid rgba(139,0,0,.07);
 }
 .cli-perfil-dato:last-child { border-bottom: none; }
 .cli-perfil-dato-ico {
-  width: 32px; height: 32px; border-radius: 50%;
+  width: 34px; height: 34px; border-radius: 50%;
   background: #FAF0E5;
   display: grid; place-items: center;
-  font-size: 14px;
   flex-shrink: 0;
+  color: #9C7050;
 }
+.cli-perfil-dato-ico svg { width: 18px; height: 18px; stroke: currentColor; stroke-width: 1.8; fill: none; stroke-linecap: round; stroke-linejoin: round; }
 .cli-perfil-dato-info { flex: 1; min-width: 0; }
 .cli-perfil-dato-label {
   font-size: 10.5px; color: #9c7050; font-weight: 600;
@@ -1663,6 +1710,37 @@ button,
   margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .cli-perfil-dato-val.vacio { color: #c8362a; font-style: italic; font-weight: 500; }
+
+/* v2.7.1: cards de extras (Próxima entrega / Cupón / Métricas) */
+.cli-perfil-extra {
+  background: #fff;
+  border-radius: 14px;
+  padding: 12px 14px;
+  margin-bottom: 10px;
+  border: 1px solid rgba(139,0,0,.08);
+  display: flex; align-items: center; gap: 12px;
+}
+.cli-perfil-extra-ico {
+  width: 40px; height: 40px; border-radius: 10px;
+  display: grid; place-items: center;
+  flex-shrink: 0;
+  color: #fff;
+  font-size: 18px;
+}
+.cli-perfil-extra-ico.entrega { background: linear-gradient(135deg, #1E8449, #0E4D29); }
+.cli-perfil-extra-ico.cupon   { background: linear-gradient(135deg, #D4A574, #b8884f); }
+.cli-perfil-extra-ico.metrica { background: linear-gradient(135deg, #8B0000, #6a0000); }
+.cli-perfil-extra-info { flex: 1; min-width: 0; }
+.cli-perfil-extra-label {
+  font-size: 10.5px; color: #9c7050; font-weight: 600;
+  text-transform: uppercase; letter-spacing: .4px;
+}
+.cli-perfil-extra-titulo {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 16px; font-weight: 800; color: #1A0800; line-height: 1.2;
+  margin-top: 2px;
+}
+.cli-perfil-extra-sub { font-size: 11.5px; color: #6a5644; margin-top: 1px; line-height: 1.3; }
 
 .cli-empty {
   text-align: center; padding: 48px 20px;
@@ -2618,14 +2696,12 @@ button,
     </div>
   </div>
 
-  <!-- v2.7.0: FAB flotante "Hacer pedido nuevo" -->
-  <button class="cli-portal-fab" id="cli-portal-fab" onclick="cliNuevoPedido()">
-    <span class="cli-portal-fab-ico">🛒</span>
-    Hacer pedido nuevo
-  </button>
-
-  <!-- v2.7.0: Nav inferior 2 tabs tipo tckventas/tckadmin -->
+  <!-- v2.7.1: CTA integrado arriba de la nav + tabs (reemplaza el FAB flotante) -->
   <div class="cli-portal-nav">
+    <button class="cli-portal-cta" id="cli-portal-cta" onclick="cliNuevoPedido()">
+      <span class="cli-portal-cta-ico">🛒</span>
+      Hacer pedido nuevo
+    </button>
     <div class="cli-portal-nav-row">
       <button class="cli-portal-nav-btn sel" id="cptab-pedidos" onclick="cliPortalTab('pedidos')">
         <span class="cli-portal-nav-btn-ico">📦</span>
@@ -6091,9 +6167,9 @@ function cliPortalTab(tab) {
   document.getElementById('cptab-perfil').classList.toggle('sel', tab === 'perfil');
   document.getElementById('cli-portal-pedidos').style.display = tab === 'pedidos' ? 'block' : 'none';
   document.getElementById('cli-portal-perfil').style.display  = tab === 'perfil'  ? 'block' : 'none';
-  // v2.7.0: mostrar FAB solo en tab Mis pedidos (en perfil no tiene sentido)
-  const fab = document.getElementById('cli-portal-fab');
-  if (fab) fab.style.display = (tab === 'pedidos') ? 'flex' : 'none';
+  // v2.7.1: mostrar CTA solo en tab Mis pedidos (en perfil no tiene sentido)
+  const cta = document.getElementById('cli-portal-cta');
+  if (cta) cta.style.display = (tab === 'pedidos') ? 'flex' : 'none';
   if (tab === 'pedidos') cliCargarPedidos();
   if (tab === 'perfil') cliCargarPerfil();
 }
@@ -6186,23 +6262,42 @@ function _cliRenderPedido(p) {
   const vWA   = (VEND.find(v => v.nombre === p.vendedor)||{}).wa || '';
   const items = p.detalle ? p.detalle.replace(/\|/g,'\n').split('\n').filter(Boolean).slice(0,4).join(' · ') : '';
 
-  return '<div class="cli-pedido-card" id="cliped-' + p.id + '">' +
-    '<div class="cli-pedido-id">' + p.id + (hora ? '  ·  ' + hora + 'hs' : '') + '</div>' +
-    '<div class="cli-pedido-estado ' + cls + '">' + icon + ' ' + p.estado + '</div>' +
+  // v2.7.1: cards atenuadas para pedidos archivados (cancelado/entregado)
+  const archivado = (p.estado === 'Cancelado' || p.estado === 'Entregado');
+  const cardClass = 'cli-pedido-card' + (archivado ? ' atenuado' : '');
+
+  // v2.7.1: icon-actions en esquina superior derecha
+  // Ícono WA (Contactar)
+  const waIcon = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.2 1.36.172 1.872.104.571-.074 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413z"/></svg>';
+  // Ícono repetir (flecha circular)
+  const repetirIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><polyline points="23 20 23 14 17 14"/><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"/></svg>';
+
+  const waBtn = vWA
+    ? '<a class="cli-pedido-action wa" href="https://wa.me/' + vWA + '?text=' + encodeURIComponent('Hola, soy ' + (_cliActivo.nombre||'') + '. Te consulto por el pedido ' + p.id) + '" target="_blank" rel="noopener" title="WhatsApp con ' + p.vendedor + '" aria-label="WhatsApp con ' + p.vendedor + '">' + waIcon + '</a>'
+    : '';
+  const repetirBtn = p.detalle
+    ? '<button class="cli-pedido-action repetir" onclick="_cliRepetirPedido(\'' + p.id + '\',\'' + encodeURIComponent(p.detalle) + '\')" title="Repetir este pedido" aria-label="Repetir este pedido">' + repetirIcon + '</button>'
+    : '';
+  const actionsHTML = (waBtn || repetirBtn)
+    ? '<div class="cli-pedido-actions">' + waBtn + repetirBtn + '</div>'
+    : '';
+
+  return '<div class="' + cardClass + '" id="cliped-' + p.id + '">' +
+    actionsHTML +
+    '<div class="cli-pedido-top">' +
+      '<div class="cli-pedido-id">' + p.id + (hora ? ' · ' + hora + 'hs' : '') + '</div>' +
+      '<div class="cli-pedido-estado ' + cls + '">' + icon + ' ' + p.estado + '</div>' +
+    '</div>' +
     (items ? '<div class="cli-pedido-items">' + items + '</div>' : '') +
     '<div class="cli-pedido-footer">' +
       '<div class="cli-pedido-total">$' + (isNaN(total) ? '—' : total.toLocaleString('es-AR')) + '</div>' +
       '<div class="cli-pedido-fecha">' + fecha + '</div>' +
     '</div>' +
     (p.estado !== 'Cancelado' && p.estado !== 'Entregado'
-      ? horario
+      ? (horario
         ? '<div class="cli-horario-sel">🕐 ' + horario + '</div>'
-        : '<button class="cli-horario-btn" onclick="_cliAbrirHorario(\'' + p.id + '\')">🕐 Elegir horario de entrega</button>'
+        : '<button class="cli-horario-btn" onclick="_cliAbrirHorario(\'' + p.id + '\')">🕐 Elegir horario de entrega</button>')
       : '') +
-    (vWA ? '<button class="cli-wa-btn" onclick="window.open(\'https://wa.me/' + vWA + '?text=' + encodeURIComponent('Hola, soy ' + (_cliActivo.nombre||'') + '. Te consulto por el pedido ' + p.id) + '\')">' +
-      '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.2 1.36.172 1.872.104.571-.074 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413z"/></svg>' +
-      ' Contactar a ' + p.vendedor + '</button>' : '') +
-    (p.detalle ? '<button class="cli-repetir-btn" onclick="_cliRepetirPedido(\'' + p.id + '\',\'' + encodeURIComponent(p.detalle) + '\')">🔄 Repetir este pedido</button>' : '') +
   '</div>';
 }
 
@@ -6334,13 +6429,91 @@ function cliCerrarHorario() {
   _cliHorarioPedId = null;
 }
 
-// ── PERFIL (v2.7.0: rediseño con progreso + WA + iconos) ──────
+// ── PERFIL (v2.7.1: rediseño profesional con tira 100% + SVG + extras) ──
+// Ícono SVG stroke (línea) — estilo Lucide/Phosphor
+const _CLI_SVG = {
+  user:    '<svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>',
+  store:   '<svg viewBox="0 0 24 24"><path d="M3 9l1.5-6h15L21 9"/><path d="M3 9h18v11a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9z"/><path d="M8 21V13h8v8"/></svg>',
+  city:    '<svg viewBox="0 0 24 24"><path d="M4 21V7l6-4v18"/><path d="M10 21V11l10-4v14"/><path d="M14 12v.01M14 16v.01M14 20v.01"/></svg>',
+  phone:   '<svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>',
+  truck:   '<svg viewBox="0 0 24 24"><path d="M1 3h15v13H1z"/><path d="M16 8h4l3 3v5h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>',
+  gift:    '<svg viewBox="0 0 24 24"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>',
+  chart:   '<svg viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M7 16l4-6 4 3 5-7"/></svg>',
+  wa:      '<svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.2 1.36.172 1.872.104.571-.074 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413z"/></svg>'
+};
+
+// v2.7.1: calendario del camión para calcular próxima entrega
+// Ruta: TL → Pehuajó → Henderson → Carlos Casares → Daireaux → Pellegrini →
+//       Salliqueló → Tres Lomas → Guaminí → 30 de Agosto → Lincoln → Quemú Quemú
+// Según calendario: viajes lunes y jueves típicamente
+function cliProximaEntregaCalcular(ciudad) {
+  if (!ciudad) return null;
+  const c = String(ciudad).toLowerCase().trim();
+  const esTrenque = c.includes('trenque');
+  const hoy = new Date();
+  const diaSemana = hoy.getDay(); // 0=dom, 1=lun, ..., 6=sáb
+
+  // Trenque Lauquen: entrega diaria (Juan vende continuo)
+  if (esTrenque) {
+    return {
+      titulo: 'Entregamos en Trenque',
+      sub: 'Atendemos Trenque Lauquen todos los días'
+    };
+  }
+
+  // Para el resto: calcular próximo viaje de camión
+  // Lunes (1) y jueves (4) son los días típicos de salida
+  const diasASalida = [];
+  for (let i = 0; i < 7; i++) {
+    const d = (diaSemana + i) % 7;
+    if (d === 1 || d === 4) diasASalida.push(i);
+  }
+  const diasFaltan = diasASalida[0];
+  const proxima = new Date(hoy);
+  proxima.setDate(hoy.getDate() + diasFaltan);
+
+  const diasNombre = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+  const meses = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+  const diaNombre = diasNombre[proxima.getDay()];
+  const dd = String(proxima.getDate()).padStart(2,'0');
+  const mm = meses[proxima.getMonth()];
+
+  let subTxt;
+  if (diasFaltan === 0) subTxt = 'El camión sale hoy';
+  else if (diasFaltan === 1) subTxt = 'El camión sale mañana';
+  else subTxt = 'El camión sale en ' + diasFaltan + ' días';
+
+  return {
+    titulo: diaNombre + ' ' + dd + ' ' + mm + ' · ' + ciudad,
+    sub: subTxt
+  };
+}
+
+// v2.7.1: calcular métricas de cliente a partir del cache de pedidos
+function cliMetricasCalcular() {
+  if (!Array.isArray(_cliPedidosCache) || _cliPedidosCache.length === 0) return null;
+  let totalComprado = 0;
+  let cantEntregados = 0;
+  _cliPedidosCache.forEach(p => {
+    const n = parseInt((p.total||'0').toString().replace(/\D/g,'')) || 0;
+    if (p.estado === 'Entregado') {
+      totalComprado += n;
+      cantEntregados++;
+    }
+  });
+  if (cantEntregados === 0) return null;
+  return {
+    totalComprado: totalComprado,
+    cantEntregados: cantEntregados
+  };
+}
+
 function cliCargarPerfil() {
   const el = document.getElementById('cli-perfil-data');
   if (!_cliActivo || !el) return;
 
   // v2.7.0: calcular % de perfil completo (4 campos actuales)
-  // Próxima versión v2.7.1 sumará direccion + cuit_dni + email (7 campos totales)
+  // v2.7.2 sumará direccion + cuit_dni + email (7 campos totales)
   const camposPerfil = [
     !!_cliActivo.nombre,
     !!_cliActivo.comercio,
@@ -6351,40 +6524,43 @@ function cliCargarPerfil() {
   const totalCampos = camposPerfil.length;
   const pct = Math.round((completos / totalCampos) * 100);
 
-  // Texto motivacional según el porcentaje
-  let progTitulo, progSub;
+  // v2.7.1: tira compacta si está al 100%, card grande si no
+  let progresoHTML;
   if (pct === 100) {
-    progTitulo = 'Tu perfil está completo';
-    progSub = 'Todos tus datos están cargados. Tus pedidos llegan más rápido.';
-  } else if (pct >= 75) {
-    progTitulo = 'Te falta poco (' + pct + '%)';
-    progSub = 'Completá los datos que faltan para entregas más rápidas y sin errores.';
-  } else if (pct >= 50) {
-    progTitulo = 'Tu perfil está al ' + pct + '%';
-    progSub = 'Completá tus datos para que podamos entregarte más rápido.';
+    progresoHTML = '<div class="cli-perfil-completo-tira">'
+      + '<div class="cli-perfil-completo-check">✓</div>'
+      + '<div class="cli-perfil-completo-txt">Perfil completo · Todos tus datos están cargados</div>'
+      + '</div>';
   } else {
-    progTitulo = 'Tu perfil está al ' + pct + '%';
-    progSub = 'Todavía te faltan datos importantes. Completalos para mejorar tu experiencia.';
+    let progTitulo, progSub;
+    if (pct >= 75) {
+      progTitulo = 'Te falta poco (' + pct + '%)';
+      progSub = 'Completá los datos que faltan para entregas más rápidas.';
+    } else if (pct >= 50) {
+      progTitulo = 'Tu perfil está al ' + pct + '%';
+      progSub = 'Completá tus datos para que podamos entregarte mejor.';
+    } else {
+      progTitulo = 'Tu perfil está al ' + pct + '%';
+      progSub = 'Te faltan datos importantes. Completalos para mejorar tu experiencia.';
+    }
+    const circunf = 157;
+    const offset = circunf - (pct / 100) * circunf;
+    progresoHTML = '<div class="cli-perfil-progreso">'
+      + '<div class="cli-perfil-progreso-circle">'
+      +   '<svg class="cli-perfil-progreso-bg" viewBox="0 0 58 58">'
+      +     '<circle cx="29" cy="29" r="25" fill="none" stroke="rgba(139,0,0,.12)" stroke-width="5"/>'
+      +     '<circle cx="29" cy="29" r="25" fill="none" stroke="#8B0000" stroke-width="5" '
+      +       'stroke-dasharray="' + circunf + '" stroke-dashoffset="' + offset + '" '
+      +       'stroke-linecap="round" transform="rotate(-90 29 29)"/>'
+      +   '</svg>'
+      +   '<div class="cli-perfil-progreso-pct">' + pct + '%</div>'
+      + '</div>'
+      + '<div class="cli-perfil-progreso-info">'
+      +   '<div class="cli-perfil-progreso-titulo">' + progTitulo + '</div>'
+      +   '<div class="cli-perfil-progreso-sub">' + progSub + '</div>'
+      + '</div>'
+      + '</div>';
   }
-
-  // SVG círculo de progreso (radio 25, circunf ~157)
-  const circunf = 157;
-  const offset = circunf - (pct / 100) * circunf;
-  const progresoCard = '<div class="cli-perfil-progreso">'
-    + '<div class="cli-perfil-progreso-circle">'
-    +   '<svg class="cli-perfil-progreso-bg" viewBox="0 0 58 58">'
-    +     '<circle cx="29" cy="29" r="25" fill="none" stroke="rgba(139,0,0,.12)" stroke-width="5"/>'
-    +     '<circle cx="29" cy="29" r="25" fill="none" stroke="#8B0000" stroke-width="5" '
-    +       'stroke-dasharray="' + circunf + '" stroke-dashoffset="' + offset + '" '
-    +       'stroke-linecap="round" transform="rotate(-90 29 29)"/>'
-    +   '</svg>'
-    +   '<div class="cli-perfil-progreso-pct">' + pct + '%</div>'
-    + '</div>'
-    + '<div class="cli-perfil-progreso-info">'
-    +   '<div class="cli-perfil-progreso-titulo">' + progTitulo + '</div>'
-    +   '<div class="cli-perfil-progreso-sub">' + progSub + '</div>'
-    + '</div>'
-    + '</div>';
 
   // Vendedor card con WhatsApp
   const vend = _cliActivo.vendedor || '';
@@ -6393,17 +6569,12 @@ function cliCargarPerfil() {
     const vendObj = (typeof VEND !== 'undefined' ? VEND.find(v => v.nombre === vend) : null);
     const vendTel = vendObj && vendObj.wa ? vendObj.wa : '';
     const fotoVendPerfil = 'https://tckcatalogo.com/img/' + vend.toLowerCase() + '.jpg';
-    const inicial = (vend[0] || 'V').toUpperCase();
-    // Mensaje inicial al vendedor
     const nombreCli = _cliActivo.nombre || 'un cliente';
     const msg = encodeURIComponent('Hola ' + vend + ', soy ' + nombreCli + ' del catálogo TCK. Necesito consultarte algo.');
-    const waHref = vendTel
-      ? 'https://wa.me/' + vendTel + '?text=' + msg
-      : '#';
+    const waHref = vendTel ? 'https://wa.me/' + vendTel + '?text=' + msg : '#';
     const waBtn = vendTel
-      ? '<a class="cli-perfil-vend-wa" href="' + waHref + '" target="_blank" rel="noopener" aria-label="WhatsApp con ' + vend + '">💬</a>'
+      ? '<a class="cli-perfil-vend-wa" href="' + waHref + '" target="_blank" rel="noopener" aria-label="WhatsApp con ' + vend + '">' + _CLI_SVG.wa + '</a>'
       : '';
-
     vendCard = '<div class="cli-perfil-vend">'
       + '<img class="cli-perfil-vend-foto" id="cli-perfil-vend-foto" src="' + fotoVendPerfil + '" alt="' + vend + '">'
       + '<div class="cli-perfil-vend-info">'
@@ -6417,12 +6588,12 @@ function cliCargarPerfil() {
     vendCard = '<div style="padding:12px 16px;background:#F5F5F5;border-radius:12px;margin-bottom:14px;font-size:13px;color:#9C7050;text-align:center;">Sin vendedor asignado</div>';
   }
 
-  // Datos con íconos
+  // Datos con SVG icons
   const datosRows = [
-    { ico: '👤', l: 'Nombre',   v: _cliActivo.nombre   || '' },
-    { ico: '🏪', l: 'Negocio',  v: _cliActivo.comercio || '' },
-    { ico: '🏙️', l: 'Ciudad',   v: _cliActivo.ciudad   || '' },
-    { ico: '📱', l: 'Teléfono', v: _cliActivo.telefono || '' }
+    { svg: _CLI_SVG.user,  l: 'Nombre',   v: _cliActivo.nombre   || '' },
+    { svg: _CLI_SVG.store, l: 'Negocio',  v: _cliActivo.comercio || '' },
+    { svg: _CLI_SVG.city,  l: 'Ciudad',   v: _cliActivo.ciudad   || '' },
+    { svg: _CLI_SVG.phone, l: 'Teléfono', v: _cliActivo.telefono || '' }
   ];
   const datosCard = '<div class="cli-perfil-datos">'
     + datosRows.map(r => {
@@ -6430,7 +6601,7 @@ function cliCargarPerfil() {
         const valClass = tieneVal ? 'cli-perfil-dato-val' : 'cli-perfil-dato-val vacio';
         const valTxt = tieneVal ? r.v : 'Falta completar';
         return '<div class="cli-perfil-dato">'
-          + '<div class="cli-perfil-dato-ico">' + r.ico + '</div>'
+          + '<div class="cli-perfil-dato-ico">' + r.svg + '</div>'
           + '<div class="cli-perfil-dato-info">'
           +   '<div class="cli-perfil-dato-label">' + r.l + '</div>'
           +   '<div class="' + valClass + '">' + valTxt + '</div>'
@@ -6439,9 +6610,48 @@ function cliCargarPerfil() {
       }).join('')
     + '</div>';
 
-  el.innerHTML = progresoCard + vendCard + datosCard;
+  // v2.7.1: Extras — Próxima entrega
+  let extrasHTML = '';
+  const proxEnt = cliProximaEntregaCalcular(_cliActivo.ciudad);
+  if (proxEnt) {
+    extrasHTML += '<div class="cli-perfil-extra">'
+      + '<div class="cli-perfil-extra-ico entrega">' + _CLI_SVG.truck + '</div>'
+      + '<div class="cli-perfil-extra-info">'
+      +   '<div class="cli-perfil-extra-label">Próxima entrega</div>'
+      +   '<div class="cli-perfil-extra-titulo">' + proxEnt.titulo + '</div>'
+      +   '<div class="cli-perfil-extra-sub">' + proxEnt.sub + '</div>'
+      + '</div>'
+      + '</div>';
+  }
+  // v2.7.1: Extras — Cupón (solo si disponible)
+  if (typeof cuponDisponible === 'function' && cuponDisponible()) {
+    extrasHTML += '<div class="cli-perfil-extra">'
+      + '<div class="cli-perfil-extra-ico cupon">' + _CLI_SVG.gift + '</div>'
+      + '<div class="cli-perfil-extra-info">'
+      +   '<div class="cli-perfil-extra-label">Tu cupón de bienvenida</div>'
+      +   '<div class="cli-perfil-extra-titulo">10% OFF · Hasta $20.000</div>'
+      +   '<div class="cli-perfil-extra-sub">Se aplica automáticamente en tu próximo pedido</div>'
+      + '</div>'
+      + '</div>';
+  }
+  // v2.7.1: Extras — Métricas (solo si hay entregas)
+  const metricas = cliMetricasCalcular();
+  if (metricas) {
+    const fmtTot = '$' + metricas.totalComprado.toLocaleString('es-AR');
+    const pedTxt = metricas.cantEntregados === 1 ? '1 pedido entregado' : metricas.cantEntregados + ' pedidos entregados';
+    extrasHTML += '<div class="cli-perfil-extra">'
+      + '<div class="cli-perfil-extra-ico metrica">' + _CLI_SVG.chart + '</div>'
+      + '<div class="cli-perfil-extra-info">'
+      +   '<div class="cli-perfil-extra-label">Total comprado</div>'
+      +   '<div class="cli-perfil-extra-titulo">' + fmtTot + '</div>'
+      +   '<div class="cli-perfil-extra-sub">' + pedTxt + ' en TCK</div>'
+      + '</div>'
+      + '</div>';
+  }
 
-  // Onerror sobre la foto del vendedor: si falla, muestro fallback con inicial
+  el.innerHTML = progresoHTML + vendCard + datosCard + extrasHTML;
+
+  // Onerror sobre la foto del vendedor: si falla, mostrar fallback con inicial
   const fotoEl = document.getElementById('cli-perfil-vend-foto');
   if (fotoEl) {
     fotoEl.onerror = function() {
