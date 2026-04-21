@@ -1111,10 +1111,11 @@ button,
 .combo-card.agotado { opacity: 0.55; filter: grayscale(0.3); }
 
 /* Imagen a la izquierda, ancho fijo compacto */
+/* v2.4: ampliada de 125px a 160px para que el plato se vea mejor */
 .combo-img-wrap {
-  width: 125px;
-  min-width: 125px;
-  max-width: 125px;
+  width: 160px;
+  min-width: 160px;
+  max-width: 160px;
   position: relative;
   background: #000;
   overflow: hidden;
@@ -2083,9 +2084,10 @@ function combosRender() {
         '<div class="combo-precio-combo">' + fmt(c.precio_combo||0) + '</div>' +
         '<div class="combo-barra-wrap">' +
           '<div class="combo-progreso"><div class="combo-progreso-barra" style="width:' + porcentajeBarra + '%"></div></div>' +
-          '<div class="combo-progreso-texto">⚡ ¡Solo ' + disponiblesVisibles + ' combos disponibles!</div>' +
+          '<div class="combo-progreso-texto">⚡ ' + porcentajeBarra + '% del stock ya vendido</div>' +
         '</div>' +
         '<div class="combo-legal">Fotos a modo ilustrativo · Máx. ' + (c.max_por_compra||2) + ' por compra · Stock limitado</div>' +
+        '<div class="combo-action-slot" id="combo-slot-' + c.id + '">' +
         (qtyActual > 0
           ? '<div class="combo-qty-row">' +
               '<button class="combo-btn-qty" onclick="combosRestar(\'' + c.id + '\')" aria-label="Quitar combo">−</button>' +
@@ -2096,6 +2098,7 @@ function combosRender() {
               (agotado ? 'AGOTADO' : '+ AGREGAR AL PEDIDO') +
             '</button>'
         ) +
+        '</div>' +
       '</div>' +
     '</div>';
   }).join('');
@@ -2130,6 +2133,30 @@ function combosToast(msg, durMs) {
 }
 
 // Sumar 1 combo al carrito (respetando límite y stock)
+// v2.4: actualización quirúrgica del slot de acción (sin re-render completo).
+// Evita que la imagen "titile" cada vez que se suma o resta un combo.
+// Re-renderiza solo el botón/controles de cantidad + el texto de la barra de stock.
+function combosActualizarSlot(comboId) {
+  const combo = (_combosData||[]).find(c => c.id === comboId);
+  if (!combo) return;
+  const slot = document.getElementById('combo-slot-' + comboId);
+  if (!slot) return;
+
+  const qtyActual = qtyCombo[comboId] || 0;
+  const disponiblesReales = (combo.stock_total||0) - (combo.vendidos||0);
+  const agotado = disponiblesReales <= 0 || !combo.activo;
+
+  slot.innerHTML = qtyActual > 0
+    ? '<div class="combo-qty-row">' +
+        '<button class="combo-btn-qty" onclick="combosRestar(\'' + comboId + '\')" aria-label="Quitar combo">−</button>' +
+        '<div class="combo-qty-val">' + qtyActual + ' en carrito</div>' +
+        '<button class="combo-btn-qty" onclick="combosSumar(\'' + comboId + '\')" aria-label="Sumar combo">+</button>' +
+      '</div>'
+    : '<button class="combo-btn-add" onclick="combosSumar(\'' + comboId + '\')"' + (agotado?' disabled':'') + '>' +
+        (agotado ? 'AGOTADO' : '+ AGREGAR AL PEDIDO') +
+      '</button>';
+}
+
 function combosSumar(comboId) {
   const combo = (_combosData||[]).find(c => c.id === comboId);
   if (!combo) return;
@@ -2155,7 +2182,7 @@ function combosSumar(comboId) {
   }
 
   qtyCombo[comboId] = actual + 1;
-  combosRender();
+  combosActualizarSlot(comboId); // v2.4: sin flash de imagen
   updateBar();
   if (document.getElementById('drawer') && document.getElementById('drawer').classList.contains('on')) renderDrawer();
   saveCartLS();
@@ -2170,7 +2197,7 @@ function combosRestar(comboId) {
   } else {
     qtyCombo[comboId] = actual - 1;
   }
-  combosRender();
+  combosActualizarSlot(comboId); // v2.4: sin flash de imagen
   updateBar();
   if (document.getElementById('drawer') && document.getElementById('drawer').classList.contains('on')) renderDrawer();
   saveCartLS();
