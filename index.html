@@ -465,6 +465,174 @@ button,
 .hdr-support.visible{display:flex;}
 .hdr-support:active{background:rgba(255,215,0,.38);border-color:rgba(255,215,0,.9);}
 
+/* v2.6.1 — Botón "Mi cuenta" en 3 estados dinámicos */
+.btn-cuenta {
+  border: none;
+  padding: 6px 12px;
+  border-radius: 16px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 11.5px;
+  font-weight: 800;
+  letter-spacing: .4px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all .15s;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  -webkit-tap-highlight-color: transparent;
+}
+/* Estado 1: Visitante nuevo - botón dorado sólido llamativo */
+.btn-cuenta.registrarme {
+  background: linear-gradient(135deg, #FFD700, #E6A500);
+  color: #8B0000;
+  border: 1.5px solid #FFD700;
+  box-shadow: 0 2px 8px rgba(255,215,0,.4), 0 0 14px rgba(255,215,0,.25);
+  animation: btnRegPulse 2.8s ease-in-out infinite;
+}
+.btn-cuenta.registrarme:active {
+  transform: scale(0.96);
+  box-shadow: 0 1px 4px rgba(255,215,0,.4);
+}
+@keyframes btnRegPulse {
+  0%, 100% { box-shadow: 0 2px 8px rgba(255,215,0,.4), 0 0 14px rgba(255,215,0,.25); }
+  50%      { box-shadow: 0 2px 12px rgba(255,215,0,.6), 0 0 22px rgba(255,215,0,.45); }
+}
+/* Estado 2: Cliente existente - botón amarillo transparente */
+.btn-cuenta.iniciar {
+  background: rgba(255,215,0,.15);
+  color: #FFD700;
+  border: 1.5px solid rgba(255,215,0,.5);
+}
+.btn-cuenta.iniciar:active {
+  background: rgba(255,215,0,.25);
+}
+/* Estado 3: Logueado - botón blanco discreto con avatar */
+.btn-cuenta.logueado {
+  background: rgba(255,255,255,.14);
+  color: #FFFFFF;
+  border: 1.5px solid rgba(255,255,255,.3);
+  font-weight: 700;
+}
+.btn-cuenta.logueado:active {
+  background: rgba(255,255,255,.22);
+}
+.btn-cuenta.logueado .avatar {
+  width: 18px; height: 18px;
+  background: #FFD700;
+  color: #8B0000;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px;
+  font-weight: 900;
+  font-family: 'Barlow Condensed', sans-serif;
+  flex-shrink: 0;
+}
+
+/* v2.6.1 — Banner de registro arriba del catálogo */
+.banner-registro {
+  background: linear-gradient(135deg, #8B0000 0%, #C62828 100%);
+  border: 2px solid #FFD700;
+  border-radius: 12px;
+  padding: 12px 14px;
+  margin: 10px 10px 0;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  box-shadow: 0 3px 12px rgba(139,0,0,.35), 0 0 14px rgba(255,215,0,.2);
+  position: relative;
+  overflow: hidden;
+  animation: bannerSlideDown 0.35s ease;
+}
+.banner-registro.hidden { display: none; }
+@keyframes bannerSlideDown {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.banner-registro::before {
+  content: '';
+  position: absolute;
+  top: -50%; right: -40px;
+  width: 100px; height: 200%;
+  background: linear-gradient(90deg, transparent, rgba(255,215,0,.18));
+  transform: rotate(15deg);
+  pointer-events: none;
+}
+.banner-registro-ico {
+  width: 42px; height: 42px;
+  background: #FFD700;
+  color: #8B0000;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px;
+  flex-shrink: 0;
+  box-shadow: 0 2px 7px rgba(0,0,0,.3);
+  z-index: 1;
+}
+.banner-registro-txt {
+  flex: 1; min-width: 0;
+  color: #FFFFFF;
+  line-height: 1.25;
+  z-index: 1;
+}
+.banner-registro-titulo {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 15px;
+  font-weight: 900;
+  color: #FFD700;
+  letter-spacing: .5px;
+  line-height: 1.05;
+  margin-bottom: 2px;
+}
+.banner-registro-sub {
+  font-size: 11px;
+  opacity: .95;
+  font-weight: 500;
+  line-height: 1.3;
+}
+.banner-registro-sub b { color: #FFD700; }
+.banner-registro-btn {
+  background: #FFD700;
+  color: #8B0000;
+  border: none;
+  padding: 9px 13px;
+  border-radius: 8px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: .4px;
+  flex-shrink: 0;
+  box-shadow: 0 2px 6px rgba(0,0,0,.25);
+  cursor: pointer;
+  z-index: 1;
+  position: relative;
+}
+.banner-registro-btn:active {
+  transform: scale(0.96);
+}
+.banner-registro-close {
+  position: absolute;
+  top: 6px; right: 6px;
+  width: 22px; height: 22px;
+  background: rgba(0,0,0,.25);
+  color: #FFD700;
+  border: none;
+  border-radius: 50%;
+  font-size: 13px;
+  font-weight: 900;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+  font-family: inherit;
+}
+.banner-registro-close:active {
+  background: rgba(0,0,0,.4);
+}
+
 /* ── FAB MENU (dropdown desde header) ── */
 .fab-contact{display:none;}
 
@@ -1825,8 +1993,18 @@ button,
 </div></div>
 <div class="hdr"><div class="hdr-stripe"></div><div class="hdr-body">
 <div class="hdr-brand"><div class="hdr-brand-name">THE CHICKEN <span>KINGS</span></div><div class="hdr-brand-sub" id="hdr-price-status">Cat&aacute;logo Abril 2026 &middot; Trenque Lauquen</div></div>
-<div class="hdr-right"><div class="cart-pill" id="cart-pill"></div><button id="cli-btn-volver-portal" onclick="cliVolverPortal()" style="display:none;background:rgba(255,215,0,.15);border:1.5px solid rgba(255,215,0,.4);border-radius:20px;padding:6px 12px;font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:800;color:var(--gold);cursor:pointer;white-space:nowrap;letter-spacing:.3px">← Mi cuenta</button><button id="cli-btn-micuenta" onclick="mostrarLoginParaCuenta()" style="background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:20px;padding:5px 10px;font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;color:rgba(255,255,255,.7);cursor:pointer;white-space:nowrap;letter-spacing:.3px;">👤 Mi cuenta</button><button class="hdr-support" id="hdr-support" onclick="toggleFAB()" aria-label="Ayuda"><svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor" style="opacity:.85;flex-shrink:0"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z"/></svg> Ayuda</button><div class="vchip" id="vchip" onclick="cambiarVendedor()"></div></div>
+<div class="hdr-right"><div class="cart-pill" id="cart-pill"></div><button id="cli-btn-volver-portal" onclick="cliVolverPortal()" style="display:none;background:rgba(255,215,0,.15);border:1.5px solid rgba(255,215,0,.4);border-radius:20px;padding:6px 12px;font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:800;color:var(--gold);cursor:pointer;white-space:nowrap;letter-spacing:.3px">← Mi cuenta</button><button id="cli-btn-micuenta" class="btn-cuenta registrarme" onclick="cliBotonHeader()">🎁 Registrarme</button><button class="hdr-support" id="hdr-support" onclick="toggleFAB()" aria-label="Ayuda"><svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor" style="opacity:.85;flex-shrink:0"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z"/></svg> Ayuda</button><div class="vchip" id="vchip" onclick="cambiarVendedor()"></div></div>
 </div><div class="catnav" id="catnav"></div></div>
+<!-- v2.6.1 — Banner de registro (aparece una sola vez hasta que lo cierren) -->
+<div class="banner-registro hidden" id="banner-registro">
+  <button class="banner-registro-close" onclick="cliBannerCerrar()" aria-label="Cerrar">&times;</button>
+  <div class="banner-registro-ico">🎁</div>
+  <div class="banner-registro-txt">
+    <div class="banner-registro-titulo">Registrate y ganá <b>10% OFF</b></div>
+    <div class="banner-registro-sub">En tu primera compra · <b>Hasta $20.000 de ahorro</b></div>
+  </div>
+  <button class="banner-registro-btn" onclick="cliBotonHeader()">Registrarme</button>
+</div>
 <div class="body" id="body"></div>
 <div class="orderbar">
 <div class="ob-empty" id="ob-empty"><div class="ob-empty-t">Arm&aacute; tu pedido</div><div class="ob-empty-s">Sum&aacute; productos y envi&aacute;lo por WhatsApp</div></div>
@@ -3347,6 +3525,12 @@ cargarPrecios().finally(() => {
   renderSvModal();
 
   setTimeout(loadCartLS, 100);
+
+  // v2.6.1 — Actualizar botón header y mostrar banner de registro
+  setTimeout(function() {
+    if (typeof cliActualizarBotonHeader === 'function') cliActualizarBotonHeader();
+    if (typeof cliBannerMostrar === 'function') cliBannerMostrar();
+  }, 300);
 });
 
 
@@ -4063,7 +4247,13 @@ function normTel(t) {
 // CLI_KEY y _cliActivo declarados en bloque de estado global
 
 function cliGuardar(cli) {
-  try { localStorage.setItem(CLI_KEY, JSON.stringify({ cli, exp: Date.now() + 30*24*3600*1000 })); } catch(e) {}
+  try {
+    // v2.6.1: sesión completa (expira en 60 días)
+    localStorage.setItem(CLI_KEY, JSON.stringify({ cli, exp: Date.now() + 60*24*3600*1000 }));
+    // v2.6.1: teléfono persiste aunque haga logout, para que el botón header
+    // muestre "Iniciá sesión" en lugar de "Registrarme" la próxima vez
+    if (cli && cli.telefono) localStorage.setItem('tck_cli_tel', cli.telefono);
+  } catch(e) {}
 }
 function cliLeerSesion() {
   try {
@@ -4257,9 +4447,11 @@ function cliEntrarPortal(cli) {
   document.getElementById('cli-portal').classList.remove('gone');
   const btnVolver = document.getElementById('cli-btn-volver-portal');
   if (btnVolver) btnVolver.style.display = 'block';
-  // Ocultar botón "Mi cuenta" del header (ya tiene "← Mi cuenta")
-  const btnMiCuenta = document.getElementById('cli-btn-micuenta');
-  if (btnMiCuenta) btnMiCuenta.style.display = 'none';
+  // v2.6.1: el botón Mi cuenta ya no se oculta, cambia de estado (muestra nombre)
+  if (typeof cliActualizarBotonHeader === 'function') cliActualizarBotonHeader();
+  // v2.6.1: ocultar banner de registro si estaba visible
+  const banner = document.getElementById('banner-registro');
+  if (banner) banner.classList.add('hidden');
   const vchip = document.getElementById('vchip');
   if (vchip) vchip.style.display = 'none';
   cliIniciarRefresh();
@@ -4291,6 +4483,82 @@ function mostrarLoginParaCuenta() {
     btn.onclick = function() { ocultarLoginModal(); };
     loginEl.appendChild(btn);
   }
+}
+
+// v2.6.1 — Control del botón "Mi cuenta" en 3 estados dinámicos
+// Estado 1: no registrado     → "🎁 Registrarme" (dorado con pulse)
+// Estado 2: tiene tel en LS    → "Iniciá sesión" (amarillo transparente)
+// Estado 3: cliente logueado   → "{inicial} {nombre}" (blanco discreto)
+function cliActualizarBotonHeader() {
+  const btn = document.getElementById('cli-btn-micuenta');
+  if (!btn) return;
+
+  // Estado 3: logueado
+  if (_cliActivo) {
+    const nombre = _cliActivo.nombre || _cliActivo.comercio || 'Mi cuenta';
+    const primeraLetra = (nombre.trim()[0] || '?').toUpperCase();
+    // Nombre acortado a primera palabra para no romper layout
+    const display = nombre.trim().split(/\s+/)[0];
+    btn.className = 'btn-cuenta logueado';
+    btn.innerHTML = '<span class="avatar">' + primeraLetra + '</span>' + display;
+    return;
+  }
+
+  // Estado 2: hay teléfono guardado de sesión previa (recuerdo)
+  let telGuardado = null;
+  try { telGuardado = localStorage.getItem('tck_cli_tel'); } catch(e) {}
+  if (telGuardado) {
+    btn.className = 'btn-cuenta iniciar';
+    btn.innerHTML = 'Iniciá sesión';
+    return;
+  }
+
+  // Estado 1: visitante nuevo
+  btn.className = 'btn-cuenta registrarme';
+  btn.innerHTML = '🎁 Registrarme';
+}
+
+// v2.6.1 — Click del botón header: decide login o portal según estado
+function cliBotonHeader() {
+  if (_cliActivo) {
+    // Logueado → abrir portal
+    mostrarLoginParaCuenta();
+    return;
+  }
+  // No logueado → abrir pantalla de login/registro
+  mostrarLoginParaCuenta();
+
+  // Pre-seleccionar tab: registro si nunca se registró, ingresar si volvió
+  let telGuardado = null;
+  try { telGuardado = localStorage.getItem('tck_cli_tel'); } catch(e) {}
+  if (typeof cliTab === 'function') {
+    setTimeout(function() {
+      cliTab(telGuardado ? 'login' : 'registro');
+    }, 50);
+  }
+}
+
+// v2.6.1 — Banner de registro: aparece 1 sola vez por visitante
+function cliBannerMostrar() {
+  // No mostrar si ya está logueado
+  if (_cliActivo) return;
+  // No mostrar si el usuario lo cerró alguna vez
+  let cerrado = null;
+  try { cerrado = localStorage.getItem('tck_banner_reg_cerrado'); } catch(e) {}
+  if (cerrado === '1') return;
+  // No mostrar si ya tiene teléfono guardado (es cliente recurrente)
+  let tel = null;
+  try { tel = localStorage.getItem('tck_cli_tel'); } catch(e) {}
+  if (tel) return;
+
+  const b = document.getElementById('banner-registro');
+  if (b) b.classList.remove('hidden');
+}
+
+function cliBannerCerrar() {
+  const b = document.getElementById('banner-registro');
+  if (b) b.classList.add('hidden');
+  try { localStorage.setItem('tck_banner_reg_cerrado', '1'); } catch(e) {}
 }
 
 function cliPortalTab(tab) {
@@ -4620,6 +4888,8 @@ function cliLogout() {
   if (btnV) btnV.style.display = 'none';
   const vchip = document.getElementById('vchip');
   if (vchip) vchip.style.display = '';
+  // v2.6.1: actualizar botón header al estado no-logueado
+  if (typeof cliActualizarBotonHeader === 'function') cliActualizarBotonHeader();
 }
 
 // Volver al portal desde el catálogo (cliente logueado)
