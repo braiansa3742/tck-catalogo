@@ -2,7 +2,23 @@
 <html lang="es">
 <head>
 <!-- ═══════════════════════════════════════════════════════════════════════
-     TCK CATÁLOGO — v2.7.5 — 21/04/2026
+     TCK CATÁLOGO — v2.7.6 — 22/04/2026
+     ──────────────────────────────────────────────────────────────────────
+     Cambios v2.7.6 (sobre v2.7.5) — META PIXEL + EVENTOS DE CONVERSIÓN:
+       - Meta Pixel ID 2034313150514758 instalado en <head> (PageView auto).
+       - Eventos fbq() disparados en puntos clave del flujo del cliente:
+           · ViewContent → primera interacción con producto (+ de qty)
+           · AddToCart → cada vez que incrementa cantidad de un producto
+           · InitiateCheckout → al abrir modal "Confirmar pedido"
+           · CompleteRegistration → al terminar registro (PIN o OTP legacy),
+             con custom_data de canal (ej. CANAL_IG) y cupón activo.
+           · Purchase → después de confirmar pedido, con value=total y
+             currency=ARS. Incluye num_items y contents[].
+       - Helper fbqSafe() con try/catch — si el Pixel está bloqueado
+         (adblock, privacy) el flujo sigue sin romperse.
+       - Debounce de ViewContent/AddToCart (1 por producto cada 2s)
+         para evitar spam si el cliente tapea +/- rápido.
+       - noscript fallback del Pixel incluido al inicio del <body>.
      ──────────────────────────────────────────────────────────────────────
      Cambios v2.7.5 (sobre v2.7.4) — TRACKING UTM + CANAL IG (Modelo A):
        - Captura de parámetros UTM al landear (utm_source, medium,
@@ -193,6 +209,41 @@ function utmPayloadRegistro() {
 }
 // Captura al cargar el script (first-touch)
 utmCapturar();
+
+// ── v2.7.6 · Meta Pixel — helpers y estado de debounce ────────────
+// fbqSafe: wrapper tolerante. Si el Pixel está bloqueado (adblock,
+// privacy strict, brave), no rompe el flujo del cliente.
+function fbqSafe(event, params, customData) {
+  try {
+    if (typeof fbq !== 'function') return;
+    const p = params || {};
+    // Adjuntar UTMs si están disponibles (para que Meta pueda cruzar)
+    try {
+      const utm = utmLeer();
+      if (utm) {
+        if (utm.origen_marketing && !p.origen_marketing) p.origen_marketing = utm.origen_marketing;
+        if (utm.utm_source && !p.utm_source) p.utm_source = utm.utm_source;
+        if (utm.utm_campaign && !p.utm_campaign) p.utm_campaign = utm.utm_campaign;
+      }
+    } catch(e) {}
+    if (customData) {
+      fbq('trackCustom', event, p);
+    } else {
+      fbq('track', event, p);
+    }
+  } catch(e) {
+    // Silencioso — el Pixel bloqueado no es error del negocio
+  }
+}
+
+// Debounce: set de productos ya trackeados para ViewContent/AddToCart
+// Se resetea cada 2 segundos para no spamear si el cliente tapea rápido.
+var _pxViewed  = {};   // { 'si-ii': true }
+var _pxCarted  = {};   // { 'si-ii': timestamp }
+function _pxResetCart() { _pxCarted = {}; }
+// Limpieza periódica (cada 3s) para permitir re-trackear si el cliente
+// vuelve a cambiar cantidad después de una pausa.
+setInterval(function(){ _pxCarted = {}; }, 3000);
 </script>
 
 <!-- Google Analytics -->
@@ -2753,6 +2804,29 @@ button,
   text-align: center;
 }
 </style>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     v2.7.6 · Meta Pixel (Facebook/Instagram Ads tracking)
+     Pixel ID: 2034313150514758 — cuenta publicitaria tck 2 (1662892791085151)
+     ═══════════════════════════════════════════════════════════════════════ -->
+<!-- Meta Pixel Code -->
+<script>
+!function(f,b,e,v,n,t,s)
+{if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+n.queue=[];t=b.createElement(e);t.async=!0;
+t.src=v;s=b.getElementsByTagName(e)[0];
+s.parentNode.insertBefore(t,s)}(window, document,'script',
+'https://connect.facebook.net/en_US/fbevents.js');
+fbq('init', '2034313150514758');
+fbq('track', 'PageView');
+</script>
+<noscript><img height="1" width="1" style="display:none"
+src="https://www.facebook.com/tr?id=2034313150514758&ev=PageView&noscript=1"
+/></noscript>
+<!-- End Meta Pixel Code -->
+
 </head>
 <body>
 <div class="app">
@@ -3554,6 +3628,34 @@ function chg(key,si,ii,d){
   qty[key]=Math.max(0,(qty[key]||0)+d);
   checkRepFabVisibility();
   const q=qty[key]||0;
+  // ── v2.7.6 · Meta Pixel — ViewContent + AddToCart ────────────
+  // ViewContent: primera interacción con el producto en esta sesión
+  try {
+    const it = CAT[si] && CAT[si].items && CAT[si].items[ii];
+    if (it && !_pxViewed[key]) {
+      _pxViewed[key] = true;
+      fbqSafe('ViewContent', {
+        content_ids: [key],
+        content_name: it.n || '',
+        content_type: 'product',
+        content_category: (CAT[si] && CAT[si].nombre) || '',
+        value: it.pr || 0,
+        currency: 'ARS'
+      });
+    }
+    // AddToCart: al incrementar (d > 0), con debounce por producto
+    if (d > 0 && it && q > 0 && !_pxCarted[key]) {
+      _pxCarted[key] = Date.now();
+      fbqSafe('AddToCart', {
+        content_ids: [key],
+        content_name: it.n || '',
+        content_type: 'product',
+        value: (it.pr || 0) * q,
+        currency: 'ARS',
+        num_items: q
+      });
+    }
+  } catch(e) { /* ignorar, no bloquea carrito */ }
   const card=document.querySelector('.card[data-key="'+key+'"]');
   if(card){
     card.querySelector('.qv').textContent=q;
@@ -4258,6 +4360,21 @@ function elegirDesdeModal(idx) {
     document.getElementById('wa-preview-vendedor').textContent = vActivo.nombre;
     cargarDatosCliente();
     cliPreRellenarModal();
+    // ── v2.7.6 · Meta Pixel — InitiateCheckout (flujo con selector) ──
+    try {
+      const {t, c} = T();
+      if (c > 0) {
+        const contents = [];
+        CAT.forEach((s, si) => s.items.forEach((it, ii) => {
+          const qItem = qty[si+'-'+ii] || 0;
+          if (qItem > 0) contents.push({ id: si+'-'+ii, quantity: qItem, item_price: it.pr || 0 });
+        }));
+        fbqSafe('InitiateCheckout', {
+          value: t, currency: 'ARS', num_items: c,
+          contents: contents, content_type: 'product'
+        });
+      }
+    } catch(e) {}
     abrirModal('modal-cliente-id');
   }, 380);
 }
@@ -4270,6 +4387,21 @@ function elegirSinVendedor() {
     document.getElementById('wa-preview-vendedor').textContent = 'Administración';
     cargarDatosCliente();
     cliPreRellenarModal();
+    // ── v2.7.6 · Meta Pixel — InitiateCheckout (flujo sin vendedor) ──
+    try {
+      const {t, c} = T();
+      if (c > 0) {
+        const contents = [];
+        CAT.forEach((s, si) => s.items.forEach((it, ii) => {
+          const qItem = qty[si+'-'+ii] || 0;
+          if (qItem > 0) contents.push({ id: si+'-'+ii, quantity: qItem, item_price: it.pr || 0 });
+        }));
+        fbqSafe('InitiateCheckout', {
+          value: t, currency: 'ARS', num_items: c,
+          contents: contents, content_type: 'product'
+        });
+      }
+    } catch(e) {}
     abrirModal('modal-cliente-id');
   }, 380);
 }
@@ -4281,6 +4413,28 @@ function sendWA() {
     return;
   }
   const {t, c} = T(); if (!c) return;
+  // ── v2.7.6 · Meta Pixel — InitiateCheckout ────────────
+  try {
+    // Armar contents[] para que Meta tenga el detalle del carrito
+    const contents = [];
+    CAT.forEach((s, si) => s.items.forEach((it, ii) => {
+      const q = qty[si+'-'+ii] || 0;
+      if (q > 0) {
+        contents.push({
+          id: si+'-'+ii,
+          quantity: q,
+          item_price: it.pr || 0
+        });
+      }
+    }));
+    fbqSafe('InitiateCheckout', {
+      value: t,
+      currency: 'ARS',
+      num_items: c,
+      contents: contents,
+      content_type: 'product'
+    });
+  } catch(e) { /* no bloquear checkout */ }
   document.getElementById('wa-preview-vendedor').textContent = vActivo.nombre;
   cargarDatosCliente();
   cliPreRellenarModal();
@@ -4485,6 +4639,39 @@ function confirmarYEnviarWA() {
   // Fire-and-forget: no await, WhatsApp se abre siempre
   saveOrderToSheets(payload);
   guardarUltimoPedido();  // Guardar para "Repetir pedido"
+
+  // ── v2.7.6 · Meta Pixel — Purchase ───────────────────────────
+  // El evento más importante del funnel: conversión real.
+  // value = total final (con descuento aplicado si hay cupón)
+  // currency = ARS
+  try {
+    const contentsBuy = [];
+    // Productos individuales
+    CAT.forEach((s, si) => s.items.forEach((it, ii) => {
+      const qItem = qty[si+'-'+ii] || 0;
+      if (qItem > 0) contentsBuy.push({
+        id: si+'-'+ii, quantity: qItem, item_price: it.pr || 0
+      });
+    }));
+    // Combos (si hubo)
+    (_combosData || []).forEach(combo => {
+      const qc = qtyCombo[combo.id] || 0;
+      if (qc > 0) contentsBuy.push({
+        id: 'combo-' + combo.id,
+        quantity: qc,
+        item_price: combo.precio_combo || 0
+      });
+    });
+    fbqSafe('Purchase', {
+      value: t,
+      currency: 'ARS',
+      num_items: itemsTotales,
+      contents: contentsBuy,
+      content_type: 'product',
+      order_id: pedidoId,
+      origen_marketing: (utmLeer() || {}).origen_marketing || null
+    });
+  } catch(e) { /* no bloquear el envío */ }
 
   // v2: Descontar stock de combos en Supabase (fire-and-forget)
   combosConsumirStock().catch(e => console.error('[combos] Error al consumir stock:', e));
@@ -5007,6 +5194,19 @@ async function otpCompletarRegistro() {
     cliVincularMaster(cli);
     // Marcar que es primer pedido — al segundo pedido mostramos paso 2
     try { localStorage.setItem('tck_pedidos_count', '1'); } catch(e) {}
+    // ── v2.7.6 · Meta Pixel — CompleteRegistration (flow OTP legacy) ──
+    try {
+      const utmX = utmLeer() || {};
+      fbqSafe('CompleteRegistration', {
+        content_name: 'Registro OTP Legacy',
+        status: true,
+        value: 0,
+        currency: 'ARS',
+        origen_marketing: utmX.origen_marketing || null,
+        canal_sin_vendedor: !!_canalSinVendedor,
+        cupon_activo: true
+      });
+    } catch(e) {}
     ocultarLoginModal();
     // Toast de bienvenida — v2.7.5: diferenciado si viene de canal sin vendedor
     setTimeout(() => {
@@ -6414,6 +6614,19 @@ async function cliFlowPinGuardar() {
       cliVincularMaster(cli);
       // Marcar cupón de primera compra disponible
       try { localStorage.setItem('tck_cupon_1ra_compra', '1'); } catch(e) {}
+      // ── v2.7.6 · Meta Pixel — CompleteRegistration (flow PIN) ────
+      try {
+        const utmX = utmLeer() || {};
+        fbqSafe('CompleteRegistration', {
+          content_name: 'Registro PIN',
+          status: true,
+          value: 0,
+          currency: 'ARS',
+          origen_marketing: utmX.origen_marketing || null,
+          canal_sin_vendedor: !!_canalSinVendedor,
+          cupon_activo: true
+        });
+      } catch(e) {}
       // v2.6.4: AUTO-LOGIN — setear _cliActivo y refrescar UI inmediatamente.
       // Antes: se mostraba pantalla éxito pero la sesión quedaba fantasma
       // (en LS pero no en memoria), el usuario tenía que loguearse a mano.
