@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<!-- ═══════════════════════════════════════════════════════════════════════
+     TCK · Redirect IG — 21/04/2026
+     ──────────────────────────────────────────────────────────────────────
+     Propósito:
+       Este archivo vive en /ig/ del repo tck-catalogo y redirige a
+       tckcatalogo.com?v=ig&utm_source=ig&utm_medium=bio&utm_campaign=perfil
+       ──────────────────────────────────────
+       El link visible en la bio de Instagram queda corto y prolijo:
+       tckcatalogo.com/ig
+       ──────────────────────────────────────
+     Estrategia de redirect (3 capas, redundante):
+       1. <meta http-equiv="refresh"> — dispara al parsear el HTML.
+          Funciona incluso si JS está bloqueado.
+       2. <link rel="canonical"> — SEO, evita que Google indexe /ig/ aparte.
+       3. JavaScript window.location.replace() — más rápido, preserva
+          el historial limpio (no deja /ig/ en la historia de back button).
+     ──────────────────────────────────────
+     Para cambiar el destino:
+       Editar la constante DESTINO en el <script> de abajo + el content
+       del <meta http-equiv="refresh">. Dos lugares, misma URL.
+     ═══════════════════════════════════════════════════════════════════════ -->
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<meta http-equiv="refresh" content="0; url=https://tckcatalogo.com/?v=ig&utm_source=ig&utm_medium=bio&utm_campaign=perfil">
+<link rel="canonical" href="https://tckcatalogo.com/">
+<title>TCK · Redirigiendo...</title>
+<style>
+  body {
+    margin: 0;
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+    background: linear-gradient(135deg, #8B0000, #6B0000);
+    color: #FAF4EC;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 20px;
+  }
+  .box {
+    max-width: 340px;
+  }
+  .logo {
+    font-family: 'Georgia', serif;
+    font-size: 56px;
+    font-weight: 900;
+    color: #FFD700;
+    letter-spacing: 2px;
+    margin-bottom: 8px;
+    line-height: 1;
+  }
+  .sub {
+    font-size: 14px;
+    opacity: 0.85;
+    margin-bottom: 24px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+  .spinner {
+    width: 36px;
+    height: 36px;
+    border: 3px solid rgba(255, 215, 0, 0.2);
+    border-top-color: #FFD700;
+    border-radius: 50%;
+    margin: 0 auto 16px;
+    animation: spin 0.8s linear infinite;
+  }
+  .msg {
+    font-size: 15px;
+    opacity: 0.9;
+  }
+  .link-fallback {
+    display: inline-block;
+    margin-top: 20px;
+    padding: 10px 20px;
+    background: #FFD700;
+    color: #8B0000;
+    text-decoration: none;
+    border-radius: 20px;
+    font-weight: 700;
+    font-size: 14px;
+  }
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+</style>
+</head>
+<body>
+  <div class="box">
+    <div class="logo">TCK</div>
+    <div class="sub">The Chicken Kings</div>
+    <div class="spinner"></div>
+    <div class="msg">Cargando catálogo...</div>
+    <noscript>
+      <a class="link-fallback" href="https://tckcatalogo.com/?v=ig&utm_source=ig&utm_medium=bio&utm_campaign=perfil">
+        Tocá acá si no redirige
+      </a>
+    </noscript>
+  </div>
+<script>
+// Redirect por JS (más rápido que meta-refresh, reemplaza la entrada
+// en el historial así el botón back no trae de vuelta a esta página).
+(function() {
+  var DESTINO = 'https://tckcatalogo.com/?v=ig&utm_source=ig&utm_medium=bio&utm_campaign=perfil';
+  try {
+    window.location.replace(DESTINO);
+  } catch(e) {
+    // Fallback si replace falla por algún motivo
+    window.location.href = DESTINO;
+  }
+})();
+</script>
+</body>
+</html>
