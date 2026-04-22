@@ -2,37 +2,36 @@
 <html lang="es">
 <head>
 <!-- ═══════════════════════════════════════════════════════════════════════
-     TCK CATÁLOGO — v2.7.1 — 21/04/2026
+     TCK CATÁLOGO — v2.7.4 — 21/04/2026
+     ──────────────────────────────────────────────────────────────────────
+     Cambios v2.7.4 (sobre v2.7.3) — AJUSTES OPERATIVOS:
+       - Trenque Lauquen: se agrega horario sábado 08:00-12:30.
+         Texto completo: "Lunes a Viernes · 08:00 a 12:30 y 16:30 a 20:30 ·
+         Sábados · 08:00 a 12:30".
+       - Bonifacio: nota más sutil, sin mostrar el monto. Ahora dice
+         "Consultá a tu vendedor por el pedido mínimo de tu zona".
+     ──────────────────────────────────────────────────────────────────────
+     Cambios v2.7.3 (sobre v2.7.2) — CALENDARIO OPERATIVO REAL:
+       - LUN+MAR: Beruty, Paso, Madero, Pehuajó, Mones Cazón, Salazar,
+         Henderson, Daireaux, Bonifacio, Urdampilleta, Pirovano, Bolívar.
+       - MAR (exclusivo): Fortín Olavarría, América.
+       - JUE+VIE: Pellegrini, Devary, Quenumá, Villa Maza, Tres Lomas,
+         Thompson, Salliqueló, Guaminí, Cochico, Casbas, Garré, 30 de Agosto.
+       - Matching robusto con acentos y grafías alternativas.
+     ──────────────────────────────────────────────────────────────────────
+     Cambios v2.7.2 (sobre v2.7.1) — CALENDARIO + PWA INSTALABLE:
+       - PWA instalable (banner + card perfil + modal iOS + prompt Android).
+       - Requiere manifest_catalogo.json y sw.js en root del repo.
      ──────────────────────────────────────────────────────────────────────
      Cambios v2.7.1 (sobre v2.7.0) — PULIDO PROFESIONAL UX/UI:
-       - FAB flotante reemplazado por CTA integrado ARRIBA de la nav
-         (soluciona overlap visual, jerarquía clara, look pro).
-       - Mis pedidos: cards con icon-actions (WA + repetir) en esquina
-         superior derecha en lugar de botones full-width. Pedidos
-         cancelados/entregados atenuados (opacity .72) como "archivados".
-       - Mi perfil:
-         · Al 100%: tira chica verde 32px "✓ Perfil completo" (antes card grande).
-         · Íconos de datos ahora son SVG de línea (Lucide-style) en vez de emoji.
-         · Nueva sección "Próxima entrega" con fecha del próximo viaje del
-           camión según la ciudad del cliente (Trenque = diario).
-         · Nueva sección "Tu cupón" visible si cupon_1ra_compra_disponible.
-         · Nueva sección "Total comprado" con métricas de pedidos entregados.
+       - FAB → CTA integrado en nav, icon-actions, cancelados atenuados,
+         tira verde al 100%, SVG icons, extras perfil.
      ──────────────────────────────────────────────────────────────────────
      Cambios v2.7.0 (sobre v2.6.8) — REDISEÑO PANEL CLIENTE:
-       - Nav inferior de 2 tabs (Mis pedidos / Mi perfil) tipo tckventas.
-       - CTA "Hacer pedido nuevo" flotante (v2.7.1 lo integra a la nav).
-       - Botón salir del header pasa a ícono circular ⏻.
-       - Mi perfil rediseñado con progreso + vendedor + datos con íconos.
+       - Nav inferior tipo tckventas, perfil con progreso + vendedor + datos.
      ──────────────────────────────────────────────────────────────────────
-     Cambios v2.6.8 (sobre v2.6.7):
-       - Fix UX login: el botón del paso "ingresar teléfono" ahora dice
-         "Ingresar PIN →" en modo login (antes "Enviar código →").
-     ──────────────────────────────────────────────────────────────────────
-     Cambios v2.6.7 (sobre v2.6.6):
-       - Eliminada categoría completa VEGGIE LA CASERIANA.
-     ──────────────────────────────────────────────────────────────────────
-     Cambios v2.6.6 (sobre v2.6.5):
-       - Cupón 10% primera compra EXCLUYE categorías: pollos, trozados y ofertas.
+     Cambios v2.6.8 / v2.6.7 / v2.6.6: login PIN fix, quitar Veggie, cupón
+     excluye pollos/trozados/ofertas.
      ──────────────────────────────────────────────────────────────────────
      TCK CATÁLOGO — ESTADO GLOBAL
      ──────────────────────────────────────────────────────────────────────
@@ -120,11 +119,6 @@ const fmt = n => '$' + Math.round(n).toLocaleString('es-AR');
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#8B0000">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="TCK Catálogo">
-<link rel="apple-touch-icon" href="/img/logo.png">
-<link rel="manifest" href="/manifest_catalogo.json">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="TCK Catálogo">
@@ -1748,6 +1742,266 @@ button,
 }
 .cli-empty-icon { font-size: 36px; margin-bottom: 10px; }
 
+/* v2.7.2: Card entrega extendida con ciudades por día */
+.cli-perfil-entrega {
+  background: #fff;
+  border-radius: 14px;
+  padding: 14px;
+  margin-bottom: 10px;
+  border: 1px solid rgba(139,0,0,.08);
+}
+.cli-perfil-entrega-divider {
+  height: 1px; background: rgba(139,0,0,.08);
+  margin: 4px 0 10px;
+}
+.cli-perfil-entrega-calendario-titulo {
+  font-size: 10.5px; color: #9c7050; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .4px;
+  margin-bottom: 8px;
+}
+.cli-perfil-entrega-dia {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  margin-bottom: 6px;
+  background: #FAF4EC;
+  border: 1px solid transparent;
+  transition: all .18s;
+}
+.cli-perfil-entrega-dia:last-child { margin-bottom: 0; }
+.cli-perfil-entrega-dia.activo {
+  background: linear-gradient(135deg, #FFF8E8, #FFF0D0);
+  border-color: #D4A574;
+}
+.cli-perfil-entrega-dia-chip {
+  background: #fff;
+  color: #8B0000;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 900;
+  font-size: 11px;
+  letter-spacing: .6px;
+  padding: 4px 9px;
+  border-radius: 6px;
+  flex-shrink: 0;
+  border: 1.5px solid rgba(139,0,0,.18);
+  min-width: 68px;
+  text-align: center;
+  white-space: nowrap;
+}
+.cli-perfil-entrega-dia.activo .cli-perfil-entrega-dia-chip {
+  background: #8B0000;
+  color: #fff;
+  border-color: #8B0000;
+}
+.cli-perfil-entrega-dia-ciudades {
+  font-size: 12px;
+  color: #4a3a2a;
+  line-height: 1.45;
+  flex: 1;
+  padding-top: 2px;
+  font-weight: 500;
+}
+.cli-perfil-entrega-dia.activo .cli-perfil-entrega-dia-ciudades {
+  color: #2a0000;
+  font-weight: 600;
+}
+
+/* v2.7.2: Banner PWA flotante arriba del catálogo */
+.cli-pwa-banner {
+  position: sticky;
+  top: 0;
+  z-index: 95;
+  background: linear-gradient(135deg, #fff, #FFF8F0);
+  border-bottom: 1px solid #D4A574;
+  padding: 10px 14px;
+  display: flex; align-items: center; gap: 12px;
+  box-shadow: 0 2px 8px rgba(139,0,0,.08);
+  animation: cli-pwa-banner-in .4s ease-out;
+}
+@keyframes cli-pwa-banner-in {
+  from { transform: translateY(-100%); opacity: 0; }
+  to   { transform: translateY(0); opacity: 1; }
+}
+.cli-pwa-banner.hidden { display: none; }
+.cli-pwa-banner-ico {
+  width: 38px; height: 38px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #8B0000, #D4A574);
+  display: grid; place-items: center;
+  font-size: 19px;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(139,0,0,.18);
+}
+.cli-pwa-banner-info { flex: 1; min-width: 0; }
+.cli-pwa-banner-titulo {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 14px; font-weight: 800; color: #2a0000; line-height: 1.1;
+}
+.cli-pwa-banner-sub {
+  font-size: 11px; color: #6a5644; margin-top: 1px;
+  line-height: 1.25;
+}
+.cli-pwa-banner-cta {
+  background: linear-gradient(135deg, #D4A574, #b8884f);
+  color: #2a0000;
+  border: none;
+  padding: 7px 12px;
+  border-radius: 100px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 800; font-size: 12px;
+  letter-spacing: .4px;
+  cursor: pointer;
+  text-transform: uppercase;
+  flex-shrink: 0;
+  box-shadow: 0 2px 6px rgba(180,130,60,.3);
+}
+.cli-pwa-banner-close {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(0,0,0,.05);
+  color: #9c7050;
+  font-size: 14px;
+  cursor: pointer;
+  display: grid; place-items: center;
+  flex-shrink: 0;
+}
+.cli-pwa-banner-close:active { background: rgba(0,0,0,.1); }
+
+/* v2.7.2: Card PWA en Mi perfil */
+.cli-perfil-pwa-card {
+  background: linear-gradient(135deg, #2a0000, #8B0000);
+  color: #fff;
+  border-radius: 14px;
+  padding: 14px;
+  margin-bottom: 10px;
+  display: flex; align-items: center; gap: 12px;
+  cursor: pointer;
+  border: 1px solid #D4A574;
+  box-shadow: 0 6px 18px rgba(139,0,0,.25);
+  transition: transform .14s;
+}
+.cli-perfil-pwa-card:active { transform: scale(.985); }
+.cli-perfil-pwa-ico {
+  width: 48px; height: 48px;
+  border-radius: 12px;
+  background: rgba(255,215,0,.18);
+  border: 1.5px solid rgba(255,215,0,.4);
+  display: grid; place-items: center;
+  font-size: 22px;
+  flex-shrink: 0;
+}
+.cli-perfil-pwa-info { flex: 1; min-width: 0; }
+.cli-perfil-pwa-titulo {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 16px; font-weight: 800; color: #fff; line-height: 1.15;
+}
+.cli-perfil-pwa-sub {
+  font-size: 11.5px; color: rgba(255,215,0,.8);
+  margin-top: 2px; line-height: 1.3;
+}
+.cli-perfil-pwa-arrow {
+  font-size: 28px; color: rgba(255,215,0,.6);
+  font-weight: 300; line-height: 1;
+  flex-shrink: 0;
+  margin-left: 4px;
+}
+
+/* v2.7.2: Modal guía iOS */
+.cli-pwa-ios-modal {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.72);
+  z-index: 900;
+  display: flex; align-items: flex-end;
+  animation: cli-pwa-ios-in .22s ease-out;
+}
+.cli-pwa-ios-modal.hidden { display: none; }
+@keyframes cli-pwa-ios-in {
+  from { background: rgba(0,0,0,0); }
+  to   { background: rgba(0,0,0,.72); }
+}
+.cli-pwa-ios-sheet {
+  background: #fff;
+  width: 100%;
+  border-radius: 22px 22px 0 0;
+  padding: 20px 22px calc(28px + env(safe-area-inset-bottom));
+  max-height: 85vh;
+  overflow-y: auto;
+  animation: cli-pwa-ios-sheet-in .28s cubic-bezier(.2,.8,.2,1);
+}
+@keyframes cli-pwa-ios-sheet-in {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0); }
+}
+.cli-pwa-ios-close {
+  width: 40px; height: 4px;
+  background: rgba(0,0,0,.15);
+  border-radius: 2px;
+  margin: 0 auto 16px;
+}
+.cli-pwa-ios-titulo {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 22px; font-weight: 900; color: #2a0000;
+  text-align: center; margin-bottom: 4px;
+}
+.cli-pwa-ios-sub {
+  font-size: 13px; color: #6a5644;
+  text-align: center; margin-bottom: 20px;
+  line-height: 1.4;
+}
+.cli-pwa-ios-paso {
+  display: flex; align-items: flex-start; gap: 12px;
+  padding: 12px 14px;
+  background: #FAF4EC;
+  border-radius: 12px;
+  margin-bottom: 8px;
+}
+.cli-pwa-ios-paso-num {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  background: #8B0000;
+  color: #fff;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 900; font-size: 14px;
+  display: grid; place-items: center;
+  flex-shrink: 0;
+}
+.cli-pwa-ios-paso-txt { flex: 1; padding-top: 3px; }
+.cli-pwa-ios-paso-titulo {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 15px; font-weight: 700; color: #2a0000;
+  line-height: 1.2;
+}
+.cli-pwa-ios-paso-desc {
+  font-size: 12px; color: #6a5644;
+  margin-top: 2px; line-height: 1.4;
+}
+.cli-pwa-ios-paso-icon {
+  display: inline-flex;
+  align-items: center; justify-content: center;
+  width: 22px; height: 22px;
+  background: #fff;
+  border: 1px solid rgba(0,0,0,.1);
+  border-radius: 6px;
+  vertical-align: middle;
+  margin: 0 3px;
+  font-size: 13px;
+}
+.cli-pwa-ios-cerrar {
+  width: 100%;
+  margin-top: 14px;
+  background: transparent;
+  border: 1.5px solid rgba(139,0,0,.25);
+  color: #8B0000;
+  padding: 12px;
+  border-radius: 12px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 800; font-size: 14px;
+  letter-spacing: .4px;
+  cursor: pointer;
+  text-transform: uppercase;
+}
+
 /* ── OTP Verification ── */
 .cli-otp-screen {
   display: none; flex-direction: column; align-items: center;
@@ -2771,6 +3025,17 @@ button,
     <div class="banner-registro-sub">En tu primera compra · <b>Hasta $20.000 de ahorro</b></div>
   </div>
   <button class="banner-registro-btn" onclick="cliBotonHeader()">Registrarme</button>
+</div>
+
+<!-- v2.7.2 — Banner PWA (solo si logueado y hoy no fue cerrado) -->
+<div class="cli-pwa-banner hidden" id="cli-pwa-banner">
+  <div class="cli-pwa-banner-ico">📲</div>
+  <div class="cli-pwa-banner-info">
+    <div class="cli-pwa-banner-titulo">Instalá la app TCK</div>
+    <div class="cli-pwa-banner-sub">Acceso rápido desde el home de tu celular</div>
+  </div>
+  <button class="cli-pwa-banner-cta" onclick="pwaInstalarDesdeBanner()">Instalar</button>
+  <button class="cli-pwa-banner-close" onclick="pwaBannerCerrar()" aria-label="Cerrar">×</button>
 </div>
 <div class="body" id="body"></div>
 <div class="orderbar">
@@ -5487,6 +5752,12 @@ function cliBannerCerrar() {
 // toast verde + agrega badge dorado al botón header.
 function cliPostLoginNotificarCupon() {
   if (!_cliActivo) return;
+
+  // v2.7.2: evaluar banner PWA al loguearse
+  if (typeof pwaBannerEvaluarMostrar === 'function') {
+    setTimeout(pwaBannerEvaluarMostrar, 600);
+  }
+
   if (typeof cuponDisponible !== 'function' || !cuponDisponible()) return;
 
   // Toast informativo
@@ -6442,35 +6713,118 @@ const _CLI_SVG = {
   wa:      '<svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.2 1.36.172 1.872.104.571-.074 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413z"/></svg>'
 };
 
-// v2.7.1: calendario del camión para calcular próxima entrega
-// Ruta: TL → Pehuajó → Henderson → Carlos Casares → Daireaux → Pellegrini →
-//       Salliqueló → Tres Lomas → Guaminí → 30 de Agosto → Lincoln → Quemú Quemú
-// Según calendario: viajes lunes y jueves típicamente
-function cliProximaEntregaCalcular(ciudad) {
-  if (!ciudad) return null;
-  const c = String(ciudad).toLowerCase().trim();
-  const esTrenque = c.includes('trenque');
+// v2.7.3: calendario REAL del camión según operación confirmada
+// LUNES y MARTES → ruta zona norte/este
+// MARTES (exclusivo) → Fortín Olavarría + América
+// JUEVES y VIERNES → ruta zona sur/oeste
+// Trenque Lauquen: atención diaria con horario fijo (Juan vende continuo)
+
+// Ruta LUN+MAR (zona norte/este) — claves normalizadas para matching
+const _CLI_RUTA_LUNMAR = [
+  'beruty','paso','madero','pehuajo','pehuajó',
+  'mones cazon','mones cazón','salazar',
+  'henderson','daireaux','dariaux',
+  'bonifacio','urdampilleta','urdampille',
+  'pirovano','bolivar','bolívar'
+];
+// Ruta exclusiva del MARTES
+const _CLI_RUTA_MAR = ['fortin','fortín','fortin olavarria','fortín olavarría','america','américa'];
+// Ruta JUE+VIE (zona sur/oeste)
+const _CLI_RUTA_JUEVIE = [
+  'pellegrini','devary','quenuma','quenumá',
+  'villa maza','tres lomas','thompson',
+  'salliquelo','salliqueló','guamini','guaminí',
+  'cochico','casbas','garre','garré',
+  '30 de agosto','treinta de agosto'
+];
+
+// Labels para mostrar en la card (orden "operativo" amigable)
+const _CLI_CIUDADES_LUNMAR_LABEL = [
+  'Beruty', 'Paso', 'Madero', 'Pehuajó', 'Mones Cazón', 'Salazar',
+  'Henderson', 'Daireaux', 'Bonifacio', 'Urdampilleta', 'Pirovano', 'Bolívar'
+];
+const _CLI_CIUDADES_MAR_LABEL = ['Fortín Olavarría', 'América'];
+const _CLI_CIUDADES_JUEVIE_LABEL = [
+  'Pellegrini', 'Devary', 'Quenumá', 'Villa Maza', 'Tres Lomas', 'Thompson',
+  'Salliqueló', 'Guaminí', 'Cochico', 'Casbas', 'Garré', '30 de Agosto'
+];
+
+function _cliNormalizarCiudad(c) {
+  return String(c || '').toLowerCase().trim()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, ''); // quita acentos
+}
+
+function _cliCiudadEnRuta(ciudad, rutaArr) {
+  const c = _cliNormalizarCiudad(ciudad);
+  if (!c) return false;
+  return rutaArr.some(r => {
+    const rn = _cliNormalizarCiudad(r);
+    // Match exacto o incluye (soporta "Pehuajó" vs "pehuajo buenos aires")
+    return c === rn || c.includes(rn) || rn.includes(c);
+  });
+}
+
+// Devuelve cuál es la combinación de días de salida para una ciudad
+// Retorna: 'lunmar' | 'mar' | 'juevie' | null
+function _cliDiaSalidaDeCiudad(ciudad) {
+  // Orden de precedencia: MAR exclusivo > LUN+MAR > JUE+VIE
+  // (así Pehuajó cae en LUN+MAR, América cae en MAR exclusivo)
+  if (_cliCiudadEnRuta(ciudad, _CLI_RUTA_MAR))    return 'mar';
+  if (_cliCiudadEnRuta(ciudad, _CLI_RUTA_LUNMAR)) return 'lunmar';
+  if (_cliCiudadEnRuta(ciudad, _CLI_RUTA_JUEVIE)) return 'juevie';
+  return null;
+}
+
+// Dado un día objetivo ('lunmar'|'mar'|'juevie') devuelve el próximo día real
+function _cliProximoDiaSalida(tipo) {
   const hoy = new Date();
   const diaSemana = hoy.getDay(); // 0=dom, 1=lun, ..., 6=sáb
+  let diasValidos = [];
+  if (tipo === 'lunmar') diasValidos = [1, 2];  // lun, mar
+  else if (tipo === 'mar') diasValidos = [2];   // mar
+  else if (tipo === 'juevie') diasValidos = [4, 5]; // jue, vie
+  else return null;
 
-  // Trenque Lauquen: entrega diaria (Juan vende continuo)
-  if (esTrenque) {
+  // Buscar el próximo día de esa lista
+  for (let i = 0; i < 7; i++) {
+    const d = (diaSemana + i) % 7;
+    if (diasValidos.includes(d)) {
+      return { diasFaltan: i, diaSemana: d };
+    }
+  }
+  return null;
+}
+
+// Calcula el próximo día de entrega para una ciudad específica
+function cliProximaEntregaCalcular(ciudad) {
+  if (!ciudad) return null;
+  const c = _cliNormalizarCiudad(ciudad);
+
+  // Trenque Lauquen: atención diaria con horario fijo
+  if (c.includes('trenque')) {
     return {
-      titulo: 'Entregamos en Trenque',
-      sub: 'Atendemos Trenque Lauquen todos los días'
+      tipo: 'trenque',
+      titulo: 'Atendemos en Trenque Lauquen',
+      sub: 'Lunes a Viernes · 08:00 a 12:30 y 16:30 a 20:30 · Sábados · 08:00 a 12:30'
     };
   }
 
-  // Para el resto: calcular próximo viaje de camión
-  // Lunes (1) y jueves (4) son los días típicos de salida
-  const diasASalida = [];
-  for (let i = 0; i < 7; i++) {
-    const d = (diaSemana + i) % 7;
-    if (d === 1 || d === 4) diasASalida.push(i);
+  const diaTipo = _cliDiaSalidaDeCiudad(ciudad);
+
+  // Si la ciudad no está en las rutas conocidas → fallback genérico
+  if (!diaTipo) {
+    return {
+      tipo: 'otra',
+      titulo: 'Consultá a tu vendedor',
+      sub: 'Tu ciudad no está en la ruta habitual. Tu vendedor te confirma el día de entrega.'
+    };
   }
-  const diasFaltan = diasASalida[0];
-  const proxima = new Date(hoy);
-  proxima.setDate(hoy.getDate() + diasFaltan);
+
+  const prox = _cliProximoDiaSalida(diaTipo);
+  if (!prox) return null;
+
+  const proxima = new Date();
+  proxima.setDate(proxima.getDate() + prox.diasFaltan);
 
   const diasNombre = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
   const meses = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
@@ -6479,14 +6833,83 @@ function cliProximaEntregaCalcular(ciudad) {
   const mm = meses[proxima.getMonth()];
 
   let subTxt;
-  if (diasFaltan === 0) subTxt = 'El camión sale hoy';
-  else if (diasFaltan === 1) subTxt = 'El camión sale mañana';
-  else subTxt = 'El camión sale en ' + diasFaltan + ' días';
+  if (prox.diasFaltan === 0) subTxt = '¡El camión sale hoy!';
+  else if (prox.diasFaltan === 1) subTxt = 'El camión sale mañana';
+  else subTxt = 'El camión sale en ' + prox.diasFaltan + ' días';
+
+  // Nota especial para Bonifacio (zona con gestión particular)
+  const esBonifacio = c.includes('bonifacio');
+  if (esBonifacio) {
+    subTxt += ' · Consultá a tu vendedor por el pedido mínimo de tu zona';
+  }
 
   return {
+    tipo: 'ruta',
     titulo: diaNombre + ' ' + dd + ' ' + mm + ' · ' + ciudad,
-    sub: subTxt
+    sub: subTxt,
+    diaTipo: diaTipo
   };
+}
+
+// v2.7.3: renderiza la card extendida de "Atendemos en tu zona" con ciudades visibles
+function _cliRenderEntregaCard() {
+  if (!_cliActivo) return '';
+  const proxEnt = cliProximaEntregaCalcular(_cliActivo.ciudad);
+  if (!proxEnt) return '';
+
+  // Trenque Lauquen: card simple con horario
+  if (proxEnt.tipo === 'trenque') {
+    return '<div class="cli-perfil-extra">'
+      + '<div class="cli-perfil-extra-ico entrega">' + _CLI_SVG.truck + '</div>'
+      + '<div class="cli-perfil-extra-info">'
+      +   '<div class="cli-perfil-extra-label">Atención y entregas</div>'
+      +   '<div class="cli-perfil-extra-titulo">' + proxEnt.titulo + '</div>'
+      +   '<div class="cli-perfil-extra-sub">' + proxEnt.sub + '</div>'
+      + '</div>'
+      + '</div>';
+  }
+
+  // Fuera de zona conocida: card simple
+  if (proxEnt.tipo === 'otra') {
+    return '<div class="cli-perfil-extra">'
+      + '<div class="cli-perfil-extra-ico entrega">' + _CLI_SVG.truck + '</div>'
+      + '<div class="cli-perfil-extra-info">'
+      +   '<div class="cli-perfil-extra-label">Próxima entrega</div>'
+      +   '<div class="cli-perfil-extra-titulo">' + proxEnt.titulo + '</div>'
+      +   '<div class="cli-perfil-extra-sub">' + proxEnt.sub + '</div>'
+      + '</div>'
+      + '</div>';
+  }
+
+  // Ruta: card con "próxima entrega" + detalle de ciudades agrupadas por día
+  // Mostrar los 3 grupos, destacar el grupo del cliente
+  const diaTipo = proxEnt.diaTipo;
+  return '<div class="cli-perfil-entrega">'
+    + '<div class="cli-perfil-extra" style="border:none;box-shadow:none;margin:0;padding:0 0 10px;border-radius:0;">'
+    +   '<div class="cli-perfil-extra-ico entrega">' + _CLI_SVG.truck + '</div>'
+    +   '<div class="cli-perfil-extra-info">'
+    +     '<div class="cli-perfil-extra-label">Próxima entrega para tu zona</div>'
+    +     '<div class="cli-perfil-extra-titulo">' + proxEnt.titulo + '</div>'
+    +     '<div class="cli-perfil-extra-sub">' + proxEnt.sub + '</div>'
+    +   '</div>'
+    + '</div>'
+    + '<div class="cli-perfil-entrega-divider"></div>'
+    + '<div class="cli-perfil-entrega-calendario">'
+    +   '<div class="cli-perfil-entrega-calendario-titulo">Ciudades que atendemos por día</div>'
+    +   '<div class="cli-perfil-entrega-dia' + (diaTipo === 'lunmar' ? ' activo' : '') + '">'
+    +     '<div class="cli-perfil-entrega-dia-chip">LUN · MAR</div>'
+    +     '<div class="cli-perfil-entrega-dia-ciudades">' + _CLI_CIUDADES_LUNMAR_LABEL.join(' · ') + '</div>'
+    +   '</div>'
+    +   '<div class="cli-perfil-entrega-dia' + (diaTipo === 'mar' ? ' activo' : '') + '">'
+    +     '<div class="cli-perfil-entrega-dia-chip">MAR</div>'
+    +     '<div class="cli-perfil-entrega-dia-ciudades">' + _CLI_CIUDADES_MAR_LABEL.join(' · ') + '</div>'
+    +   '</div>'
+    +   '<div class="cli-perfil-entrega-dia' + (diaTipo === 'juevie' ? ' activo' : '') + '">'
+    +     '<div class="cli-perfil-entrega-dia-chip">JUE · VIE</div>'
+    +     '<div class="cli-perfil-entrega-dia-ciudades">' + _CLI_CIUDADES_JUEVIE_LABEL.join(' · ') + '</div>'
+    +   '</div>'
+    + '</div>'
+    + '</div>';
 }
 
 // v2.7.1: calcular métricas de cliente a partir del cache de pedidos
@@ -6610,19 +7033,9 @@ function cliCargarPerfil() {
       }).join('')
     + '</div>';
 
-  // v2.7.1: Extras — Próxima entrega
+  // v2.7.2: Extras — Próxima entrega (card extendida con ciudades agrupadas)
   let extrasHTML = '';
-  const proxEnt = cliProximaEntregaCalcular(_cliActivo.ciudad);
-  if (proxEnt) {
-    extrasHTML += '<div class="cli-perfil-extra">'
-      + '<div class="cli-perfil-extra-ico entrega">' + _CLI_SVG.truck + '</div>'
-      + '<div class="cli-perfil-extra-info">'
-      +   '<div class="cli-perfil-extra-label">Próxima entrega</div>'
-      +   '<div class="cli-perfil-extra-titulo">' + proxEnt.titulo + '</div>'
-      +   '<div class="cli-perfil-extra-sub">' + proxEnt.sub + '</div>'
-      + '</div>'
-      + '</div>';
-  }
+  extrasHTML += _cliRenderEntregaCard();
   // v2.7.1: Extras — Cupón (solo si disponible)
   if (typeof cuponDisponible === 'function' && cuponDisponible()) {
     extrasHTML += '<div class="cli-perfil-extra">'
@@ -6646,6 +7059,17 @@ function cliCargarPerfil() {
       +   '<div class="cli-perfil-extra-titulo">' + fmtTot + '</div>'
       +   '<div class="cli-perfil-extra-sub">' + pedTxt + ' en TCK</div>'
       + '</div>'
+      + '</div>';
+  }
+  // v2.7.2: Card PWA — Instalá la app (solo si no está instalada)
+  if (typeof pwaEstaInstalada === 'function' && !pwaEstaInstalada()) {
+    extrasHTML += '<div class="cli-perfil-pwa-card" onclick="pwaInstalarDesdeCard()">'
+      + '<div class="cli-perfil-pwa-ico">📲</div>'
+      + '<div class="cli-perfil-pwa-info">'
+      +   '<div class="cli-perfil-pwa-titulo">Instalá la app TCK en tu celular</div>'
+      +   '<div class="cli-perfil-pwa-sub">Acceso directo desde el home · Próximamente notificaciones de tus pedidos</div>'
+      + '</div>'
+      + '<div class="cli-perfil-pwa-arrow">›</div>'
       + '</div>';
   }
 
@@ -6726,6 +7150,9 @@ function cliLogout() {
   if (typeof cliActualizarBotonHeader === 'function') cliActualizarBotonHeader();
   // v2.6.5: limpiar badge del cupón también
   if (typeof cliQuitarBadgeCupon === 'function') cliQuitarBadgeCupon();
+  // v2.7.2: ocultar banner PWA al hacer logout
+  const pwaBanner = document.getElementById('cli-pwa-banner');
+  if (pwaBanner) pwaBanner.classList.add('hidden');
   // v2.6.5: toast informativo
   setTimeout(function() {
     const toast = document.createElement('div');
@@ -7013,6 +7440,170 @@ async function regPaso2Confirmar() {
     btn.disabled = false; btn.textContent = 'Listo, guardar →';
   }
 }
+</script>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     v2.7.2 — PWA: Banner de instalación + Modal guía para iOS
+═══════════════════════════════════════════════════════════════ -->
+<div class="cli-pwa-ios-modal hidden" id="cli-pwa-ios-modal" onclick="if(event.target===this)pwaIosCerrar()">
+  <div class="cli-pwa-ios-sheet">
+    <div class="cli-pwa-ios-close"></div>
+    <div class="cli-pwa-ios-titulo">📲 Instalá la app TCK</div>
+    <div class="cli-pwa-ios-sub">En tu iPhone hacelo en 3 pasos muy simples:</div>
+
+    <div class="cli-pwa-ios-paso">
+      <div class="cli-pwa-ios-paso-num">1</div>
+      <div class="cli-pwa-ios-paso-txt">
+        <div class="cli-pwa-ios-paso-titulo">Tocá el botón Compartir</div>
+        <div class="cli-pwa-ios-paso-desc">Es el ícono <span class="cli-pwa-ios-paso-icon">⬆</span> en la barra inferior de Safari.</div>
+      </div>
+    </div>
+
+    <div class="cli-pwa-ios-paso">
+      <div class="cli-pwa-ios-paso-num">2</div>
+      <div class="cli-pwa-ios-paso-txt">
+        <div class="cli-pwa-ios-paso-titulo">Elegí "Agregar a Inicio"</div>
+        <div class="cli-pwa-ios-paso-desc">Bajá en la lista de opciones hasta encontrar <span class="cli-pwa-ios-paso-icon">+</span> "Agregar a pantalla de inicio".</div>
+      </div>
+    </div>
+
+    <div class="cli-pwa-ios-paso">
+      <div class="cli-pwa-ios-paso-num">3</div>
+      <div class="cli-pwa-ios-paso-txt">
+        <div class="cli-pwa-ios-paso-titulo">Confirmá "Agregar"</div>
+        <div class="cli-pwa-ios-paso-desc">El ícono TCK va a aparecer en el home de tu celular, listo para usar como una app.</div>
+      </div>
+    </div>
+
+    <button class="cli-pwa-ios-cerrar" onclick="pwaIosCerrar()">Entendido</button>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+// v2.7.2 — PWA INSTALL LOGIC
+// ═══════════════════════════════════════════════════════════════
+let _pwaDeferredPrompt = null; // Guardado desde el evento beforeinstallprompt
+
+// Detectar si la app ya está instalada (standalone mode)
+function pwaEstaInstalada() {
+  if (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) return true;
+  if (window.navigator.standalone === true) return true; // iOS Safari
+  return false;
+}
+
+// Detectar si el dispositivo es iOS
+function pwaEsIOS() {
+  const ua = window.navigator.userAgent || '';
+  const iosClassic = /iPad|iPhone|iPod/.test(ua) && !window.MSStream;
+  // iPadOS 13+ se reporta como Mac con touch
+  const iPadOS = ua.includes('Mac') && 'ontouchend' in document;
+  return iosClassic || iPadOS;
+}
+
+// ¿El banner fue cerrado hoy?
+function pwaBannerCerradoHoy() {
+  try {
+    const hoy = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+    return localStorage.getItem('tck_pwa_banner_cerrado_dia') === hoy;
+  } catch(e) { return false; }
+}
+
+// Cerrar banner (vuelve mañana)
+function pwaBannerCerrar() {
+  try {
+    const hoy = new Date().toISOString().slice(0, 10);
+    localStorage.setItem('tck_pwa_banner_cerrado_dia', hoy);
+  } catch(e) {}
+  const banner = document.getElementById('cli-pwa-banner');
+  if (banner) banner.classList.add('hidden');
+}
+
+// Mostrar banner PWA (si corresponde)
+function pwaBannerEvaluarMostrar() {
+  const banner = document.getElementById('cli-pwa-banner');
+  if (!banner) return;
+  // Reglas de exhibición:
+  // - No si ya está instalada
+  // - No si el cliente no está logueado
+  // - No si fue cerrado hoy
+  if (pwaEstaInstalada())       { banner.classList.add('hidden'); return; }
+  if (!_cliActivo)              { banner.classList.add('hidden'); return; }
+  if (pwaBannerCerradoHoy())    { banner.classList.add('hidden'); return; }
+  banner.classList.remove('hidden');
+}
+
+// Click en "Instalar" del banner
+function pwaInstalarDesdeBanner() {
+  pwaInstalarIntento();
+}
+
+// Click en la card del perfil
+function pwaInstalarDesdeCard() {
+  pwaInstalarIntento();
+}
+
+// Intento de instalación: usa prompt nativo si está disponible, sino modal iOS
+function pwaInstalarIntento() {
+  if (_pwaDeferredPrompt) {
+    // Android/Chrome/Edge: prompt nativo
+    try {
+      _pwaDeferredPrompt.prompt();
+      _pwaDeferredPrompt.userChoice.then(function(choice) {
+        if (choice && choice.outcome === 'accepted') {
+          pwaBannerCerrar();
+          // Refrescar perfil si está en esa tab (para ocultar la card)
+          if (typeof cliCargarPerfil === 'function' && _cliActivo) cliCargarPerfil();
+        }
+        _pwaDeferredPrompt = null;
+      });
+    } catch(e) {
+      // Si falla el prompt nativo, mostrar modal iOS de respaldo
+      pwaIosMostrar();
+    }
+  } else if (pwaEsIOS()) {
+    // iOS: no hay prompt nativo, mostrar guía paso a paso
+    pwaIosMostrar();
+  } else {
+    // Desktop u otros: mostrar modal genérico (reusamos el de iOS con adaptación textual mínima)
+    pwaIosMostrar();
+  }
+}
+
+function pwaIosMostrar() {
+  const modal = document.getElementById('cli-pwa-ios-modal');
+  if (modal) modal.classList.remove('hidden');
+}
+
+function pwaIosCerrar() {
+  const modal = document.getElementById('cli-pwa-ios-modal');
+  if (modal) modal.classList.add('hidden');
+}
+
+// Listener del evento beforeinstallprompt (Android/Chrome/Edge)
+window.addEventListener('beforeinstallprompt', function(e) {
+  e.preventDefault();
+  _pwaDeferredPrompt = e;
+  pwaBannerEvaluarMostrar();
+});
+
+// Listener del evento appinstalled (cuando el usuario termina la instalación)
+window.addEventListener('appinstalled', function() {
+  _pwaDeferredPrompt = null;
+  const banner = document.getElementById('cli-pwa-banner');
+  if (banner) banner.classList.add('hidden');
+  // Refrescar perfil para ocultar la card PWA
+  if (typeof cliCargarPerfil === 'function' && _cliActivo) cliCargarPerfil();
+});
+
+// Evaluar mostrar banner al cargar y cada vez que cambia el estado de login
+// El flow de login llama a cliPostLoginNotificarCupon; engancho ahí también
+(function() {
+  // Evaluar al cargar (si la sesión ya viene de LS)
+  document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(pwaBannerEvaluarMostrar, 500);
+  });
+})();
 </script>
 </body>
 </html>
