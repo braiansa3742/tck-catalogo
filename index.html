@@ -2,7 +2,21 @@
 <html lang="es">
 <head>
 <!-- ═══════════════════════════════════════════════════════════════════════
-     TCK CATÁLOGO — v2.7.4 — 21/04/2026
+     TCK CATÁLOGO — v2.7.5 — 21/04/2026
+     ──────────────────────────────────────────────────────────────────────
+     Cambios v2.7.5 (sobre v2.7.4) — TRACKING UTM + CANAL IG (Modelo A):
+       - Captura de parámetros UTM al landear (utm_source, medium,
+         campaign, content, term) y guardado en localStorage 30 días.
+       - Nuevo origen ?v=ig → cliente queda SIN vendedor (vendedor=null),
+         origen_marketing='CANAL_IG'. Destinado a clientes captados por
+         Instagram/campañas pagas de Meta. Son de la empresa, no de un
+         vendedor particular.
+       - Soporte para ?v=fb, ?v=google, ?v=tiktok con la misma lógica.
+       - Registro envía origen_marketing + UTMs a Supabase en clientes_auth
+         (funciona en ambos flujos: OTP legacy y flow PIN actual).
+       - Mensaje post-registro diferenciado para canales sin vendedor:
+         avisa que TCK contactará al cliente después del primer pedido.
+       - Cuentas viejas sin UTM: quedan con origen_marketing=null (null-safe).
      ──────────────────────────────────────────────────────────────────────
      Cambios v2.7.4 (sobre v2.7.3) — AJUSTES OPERATIVOS:
        - Trenque Lauquen: se agrega horario sábado 08:00-12:30.
@@ -95,12 +109,90 @@ const LS_ULTIMO           = 'tck_ultimo_pedido';
 const CLI_KEY             = 'tck_cli_v2';
 const PRECIOS_CACHE_KEY   = 'tck_precios_cache';
 
+// ── v2.7.5 · Tracking UTM / canal de origen ───────────────────────
+const UTM_KEY             = 'tck_utm_v1';       // localStorage: {data, exp}
+const UTM_TTL             = 30 * 24 * 3600 * 1000; // 30 días
+// Canales especiales en ?v= que NO representan a un vendedor real.
+// Caen sobre Modelo A: cliente sin vendedor, es de la empresa.
+const CANALES_SIN_VENDEDOR = {
+  'ig': 'CANAL_IG',
+  'fb': 'CANAL_FB',
+  'google': 'CANAL_GOOGLE',
+  'tiktok': 'CANAL_TIKTOK'
+};
+// Canal detectado en la sesión actual (se setea al leer ?v=)
+// Si vale 'CANAL_IG' (o similar), el registro NO asigna vendedor.
+var _canalSinVendedor = null;
+
 // ── Otros parámetros ──────────────────────────────────────────────
 const PRECIOS_CACHE_TTL   = 30 * 60 * 1000; // 30 minutos
 const ADMIN_NO_VENDOR_WA  = '5492314475357';
 
 // ── Helpers universales ───────────────────────────────────────────
 const fmt = n => '$' + Math.round(n).toLocaleString('es-AR');
+
+// ── v2.7.5 · Helpers de tracking UTM ──────────────────────────────
+// Captura UTMs + ?v= de la URL actual y los guarda en localStorage.
+// Se ejecuta SOLO si hay algún parámetro relevante (first-touch wins).
+// Si ya hay UTMs guardados vigentes, no los pisa (atribución estable).
+function utmCapturar() {
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const utmFields = ['utm_source','utm_medium','utm_campaign','utm_content','utm_term'];
+    const vParam = (params.get('v') || '').toLowerCase().trim();
+    // ¿Hay algo que capturar?
+    const hayUTM = utmFields.some(k => params.get(k));
+    const hayCanal = vParam && CANALES_SIN_VENDEDOR[vParam];
+    if (!hayUTM && !hayCanal) return;
+    // ¿Ya hay captura previa vigente? (first-touch wins)
+    const previo = utmLeer();
+    if (previo && previo.origen_marketing) return;
+    const data = {
+      origen_marketing: hayCanal ? CANALES_SIN_VENDEDOR[vParam] : null,
+      utm_source:   params.get('utm_source')   || null,
+      utm_medium:   params.get('utm_medium')   || null,
+      utm_campaign: params.get('utm_campaign') || null,
+      utm_content:  params.get('utm_content')  || null,
+      utm_term:     params.get('utm_term')     || null,
+      landing_first: new Date().toISOString(),
+      landing_url:   (window.location.href || '').slice(0, 500) // cap a 500 chars
+    };
+    // Si vino canal (ig/fb/etc) pero no utm_source, inferirlo del canal
+    if (hayCanal && !data.utm_source) {
+      data.utm_source = vParam;
+    }
+    localStorage.setItem(UTM_KEY, JSON.stringify({ data, exp: Date.now() + UTM_TTL }));
+  } catch(e) { /* localStorage lleno o bloqueado, no es crítico */ }
+}
+// Lee UTMs guardados (si están vigentes). Retorna objeto con los campos o null.
+function utmLeer() {
+  try {
+    const raw = localStorage.getItem(UTM_KEY);
+    if (!raw) return null;
+    const d = JSON.parse(raw);
+    if (!d || !d.data || !d.exp) return null;
+    if (Date.now() > d.exp) { localStorage.removeItem(UTM_KEY); return null; }
+    return d.data;
+  } catch(e) { return null; }
+}
+// Devuelve el payload que se adjunta al INSERT de clientes_auth.
+// Si no hay UTMs, devuelve objeto vacío (no pisa columnas existentes con null).
+function utmPayloadRegistro() {
+  const d = utmLeer();
+  if (!d) return {};
+  const p = {};
+  if (d.origen_marketing) p.origen_marketing = d.origen_marketing;
+  if (d.utm_source)       p.utm_source       = d.utm_source;
+  if (d.utm_medium)       p.utm_medium       = d.utm_medium;
+  if (d.utm_campaign)     p.utm_campaign     = d.utm_campaign;
+  if (d.utm_content)      p.utm_content      = d.utm_content;
+  if (d.utm_term)         p.utm_term         = d.utm_term;
+  if (d.landing_first)    p.landing_first    = d.landing_first;
+  if (d.landing_url)      p.landing_url      = d.landing_url;
+  return p;
+}
+// Captura al cargar el script (first-touch)
+utmCapturar();
 </script>
 
 <!-- Google Analytics -->
@@ -4650,14 +4742,21 @@ function clearCartLS() {
   try { localStorage.removeItem('tck_cart'); } catch(e) {}
 }
 
-// ── LINK DE VENDEDOR (?v=miguel) ─────────────────────────────
+// ── LINK DE VENDEDOR (?v=miguel) / CANAL (?v=ig, ?v=fb, ...) ─────
 (function() {
   const params = new URLSearchParams(window.location.search);
   const vParam = (params.get('v') || '').toLowerCase().trim();
-  if (vParam) {
-    const idx = VEND.findIndex(v => v.nombre.toLowerCase() === vParam);
-    if (idx >= 0) try { localStorage.setItem('tck_vendedor_link', idx); } catch(e) {}
+  if (!vParam) return;
+  // v2.7.5: ¿es un canal sin vendedor? (ig, fb, google, tiktok)
+  if (CANALES_SIN_VENDEDOR[vParam]) {
+    _canalSinVendedor = CANALES_SIN_VENDEDOR[vParam];
+    // Limpiar link de vendedor previo para que no se asigne uno viejo
+    try { localStorage.removeItem('tck_vendedor_link'); } catch(e) {}
+    return;
   }
+  // Caso normal: nombre de vendedor real
+  const idx = VEND.findIndex(v => v.nombre.toLowerCase() === vParam);
+  if (idx >= 0) try { localStorage.setItem('tck_vendedor_link', idx); } catch(e) {}
 })();
 
 cargarPrecios().finally(() => {
@@ -4674,18 +4773,24 @@ cargarPrecios().finally(() => {
   if (loginEl) loginEl.classList.add('gone');
 
   // 2. Autoseleccionar vendedor: del ?v= → del localStorage → ninguno
+  // v2.7.5: si _canalSinVendedor está seteado (ig/fb/google), NO elegir vendedor
   const params = new URLSearchParams(window.location.search);
   const vParam = (params.get('v') || '').toLowerCase().trim();
   let vendedorAutoIdx = -1;
 
-  if (vParam) {
-    vendedorAutoIdx = VEND.findIndex(v => v.nombre.toLowerCase() === vParam);
-  }
-  if (vendedorAutoIdx < 0) {
-    try {
-      const stored = localStorage.getItem('tck_vendedor_link');
-      if (stored !== null) vendedorAutoIdx = parseInt(stored);
-    } catch(e) {}
+  if (_canalSinVendedor) {
+    // Cliente viene de IG/FB/etc. → queda sin vendedor (Modelo A)
+    vendedorAutoIdx = -1;
+  } else {
+    if (vParam) {
+      vendedorAutoIdx = VEND.findIndex(v => v.nombre.toLowerCase() === vParam);
+    }
+    if (vendedorAutoIdx < 0) {
+      try {
+        const stored = localStorage.getItem('tck_vendedor_link');
+        if (stored !== null) vendedorAutoIdx = parseInt(stored);
+      } catch(e) {}
+    }
   }
 
   if (vendedorAutoIdx >= 0 && VEND[vendedorAutoIdx]) {
@@ -4880,29 +4985,43 @@ async function otpCompletarRegistro() {
   try {
     const d = _otpDatosReg;
     const hash = await hashStr(d.tel + ':' + d.clave);
-    const nuevo = await sbPost('clientes_auth', {
+    // v2.7.5: si viene de canal sin vendedor (IG/FB/etc), vendedor=null
+    const vendedorFinal = _canalSinVendedor
+      ? null
+      : (d.vendedor === 'Sin vendedor' ? '' : d.vendedor);
+    const payload = {
       usuario:    d.tel,
       clave_hash: hash,
       nombre:     d.nombre,
       comercio:   d.comercio || null,
       ciudad:     d.ciudad   || null,
       telefono:   d.tel,
-      vendedor:   d.vendedor === 'Sin vendedor' ? '' : d.vendedor,
+      vendedor:   vendedorFinal,
       activo:     true
-    });
+    };
+    // v2.7.5: adjuntar UTMs + origen_marketing si están en LS
+    Object.assign(payload, utmPayloadRegistro());
+    const nuevo = await sbPost('clientes_auth', payload);
     const cli = Array.isArray(nuevo) ? nuevo[0] : nuevo;
     cliGuardar(cli);
     cliVincularMaster(cli);
     // Marcar que es primer pedido — al segundo pedido mostramos paso 2
     try { localStorage.setItem('tck_pedidos_count', '1'); } catch(e) {}
     ocultarLoginModal();
-    // Toast de bienvenida simple
+    // Toast de bienvenida — v2.7.5: diferenciado si viene de canal sin vendedor
     setTimeout(() => {
       const t = document.createElement('div');
-      t.style.cssText = 'position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:#1B5E20;color:#fff;padding:12px 22px;border-radius:20px;font-family:Barlow Condensed,sans-serif;font-size:15px;font-weight:700;z-index:9999;box-shadow:0 4px 16px rgba(0,0,0,.2);white-space:nowrap;';
-      t.textContent = '✅ ¡Cuenta creada! Ya podés ver tus pedidos';
-      document.body.appendChild(t);
-      setTimeout(() => t.remove(), 3500);
+      if (_canalSinVendedor) {
+        t.style.cssText = 'position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,#2E7D32,#1B5E20);color:#fff;padding:14px 20px;border-radius:16px;font-family:Barlow Condensed,sans-serif;font-size:14px;font-weight:700;z-index:9999;box-shadow:0 4px 16px rgba(0,0,0,.25);max-width:88vw;line-height:1.35;text-align:center;';
+        t.innerHTML = '✅ <b>¡Bienvenido a TCK!</b> 👑<br><span style="font-weight:500;font-size:13px;opacity:.95">Después de tu primer pedido te contactamos para confirmarlo y registrarte como cliente.</span>';
+        document.body.appendChild(t);
+        setTimeout(() => { t.style.transition='opacity .5s'; t.style.opacity='0'; setTimeout(()=>t.remove(), 500); }, 6000);
+      } else {
+        t.style.cssText = 'position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:#1B5E20;color:#fff;padding:12px 22px;border-radius:20px;font-family:Barlow Condensed,sans-serif;font-size:15px;font-weight:700;z-index:9999;box-shadow:0 4px 16px rgba(0,0,0,.2);white-space:nowrap;';
+        t.textContent = '✅ ¡Cuenta creada! Ya podés ver tus pedidos';
+        document.body.appendChild(t);
+        setTimeout(() => t.remove(), 3500);
+      }
     }, 300);
   } catch(e) {
     cliSetErr('cli-err-otp', 'Error al crear la cuenta. Intentá de nuevo.');
@@ -5824,6 +5943,18 @@ function cliFlowShow(step) {
   const hideExtras = (step === 'exito' || step === 'pin' || step === 'login-pin');
   if (divider) divider.style.display = hideExtras ? 'none' : '';
   if (guest)   guest.style.display   = hideExtras ? 'none' : '';
+  // v2.7.5: mensaje personalizado en pantalla de éxito si viene de canal sin vendedor
+  if (step === 'exito' && _canalSinVendedor) {
+    const exitoEl = document.getElementById('cli-flow-exito');
+    if (exitoEl) {
+      const subEl = exitoEl.querySelector('.cli-flow-sub');
+      if (subEl && !subEl.dataset.canalPatched) {
+        subEl.innerHTML = 'Después de tu primer pedido te <b>contactamos por WhatsApp</b> para confirmarlo y registrarte como cliente.';
+        subEl.style.lineHeight = '1.4';
+        subEl.dataset.canalPatched = '1';
+      }
+    }
+  }
 }
 
 // ── Arranque del flow: decide si mostrar registro o login según LS ──
@@ -6263,15 +6394,21 @@ async function cliFlowPinGuardar() {
       }
     } else {
       // Crear nuevo cliente (registro)
-      const vendedorLink = vActivo ? vActivo.nombre : '';
-      const nuevo = await sbPost('clientes_auth', {
+      // v2.7.5: si viene de canal sin vendedor (IG/FB/etc), vendedor=null
+      const vendedorLink = _canalSinVendedor
+        ? null
+        : (vActivo ? vActivo.nombre : '');
+      const payload = {
         usuario:    _flowTel,
         clave_hash: hash,
         nombre:     '',        // se completa después
         telefono:   _flowTel,
         vendedor:   vendedorLink,
         activo:     true
-      });
+      };
+      // v2.7.5: adjuntar UTMs + origen_marketing si están en LS
+      Object.assign(payload, utmPayloadRegistro());
+      const nuevo = await sbPost('clientes_auth', payload);
       const cli = Array.isArray(nuevo) ? nuevo[0] : nuevo;
       cliGuardar(cli);
       cliVincularMaster(cli);
