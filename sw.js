@@ -1,34 +1,31 @@
-// TCK Service Worker v3
-const CACHE = 'tck-v3';
+// ═══════════════════════════════════════════════════════════════════
+// TCK Catálogo — Service Worker mínimo v1.0 (21/04/2026)
+// ───────────────────────────────────────────────────────────────────
+// Objetivo: habilitar instalabilidad PWA. Este SW NO cachea recursos
+// todavía (para evitar problemas de estaleness mientras iteramos el
+// catálogo). Solo existe para que el browser considere la app
+// instalable y pase los checks de Lighthouse/Chrome.
+//
+// En una versión futura se puede agregar caché estratégica:
+// - cache-first para /img/* (imágenes de productos)
+// - network-first para /index.html (siempre la versión más nueva)
+// - stale-while-revalidate para manifest y fuentes
+// ═══════════════════════════════════════════════════════════════════
 
-self.addEventListener('install', function(e) {
+const SW_VERSION = 'tck-catalogo-v1.0';
+
+// Instalación: activar de inmediato (sin esperar pestañas viejas)
+self.addEventListener('install', function(event) {
   self.skipWaiting();
 });
 
-self.addEventListener('activate', function(e) {
-  // Limpiar caches viejos
-  e.waitUntil(
-    caches.keys().then(function(keys) {
-      return Promise.all(
-        keys.filter(function(k) { return k !== CACHE; })
-            .map(function(k) { return caches.delete(k); })
-      );
-    }).then(function() { return self.clients.claim(); })
-  );
+// Activación: tomar control de las pestañas abiertas
+self.addEventListener('activate', function(event) {
+  event.waitUntil(self.clients.claim());
 });
 
-// Network first — siempre actualizado, caché como fallback
-self.addEventListener('fetch', function(e) {
-  if (e.request.method !== 'GET') return;
-  if (!e.request.url.startsWith(self.location.origin)) return;
-
-  e.respondWith(
-    fetch(e.request).then(function(res) {
-      var clone = res.clone();
-      caches.open(CACHE).then(function(c) { c.put(e.request, clone); });
-      return res;
-    }).catch(function() {
-      return caches.match(e.request);
-    })
-  );
+// Fetch: pass-through (no cachea, solo deja pasar todo al network)
+// Esto es intencional por ahora - queremos siempre la versión más nueva.
+self.addEventListener('fetch', function(event) {
+  // No interceptar - comportamiento default del browser
 });
