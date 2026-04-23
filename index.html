@@ -2,7 +2,22 @@
 <html lang="es">
 <head>
 <!-- ═══════════════════════════════════════════════════════════════════════
-     TCK CATÁLOGO — v2.7.7 — 22/04/2026
+     TCK CATÁLOGO — v2.7.8 — 23/04/2026
+     ──────────────────────────────────────────────────────────────────────
+     Cambios v2.7.8 (sobre v2.7.7) — PROMOS DE ABRIL 1+1 POR VENCIMIENTO:
+       - Nueva sección "OFERTAS DE ABRIL — COMPRÁS 1 / TE REGALAMOS 1"
+         arriba del grid de productos (antes de combos).
+       - 6 productos con vencimiento may-2026 (Medallón Arroz/Calabaza,
+         Nugget Brócoli, Ñoqui Tía Tere, Arándano, Cebolla, Ñoqui Caseriana).
+       - Datos leídos de Supabase tabla productos_promo (activo=true, stock>0).
+       - Mecánica: toque "Agregar" → +1 par al carrito (1 paga + 1 gratis).
+         Stock descuenta de 2 en 2 al confirmar. Auto-desactiva card
+         cuando stock_disponible llega a 0.
+       - Badge rojo pulsante "⚠️ ÚLTIMAS X" solo si stock ≤ 10.
+       - Texto discreto "Hasta agotar stock · vence may-26" debajo del precio.
+       - NO se combina con cupón 10% (excluido del subtotalElegible).
+       - Persistencia en localStorage (qtyPromo) y renderDrawer.
+       - Línea WA prefijada "🎁 *OFERTAS 1+1 — COMPRÁS 1 LLEVÁS 2*".
      ──────────────────────────────────────────────────────────────────────
      Cambios v2.7.7 (sobre v2.7.6) — VERIFICACIÓN DE DOMINIO FACEBOOK:
        - Meta tag <meta name="facebook-domain-verification" ... /> agregado
@@ -97,8 +112,12 @@ const qty = {};                   // Cantidades por item: {"secIdx-itemIdx": can
 // ── Estado de combos (v2 — combos OFERTAS) ────────────────────────
 // qtyCombo: { 'combo_crujiente': cantidad, 'combo_rendidor': cantidad }
 const qtyCombo = {};
+// v2.7.8: qtyPromo: { 'uuid-promo': cantidad_de_pares_1+1 } — cada unidad = 1 par (2u total, 1 paga)
+const qtyPromo = {};
 // _combosData: lista cargada desde Supabase con {id, nombre, productos, precio_combo, ...}
 let _combosData = [];
+// v2.7.8: _promosData: lista cargada desde Supabase productos_promo
+let _promosData = [];
 // Límite de combos por compra (se carga de Supabase, default 2)
 const MAX_COMBOS_POR_COMPRA = 2;
 
@@ -2755,6 +2774,290 @@ button,
   transform: translateX(-50%) translateY(0);
 }
 
+/* ═══════════════════════════════════════════════════════════════════════
+   v2.7.8 — PROMOS DE ABRIL (1+1 por vencimiento)
+   Paleta: rojo TCK #8B0000 · dorado #D4A574/#FFD700 · negro #1a1a1a · crema #FAF4EC
+   ═══════════════════════════════════════════════════════════════════════ */
+#promos-section {
+  margin: 0;
+  padding: 0;
+}
+.promos-wrap {
+  position: relative;
+  background: linear-gradient(135deg, #1a1a1a 0%, #2a1010 50%, #1a0505 100%);
+  padding: 18px 12px 20px;
+  overflow: hidden;
+  border-bottom: 3px solid #D4A574;
+}
+.promos-bg-stripes {
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    45deg,
+    transparent 0, transparent 40px,
+    rgba(212,165,116,0.04) 40px, rgba(212,165,116,0.04) 42px
+  );
+  pointer-events: none;
+}
+.promos-header {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  padding: 8px 4px 14px;
+}
+.promos-eyebrow {
+  font-family: 'Barlow', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  color: #FFD700;
+  margin-bottom: 6px;
+  opacity: 0.95;
+}
+.promos-title-big {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 42px;
+  font-weight: 900;
+  color: #fff;
+  line-height: 0.95;
+  letter-spacing: 1px;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.5);
+}
+.promos-title-sep {
+  line-height: 0.3;
+  margin: 2px 0;
+}
+.promos-title-slash {
+  display: inline-block;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 28px;
+  font-weight: 900;
+  color: #D4A574;
+  transform: skew(-12deg);
+}
+.promos-subtitle {
+  font-family: 'Barlow', sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  color: #FAF4EC;
+  opacity: 0.75;
+  letter-spacing: 1px;
+  margin-top: 8px;
+}
+.promos-grid {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 6px;
+}
+@media (min-width: 580px) {
+  .promos-grid { grid-template-columns: repeat(3, 1fr); }
+  .promos-title-big { font-size: 52px; }
+}
+@media (min-width: 780px) {
+  .promos-grid { grid-template-columns: repeat(4, 1fr); }
+}
+.promo-card {
+  position: relative;
+  background: #FAF4EC;
+  border-radius: 10px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.4), 0 0 0 2px #D4A574;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.promo-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.5), 0 0 0 2px #FFD700;
+}
+.promo-card-badge {
+  position: absolute;
+  top: 8px; left: 8px;
+  background: linear-gradient(135deg, #FFD700, #D4A574);
+  color: #1a1a1a;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 16px;
+  font-weight: 900;
+  padding: 4px 10px;
+  border-radius: 14px;
+  letter-spacing: 0.5px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+  z-index: 2;
+}
+.promo-card-badge-urgente {
+  position: absolute;
+  top: 8px; right: 8px;
+  background: linear-gradient(135deg, #DC143C, #8B0000);
+  color: #fff;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 10px;
+  font-weight: 900;
+  padding: 3px 8px;
+  border-radius: 12px;
+  letter-spacing: 0.8px;
+  box-shadow: 0 2px 8px rgba(220,20,60,0.5);
+  z-index: 2;
+  animation: promoUrgPulse 1.4s ease-in-out infinite;
+}
+@keyframes promoUrgPulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.75; transform: scale(1.04); }
+}
+.promo-card-img {
+  aspect-ratio: 1 / 1;
+  background: linear-gradient(135deg, #f5ede0, #e8ddc9);
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+.promo-card-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.promo-card-img.sin-img::before {
+  content: '📦';
+  font-size: 48px;
+  opacity: 0.25;
+}
+.promo-card-img::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    45deg,
+    transparent 0, transparent 25px,
+    rgba(139,0,0,0.04) 25px, rgba(139,0,0,0.04) 26px
+  );
+  pointer-events: none;
+}
+.promo-card-body {
+  padding: 10px 10px 12px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  gap: 4px;
+}
+.promo-card-nombre {
+  font-family: 'Barlow', sans-serif;
+  font-weight: 700;
+  font-size: 13px;
+  line-height: 1.2;
+  color: #1a1a1a;
+  margin-bottom: 2px;
+}
+.promo-card-marca {
+  font-family: 'Barlow', sans-serif;
+  font-size: 10.5px;
+  color: #666;
+  opacity: 0.85;
+  margin-bottom: 4px;
+}
+.promo-card-precios {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  margin-bottom: 2px;
+}
+.promo-card-precio-viejo {
+  font-family: 'Barlow', sans-serif;
+  font-size: 11px;
+  color: #999;
+  text-decoration: line-through;
+  text-decoration-color: #C62828;
+  text-decoration-thickness: 1.5px;
+}
+.promo-card-precio-nuevo {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 18px;
+  font-weight: 900;
+  color: #8B0000;
+  line-height: 1;
+  margin: 2px 0;
+}
+.promo-card-precio-unidad {
+  font-family: 'Barlow', sans-serif;
+  font-size: 10.5px;
+  font-weight: 700;
+  color: #1B5E20;
+  letter-spacing: 0.2px;
+}
+.promo-card-mini {
+  font-family: 'Barlow', sans-serif;
+  font-size: 9px;
+  color: #888;
+  font-style: italic;
+  margin: 4px 0 2px;
+}
+.promo-action-slot {
+  margin-top: auto;
+  padding-top: 6px;
+}
+.promo-card-btn {
+  width: 100%;
+  background: linear-gradient(135deg, #8B0000, #5C0000);
+  color: #fff;
+  border: 1.5px solid #D4A574;
+  border-radius: 8px;
+  padding: 9px 6px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: all 0.15s;
+  box-shadow: 0 2px 6px rgba(139,0,0,0.3);
+}
+.promo-card-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(139,0,0,0.45);
+}
+.promo-card-btn:active {
+  transform: scale(0.97);
+}
+.promo-qty-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+  background: #fff;
+  border: 1.5px solid #D4A574;
+  border-radius: 8px;
+  padding: 4px;
+}
+.promo-btn-qty {
+  width: 30px; height: 30px;
+  border-radius: 6px;
+  background: linear-gradient(135deg, #8B0000, #5C0000);
+  color: #fff;
+  border: none;
+  font-size: 18px;
+  font-weight: 900;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+}
+.promo-btn-qty:active {
+  transform: scale(0.92);
+}
+.promo-qty-val {
+  flex: 1;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 11.5px;
+  font-weight: 800;
+  color: #1a1a1a;
+  text-align: center;
+  letter-spacing: 0.3px;
+}
+
 /* En el drawer (carrito expandido) */
 .d-combo-group {
   background: linear-gradient(135deg, #FFF8E1, #FFECB3);
@@ -3489,13 +3792,20 @@ function T(){
     tCombos += (c.precio_combo||0) * q;
     cCombos += q;
   });
-  const subtotal = tProd + tCombos;
-  const c = cProd + cCombos;
-  // v2.6.6: el cupón se calcula SOLO sobre subtotal elegible (no pollo/trozados/combos)
-  const subtotalElegible = tProdElegible; // combos siempre excluidos
+  // v2.7.8: promos 1+1 — cada unidad de qtyPromo = 1 precio (el 2º viene gratis)
+  let tPromos=0, cPromos=0;
+  (_promosData||[]).forEach(p => {
+    const q = qtyPromo[p.id]||0;
+    tPromos += Number(p.precio_unitario||0) * q;
+    cPromos += q * 2; // contamos las 2 unidades físicas
+  });
+  const subtotal = tProd + tCombos + tPromos;
+  const c = cProd + cCombos + cPromos;
+  // v2.6.6: el cupón se calcula SOLO sobre subtotal elegible (no pollo/trozados/combos/promos)
+  const subtotalElegible = tProdElegible; // combos y promos siempre excluidos
   const descuento = cuponCalcularDescuento(subtotalElegible);
   const t = subtotal - descuento;
-  return {t, c, tCombos, cCombos, tProductos:tProd, cProductos:cProd, subtotal, subtotalElegible, descuento};
+  return {t, c, tCombos, cCombos, tPromos, cPromos, tProductos:tProd, cProductos:cProd, subtotal, subtotalElegible, descuento};
 }
 
 function renderVend(){
@@ -3561,6 +3871,21 @@ function jump(id,btn){
 }
 
 function renderBody(){
+  // v2.7.8: sección PROMOS (OFERTAS DE ABRIL — 1+1 por vencimiento) va ANTES de combos
+  const promosHtml = '<div id="promos-section" style="display:none;">'
+    + '<div class="promos-wrap">'
+    +   '<div class="promos-bg-stripes"></div>'
+    +   '<div class="promos-header">'
+    +     '<div class="promos-eyebrow">🔥 OFERTAS DE ABRIL</div>'
+    +     '<div class="promos-title-big">COMPRÁS 1</div>'
+    +     '<div class="promos-title-sep"><span class="promos-title-slash">/</span></div>'
+    +     '<div class="promos-title-big">TE REGALAMOS 1</div>'
+    +     '<div class="promos-subtitle">Sin límite · Solo contado · Hasta agotar stock</div>'
+    +   '</div>'
+    +   '<div class="promos-grid" id="promos-grid"></div>'
+    + '</div>'
+    + '</div>';
+
   // v2.3: incluir combos-section al INICIO del body para que scrollee junto con el catálogo
   const combosHtml = '<div id="combos-section" style="display:none;">'
     + '<div class="combos-title-wrap">'
@@ -3576,7 +3901,7 @@ function renderBody(){
     + '<div class="combos-dots" id="combos-dots"></div>'
     + '</div>';
 
-  document.getElementById('body').innerHTML = combosHtml + CAT.map((sec,si)=>{
+  document.getElementById('body').innerHTML = promosHtml + combosHtml + CAT.map((sec,si)=>{
     const items=sec.items.map((it,ii)=>{
       // Ocultar productos sin stock temporal
       if (OCULTOS.has(it.n)) return '';
@@ -3631,6 +3956,10 @@ function renderBody(){
   // v2.3: re-render de combos por si ya cargaron (caso: combosCargar terminó antes que renderBody)
   if (typeof combosRender === 'function' && _combosData && _combosData.length > 0) {
     combosRender();
+  }
+  // v2.7.8: re-render de promos si ya cargaron
+  if (typeof promosRender === 'function' && _promosData && _promosData.length > 0) {
+    promosRender();
   }
 }
 
@@ -4009,6 +4338,200 @@ function combosLimpiar() {
   combosRender();
 }
 
+// ═══════════════════════════════════════════════════════════════════════
+// v2.7.8 — PROMOS DE ABRIL (1+1 por vencimiento)
+// ═══════════════════════════════════════════════════════════════════════
+// Mecánica: cliente toca "Agregar" → se suma 1 unidad al qtyPromo[id]
+// Cada unidad = 1 PAR (1 pagado + 1 gratis) → carrito muestra 2u físicas
+// Stock descuenta de 2 en 2.
+// NO se combina con cupón 10% (excluido del subtotalElegible en T())
+async function promosCargar() {
+  try {
+    const r = await fetch(SB_URL + '/rest/v1/productos_promo?activo=eq.true&stock_disponible=gt.0&order=orden.asc', {
+      headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY }
+    });
+    if (!r.ok) { console.warn('[promos] Supabase response not ok:', r.status); return; }
+    const data = await r.json();
+    _promosData = Array.isArray(data) ? data : [];
+    promosRender();
+    if (Object.keys(qtyPromo).length > 0) {
+      updateBar();
+      if (document.getElementById('drawer') && document.getElementById('drawer').classList.contains('on')) renderDrawer();
+    }
+  } catch (e) {
+    console.error('[promos] Error al cargar promos:', e);
+    _promosData = [];
+  }
+}
+
+function promosRender() {
+  const sec = document.getElementById('promos-section');
+  const grid = document.getElementById('promos-grid');
+  if (!sec || !grid) return;
+
+  const promosValidas = (_promosData||[]).filter(p => p && p.id && Number(p.stock_disponible) > 0);
+  if (promosValidas.length === 0) {
+    sec.style.display = 'none';
+    return;
+  }
+  sec.style.display = 'block';
+
+  grid.innerHTML = promosValidas.map(p => {
+    const qtyActual = qtyPromo[p.id] || 0;
+    const stockDisp = Number(p.stock_disponible || 0);
+    const precio = Number(p.precio_unitario || 0);
+    const esCritico = stockDisp <= 10;
+    const badgeUrgente = esCritico
+      ? '<div class="promo-card-badge-urgente">⚠️ ÚLTIMAS ' + stockDisp + '</div>'
+      : '';
+    const imgSrc = p.imagen_url || '';
+    const imgHtml = imgSrc
+      ? '<img src="' + imgSrc + '" alt="' + (p.producto_nombre||'').replace(/"/g,'&quot;') + '" loading="lazy" onerror="this.style.display=\'none\';this.parentElement.classList.add(\'sin-img\');">'
+      : '';
+
+    const btnHtml = qtyActual > 0
+      ? '<div class="promo-qty-row">' +
+          '<button class="promo-btn-qty" onclick="promosRestar(\'' + p.id + '\')" aria-label="Quitar">−</button>' +
+          '<div class="promo-qty-val">' + (qtyActual*2) + ' u en carrito</div>' +
+          '<button class="promo-btn-qty" onclick="promosSumar(\'' + p.id + '\')" aria-label="Sumar">+</button>' +
+        '</div>'
+      : '<button class="promo-card-btn" onclick="promosSumar(\'' + p.id + '\')">AGREGAR · LLEVO 2</button>';
+
+    return '<div class="promo-card" data-promo-id="' + p.id + '">' +
+      '<div class="promo-card-badge">1+1</div>' +
+      badgeUrgente +
+      '<div class="promo-card-img">' + imgHtml + '</div>' +
+      '<div class="promo-card-body">' +
+        '<div class="promo-card-nombre">' + (p.producto_nombre||'') + '</div>' +
+        '<div class="promo-card-marca">' + (p.descripcion_corta||p.presentacion||'') + '</div>' +
+        '<div class="promo-card-precios">' +
+          '<span class="promo-card-precio-viejo">' + fmt(precio * 2) + '</span>' +
+          '<div class="promo-card-precio-nuevo">' + fmt(precio) + ' x 2u</div>' +
+          '<div class="promo-card-precio-unidad">🎁 AHORRÁS ' + fmt(precio) + '</div>' +
+        '</div>' +
+        '<div class="promo-card-mini">Hasta agotar stock · vence may-26</div>' +
+        '<div class="promo-action-slot" id="promo-slot-' + p.id + '">' + btnHtml + '</div>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+function promosActualizarSlot(promoId) {
+  const promo = (_promosData||[]).find(p => p.id === promoId);
+  if (!promo) return;
+  const slot = document.getElementById('promo-slot-' + promoId);
+  if (!slot) return;
+  const qtyActual = qtyPromo[promoId] || 0;
+  slot.innerHTML = qtyActual > 0
+    ? '<div class="promo-qty-row">' +
+        '<button class="promo-btn-qty" onclick="promosRestar(\'' + promoId + '\')" aria-label="Quitar">−</button>' +
+        '<div class="promo-qty-val">' + (qtyActual*2) + ' u en carrito</div>' +
+        '<button class="promo-btn-qty" onclick="promosSumar(\'' + promoId + '\')" aria-label="Sumar">+</button>' +
+      '</div>'
+    : '<button class="promo-card-btn" onclick="promosSumar(\'' + promoId + '\')">AGREGAR · LLEVO 2</button>';
+}
+
+function promosSumar(promoId) {
+  const promo = (_promosData||[]).find(p => p.id === promoId);
+  if (!promo) return;
+  // Verificar que haya stock suficiente (cada qty consume 2 unidades)
+  const actual = qtyPromo[promoId] || 0;
+  const stockDisp = Number(promo.stock_disponible || 0);
+  const consumido = (actual + 1) * 2;
+  if (consumido > stockDisp) {
+    if (typeof combosToast === 'function') {
+      combosToast('Solo quedan ' + stockDisp + ' unidades de este producto');
+    }
+    return;
+  }
+  qtyPromo[promoId] = actual + 1;
+  promosActualizarSlot(promoId);
+  updateBar();
+  saveCartLS();
+  if (document.getElementById('drawer') && document.getElementById('drawer').classList.contains('on')) renderDrawer();
+}
+
+function promosRestar(promoId) {
+  const actual = qtyPromo[promoId] || 0;
+  if (actual <= 1) {
+    delete qtyPromo[promoId];
+  } else {
+    qtyPromo[promoId] = actual - 1;
+  }
+  promosActualizarSlot(promoId);
+  updateBar();
+  saveCartLS();
+  if (document.getElementById('drawer') && document.getElementById('drawer').classList.contains('on')) renderDrawer();
+}
+
+function promosLimpiar() {
+  Object.keys(qtyPromo).forEach(k => delete qtyPromo[k]);
+  promosRender();
+}
+
+// Líneas WhatsApp de las promos (formato compatible con parser Apps Script)
+function promosLineasWA() {
+  const lineas = [];
+  (_promosData||[]).forEach(p => {
+    const q = qtyPromo[p.id] || 0;
+    if (q <= 0) return;
+    const precio = Number(p.precio_unitario || 0);
+    const nombre = p.producto_nombre || '';
+    // Cada qty = 1 par (2 unidades: 1 paga + 1 gratis)
+    // Formato parser-friendly: "Nx Nombre → $total"
+    lineas.push('🎁 *1+1 ' + nombre.toUpperCase() + '* × ' + q + ' par' + (q>1?'es':''));
+    lineas.push('   ✓ ' + (q*2) + 'u total (' + q + ' paga' + (q>1?'s':'') + ' + ' + q + ' gratis)');
+    lineas.push('   💰 ' + fmt(precio * q));
+    lineas.push('');
+  });
+  return lineas;
+}
+
+// Descontar stock en Supabase al confirmar pedido (fire-and-forget)
+async function promosConsumirStock() {
+  const consumidos = [];
+  (_promosData||[]).forEach(p => {
+    const q = qtyPromo[p.id] || 0;
+    if (q > 0) consumidos.push({ id: p.id, cantidad: q * 2, nombre: p.producto_nombre });
+  });
+  if (consumidos.length === 0) return;
+
+  for (const item of consumidos) {
+    try {
+      // Leer stock actual
+      const rGet = await fetch(SB_URL + '/rest/v1/productos_promo?id=eq.' + encodeURIComponent(item.id) + '&select=stock_disponible', {
+        headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY }
+      });
+      if (!rGet.ok) continue;
+      const arr = await rGet.json();
+      if (!arr || !arr.length) continue;
+      const stockActual = Number(arr[0].stock_disponible || 0);
+      const stockNuevo = Math.max(0, stockActual - item.cantidad);
+      // Actualizar (auto-desactivar si llega a 0)
+      await fetch(SB_URL + '/rest/v1/productos_promo?id=eq.' + encodeURIComponent(item.id), {
+        method: 'PATCH',
+        headers: {
+          'apikey': SB_KEY,
+          'Authorization': 'Bearer ' + SB_KEY,
+          'Content-Type': 'application/json',
+          'Prefer': 'return=minimal'
+        },
+        body: JSON.stringify({
+          stock_disponible: stockNuevo,
+          modificado_at: new Date().toISOString(),
+          activo: stockNuevo > 0
+        })
+      });
+    } catch(e) {
+      console.warn('[promos] Error consumiendo stock de ' + item.nombre + ':', e);
+    }
+  }
+}
+// ═══════════════════════════════════════════════════════════════════════
+// Fin bloque PROMOS
+// ═══════════════════════════════════════════════════════════════════════
+
+
 function openDrawer(){renderDrawer();document.getElementById('drawer').classList.add('on');document.getElementById('overlay').classList.add('on');}
 function closeDrawer(){document.getElementById('drawer').classList.remove('on');document.getElementById('overlay').classList.remove('on');}
 
@@ -4017,6 +4540,25 @@ function renderDrawer(){
   const body=document.getElementById('d-body');const foot=document.getElementById('d-foot');
   if(!c){body.innerHTML='<div class="d-empty">Todav\u00eda no agregaste productos</div>';foot.style.display='none';return;}
   let html='';
+
+  // v2.7.8: PROMOS 1+1 primero (arriba de todo por ser lo más urgente)
+  (_promosData||[]).forEach(promo => {
+    const q = qtyPromo[promo.id] || 0;
+    if (q <= 0) return;
+    const precio = Number(promo.precio_unitario || 0);
+    html += '<div class="d-combo-group" style="border-color:#D4A574;background:linear-gradient(135deg,#fff9f0,#fff4e1);">' +
+      '<div class="d-combo-title" style="color:#8B0000;">🎁 1+1 ' + (promo.producto_nombre||'') + ' × ' + q + ' par' + (q>1?'es':'') + '</div>' +
+      '<div class="d-combo-item">' + (q*2) + 'u total — pagás ' + q + ', ' + q + ' gratis</div>' +
+      '<div class="d-combo-precio">' +
+        '<div class="d-combo-qty">' +
+          '<button class="d-combo-qty-btn" onclick="promosRestar(\'' + promo.id + '\')" aria-label="Quitar">−</button>' +
+          '<span class="d-combo-qty-val">' + q + '</span>' +
+          '<button class="d-combo-qty-btn" onclick="promosSumar(\'' + promo.id + '\')" aria-label="Sumar">+</button>' +
+        '</div>' +
+        '<div class="d-combo-precio-val">' + fmt(precio * q) + '</div>' +
+      '</div>' +
+    '</div>';
+  });
 
   // v2: Combos primero, destacados con estilo especial
   (_combosData||[]).forEach(combo => {
@@ -4083,7 +4625,7 @@ function renderDrawer(){
   saveCartLS();
 }
 
-function clearCart(){Object.keys(qty).forEach(k=>delete qty[k]);combosLimpiar();renderBody();updateBar();renderDrawer();clearCartLS();if(typeof mostrarRepFab==='function')mostrarRepFab();}
+function clearCart(){Object.keys(qty).forEach(k=>delete qty[k]);combosLimpiar();promosLimpiar();renderBody();updateBar();renderDrawer();clearCartLS();if(typeof mostrarRepFab==='function')mostrarRepFab();}
 
 // holdTimeout, holdInterval, holdTriggered declarados en bloque de estado global
 
@@ -4557,6 +5099,24 @@ function confirmarYEnviarWA() {
       combosUnidades += q;
     }
   });
+
+  // v2.7.8: PROMOS 1+1 arriba de todo en el mensaje
+  const lineasPromosWA = promosLineasWA();
+  let promosCount = 0;
+  let promosUnidades = 0;
+  (_promosData||[]).forEach(p => {
+    const q = qtyPromo[p.id] || 0;
+    if (q > 0) {
+      promosCount++;
+      promosUnidades += q * 2; // 2 unidades físicas por par
+    }
+  });
+  if (lineasPromosWA.length > 0) {
+    lineasProductos.push('🎁 *OFERTAS 1+1 — COMPRÁS 1 LLEVÁS 2*');
+    lineasProductos.push('');
+    lineasProductos.push(...lineasPromosWA);
+  }
+
   if (lineasCombosWA.length > 0) {
     lineasProductos.push('🔥 *OFERTAS — COMBOS*');
     lineasProductos.push('');
@@ -4573,9 +5133,9 @@ function confirmarYEnviarWA() {
     }
   }));
 
-  // Totales finales (combos + productos)
-  itemsTotales += combosUnidades;
-  productosCount += combosCount;
+  // Totales finales (combos + promos + productos)
+  itemsTotales += combosUnidades + promosUnidades;
+  productosCount += combosCount + promosCount;
 
   // ── Mensaje WhatsApp ────────────────────────────────────────
   let L = [
@@ -4685,6 +5245,9 @@ function confirmarYEnviarWA() {
 
   // v2: Descontar stock de combos en Supabase (fire-and-forget)
   combosConsumirStock().catch(e => console.error('[combos] Error al consumir stock:', e));
+
+  // v2.7.8: Descontar stock de promos 1+1 en Supabase (fire-and-forget)
+  promosConsumirStock().catch(e => console.error('[promos] Error al consumir stock:', e));
 
   // v2.6.3: Marcar cupón como usado si se aplicó (fire-and-forget)
   if (descuento > 0) {
@@ -4912,6 +5475,7 @@ function saveCartLS() {
     localStorage.setItem('tck_cart', JSON.stringify({
       qty: qty,
       qtyCombo: qtyCombo,
+      qtyPromo: qtyPromo,
       vActivo: vActivo ? VEND.indexOf(vActivo) : -1
     }));
   } catch(e) {}
@@ -4931,6 +5495,11 @@ function loadCartLS() {
     if (data.qtyCombo) {
       Object.keys(data.qtyCombo).forEach(function(k) { if (data.qtyCombo[k] > 0) qtyCombo[k] = data.qtyCombo[k]; });
       // combosRender se llama después cuando combosCargar termine
+    }
+    // v2.7.8: Restaurar promos 1+1 del carrito
+    if (data.qtyPromo) {
+      Object.keys(data.qtyPromo).forEach(function(k) { if (data.qtyPromo[k] > 0) qtyPromo[k] = data.qtyPromo[k]; });
+      // promosRender se llama después cuando promosCargar termine
     }
   } catch(e) {}
 }
@@ -4962,6 +5531,8 @@ cargarPrecios().finally(() => {
 
   // v2: Cargar combos de Supabase (fire-and-forget, no bloquea el init)
   combosCargar();
+  // v2.7.8: Cargar promos 1+1 de Supabase
+  promosCargar();
 
   // 1. Ocultar siempre el sv y el login — catálogo directo
   const sv = document.getElementById('sv');
