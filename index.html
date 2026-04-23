@@ -2,7 +2,24 @@
 <html lang="es">
 <head>
 <!-- ═══════════════════════════════════════════════════════════════════════
-     TCK CATÁLOGO — v2.7.8 — 23/04/2026
+     TCK CATÁLOGO — v2.7.9 — 23/04/2026
+     ──────────────────────────────────────────────────────────────────────
+     Cambios v2.7.9 (sobre v2.7.8) — ESTÉTICA DE PRECIOS DE PROMOS:
+       - Rediseño del bloque de precios en las cards de promos 1+1
+         para que el AHORRO sea visualmente evidente:
+           · Label "ANTES" + precio tachado GRANDE (18px) con línea
+             diagonal roja gruesa (3px). Antes era 11px finito.
+           · Separador dorado fino entre "Antes" y "Ahora" para
+             dramatizar el contraste.
+           · Label "AHORA" + precio GIGANTE (30px, antes 22px) rojo
+             intenso con text-shadow sutil.
+           · Badge verde sólido "🎁 AHORRÁS $X" con chip amarillo
+             "50% OFF" al lado (antes era solo texto verde chiquito).
+       - Objetivo: que el cliente vea el ahorro de un vistazo y no
+         tenga que leer números detalladamente. El "50% OFF" se
+         procesa más rápido que los montos.
+       - Solo cambia CSS y HTML de promosRender() — el resto del
+         flujo (sumar, restar, consumir stock, WA) queda intacto.
      ──────────────────────────────────────────────────────────────────────
      Cambios v2.7.8 (sobre v2.7.7) — PROMOS DE ABRIL 1+1 POR VENCIMIENTO:
        - Nueva sección "OFERTAS DE ABRIL — COMPRÁS 1 / TE REGALAMOS 1"
@@ -2962,31 +2979,87 @@ button,
 .promo-card-precios {
   display: flex;
   flex-direction: column;
-  gap: 1px;
+  gap: 0;
+  margin: 6px 0 4px;
+  position: relative;
+}
+.promo-card-precios-antes-row {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
   margin-bottom: 2px;
 }
-.promo-card-precio-viejo {
+.promo-card-precios-antes-label {
   font-family: 'Barlow', sans-serif;
-  font-size: 11px;
+  font-size: 10px;
+  font-weight: 700;
+  color: #999;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+}
+.promo-card-precio-viejo {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 18px;
+  font-weight: 800;
   color: #999;
   text-decoration: line-through;
   text-decoration-color: #C62828;
-  text-decoration-thickness: 1.5px;
+  text-decoration-thickness: 3px;
+  line-height: 1;
+}
+.promo-card-divisor {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #D4A574, transparent);
+  margin: 5px 0;
+}
+.promo-card-precios-ahora-row {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+.promo-card-precios-ahora-label {
+  font-family: 'Barlow', sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  color: #8B0000;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
 }
 .promo-card-precio-nuevo {
   font-family: 'Barlow Condensed', sans-serif;
-  font-size: 18px;
   font-weight: 900;
+  font-size: 30px;
   color: #8B0000;
   line-height: 1;
-  margin: 2px 0;
+  letter-spacing: -0.5px;
+  text-shadow: 0 1px 2px rgba(139,0,0,0.15);
 }
 .promo-card-precio-unidad {
-  font-family: 'Barlow', sans-serif;
-  font-size: 10.5px;
-  font-weight: 700;
-  color: #1B5E20;
-  letter-spacing: 0.2px;
+  display: block;
+  background: linear-gradient(135deg, #2E7D32, #1B5E20);
+  color: #fff;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 13px;
+  font-weight: 900;
+  padding: 5px 10px;
+  border-radius: 6px;
+  letter-spacing: 0.5px;
+  margin-top: 8px;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(46,125,50,0.3);
+  text-transform: uppercase;
+}
+.promo-card-precio-unidad-pct {
+  display: inline-block;
+  background: #FFD700;
+  color: #8B0000;
+  font-size: 12px;
+  font-weight: 900;
+  padding: 1px 6px;
+  border-radius: 3px;
+  margin-left: 5px;
+  letter-spacing: 0.5px;
+  vertical-align: baseline;
 }
 .promo-card-mini {
   font-family: 'Barlow', sans-serif;
@@ -4405,9 +4478,16 @@ function promosRender() {
         '<div class="promo-card-nombre">' + (p.producto_nombre||'') + '</div>' +
         '<div class="promo-card-marca">' + (p.descripcion_corta||p.presentacion||'') + '</div>' +
         '<div class="promo-card-precios">' +
-          '<span class="promo-card-precio-viejo">' + fmt(precio * 2) + '</span>' +
-          '<div class="promo-card-precio-nuevo">' + fmt(precio) + ' x 2u</div>' +
-          '<div class="promo-card-precio-unidad">🎁 AHORRÁS ' + fmt(precio) + '</div>' +
+          '<div class="promo-card-precios-antes-row">' +
+            '<span class="promo-card-precios-antes-label">Antes</span>' +
+            '<span class="promo-card-precio-viejo">' + fmt(precio * 2) + '</span>' +
+          '</div>' +
+          '<div class="promo-card-divisor"></div>' +
+          '<div class="promo-card-precios-ahora-row">' +
+            '<span class="promo-card-precios-ahora-label">Ahora</span>' +
+            '<div class="promo-card-precio-nuevo">' + fmt(precio) + '</div>' +
+          '</div>' +
+          '<div class="promo-card-precio-unidad">🎁 AHORRÁS ' + fmt(precio) + ' <span class="promo-card-precio-unidad-pct">50% OFF</span></div>' +
         '</div>' +
         '<div class="promo-card-mini">Hasta agotar stock · vence may-26</div>' +
         '<div class="promo-action-slot" id="promo-slot-' + p.id + '">' + btnHtml + '</div>' +
