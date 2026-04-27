@@ -2,7 +2,43 @@
 <html lang="es">
 <head>
 <!-- ═══════════════════════════════════════════════════════════════════════
-     TCK CATÁLOGO — v2.7.10 — 24/04/2026
+     TCK CATÁLOGO — v3.0.0 — 27/04/2026
+     ──────────────────────────────────────────────────────────────────────
+     FASE 2: REDISEÑO VISUAL — Versión 1 de 5 (TOKENS + TIPOGRAFÍA)
+
+     Cambios v3.0.0 (sobre v2.7.10) — TOKENS Y TIPOGRAFÍA:
+       Primera versión de la Fase 2 del rediseño. Cambio invisible en
+       estructura: solo reemplaza paleta de colores y tipografía base.
+
+       SISTEMA DE DISEÑO (17 tokens semánticos):
+         · Surfaces: --surface-primary, -elevated, -inset, -highlight
+         · Text: --text-primary, -secondary, -tertiary, -inverse
+         · Accents: --accent-primary (rojo TCK), -hover, -promo (cobre),
+                    -promo-intense, -success, -warning
+         · States: --state-out-of-stock, --border-subtle, --border-active
+         · Celebración: --celebration-gold (SOLO cupón aplicado, pedido
+                        confirmado — antes era --gold ubicuo)
+
+       COMPATIBILIDAD HACIA ATRÁS:
+         Los tokens viejos (--cream, --red, --gold, --text + variantes
+         numéricas) se mantienen como ALIAS de los nuevos. Esto evita
+         romper los ~170 usos existentes mientras migramos en versiones
+         futuras (v3.1+).
+
+       TIPOGRAFÍA:
+         · Cuerpo: 'Barlow' → system-ui (mejor legibilidad en Samsung A14,
+                                          ahorra carga de fonts)
+         · Precios, botones, títulos: se mantienen en Barlow Condensed
+         · Captions: system-ui
+
+       LO QUE NO CAMBIA:
+         · Estructura HTML
+         · Toda la lógica JS (auth, combos, promos, cupón, vendedor,
+                              WhatsApp, sendWA, PWA, Pixel, GA, Sentry)
+         · Comportamiento del carrito y del checkout
+         · Constantes de productos (CAT, SIN_STOCK, CUPON_*)
+
+       PRÓXIMA VERSIÓN: v3.1.0 (cards de producto rediseñadas).
      ──────────────────────────────────────────────────────────────────────
      Cambios v2.7.10 (sobre v2.7.9):
        · ALTA DE STOCK — se quitaron del set SIN_STOCK:
@@ -332,12 +368,53 @@ setInterval(function(){ _pxCarted = {}; }, 3000);
 @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@300;400;600;700;800;900&family=Barlow:wght@400;500;600&display=swap');
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 :root{
-  --cream:#FFF8F0;--cream2:#F5EDE0;--cream3:#E8D5BB;
-  --red:#8B0000;--red2:#B71C1C;--red3:#CC1B1B;
-  --gold:#FFD700;--gold2:#FFA500;--gold3:#E6A800;
-  --text:#1A0800;--text2:#5C3A1E;--text3:#9C7050;
+  /* === SISTEMA DE DISEÑO TCK v3.0.0 — 17 tokens semánticos === */
+
+  /* Surfaces */
+  --surface-primary:#FAF4EC;       /* Fondo general crema cálido */
+  --surface-elevated:#FFFFFF;      /* Cards, drawer, modales */
+  --surface-inset:#F0E6D8;         /* Inputs, badges inactivos */
+  --surface-highlight:#FFF8E1;     /* Cupón aplicado, promos, combos */
+
+  /* Text */
+  --text-primary:#1A0800;          /* Texto principal */
+  --text-secondary:#5C3A1E;        /* Presentaciones, metadatos */
+  --text-tertiary:#9C7050;         /* Hints, fechas, cantidades inactivas */
+  --text-inverse:#FFFFFF;          /* Sobre rojo o fondos oscuros */
+
+  /* Accents */
+  --accent-primary:#8B0000;        /* Rojo TCK — precios y acción primaria */
+  --accent-hover:#B71C1C;          /* Hover de botones rojos */
+  --accent-promo:#D4A574;          /* Cobre apagado (promos / combos) */
+  --accent-promo-intense:#C67B3C;  /* Cobre intenso */
+  --accent-success:#1E8449;        /* Stock OK, confirmaciones, ahorros */
+  --accent-warning:#B45309;        /* Naranja tierra — alertas suaves */
+
+  /* States */
+  --state-out-of-stock:#78716C;    /* Gris cálido sin stock */
+  --border-subtle:#E8D5BB;         /* Separadores, bordes inactivos */
+  --border-active:#D4A574;         /* Inputs focus, cards seleccionadas */
+
+  /* RESERVADO PARA CELEBRACIÓN — solo cupón aplicado, pedido confirmado */
+  --celebration-gold:#FFD700;
+
+  /* === ALIAS HACIA ATRÁS (v2.7.x) — no usar en código nuevo ===
+       Estos aliases mantienen compatibilidad con los ~170 usos
+       existentes hasta migrar todo en v3.1+. */
+  --cream:var(--surface-primary);
+  --cream2:#F5EDE0;                /* Tono medio crema (sin equivalente directo) */
+  --cream3:var(--border-subtle);
+  --red:var(--accent-primary);
+  --red2:var(--accent-hover);
+  --red3:#CC1B1B;                  /* Rojo más saturado (legado) */
+  --gold:var(--celebration-gold);
+  --gold2:#FFA500;                 /* Oro/naranja legado */
+  --gold3:#E6A800;                 /* Oro oscuro legado */
+  --text:var(--text-primary);
+  --text2:var(--text-secondary);
+  --text3:var(--text-tertiary);
 }
-html,body{height:100%;font-family:'Barlow',sans-serif;background:var(--cream);overflow:hidden;position:fixed;width:100%}
+html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Oxygen,Ubuntu,Cantarell,'Helvetica Neue',Arial,sans-serif;background:var(--cream);overflow:hidden;position:fixed;width:100%}
 
 html{
   -webkit-text-size-adjust:100%;
@@ -510,7 +587,7 @@ button,
 
 /* Info del producto */
 .card-body{padding:8px 9px 9px;display:flex;flex-direction:column;gap:0}
-.card-name{font-family:'Barlow',sans-serif;font-size:12px;font-weight:600;color:var(--text);line-height:1.25;margin-bottom:6px;text-align:center}
+.card-name{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;font-size:12px;font-weight:600;color:var(--text);line-height:1.25;margin-bottom:6px;text-align:center}
 
 /* Presentación — con borde como el PDF */
 .card-pres{border:1px solid var(--cream3);border-radius:3px;padding:3px 6px;font-size:10px;color:var(--text2);text-align:center;margin-bottom:4px;font-weight:500}
