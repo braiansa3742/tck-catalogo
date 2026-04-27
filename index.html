@@ -2,9 +2,40 @@
 <html lang="es">
 <head>
 <!-- ═══════════════════════════════════════════════════════════════════════
-     TCK CATÁLOGO — v3.1.0 — 27/04/2026
+     TCK CATÁLOGO — v3.1.1 — 27/04/2026
      ──────────────────────────────────────────────────────────────────────
-     FASE 2: REDISEÑO VISUAL — Versión 2 de 5 (CARDS REGULARES)
+     FASE 2: REDISEÑO VISUAL — Versión 3 de 5 (CARDS PROMO + COMBO)
+
+     Cambios v3.1.1 (sobre v3.1.0) — CARDS DE PROMO 1+1 Y COMBOS:
+       Refinamiento estético de las cards especiales (promos y combos).
+       Coherencia con el sistema de diseño TCK Fase 1.
+
+       PROMOS 1+1:
+         · Badge "1+1": gradiente dorado→cobre → cobre sólido (#D4A574)
+           para evitar el "look sticker" de Fase 1.
+         · Borde de card: cobre claro (#D4A574) con glow más sutil.
+         · Hover ya no flashea oro brillante (queda en cobre intenso).
+
+       COMBOS:
+         · Borde dorado brillante (#FFD700) → cobre apagado (#D4A574,
+           token --accent-promo). El oro brillante queda reservado
+           SOLO para celebración (cupón aplicado, pedido confirmado).
+         · Background gradient: blanco→amarillo cálido →
+           blanco→cream highlight (token --surface-highlight).
+         · Glow exterior reducido (era demasiado dorado).
+
+       LO QUE NO CAMBIA:
+         · Estructura HTML de las cards
+         · Layout horizontal del combo (imagen izquierda, info derecha)
+         · Lógica de stepper +/− y cantidades
+         · Lista de productos del combo, descuentos, precios
+         · Cards regulares (v3.1.0)
+
+       PRÓXIMA VERSIÓN: v3.1.2 (calculadora margen + nota calibre).
+
+     ──────────────────────────────────────────────────────────────────────
+
+     Cambios v3.1.0 (sobre v3.0.0) — CARDS REGULARES:
 
      Cambios v3.1.0 (sobre v3.0.0) — CARDS REGULARES:
        Rediseño de las cards de productos sueltos. NO toca cards de
@@ -2461,18 +2492,19 @@ button,
 
 /* v2.1: Card HORIZONTAL — imagen izquierda, info derecha. Mejor uso del espacio */
 /* v2.2: + fondo gradient, borde dorado grueso, glow effect */
+/* === v3.1.1: combo card con paleta TCK semántica === */
 .combo-card {
   flex-shrink: 0;
-  width: calc(100% - 4px); /* ocupa todo el ancho, pequeño margen */
+  width: calc(100% - 4px);
   max-width: 480px;
   scroll-snap-align: start;
-  background: linear-gradient(135deg, #FFFFFF 0%, #FFF9E6 100%);
+  background: linear-gradient(135deg, var(--surface-elevated) 0%, var(--surface-highlight) 100%);
   border-radius: 14px;
   overflow: hidden;
-  box-shadow: 0 4px 14px rgba(0,0,0,0.35), 0 0 20px rgba(255,215,0,0.25);
-  border: 2px solid var(--gold);
+  box-shadow: 0 4px 14px rgba(0,0,0,0.18), 0 0 14px rgba(212,165,116,0.18);
+  border: 2px solid var(--accent-promo);
   position: relative;
-  display: flex; flex-direction: row;  /* HORIZONTAL */
+  display: flex; flex-direction: row;
   min-height: 170px;
 }
 .combo-card.agotado { opacity: 0.55; filter: grayscale(0.3); }
@@ -3018,32 +3050,34 @@ button,
 @media (min-width: 780px) {
   .promos-grid { grid-template-columns: repeat(4, 1fr); }
 }
+/* === v3.1.1: promo card con paleta TCK semántica === */
 .promo-card {
   position: relative;
-  background: #FAF4EC;
-  border-radius: 10px;
+  background: var(--surface-primary);
+  border-radius: 12px;
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 4px 14px rgba(0,0,0,0.4), 0 0 0 2px #D4A574;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.18), 0 0 0 1.5px var(--accent-promo);
   transition: transform 0.2s, box-shadow 0.2s;
 }
 .promo-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 18px rgba(0,0,0,0.5), 0 0 0 2px #FFD700;
+  box-shadow: 0 5px 14px rgba(0,0,0,0.22), 0 0 0 2px var(--accent-promo-intense);
 }
+/* === v3.1.1: badge 1+1 cobre sólido === */
 .promo-card-badge {
   position: absolute;
   top: 8px; left: 8px;
-  background: linear-gradient(135deg, #FFD700, #D4A574);
-  color: #1a1a1a;
+  background: var(--accent-promo);
+  color: var(--text-primary);
   font-family: 'Barlow Condensed', sans-serif;
   font-size: 16px;
   font-weight: 900;
   padding: 4px 10px;
-  border-radius: 14px;
+  border-radius: 12px;
   letter-spacing: 0.5px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.18);
   z-index: 2;
 }
 .promo-card-badge-urgente {
