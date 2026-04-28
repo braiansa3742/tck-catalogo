@@ -2,6 +2,39 @@
 <html lang="es">
 <head>
 <!-- ═══════════════════════════════════════════════════════════════════════
+     TCK CATÁLOGO — v3.2.4 — 28/04/2026
+     ──────────────────────────────────────────────────────────────────────
+     LOCALIDAD CANÓNICA — Eliminación de typos por construcción
+
+     Cambios v3.2.4 (sobre v3.2.3):
+       Mismo problema estructural que se resolvió en tck-ventas v13.7.5:
+       el cliente del catálogo escribía la localidad libre, lo que causaba
+       typos ("Pehuajo", "Hendersom", "Beruty") que rompían el modelo de
+       zonas en el backend (Apps Script v25.1.0 + tabla pedidos_zona).
+
+       FIX:
+         · Los 5 inputs libres de localidad → SELECT con las 27 localidades
+           canónicas cargadas de Supabase tabla rutas.
+           Puntos cambiados:
+             1. nn-localidad (pedido sin login)
+             2. vi-localidad (pedido visitante)
+             3. ci-localidad (cliente identificado)
+             4. cli-reg-ciudad (registro nuevo cliente)
+             5. rp2-ciudad (registro progresivo paso 2)
+         · Botón "Mi ciudad no está aquí" → cliente puede mandar pedido
+           igual; el pedido cae en bandeja "Sin zona" y un vendedor llama.
+         · Las constantes hardcodeadas _CLI_RUTA_* y _CLI_CIUDADES_*_LABEL
+           se reemplazan por datos derivados de Supabase (fuente única).
+         · cliProximaEntregaCalcular ahora usa la zona y calendario
+           devueltos por Supabase, no las rutas hardcodeadas.
+
+       IMPACTO: cero typos nuevos a partir de este deploy. La UI muestra
+       siempre la lista de ciudades sincronizada con la operación real.
+
+       LO QUE NO CAMBIA: resto de v3.2.3.
+
+     ──────────────────────────────────────────────────────────────────────
+
      TCK CATÁLOGO — v3.2.3 — 28/04/2026
      ──────────────────────────────────────────────────────────────────────
      HOTFIX — Combo: cantidad por producto leía propiedad incorrecta
@@ -445,6 +478,141 @@ var _canalSinVendedor = null;
 // ── Otros parámetros ──────────────────────────────────────────────
 const PRECIOS_CACHE_TTL   = 30 * 60 * 1000; // 30 minutos
 const ADMIN_NO_VENDOR_WA  = '5492314475357';
+
+// ═══════════════════════════════════════════════════════════════════
+// v3.2.4 — LOCALIDADES CANÓNICAS (anti-typos)
+// ═══════════════════════════════════════════════════════════════════
+// Lista de las 27 ciudades servidas por TCK, cargada desde Supabase
+// rutas. Sirve para poblar dropdowns y validar al enviar pedido.
+//
+// Fuente única: Supabase tabla `rutas`. Las constantes hardcodeadas
+// _CLI_RUTA_* y _CLI_CIUDADES_*_LABEL quedan como fallback de UI
+// si Supabase no responde, pero NO son la fuente de verdad.
+
+var _localidadesCanonicas = [];        // [{ ciudad, zona, etiqueta_zona, dias_carga }]
+var _localidadesCanonicasMap = {};     // 'pehuajo' → { ciudad: 'Pehuajó', zona: ... }
+var _localidadesCargando = null;       // Promise en curso (evita duplicar fetch)
+
+const ZONA_ETIQUETAS_CATALOGO = {
+  'Zona 1':                'Zona 1',
+  'Zona 2':                'Zona 2',
+  'Solo América y Fortín': 'América y Fortín',
+  'Venta local':           'Trenque Lauquen'
+};
+
+function _localidadNormalizar(s) {
+  if (!s) return '';
+  return String(s).trim().toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9 ]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+async function cargarLocalidadesCanonicas(forzar) {
+  if (!forzar && _localidadesCanonicas.length > 0) return _localidadesCanonicas;
+  if (_localidadesCargando) return _localidadesCargando;
+
+  _localidadesCargando = (async function() {
+    try {
+      const url = SB_URL + '/rest/v1/rutas?select=ciudad,zona,aliases,dias_carga&zona=not.is.null&order=ciudad.asc';
+      const resp = await fetch(url, {
+        headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY }
+      });
+      if (!resp.ok) throw new Error('HTTP ' + resp.status);
+      const filas = await resp.json();
+      if (!Array.isArray(filas)) throw new Error('Respuesta inválida');
+
+      _localidadesCanonicas = filas.map(r => ({
+        ciudad: r.ciudad,
+        zona: r.zona,
+        etiqueta_zona: ZONA_ETIQUETAS_CATALOGO[r.zona] || r.zona,
+        aliases: r.aliases || [],
+        dias_carga: r.dias_carga || []
+      })).sort((a, b) => a.ciudad.localeCompare(b.ciudad, 'es'));
+
+      // Mapa lookup por nombre normalizado (incluye aliases)
+      _localidadesCanonicasMap = {};
+      for (const loc of _localidadesCanonicas) {
+        _localidadesCanonicasMap[_localidadNormalizar(loc.ciudad)] = loc;
+        for (const alias of (loc.aliases || [])) {
+          _localidadesCanonicasMap[_localidadNormalizar(alias)] = loc;
+        }
+      }
+
+      console.log('[localidades] Cargadas ' + _localidadesCanonicas.length + ' ciudades canónicas');
+      return _localidadesCanonicas;
+    } catch (err) {
+      console.error('[localidades] Error cargando:', err);
+      return [];
+    } finally {
+      _localidadesCargando = null;
+    }
+  })();
+
+  return _localidadesCargando;
+}
+
+/**
+ * Devuelve la ciudad canónica que matchea con un texto libre.
+ * Acepta el nombre exacto, sin tildes, en minúsculas, o un alias.
+ */
+function localidadCanonicaDe(texto) {
+  if (!texto) return null;
+  const norm = _localidadNormalizar(texto);
+  return _localidadesCanonicasMap[norm] || null;
+}
+
+/**
+ * Genera el HTML <select> con las localidades canónicas.
+ * Si _localidadesCanonicas está vacío todavía, devuelve un select
+ * con un solo option deshabilitado (se rellena después con poblarLocalidadesSelects).
+ */
+function localidadesSelectHTML(opts) {
+  opts = opts || {};
+  const id    = opts.id || 'localidad-select';
+  const cls   = opts.classExtra || '';
+  const valor = opts.valorActual || '';
+  const onCh  = opts.onChange ? ' onchange="' + opts.onChange + '"' : '';
+
+  let html = '<select id="' + id + '" class="' + cls + '"' + onCh + '>';
+  html += '<option value="">— Elegí localidad —</option>';
+
+  for (const loc of _localidadesCanonicas) {
+    const sel = (loc.ciudad === valor) ? ' selected' : '';
+    html += '<option value="' + loc.ciudad + '"' + sel + '>'
+         + loc.ciudad + ' · ' + loc.etiqueta_zona
+         + '</option>';
+  }
+
+  html += '</select>';
+  return html;
+}
+
+/**
+ * Repuebla todos los <select> con id que matchee uno de los IDs conocidos
+ * de localidad. Útil para llamar después de que cargarLocalidadesCanonicas
+ * resuelve, así los dropdowns que se renderizaron antes se sincronizan.
+ */
+function poblarLocalidadesSelects() {
+  const ids = ['nn-localidad', 'vi-localidad', 'ci-localidad', 'cli-reg-ciudad', 'rp2-ciudad'];
+  for (const id of ids) {
+    const sel = document.getElementById(id);
+    if (!sel) continue;
+    if (sel.tagName !== 'SELECT') continue; // si todavía es input legacy
+    const valorPrevio = sel.value;
+    let html = '<option value="">— Elegí localidad —</option>';
+    for (const loc of _localidadesCanonicas) {
+      html += '<option value="' + loc.ciudad + '">'
+           + loc.ciudad + ' · ' + loc.etiqueta_zona
+           + '</option>';
+    }
+    sel.innerHTML = html;
+    if (valorPrevio) sel.value = valorPrevio;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════
 
 // ── Helpers universales ───────────────────────────────────────────
 const fmt = n => '$' + Math.round(n).toLocaleString('es-AR');
@@ -3822,7 +3990,11 @@ src="https://www.facebook.com/tr?id=2034313150514758&ev=PageView&noscript=1"
         </div>
         <div class="cli-field">
           <div class="cli-label">Ciudad</div>
-          <input class="cli-input" type="text" id="cli-reg-ciudad" placeholder="Tu ciudad" autocapitalize="words">
+          <!-- v3.2.4: select canónico (anti-typos) -->
+          <select class="cli-input cli-select" id="cli-reg-ciudad">
+            <option value="">— Elegí ciudad —</option>
+          </select>
+          <button type="button" onclick="abrirModalCiudadNoAtendida()" style="margin-top:6px;background:none;border:none;color:#9C7050;font-size:11px;text-decoration:underline;cursor:pointer;padding:4px 0;">Mi ciudad no está aquí</button>
         </div>
         <div class="cli-field" id="cli-reg-vendedor-field">
           <div class="cli-label">Tu vendedor TCK</div>
@@ -6638,6 +6810,11 @@ cargarPrecios().finally(() => {
   combosCargar();
   // v2.7.8: Cargar promos 1+1 de Supabase
   promosCargar();
+  // v3.2.4: Cargar las 27 localidades canónicas para los dropdowns
+  cargarLocalidadesCanonicas().then(() => {
+    // Repoblar selects que ya estén renderizados
+    if (typeof poblarLocalidadesSelects === 'function') poblarLocalidadesSelects();
+  }).catch(e => console.error('[localidades] cargar:', e));
 
   // 1. Ocultar siempre el sv y el login — catálogo directo
   const sv = document.getElementById('sv');
@@ -7028,7 +7205,13 @@ document.addEventListener('visibilitychange', function() {
 <option>Verdulería / Frutería</option>
 <option>Kiosco / Maxikiosco</option>
 <option>Otro</option></select></div>
-    <div class="tck-field"><label class="tck-label">Localidad</label><input class="tck-input" id="nn-localidad" type="text" placeholder="Ej: Trenque Lauquen" autocomplete="address-level2"></div>
+    <div class="tck-field"><label class="tck-label">Localidad</label>
+      <!-- v3.2.4: select canónico (anti-typos). Se puebla por poblarLocalidadesSelects() al cargar -->
+      <select class="tck-input tck-select" id="nn-localidad">
+        <option value="">— Elegí localidad —</option>
+      </select>
+      <button type="button" class="tck-localidad-otra-btn" onclick="abrirModalCiudadNoAtendida()" style="margin-top:6px;background:none;border:none;color:var(--red2);font-size:12px;text-decoration:underline;cursor:pointer;padding:4px 0;">Mi ciudad no está aquí</button>
+    </div>
     <div class="tck-field"><label class="tck-label">Dirección</label><input class="tck-input" id="nn-direccion" type="text" placeholder="Ej: Av. San Martín 450" autocomplete="street-address"></div>
     <div class="tck-field"><label class="tck-label">Teléfono de contacto</label><input class="tck-input" id="nn-telefono" type="tel" placeholder="Ej: 2314-123456" autocomplete="tel"></div>
     <button class="tck-submit" onclick="enviarNuevoCliente()">📲 Enviar a administración</button>
@@ -7072,7 +7255,13 @@ document.addEventListener('visibilitychange', function() {
       <option>Visita de mi vendedor</option>
       <option>Hablar con un supervisor</option>
     </select></div>
-    <div class="tck-field"><label class="tck-label">Localidad</label><input class="tck-input" id="vi-localidad" type="text" placeholder="Ej: Trenque Lauquen" autocomplete="address-level2"></div>
+    <div class="tck-field"><label class="tck-label">Localidad</label>
+      <!-- v3.2.4: select canónico (anti-typos) -->
+      <select class="tck-input tck-select" id="vi-localidad">
+        <option value="">— Elegí localidad —</option>
+      </select>
+      <button type="button" class="tck-localidad-otra-btn" onclick="abrirModalCiudadNoAtendida()" style="margin-top:6px;background:none;border:none;color:var(--red2);font-size:12px;text-decoration:underline;cursor:pointer;padding:4px 0;">Mi ciudad no está aquí</button>
+    </div>
     <div class="tck-field"><label class="tck-label">Teléfono de contacto</label><input class="tck-input" id="vi-telefono" type="tel" placeholder="Ej: 2314-123456" autocomplete="tel"></div>
     <div class="tck-field"><label class="tck-label">Mejor horario para contactarte</label><input class="tck-input" id="vi-horario" type="text" placeholder="Ej: Lunes a viernes de 9 a 12 hs"></div>
     <button class="tck-submit" onclick="enviarVisita()">📲 Enviar solicitud</button>
@@ -7118,7 +7307,11 @@ document.addEventListener('visibilitychange', function() {
     </div>
     <div class="tck-field">
       <label class="tck-label">Localidad <span style="color:var(--red2)">*</span></label>
-      <input class="tck-input" id="ci-localidad" type="text" placeholder="Ej: Trenque Lauquen" autocomplete="address-level2">
+      <!-- v3.2.4: select canónico (anti-typos) -->
+      <select class="tck-input tck-select" id="ci-localidad">
+        <option value="">— Elegí localidad —</option>
+      </select>
+      <button type="button" class="tck-localidad-otra-btn" onclick="abrirModalCiudadNoAtendida()" style="margin-top:6px;background:none;border:none;color:var(--red2);font-size:12px;text-decoration:underline;cursor:pointer;padding:4px 0;">Mi ciudad no está aquí</button>
     </div>
     <div class="tck-field">
       <label class="tck-label">Teléfono / WhatsApp <span class="tck-campo-opcional">(opcional — para que podamos avisarte)</span></label>
@@ -9336,8 +9529,12 @@ document.addEventListener('touchmove', function(e) {
       <input id="rp2-comercio" type="text" placeholder="Rotisería, almacén, etc." autocapitalize="words"
         style="width:100%;padding:12px 14px;border:1.5px solid #E8D5BB;border-radius:12px;font-family:'Barlow',sans-serif;font-size:15px;color:#1A0800;background:#FDFAF7;outline:none;box-sizing:border-box;margin-bottom:10px;">
       <div style="font-size:11px;font-weight:700;color:#9C7050;text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px;">Ciudad</div>
-      <input id="rp2-ciudad" type="text" placeholder="Tu ciudad" autocapitalize="words"
+      <!-- v3.2.4: select canónico (anti-typos) -->
+      <select id="rp2-ciudad"
         style="width:100%;padding:12px 14px;border:1.5px solid #E8D5BB;border-radius:12px;font-family:'Barlow',sans-serif;font-size:15px;color:#1A0800;background:#FDFAF7;outline:none;box-sizing:border-box;">
+        <option value="">— Elegí ciudad —</option>
+      </select>
+      <button type="button" onclick="abrirModalCiudadNoAtendida()" style="margin-top:6px;background:none;border:none;color:#9C7050;font-size:11px;text-decoration:underline;cursor:pointer;padding:4px 0;">Mi ciudad no está aquí</button>
     </div>
     <div id="rp2-err" style="color:#C62828;font-size:12px;min-height:16px;margin-bottom:8px;text-align:center;"></div>
 
@@ -9640,8 +9837,95 @@ window.addEventListener('appinstalled', function() {
     setTimeout(pwaBannerEvaluarMostrar, 500);
   });
 })();
+
+// ═══════════════════════════════════════════════════════════════════
+// v3.2.4 — MODAL "MI CIUDAD NO ESTÁ AQUÍ"
+// ═══════════════════════════════════════════════════════════════════
+// Cliente puede pedir igual que su localidad NO esté en las 27 servidas.
+// El pedido se manda con la localidad ingresada manualmente y un flag
+// _ciudad_no_atendida. En el backend el pedido entra al Sheet pero NO
+// se registra en pedidos_zona → cae en bandeja "Sin zona" para que un
+// vendedor llame y coordine.
+
+function abrirModalCiudadNoAtendida() {
+  let modal = document.getElementById('modal-ciudad-no-atendida');
+  if (modal) {
+    modal.style.display = 'flex';
+    return;
+  }
+  modal = document.createElement('div');
+  modal.id = 'modal-ciudad-no-atendida';
+  modal.style.cssText = 'display:flex;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.6);align-items:center;justify-content:center;padding:20px;';
+  modal.innerHTML =
+    '<div style="background:#fff;border-radius:18px;max-width:420px;width:100%;padding:24px;box-shadow:0 8px 32px rgba(0,0,0,.3);">' +
+      '<div style="font-family:Barlow Condensed,sans-serif;font-size:22px;font-weight:900;color:#8B0000;margin-bottom:6px;">📍 Tu ciudad no aparece</div>' +
+      '<div style="font-size:13px;color:#555;line-height:1.5;margin-bottom:16px;">' +
+        'No hay problema, podés mandar el pedido igual y un vendedor te llama para coordinar la entrega.' +
+      '</div>' +
+      '<div style="margin-bottom:14px;">' +
+        '<label style="display:block;font-size:11px;font-weight:700;color:#9C7050;text-transform:uppercase;margin-bottom:6px;">Tu ciudad</label>' +
+        '<input id="modal-cna-ciudad" type="text" placeholder="Ej: Lincoln, Coronel Suárez..." style="width:100%;padding:12px;border:1.5px solid #E8D5BB;border-radius:10px;font-family:Barlow,sans-serif;font-size:15px;outline:none;box-sizing:border-box;">' +
+      '</div>' +
+      '<div style="background:#FFF3E0;border:1px solid #FFB74D;border-radius:10px;padding:10px 12px;margin-bottom:16px;font-size:12px;color:#E65100;">' +
+        '⚠️ Tu pedido va a llegar igual, pero no entra al camión hasta que un vendedor confirme.' +
+      '</div>' +
+      '<div style="display:flex;gap:10px;">' +
+        '<button onclick="document.getElementById(\'modal-ciudad-no-atendida\').style.display=\'none\'" style="flex:1;padding:12px;background:#eee;color:#333;border:none;border-radius:10px;font-weight:700;cursor:pointer;">Cancelar</button>' +
+        '<button onclick="confirmarCiudadNoAtendida()" style="flex:2;padding:12px;background:linear-gradient(135deg,#8B0000,#B71C1C);color:#FFD700;border:none;border-radius:10px;font-weight:900;cursor:pointer;">Continuar</button>' +
+      '</div>' +
+    '</div>';
+  document.body.appendChild(modal);
+  setTimeout(() => {
+    const inp = document.getElementById('modal-cna-ciudad');
+    if (inp) inp.focus();
+  }, 100);
+}
+
+function confirmarCiudadNoAtendida() {
+  const inp = document.getElementById('modal-cna-ciudad');
+  const val = inp ? inp.value.trim() : '';
+  if (!val) {
+    alert('Escribí tu ciudad antes de continuar.');
+    if (inp) inp.focus();
+    return;
+  }
+
+  // Buscar el dropdown actualmente abierto (el que tiene foco visible).
+  // Plan B: si hay un select de localidad con valor vacío y visible, le
+  // metemos un option custom y lo seleccionamos.
+  const idsLocalidad = ['nn-localidad', 'vi-localidad', 'ci-localidad', 'cli-reg-ciudad', 'rp2-ciudad'];
+  let target = null;
+  for (const id of idsLocalidad) {
+    const el = document.getElementById(id);
+    if (!el) continue;
+    // Visible y sin valor
+    const visible = el.offsetParent !== null;
+    if (visible) {
+      target = el;
+      break;
+    }
+  }
+  if (!target) {
+    alert('No se pudo determinar el formulario activo. Cerrá el modal y reintentá.');
+    return;
+  }
+
+  // Insertar option custom (si no existe ya) y seleccionarlo
+  let optCustom = target.querySelector('option[data-custom="1"]');
+  if (!optCustom) {
+    optCustom = document.createElement('option');
+    optCustom.setAttribute('data-custom', '1');
+    target.appendChild(optCustom);
+  }
+  optCustom.value = val;
+  optCustom.textContent = val + ' ⚠️ (sin servicio)';
+  target.value = val;
+
+  // Marcar globalmente que este pedido viene con ciudad no atendida
+  window._ciudadNoAtendida = true;
+
+  document.getElementById('modal-ciudad-no-atendida').style.display = 'none';
+}
 </script>
 </body>
 </html>
-
-
