@@ -2,9 +2,38 @@
 <html lang="es">
 <head>
 <!-- ═══════════════════════════════════════════════════════════════════════
-     TCK CATÁLOGO — v3.1.1 — 27/04/2026
+     TCK CATÁLOGO — v3.1.2 — 27/04/2026
      ──────────────────────────────────────────────────────────────────────
-     FASE 2: REDISEÑO VISUAL — Versión 3 de 5 (CARDS PROMO + COMBO)
+     FASE 2: REDISEÑO VISUAL — Versión 4 de 5 (CALCULADORA MARGEN + CALIBRE)
+
+     Cambios v3.1.2 (sobre v3.1.1) — CALCULADORA + NOTA CALIBRE:
+       Agrega 2 features útiles para que el cliente B2B (rotisería,
+       almacén) decida más rápido y con menos fricción al vendedor.
+
+       CALCULADORA DE MARGEN (todas las cards regulares):
+         · Toggle colapsable bajo el stepper. Cerrada por default.
+         · 2 inputs: "Mi costo" $/kg y "Vendo a" $/kg.
+         · Resultado: % margen calculado POR KG (no por caja).
+         · Umbrales: 🟢 ≥25% / 🟠 15-25% / 🔴 <15% (incluye negativo).
+         · Persistencia: sessionStorage (se borra al cerrar pestaña =
+           privacidad asegurada).
+
+       NOTA PREFERENCIA DE CALIBRE (solo Pollo Ginosa y Pollo Optimo):
+         · Input de texto sutil sobre la calculadora.
+         · Placeholder "Ej: x7 Congelados".
+         · Si el cliente tipea algo, se incluye en el detalle del
+           WhatsApp para que el vendedor decida cómo gestionarlo.
+         · Persistencia: sessionStorage.
+
+       LO QUE NO CAMBIA:
+         · Cards regulares v3.1.0 (estructura intacta)
+         · Cards combo y promo v3.1.1
+         · Stepper +/− y +5
+         · Modo de cuponeo, sucursales, OTP, sesión
+
+       PRÓXIMA VERSIÓN: v3.2.0 (búsqueda y filtros).
+
+     ──────────────────────────────────────────────────────────────────────
 
      Cambios v3.1.1 (sobre v3.1.0) — CARDS DE PROMO 1+1 Y COMBOS:
        Refinamiento estético de las cards especiales (promos y combos).
@@ -31,7 +60,7 @@
          · Lista de productos del combo, descuentos, precios
          · Cards regulares (v3.1.0)
 
-       PRÓXIMA VERSIÓN: v3.1.2 (calculadora margen + nota calibre).
+       PRÓXIMA VERSIÓN: v3.1.2 (calculadora margen + nota calibre). [HECHO]
 
      ──────────────────────────────────────────────────────────────────────
 
@@ -708,6 +737,36 @@ button,
 .qty-cancel,.qty-save{flex:1;height:46px;border:none;border-radius:12px;font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:800;cursor:pointer}
 .qty-cancel{background:var(--cream2);color:var(--text2)}
 .qty-save{background:linear-gradient(135deg,var(--red2),var(--red));color:#fff}
+
+/* === v3.1.2: Calculadora margen + nota calibre === */
+.calibre-row{padding:7px 10px 4px;background:var(--cream);border-top:1px solid var(--line)}
+.calibre-label{font-size:9px;color:var(--text2);font-weight:600;margin-bottom:3px;display:flex;align-items:center;gap:4px}
+.calibre-input{width:100%;border:1px solid var(--line);border-radius:5px;padding:5px 7px;font-size:11px;font-family:inherit;background:#fff;color:var(--text);box-sizing:border-box}
+.calibre-input:focus{outline:none;border-color:var(--red)}
+.calibre-input::placeholder{color:var(--text3);font-style:italic;font-size:10px}
+
+.calc-toggle{display:flex;align-items:center;gap:6px;width:100%;background:transparent;border:none;padding:6px 8px;font-size:11px;color:var(--text2);cursor:pointer;border-top:1px dashed var(--line);text-align:left;font-family:inherit;transition:background .15s}
+.calc-toggle:hover{background:var(--cream)}
+.calc-toggle .calc-ico{font-size:13px;flex-shrink:0}
+.calc-toggle .calc-label{flex:1;font-weight:600}
+.calc-toggle .calc-arrow{font-size:10px;transition:transform .2s;color:var(--text3);flex-shrink:0}
+.calc-toggle.open .calc-arrow{transform:rotate(180deg)}
+
+.calc-panel{display:none;padding:8px 10px 10px;background:#FAFAFA;border-top:1px solid var(--line)}
+.calc-panel.open{display:block}
+.calc-row{display:flex;gap:6px;margin-bottom:6px;align-items:center}
+.calc-row label{font-size:10px;color:var(--text2);width:62px;flex-shrink:0;font-weight:600}
+.calc-row input{flex:1;border:1px solid var(--line);border-radius:5px;padding:5px 7px;font-size:12px;font-family:'Barlow Condensed',sans-serif;font-weight:700;background:#fff;width:100%;min-width:0;color:var(--text);box-sizing:border-box}
+.calc-row input:focus{outline:none;border-color:var(--red)}
+.calc-row input::-webkit-outer-spin-button,.calc-row input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.calc-row input[type=number]{-moz-appearance:textfield}
+.calc-result{text-align:center;padding:7px 6px;border-radius:6px;margin-top:7px;font-size:11px;font-weight:700;line-height:1.3}
+.calc-result.empty{background:#F0F0F0;color:var(--text3);font-style:italic}
+.calc-result.green{background:#E8F5E9;color:#2E7D32;border:1px solid #C8E6C9}
+.calc-result.orange{background:#FFF3E0;color:#E65100;border:1px solid #FFE0B2}
+.calc-result.red{background:#FFEBEE;color:#C62828;border:1px solid #FFCDD2}
+.calc-result strong{font-size:14px;font-family:'Barlow Condensed',sans-serif}
+.calc-hint{font-size:9px;color:var(--text3);text-align:center;margin-top:3px;font-style:italic}
 
 /* === BARRA PEDIDO === */
 .orderbar{position:sticky;bottom:0;left:0;right:0;z-index:40;flex-shrink:0;background:#fff;padding:8px 13px calc(16px + env(safe-area-inset-bottom));display:flex;align-items:center;gap:8px;min-height:60px;border-top:3px solid var(--gold);box-shadow:0 -4px 18px rgba(0,0,0,.08)}
@@ -4161,6 +4220,56 @@ function renderBody(){
         : '';
       const pkg=it.pu?('<div class="card-pkg">'+it.pu+'</div>'):'<div class="card-pkg hidden">-</div>';
       const qsub=q>0?'<div class="qsub">'+fmt(it.pr*q)+'</div>':'';
+      // v3.1.2: nota calibre solo en pollos Ginosa y Optimo
+      const esPollo = (it.n === 'Pollo Ginosa' || it.n === 'Pollo Optimo');
+      // Escapar nombre para uso en atributo HTML (data-prod) y en value
+      const _itnAttr = String(it.n).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/'/g,'&#39;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+      const calibreSaved = esPollo ? (sessionStorage.getItem('tck_cal_'+it.n) || '') : '';
+      const _calSavedAttr = String(calibreSaved).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+      const calibreHTML = esPollo
+        ? ('<div class="calibre-row">'
+          + '<div class="calibre-label">📌 Preferencia de calibre</div>'
+          + '<input class="calibre-input" placeholder="Ej: x7 Congelados" '
+          + 'data-prod="'+_itnAttr+'" '
+          + 'oninput="calibreGuardar(this)" '
+          + 'value="'+_calSavedAttr+'" '
+          + 'maxlength="40">'
+          + '</div>')
+        : '';
+      // v3.1.2: calculadora margen en TODAS las cards regulares (no en sin stock)
+      const calcSaved = (function(){
+        try { return JSON.parse(sessionStorage.getItem('tck_calc_'+it.n) || '{}'); }
+        catch(e) { return {}; }
+      })();
+      const calcOpen = !!calcSaved._open;
+      const calcCost = (calcSaved.cost == null) ? '' : String(calcSaved.cost);
+      const calcVen  = (calcSaved.ven  == null) ? '' : String(calcSaved.ven);
+      // Escapar valores para attr (números no traen problemas, pero por las dudas)
+      const _costAttr = calcCost.replace(/"/g,'&quot;');
+      const _venAttr  = calcVen.replace(/"/g,'&quot;');
+      const calcHTML = sinStock ? '' : (
+        '<button type="button" class="calc-toggle'+(calcOpen?' open':'')+'" '
+        + 'data-prod="'+_itnAttr+'" '
+        + 'onclick="toggleCalcMargen(this)">'
+        + '<span class="calc-ico">📊</span>'
+        + '<span class="calc-label">Calculadora de margen</span>'
+        + '<span class="calc-arrow">▼</span>'
+        + '</button>'
+        + '<div class="calc-panel'+(calcOpen?' open':'')+'" data-prod="'+_itnAttr+'">'
+        + '<div class="calc-row"><label>Mi costo:</label>'
+        + '<input type="number" inputmode="numeric" placeholder="$/kg" '
+        + 'value="'+_costAttr+'" '
+        + 'data-campo="cost" '
+        + 'oninput="calcMargen(this)"></div>'
+        + '<div class="calc-row"><label>Vendo a:</label>'
+        + '<input type="number" inputmode="numeric" placeholder="$/kg" '
+        + 'value="'+_venAttr+'" '
+        + 'data-campo="ven" '
+        + 'oninput="calcMargen(this)"></div>'
+        + '<div class="calc-result empty">Ingresá los valores</div>'
+        + '<div class="calc-hint">Compara precios por kg</div>'
+        + '</div>'
+      );
       return '<div class="card'+(it.img2?' card-dual':'')+( sec.shaddai?' shaddai':'')+(q>0?' has-qty':'')+(sinStock?' card-sinstock':'')+'" data-key="'+key+'">'
         +(it.img2
         ? ('<div class="card-img-area" style="position:relative;display:flex;gap:2px;">'+bdgSinStock+bdg+bdgNoCupon
@@ -4187,7 +4296,10 @@ function renderBody(){
         +'<button class="qb qb-5'+(q>0?' show':'')+'" onclick="chg(\''+key+'\','+si+','+ii+',5)">+5</button>'
         +'</div>'
         +qsub
-        +'</div></div>';
+        +'</div>'
+        +calibreHTML
+        +calcHTML
+        +'</div>';
     }).join('');
     return '<div class="sec" id="s-'+sec.id+'">'
       +'<div class="sec-hdr" style="background:linear-gradient(135deg,'+sec.col2+','+sec.col1+')">'
@@ -4208,6 +4320,94 @@ function renderBody(){
   if (typeof promosRender === 'function' && _promosData && _promosData.length > 0) {
     promosRender();
   }
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// v3.1.2: Calculadora de margen + nota preferencia de calibre
+// ═══════════════════════════════════════════════════════════════════════
+//
+// Diseño: las funciones leen el nombre del producto desde el atributo
+// data-prod del elemento clickeado, no como argumento. Esto evita
+// problemas de escape de comillas/caracteres especiales en los handlers
+// inline (oninput/onclick).
+//
+// Persistencia: sessionStorage con claves:
+//   tck_cal_<nombre>   → valor del input de calibre (string)
+//   tck_calc_<nombre>  → JSON {cost, ven, _open} de la calculadora
+// El sessionStorage se borra al cerrar la pestaña → privacidad asegurada.
+// ═══════════════════════════════════════════════════════════════════════
+
+// Toggle abrir/cerrar la calculadora de una card.
+function toggleCalcMargen(btn){
+  const prod = btn.getAttribute('data-prod');
+  if (!prod) return;
+  const card = btn.closest('.card');
+  if (!card) return;
+  const panel = card.querySelector('.calc-panel');
+  if (!panel) return;
+  const isOpen = panel.classList.toggle('open');
+  btn.classList.toggle('open', isOpen);
+  // Guardar estado de apertura
+  let saved = {};
+  try { saved = JSON.parse(sessionStorage.getItem('tck_calc_'+prod) || '{}'); }
+  catch(e) { saved = {}; }
+  saved._open = isOpen;
+  sessionStorage.setItem('tck_calc_'+prod, JSON.stringify(saved));
+  // Si se abre y ya hay valores guardados, recalcular el resultado
+  if (isOpen) _calcRender(panel, prod);
+}
+
+// Render del resultado del margen según valores guardados.
+function _calcRender(panel, prod){
+  let saved = {};
+  try { saved = JSON.parse(sessionStorage.getItem('tck_calc_'+prod) || '{}'); }
+  catch(e) { return; }
+  const cost = parseFloat(saved.cost);
+  const ven  = parseFloat(saved.ven);
+  const res  = panel.querySelector('.calc-result');
+  if (!res) return;
+  if (!cost || !ven || cost <= 0) {
+    res.className = 'calc-result empty';
+    res.textContent = 'Ingresá los valores';
+    return;
+  }
+  const margen = ((ven - cost) / cost) * 100;
+  let cls = 'red', emoji = '🔴';
+  if (margen >= 25) { cls = 'green'; emoji = '🟢'; }
+  else if (margen >= 15) { cls = 'orange'; emoji = '🟠'; }
+  res.className = 'calc-result ' + cls;
+  const sign = margen >= 0 ? '+' : '';
+  res.innerHTML = '<strong>' + sign + margen.toFixed(1) + '%</strong> margen ' + emoji;
+}
+
+// Calcula margen al tipear en cualquiera de los 2 inputs. Persiste valores.
+function calcMargen(input){
+  const panel = input.closest('.calc-panel');
+  if (!panel) return;
+  const prod = panel.getAttribute('data-prod');
+  if (!prod) return;
+  const campo = input.getAttribute('data-campo');
+  if (!campo) return;
+  let saved = {};
+  try { saved = JSON.parse(sessionStorage.getItem('tck_calc_'+prod) || '{}'); }
+  catch(e) { saved = {}; }
+  saved[campo] = input.value;
+  sessionStorage.setItem('tck_calc_'+prod, JSON.stringify(saved));
+  _calcRender(panel, prod);
+}
+
+// Guarda la nota de preferencia de calibre. Solo Pollo Ginosa y Pollo Optimo.
+function calibreGuardar(input){
+  const prod = input.getAttribute('data-prod');
+  if (!prod) return;
+  const v = (input.value || '').trim();
+  if (v) sessionStorage.setItem('tck_cal_'+prod, v);
+  else sessionStorage.removeItem('tck_cal_'+prod);
+}
+
+// Devuelve la nota guardada de un producto, o '' si no hay.
+function calibreObtener(prodNombre){
+  return sessionStorage.getItem('tck_cal_'+prodNombre) || '';
 }
 
 function chg(key,si,ii,d){
@@ -4978,10 +5178,16 @@ function waProductLine(sec,it,q){
   const qtyTxt=qtyLabel(sec,it,q);
   const presTxt=presLabel(sec,it,q);
   const presPart=presTxt ? ' ('+presTxt+')' : '';
-  return [
+  const out = [
     meta.emoji+' *'+it.n+'*',
     qtyTxt+presPart+' x '+fmt(it.pr)+' → '+fmt(it.pr*q)
   ];
+  // v3.1.2: incluir preferencia de calibre si el cliente la cargó (solo Pollo Ginosa/Optimo)
+  if (typeof calibreObtener === 'function') {
+    const cal = calibreObtener(it.n);
+    if (cal) out.push('   📌 Preferencia: '+cal);
+  }
+  return out;
 }
 
 
