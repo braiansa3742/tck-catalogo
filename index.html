@@ -2,6 +2,35 @@
 <html lang="es">
 <head>
 <!-- ═══════════════════════════════════════════════════════════════════════
+     TCK CATÁLOGO — v3.2.3 — 28/04/2026
+     ──────────────────────────────────────────────────────────────────────
+     HOTFIX — Combo: cantidad por producto leía propiedad incorrecta
+
+     Cambios v3.2.3 (sobre v3.2.2):
+       Bug crítico detectado al hacer un presupuesto de prueba: el
+       Combo Crujiente decía "1 Medallón + 2 Papas" pero el sistema
+       cargaba "1 Medallón + 1 Papa" al carrito.
+
+       CAUSA: el JSON de combos en Supabase usa la propiedad
+       "cantidad" (ej: {nombre, precio, cantidad}). El código del
+       catálogo leía "p.qty" — que no existe en el JSON, por lo que
+       siempre caía al fallback "|| 1" y cargaba 1 unidad de cada
+       producto sin importar lo definido en Supabase.
+
+       FIX: leer "p.cantidad || p.qty || 1" en los 3 lugares donde
+       el catálogo procesa productos del combo:
+         · combosRender (cards de oferta)
+         · sendWA (armado del mensaje WhatsApp)
+         · renderDrawer (carrito)
+
+       IMPACTO: combos creados en el carrito ahora reflejan las
+       cantidades correctas según Supabase. El Combo Crujiente ahora
+       carga 1 Medallón + 2 Papas correctamente.
+
+       LO QUE NO CAMBIA: el resto de v3.2.2.
+
+     ──────────────────────────────────────────────────────────────────────
+
      TCK CATÁLOGO — v3.2.2 — 28/04/2026
      ──────────────────────────────────────────────────────────────────────
      HOTFIX — sessionStorage SecurityError (28/4/2026)
@@ -5152,7 +5181,7 @@ function combosRender() {
     let items = '';
     try {
       const prods = typeof c.productos === 'string' ? JSON.parse(c.productos) : c.productos;
-      items = (prods||[]).map(p => '<div class="combo-incluye-item">' + (p.qty||1) + 'x ' + (p.nombre||'') + '</div>').join('');
+      items = (prods||[]).map(p => '<div class="combo-incluye-item">' + (p.cantidad || p.qty || 1) + 'x ' + (p.nombre||'') + '</div>').join('');
     } catch(e) {
       items = '<div class="combo-incluye-item">' + (c.descripcion||'') + '</div>';
     }
@@ -5340,7 +5369,7 @@ function combosLineasWA() {
     try {
       const prods = typeof c.productos === 'string' ? JSON.parse(c.productos) : c.productos;
       (prods||[]).forEach(p => {
-        comboLineas.push('   ✓ ' + ((p.qty||1)*q) + 'x ' + (p.nombre||''));
+        comboLineas.push('   ✓ ' + ((p.cantidad || p.qty || 1)*q) + 'x ' + (p.nombre||''));
       });
     } catch(e) {
       comboLineas.push('   ✓ ' + (c.descripcion||''));
@@ -5637,7 +5666,7 @@ function renderDrawer(){
     let itemsHtml = '';
     try {
       const prods = typeof combo.productos === 'string' ? JSON.parse(combo.productos) : combo.productos;
-      itemsHtml = (prods||[]).map(p => '<div class="d-combo-item">' + ((p.qty||1)*q) + 'x ' + (p.nombre||'') + '</div>').join('');
+      itemsHtml = (prods||[]).map(p => '<div class="d-combo-item">' + ((p.cantidad || p.qty || 1)*q) + 'x ' + (p.nombre||'') + '</div>').join('');
     } catch(e) {
       itemsHtml = '<div class="d-combo-item">' + (combo.descripcion||'') + '</div>';
     }
