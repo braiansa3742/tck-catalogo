@@ -2,9 +2,46 @@
 <html lang="es">
 <head>
 <!-- ═══════════════════════════════════════════════════════════════════════
-     TCK CATÁLOGO — v3.1.2 — 27/04/2026
+     TCK CATÁLOGO — v3.2.0 — 27/04/2026
      ──────────────────────────────────────────────────────────────────────
-     FASE 2: REDISEÑO VISUAL — Versión 4 de 5 (CALCULADORA MARGEN + CALIBRE)
+     FASE 2: REDISEÑO VISUAL — Versión 5 de 5 (BÚSQUEDA Y FILTROS)
+
+     Cambios v3.2.0 (sobre v3.1.2) — BÚSQUEDA Y FILTROS:
+       Búsqueda en vivo + filtros para que el cliente B2B encuentre
+       rápido lo que necesita en un catálogo de ~50 productos.
+
+       BARRA DE BÚSQUEDA STICKY:
+         · Posicionada justo bajo el header, antes del body.
+         · Live search: filtra al tipear (sin botón "buscar").
+         · Match por nombre normalizado (sin diacríticos, case-insensitive).
+         · Resaltado amarillo de palabras coincidentes en cards.
+         · Botón ✕ para limpiar.
+
+       CHIPS DE CATEGORÍA (refactor):
+         · La barra de chips ahora FILTRA en vez de scrollear.
+         · Chip "Todas" agregado al inicio.
+         · Combinable con búsqueda: puedo tipear "pollo" + tocar "Trozados".
+
+       BOTÓN "⚙️ MÁS FILTROS":
+         · Al final de la barra de chips. Despliega panel inferior.
+         · 3 filtros estado: 🛒 En carrito · 🔥 En oferta · 🚫 Sin stock.
+         · Badge rojo con contador cuando hay filtros activos.
+         · Combinables entre sí y con la búsqueda.
+
+       SIN RESULTADOS:
+         · Mensaje principal "No encontramos [término]".
+         · Botón verde "💬 Consultar por WhatsApp" con texto pre-armado.
+         · Sugerencias de la categoría más cercana (top 4 productos).
+         · Si no hay match con ninguna categoría → top 4 del catálogo.
+
+       LO QUE NO CAMBIA:
+         · Estructura de cards (regulares, combo, promo)
+         · Calculadora margen + nota calibre v3.1.2
+         · Stepper, cupón, OTP, sesión
+
+       PRÓXIMA VERSIÓN: v3.3.0 (drawer carrito rediseñado).
+
+     ──────────────────────────────────────────────────────────────────────
 
      Cambios v3.1.2 (sobre v3.1.1) — CALCULADORA + NOTA CALIBRE:
        Agrega 2 features útiles para que el cliente B2B (rotisería,
@@ -573,6 +610,50 @@ button,
 .catnav::-webkit-scrollbar{display:none}
 .catbtn{flex:0 0 auto;background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.12);border-radius:20px;padding:7px 14px;font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;color:rgba(255,255,255,.55);cursor:pointer;white-space:nowrap;transition:all .14s;letter-spacing:.3px;text-transform:uppercase}
 .catbtn.on{background:var(--gold);border-color:var(--gold);color:#5C0000;font-weight:800}
+/* v3.2.0: chip "Más filtros" */
+.catbtn-more{background:rgba(255,215,0,.15);border-color:rgba(255,215,0,.4);color:var(--gold);position:relative}
+.catbtn-more.has-active{background:#fff;color:var(--red);border-color:var(--gold)}
+.catbtn-badge{display:inline-block;margin-left:5px;background:var(--red);color:#fff;border-radius:999px;font-size:9px;font-weight:800;padding:1px 5px;min-width:14px;text-align:center;line-height:1.4}
+.catbtn-more.has-active .catbtn-badge{background:var(--red);color:#fff}
+
+/* === v3.2.0: BÚSQUEDA Y FILTROS === */
+.search-wrap{position:sticky;top:0;z-index:25;background:#fff;padding:8px 10px 0;border-bottom:1px solid var(--line);flex-shrink:0}
+.search-bar{display:flex;align-items:center;gap:7px;background:var(--cream);border:1.5px solid var(--line);border-radius:10px;padding:8px 12px;transition:border-color .15s,background .15s}
+.search-bar:focus-within{border-color:var(--red);background:#fff;box-shadow:0 0 0 3px rgba(139,0,0,.08)}
+.search-icon{font-size:14px;color:var(--text3);flex-shrink:0}
+.search-input{flex:1;border:none;background:transparent;font-size:14px;font-family:inherit;color:var(--text);min-width:0;outline:none;padding:0}
+.search-input::placeholder{color:var(--text3);font-style:italic}
+.search-clear{background:transparent;border:none;font-size:18px;color:var(--text3);cursor:pointer;padding:0 2px;display:none;line-height:1;font-family:inherit}
+.search-clear.show{display:block}
+.search-clear:hover{color:var(--red)}
+/* Panel "Más filtros" desplegable */
+.filtros-extra{display:none;background:#FAFAFA;border-top:1px dashed var(--line);padding:10px 14px}
+.filtros-extra.on{display:block}
+.filtros-extra-title{font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:7px;font-weight:700}
+.filtros-extra-row{display:flex;gap:6px;flex-wrap:wrap}
+.chip-estado{flex-shrink:0;border:1px solid var(--line);background:#fff;color:var(--text2);padding:5px 11px;border-radius:999px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap;transition:all .14s}
+.chip-estado:hover{border-color:var(--gold)}
+.chip-estado.on{background:var(--red);color:#fff;border-color:var(--red)}
+/* Banner de info de resultados */
+.results-info{padding:7px 12px;font-size:11px;color:var(--text2);background:var(--cream);text-align:center;font-weight:600;border-bottom:1px solid var(--line);display:none}
+.results-info.show{display:block}
+.results-info b{color:var(--red)}
+/* Highlight de match en cards */
+.card-name mark, .card-pres mark{background:#FFF3CD;color:inherit;padding:0 2px;border-radius:2px;font-weight:inherit}
+/* Sin resultados */
+.no-results{padding:24px 16px;text-align:center;background:var(--cream);margin:14px;border-radius:12px;border:1.5px dashed var(--line)}
+.no-results-icon{font-size:36px;margin-bottom:10px;display:block;opacity:.7}
+.no-results-title{font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:800;color:var(--text);margin-bottom:7px;letter-spacing:.3px}
+.no-results-title b{color:var(--red)}
+.no-results-desc{font-size:13px;color:var(--text2);line-height:1.5;margin-bottom:14px}
+.no-results-wa{display:inline-flex;align-items:center;gap:7px;background:linear-gradient(135deg,#25D366,#1a9e4e);color:#fff;border:none;padding:11px 18px;border-radius:10px;font-weight:800;font-size:14px;cursor:pointer;font-family:'Barlow Condensed',sans-serif;letter-spacing:.3px;box-shadow:0 2px 10px rgba(37,211,102,.3);text-transform:uppercase}
+.no-results-wa:hover{filter:brightness(1.05)}
+.no-results-sub{margin-top:18px;padding-top:14px;border-top:1px dashed var(--cream3)}
+.no-results-sub-label{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px;font-weight:700}
+/* Cuando un filtro oculta secciones, hay que esconder el sec-hdr */
+.sec.filtered-out{display:none}
+.card.filtered-out{display:none}
+.card.in-cart-highlight{box-shadow:0 0 0 2px rgba(212,165,116,.4)}
 
 /* === SCROLL BODY === */
 .body{flex:1;overflow-y:auto;overflow-x:hidden;padding:0 0 calc(150px + env(safe-area-inset-bottom)) 0;-webkit-overflow-scrolling:touch;background:var(--cream)}
@@ -3829,6 +3910,24 @@ src="https://www.facebook.com/tr?id=2034313150514758&ev=PageView&noscript=1"
   <button class="cli-pwa-banner-cta" onclick="pwaInstalarDesdeBanner()">Instalar</button>
   <button class="cli-pwa-banner-close" onclick="pwaBannerCerrar()" aria-label="Cerrar">×</button>
 </div>
+<!-- v3.2.0: Barra de búsqueda sticky + panel "Más filtros" -->
+<div class="search-wrap">
+  <div class="search-bar">
+    <span class="search-icon">🔍</span>
+    <input class="search-input" type="text" id="search-input" placeholder="Buscar producto..." oninput="searchOnInput(this)" autocomplete="off">
+    <button class="search-clear" id="search-clear" onclick="searchLimpiar()" aria-label="Limpiar búsqueda">✕</button>
+  </div>
+  <div class="filtros-extra" id="filtros-extra">
+    <div class="filtros-extra-title">Filtros adicionales</div>
+    <div class="filtros-extra-row">
+      <button class="chip-estado" data-estado="encarrito" onclick="toggleFiltroEstado(this,'encarrito')">🛒 En carrito</button>
+      <button class="chip-estado" data-estado="enoferta" onclick="toggleFiltroEstado(this,'enoferta')">🔥 En oferta</button>
+      <button class="chip-estado" data-estado="sinstock" onclick="toggleFiltroEstado(this,'sinstock')">🚫 Sin stock</button>
+    </div>
+  </div>
+</div>
+<!-- v3.2.0: Banner de info de resultados (oculto por default) -->
+<div class="results-info" id="results-info"></div>
 <div class="body" id="body"></div>
 <div class="orderbar">
 <div class="ob-empty" id="ob-empty"><div class="ob-empty-t">Arm&aacute; tu pedido</div><div class="ob-empty-s">Sum&aacute; productos y envi&aacute;lo por WhatsApp</div></div>
@@ -4165,20 +4264,35 @@ function cambiarVendedor(){
   abrirSvModal();
 }
 
+// v3.2.0: renderNav incluye chip "Todas" + botón "Más filtros"
 function renderNav(){
-  document.getElementById('catnav').innerHTML=CAT.map((s,i)=>
-    '<button class="catbtn'+(i===0?' on':'')+'" onclick="jump(\''+s.id+'\',this)">'+s.sec+'</button>'
+  let html = '<button class="catbtn on" data-cat="__all__" onclick="filtroCategoria(\'__all__\',this)">Todas</button>';
+  html += CAT.map((s)=>
+    '<button class="catbtn" data-cat="'+s.id+'" onclick="filtroCategoria(\''+s.id+'\',this)">'+s.sec+'</button>'
   ).join('');
+  // Botón "Más filtros" al final
+  html += '<button class="catbtn catbtn-more" id="btn-mas-filtros" onclick="toggleMasFiltros(this)">⚙️ Más filtros<span class="catbtn-badge" id="btn-mas-filtros-badge" style="display:none">0</span></button>';
+  document.getElementById('catnav').innerHTML = html;
 }
 
-function jump(id,btn){
+// v3.2.0: jump renombrado a filtroCategoria. Ya no scrollea, FILTRA.
+function filtroCategoria(catId, btn){
   document.querySelectorAll('.catbtn').forEach(b=>b.classList.remove('on'));
-  btn.classList.add('on');
-  const el=document.getElementById('s-'+id);
-  if(el) el.scrollIntoView({behavior:'smooth',block:'start'});
-  // Centrar tab activa en el catnav
-  btn.scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'});
+  if (btn) btn.classList.add('on');
+  // Centrar tab activa en el catnav (el scroll horizontal sí sigue)
+  if (btn && typeof btn.scrollIntoView === 'function') {
+    try { btn.scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'}); }
+    catch(e) { /* navegadores viejos */ }
+  }
+  _filtroCategoria = catId;
+  aplicarFiltros();
+  // Volver al tope del body al cambiar de categoría (UX más clara)
+  const body = document.getElementById('body');
+  if (body) body.scrollTop = 0;
 }
+
+// v3.2.0: jump() mantenido por compatibilidad con código que pueda llamarlo
+function jump(id, btn){ return filtroCategoria(id, btn); }
 
 function renderBody(){
   // v2.7.8: sección PROMOS (OFERTAS DE ABRIL — 1+1 por vencimiento) va ANTES de combos
@@ -4346,6 +4460,8 @@ function renderBody(){
   if (typeof promosRender === 'function' && _promosData && _promosData.length > 0) {
     promosRender();
   }
+  // v3.2.0: aplicar filtros activos después del re-render
+  if (typeof aplicarFiltros === 'function') aplicarFiltros();
 }
 
 // ═══════════════════════════════════════════════════════════════════════
@@ -4446,6 +4562,387 @@ function calibreObtener(prodNombre){
   return sessionStorage.getItem('tck_cal_'+prodNombre) || '';
 }
 
+// ═══════════════════════════════════════════════════════════════════════
+// v3.2.0: Búsqueda y filtros
+// ═══════════════════════════════════════════════════════════════════════
+//
+// Estado global de búsqueda + filtros (no se persiste, vive en sesión)
+//   _searchQuery       → string que tipeó el cliente (normalizado)
+//   _filtroCategoria   → '__all__' o id de categoría (pollos, trozados, etc.)
+//   _filtrosEstado     → Set con: 'encarrito', 'enoferta', 'sinstock'
+// ═══════════════════════════════════════════════════════════════════════
+
+var _searchQuery = '';
+var _filtroCategoria = '__all__';
+var _filtrosEstado = new Set();
+var _searchDebounceTimer = null;
+
+// Normaliza string para match: lowercase, sin diacríticos
+function _searchNorm(s){
+  if (!s) return '';
+  return String(s).toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .trim();
+}
+
+// Handler del input. Debounce 80ms para no saturar al tipear rápido.
+function searchOnInput(input){
+  const v = input.value || '';
+  const clear = document.getElementById('search-clear');
+  if (clear) clear.classList.toggle('show', v.length > 0);
+  // Debounce
+  if (_searchDebounceTimer) clearTimeout(_searchDebounceTimer);
+  _searchDebounceTimer = setTimeout(function(){
+    _searchQuery = _searchNorm(v);
+    aplicarFiltros();
+  }, 80);
+}
+
+// Limpiar búsqueda (botón ✕)
+function searchLimpiar(){
+  const input = document.getElementById('search-input');
+  if (input) input.value = '';
+  const clear = document.getElementById('search-clear');
+  if (clear) clear.classList.remove('show');
+  _searchQuery = '';
+  aplicarFiltros();
+  if (input) input.focus();
+}
+
+// Toggle del panel "Más filtros"
+function toggleMasFiltros(btn){
+  const panel = document.getElementById('filtros-extra');
+  if (!panel) return;
+  panel.classList.toggle('on');
+}
+
+// Toggle de un chip de estado (en carrito / oferta / sin stock)
+function toggleFiltroEstado(btn, estado){
+  const isOn = btn.classList.toggle('on');
+  if (isOn) _filtrosEstado.add(estado);
+  else _filtrosEstado.delete(estado);
+  // Actualizar badge del botón "Más filtros"
+  const badge = document.getElementById('btn-mas-filtros-badge');
+  const more  = document.getElementById('btn-mas-filtros');
+  if (badge && more) {
+    const n = _filtrosEstado.size;
+    if (n > 0) {
+      badge.textContent = String(n);
+      badge.style.display = 'inline-block';
+      more.classList.add('has-active');
+    } else {
+      badge.style.display = 'none';
+      more.classList.remove('has-active');
+    }
+  }
+  aplicarFiltros();
+}
+
+// Determina si una card debe mostrarse según filtros activos
+function _cardCoincide(card){
+  // 1) Filtro de categoría
+  if (_filtroCategoria !== '__all__') {
+    const sec = card.closest('.sec');
+    if (!sec) return false;
+    const secId = sec.id.replace(/^s-/, '');
+    if (secId !== _filtroCategoria) return false;
+  }
+  // 2) Filtros de estado
+  if (_filtrosEstado.size > 0) {
+    if (_filtrosEstado.has('encarrito') && !card.classList.contains('has-qty')) return false;
+    if (_filtrosEstado.has('sinstock') && !card.classList.contains('card-sinstock')) return false;
+    // "enoferta" se evalúa más abajo (afecta promos/combos también).
+    // Si "enoferta" está activo y la card no está en una sección de oferta,
+    // hay que ocultarla. Las cards regulares NO son ofertas (son productos sueltos).
+    if (_filtrosEstado.has('enoferta')) {
+      // Las cards regulares no son ofertas → ocultar todas
+      return false;
+    }
+  }
+  // 3) Búsqueda por texto
+  if (_searchQuery) {
+    const nameEl = card.querySelector('.card-name');
+    const presEl = card.querySelector('.card-pres');
+    const name = nameEl ? _searchNorm(nameEl.textContent) : '';
+    const pres = presEl ? _searchNorm(presEl.textContent) : '';
+    if (!name.includes(_searchQuery) && !pres.includes(_searchQuery)) return false;
+  }
+  return true;
+}
+
+// Aplica todos los filtros: muestra/oculta cards y secciones, hace highlight,
+// muestra "no resultados" si corresponde.
+function aplicarFiltros(){
+  const body = document.getElementById('body');
+  if (!body) return;
+
+  // Limpiar cualquier "no-results" previo
+  const prevNoRes = document.getElementById('no-results-block');
+  if (prevNoRes) prevNoRes.remove();
+
+  // Recorrer todas las cards regulares
+  const cards = body.querySelectorAll('.card');
+  let visibles = 0;
+  cards.forEach(function(card){
+    // Ignorar cards que ya estaban ocultas por OCULTOS (data del catálogo)
+    // Esas no las tocamos. Solo las que el catálogo deja visibles.
+    const ok = _cardCoincide(card);
+    card.classList.toggle('filtered-out', !ok);
+    if (ok) visibles++;
+  });
+
+  // Para cada sección regular: si todas sus cards están filtradas, ocultar sección entera
+  const secs = body.querySelectorAll('.sec');
+  secs.forEach(function(sec){
+    const totalCards = sec.querySelectorAll('.card').length;
+    const ocultas = sec.querySelectorAll('.card.filtered-out').length;
+    sec.classList.toggle('filtered-out', totalCards > 0 && totalCards === ocultas);
+  });
+
+  // Manejar combos y promos según filtros
+  const combosSec = document.getElementById('combos-section');
+  const promosSec = document.getElementById('promos-section');
+  // Si hay búsqueda o filtro de categoría != all → ocultar combos/promos
+  // (a no ser que esté activo "enoferta" que justamente los quiere mostrar)
+  const hayBusquedaOCat = (_searchQuery !== '' || _filtroCategoria !== '__all__');
+  const filtroOferta = _filtrosEstado.has('enoferta');
+  const filtroEnCarrito = _filtrosEstado.has('encarrito');
+  const filtroSinStock = _filtrosEstado.has('sinstock');
+
+  // Mostrar combos/promos solo si:
+  // - No hay búsqueda activa NI filtro de categoría
+  // - O si está activo "enoferta" (queremos verlos)
+  // Y no si está activo "sinstock" (las ofertas tienen stock por def)
+  if (combosSec) {
+    let mostrarCombos = !hayBusquedaOCat || filtroOferta;
+    if (filtroSinStock) mostrarCombos = false;
+    if (filtroEnCarrito) {
+      // Solo si hay combos en carrito
+      const algunCombo = (typeof qtyCombo === 'object' && qtyCombo)
+        ? Object.values(qtyCombo).some(function(v){ return (v||0) > 0; })
+        : false;
+      mostrarCombos = mostrarCombos && algunCombo;
+    }
+    combosSec.style.display = mostrarCombos ? '' : 'none';
+  }
+  if (promosSec) {
+    let mostrarPromos = !hayBusquedaOCat || filtroOferta;
+    if (filtroSinStock) mostrarPromos = false;
+    if (filtroEnCarrito) {
+      const algunPromo = (typeof qtyPromo === 'object' && qtyPromo)
+        ? Object.values(qtyPromo).some(function(v){ return (v||0) > 0; })
+        : false;
+      mostrarPromos = mostrarPromos && algunPromo;
+    }
+    promosSec.style.display = mostrarPromos ? '' : 'none';
+  }
+
+  // Highlight de match en cards visibles (solo si hay búsqueda)
+  cards.forEach(function(card){
+    if (card.classList.contains('filtered-out')) {
+      // Limpiar highlight de cards ocultas
+      _highlightLimpiar(card);
+      return;
+    }
+    if (_searchQuery) _highlightAplicar(card, _searchQuery);
+    else _highlightLimpiar(card);
+  });
+
+  // Banner de info de resultados
+  _renderResultsInfo(visibles);
+
+  // Si no hay nada visible Y hay búsqueda activa → mostrar "no resultados"
+  const combosVisibles = (combosSec && combosSec.style.display !== 'none');
+  const promosVisibles = (promosSec && promosSec.style.display !== 'none');
+  const hayAlgo = visibles > 0 || combosVisibles || promosVisibles;
+
+  if (!hayAlgo && (_searchQuery || _filtrosEstado.size > 0 || _filtroCategoria !== '__all__')) {
+    _renderNoResults();
+  }
+}
+
+// Aplica highlight a las palabras de la card que coinciden con la búsqueda
+function _highlightAplicar(card, query){
+  const targets = [card.querySelector('.card-name'), card.querySelector('.card-pres')];
+  targets.forEach(function(el){
+    if (!el) return;
+    // Si ya tiene marks, restaurar texto original primero
+    if (el.dataset.origText !== undefined) {
+      el.textContent = el.dataset.origText;
+    } else {
+      el.dataset.origText = el.textContent;
+    }
+    const orig = el.textContent;
+    const norm = _searchNorm(orig);
+    const idx = norm.indexOf(query);
+    if (idx === -1) return;
+    // Reemplazar: como puede haber diferencia de longitud por diacríticos (NFD agrega chars),
+    // hacemos un reemplazo simple por bloque
+    // Buscar el equivalente en el texto original
+    const start = idx;
+    const end = idx + query.length;
+    if (start < 0 || end > orig.length) return;
+    const before = orig.substring(0, start);
+    const match  = orig.substring(start, end);
+    const after  = orig.substring(end);
+    el.innerHTML = _escHtml(before) + '<mark>' + _escHtml(match) + '</mark>' + _escHtml(after);
+  });
+}
+
+function _highlightLimpiar(card){
+  const targets = [card.querySelector('.card-name'), card.querySelector('.card-pres')];
+  targets.forEach(function(el){
+    if (!el) return;
+    if (el.dataset.origText !== undefined) {
+      el.textContent = el.dataset.origText;
+      delete el.dataset.origText;
+    }
+  });
+}
+
+// Escape HTML básico
+function _escHtml(s){
+  return String(s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+// Banner de info: "📦 X productos encontrados con 'pollo'"
+function _renderResultsInfo(n){
+  const info = document.getElementById('results-info');
+  if (!info) return;
+  // Solo mostrar si hay búsqueda o filtros activos
+  if (!_searchQuery && _filtrosEstado.size === 0 && _filtroCategoria === '__all__') {
+    info.classList.remove('show');
+    info.innerHTML = '';
+    return;
+  }
+  // Si el filtro "En oferta" está activo, contar también combos y promos visibles
+  let total = n;
+  let extraTxt = '';
+  if (_filtrosEstado.has('enoferta')) {
+    const combosSec = document.getElementById('combos-section');
+    const promosSec = document.getElementById('promos-section');
+    let combosVis = 0, promosVis = 0;
+    if (combosSec && combosSec.style.display !== 'none' && Array.isArray(_combosData)) {
+      combosVis = _combosData.filter(function(c){ return c && c.id && c.productos; }).length;
+    }
+    if (promosSec && promosSec.style.display !== 'none' && Array.isArray(_promosData)) {
+      promosVis = _promosData.filter(function(p){ return p && p.id; }).length;
+    }
+    total = combosVis + promosVis;
+    extraTxt = ' en oferta';
+  }
+  if (total === 0) {
+    info.classList.remove('show');
+    return;
+  }
+  let txt = '📦 <b>'+total+' producto'+(total===1?'':'s')+'</b>'+extraTxt;
+  if (_searchQuery) txt += ' con "'+_escHtml(_searchQuery)+'"';
+  info.innerHTML = txt;
+  info.classList.add('show');
+}
+
+// Render del bloque "no resultados" con sugerencias + botón WhatsApp
+function _renderNoResults(){
+  const body = document.getElementById('body');
+  if (!body) return;
+  const term = _searchQuery || '';
+
+  // Buscar la categoría más cercana al término (match parcial)
+  let catSugerida = null;
+  if (term && CAT && Array.isArray(CAT)) {
+    // 1ro: ¿alguna categoría tiene un producto cuyo nombre matchea parcialmente?
+    let mejorMatch = null;
+    let mejorScore = 0;
+    CAT.forEach(function(s){
+      s.items.forEach(function(it){
+        const name = _searchNorm(it.n);
+        // Score por similitud de prefijo o substring
+        let score = 0;
+        // Si comparten >= 3 chars de prefijo
+        for (let i = 3; i <= Math.min(term.length, name.length); i++) {
+          if (name.substring(0, i) === term.substring(0, i)) score = i * 10;
+        }
+        // Si el término aparece como substring (aunque sea parcial)
+        if (name.includes(term.substring(0, Math.max(3, term.length-2)))) {
+          score = Math.max(score, 5);
+        }
+        if (score > mejorScore) {
+          mejorScore = score;
+          mejorMatch = s;
+        }
+      });
+    });
+    if (mejorScore > 0) catSugerida = mejorMatch;
+  }
+
+  // Si no hay match con ninguna categoría → mostrar top productos del catálogo
+  // Para "top" tomamos los primeros de POLLOS (que son los más vendidos típicamente)
+  let sugerencias = [];
+  let labelSugerencias = '';
+  if (catSugerida && catSugerida.items) {
+    sugerencias = catSugerida.items.filter(function(it){
+      return !OCULTOS.has(it.n);
+    }).slice(0, 4);
+    labelSugerencias = 'Quizás te interesa de ' + catSugerida.sec;
+  } else {
+    // Top del catálogo: primeros 4 productos de POLLOS (la categoría principal)
+    const polloSec = CAT.find(function(s){ return s.id === 'pollos'; });
+    if (polloSec) {
+      sugerencias = polloSec.items.filter(function(it){
+        return !OCULTOS.has(it.n);
+      }).slice(0, 4);
+      labelSugerencias = 'Productos más pedidos';
+    }
+  }
+
+  // Armar HTML de sugerencias
+  let cardsHtml = '';
+  sugerencias.forEach(function(it){
+    const sinStockS = SIN_STOCK.has(it.n);
+    const imgSrc = _imgmap[it.n]
+      ? 'img/' + _imgmap[it.n]
+      : 'img/' + encodeURIComponent(it.n+'.jpg').replace(/%25/g,'%').replace(/%2F/g,'/');
+    cardsHtml += '<div class="card" style="opacity:'+(sinStockS?'0.6':'1')+'">'
+      + '<div class="card-img-area"><img class="card-img" src="'+imgSrc+'" alt="'+_escHtml(it.n)+'" loading="lazy"></div>'
+      + '<div class="card-sep"></div>'
+      + '<div class="card-body">'
+      + '<div class="card-name">'+_escHtml(it.n)+'</div>'
+      + '<div class="card-pres">'+_escHtml(it.p)+'</div>'
+      + '<div class="card-price-box"><div class="card-price">'+fmt(it.pr)+'</div></div>'
+      + '</div></div>';
+  });
+
+  // Mensaje WhatsApp pre-armado
+  const waMsg = encodeURIComponent(
+    'Hola! Busqué "' + term + '" en el catálogo y no lo encontré. ¿Tenés algo similar?'
+  );
+  const waHref = vActivo
+    ? 'https://wa.me/' + vActivo.wa + '?text=' + waMsg
+    : 'https://wa.me/5492314475357?text=' + waMsg;
+
+  const titulo = term
+    ? 'No encontramos "<b>'+_escHtml(term)+'</b>"'
+    : 'Sin resultados con los filtros aplicados';
+
+  const html = '<div class="no-results" id="no-results-block">'
+    + '<span class="no-results-icon">🔍</span>'
+    + '<div class="no-results-title">'+titulo+'</div>'
+    + '<div class="no-results-desc">¿Querés que te <b>cotice algo similar</b>? Tu vendedor puede consultar.</div>'
+    + '<a class="no-results-wa" href="'+waHref+'" target="_blank" rel="noopener">💬 Consultar por WhatsApp</a>'
+    + (sugerencias.length > 0
+        ? '<div class="no-results-sub">'
+          + '<div class="no-results-sub-label">'+_escHtml(labelSugerencias)+'</div>'
+          + '<div class="sec-grid" style="background:transparent;padding:0">' + cardsHtml + '</div>'
+          + '</div>'
+        : '')
+    + '</div>';
+
+  // Insertar al inicio del body
+  body.insertAdjacentHTML('afterbegin', html);
+}
+
 function chg(key,si,ii,d){
   qty[key]=Math.max(0,(qty[key]||0)+d);
   checkRepFabVisibility();
@@ -4496,6 +4993,10 @@ function chg(key,si,ii,d){
   updateBar();
   if(document.getElementById('drawer').classList.contains('on'))renderDrawer();
   saveCartLS();
+  // v3.2.0: si el filtro "En carrito" está activo, refrescar para que la card se oculte/aparezca
+  if (typeof _filtrosEstado !== 'undefined' && _filtrosEstado.has('encarrito')) {
+    if (typeof aplicarFiltros === 'function') aplicarFiltros();
+  }
 }
 function updateBar(){
   const{t,c}=T(); const has=c>0;
