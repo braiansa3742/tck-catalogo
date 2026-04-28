@@ -13,6 +13,10 @@
        CALCULADORA DE MARGEN (todas las cards regulares):
          · Toggle colapsable bajo el stepper. Cerrada por default.
          · 2 inputs: "Mi costo" $/kg y "Vendo a" $/kg.
+         · Costo precargado automáticamente desde el campo "pu" del
+           catálogo (precio TCK / kg). Solo cuando el catálogo lo
+           expresa por kg. Cliente puede modificarlo libremente; al
+           hacerlo, el hint dorado desaparece.
          · Resultado: % margen calculado POR KG (no por caja).
          · Umbrales: 🟢 ≥25% / 🟠 15-25% / 🔴 <15% (incluye negativo).
          · Persistencia: sessionStorage (se borra al cerrar pestaña =
@@ -767,6 +771,7 @@ button,
 .calc-result.red{background:#FFEBEE;color:#C62828;border:1px solid #FFCDD2}
 .calc-result strong{font-size:14px;font-family:'Barlow Condensed',sans-serif}
 .calc-hint{font-size:9px;color:var(--text3);text-align:center;margin-top:3px;font-style:italic}
+.calc-precargado{font-size:9px;color:var(--gold);text-align:center;margin:-2px 0 6px;font-style:italic;font-weight:600}
 
 /* === BARRA PEDIDO === */
 .orderbar{position:sticky;bottom:0;left:0;right:0;z-index:40;flex-shrink:0;background:#fff;padding:8px 13px calc(16px + env(safe-area-inset-bottom));display:flex;align-items:center;gap:8px;min-height:60px;border-top:3px solid var(--gold);box-shadow:0 -4px 18px rgba(0,0,0,.08)}
@@ -4242,8 +4247,27 @@ function renderBody(){
         catch(e) { return {}; }
       })();
       const calcOpen = !!calcSaved._open;
-      const calcCost = (calcSaved.cost == null) ? '' : String(calcSaved.cost);
+      // v3.1.2 (refinamiento): extraer costo precargado desde el campo pu del catálogo
+      // Solo si tiene formato "/ kg" (no usar para "/ unidad" ni vacíos).
+      // pu viene como "&#x2248;$4,300 / kg" → extraer 4300
+      let _costPrecargado = '';
+      if (it.pu && /\/\s*kg/i.test(it.pu)) {
+        const m = it.pu.match(/\$?([\d,.]+)\s*\/\s*kg/i);
+        if (m) {
+          // Sacar puntos de miles y comas, dejar solo dígitos
+          const num = parseInt(m[1].replace(/[^\d]/g,''), 10);
+          if (num > 0) _costPrecargado = String(num);
+        }
+      }
+      // Si el cliente nunca tipeó nada, usar el costo precargado.
+      // Si ya tipeó algo (incluso vacío), respetar su decisión.
+      const _costSavedFlag = (calcSaved && Object.prototype.hasOwnProperty.call(calcSaved, 'cost'));
+      const calcCost = _costSavedFlag
+        ? (calcSaved.cost == null ? '' : String(calcSaved.cost))
+        : _costPrecargado;
       const calcVen  = (calcSaved.ven  == null) ? '' : String(calcSaved.ven);
+      // Si está precargado (no editado por el cliente) → mostrar flag para hint visual
+      const _costEsPrecargado = !_costSavedFlag && _costPrecargado !== '';
       // Escapar valores para attr (números no traen problemas, pero por las dudas)
       const _costAttr = calcCost.replace(/"/g,'&quot;');
       const _venAttr  = calcVen.replace(/"/g,'&quot;');
@@ -4260,13 +4284,15 @@ function renderBody(){
         + '<input type="number" inputmode="numeric" placeholder="$/kg" '
         + 'value="'+_costAttr+'" '
         + 'data-campo="cost" '
+        + (_costEsPrecargado ? 'data-precargado="1" ' : '')
         + 'oninput="calcMargen(this)"></div>'
+        + (_costEsPrecargado ? '<div class="calc-precargado">💡 Costo precargado del catálogo · podés modificarlo</div>' : '')
         + '<div class="calc-row"><label>Vendo a:</label>'
         + '<input type="number" inputmode="numeric" placeholder="$/kg" '
         + 'value="'+_venAttr+'" '
         + 'data-campo="ven" '
         + 'oninput="calcMargen(this)"></div>'
-        + '<div class="calc-result empty">Ingresá los valores</div>'
+        + '<div class="calc-result empty">Ingresá tu precio de venta</div>'
         + '<div class="calc-hint">Compara precios por kg</div>'
         + '</div>'
       );
@@ -4353,22 +4379,24 @@ function toggleCalcMargen(btn){
   catch(e) { saved = {}; }
   saved._open = isOpen;
   sessionStorage.setItem('tck_calc_'+prod, JSON.stringify(saved));
-  // Si se abre y ya hay valores guardados, recalcular el resultado
-  if (isOpen) _calcRender(panel, prod);
+  // Si se abre, renderizar el resultado en base a los valores actuales del DOM
+  if (isOpen) _calcRender(panel);
 }
 
-// Render del resultado del margen según valores guardados.
-function _calcRender(panel, prod){
-  let saved = {};
-  try { saved = JSON.parse(sessionStorage.getItem('tck_calc_'+prod) || '{}'); }
-  catch(e) { return; }
-  const cost = parseFloat(saved.cost);
-  const ven  = parseFloat(saved.ven);
+// Render del resultado del margen leyendo valores DIRECTO del DOM
+// (no del sessionStorage). Esto permite que valores precargados desde
+// el catálogo cuenten aunque el cliente nunca los haya tipeado.
+function _calcRender(panel){
+  if (!panel) return;
+  const inputCost = panel.querySelector('input[data-campo="cost"]');
+  const inputVen  = panel.querySelector('input[data-campo="ven"]');
   const res  = panel.querySelector('.calc-result');
-  if (!res) return;
+  if (!res || !inputCost || !inputVen) return;
+  const cost = parseFloat(inputCost.value);
+  const ven  = parseFloat(inputVen.value);
   if (!cost || !ven || cost <= 0) {
     res.className = 'calc-result empty';
-    res.textContent = 'Ingresá los valores';
+    res.textContent = 'Ingresá tu precio de venta';
     return;
   }
   const margen = ((ven - cost) / cost) * 100;
@@ -4388,12 +4416,20 @@ function calcMargen(input){
   if (!prod) return;
   const campo = input.getAttribute('data-campo');
   if (!campo) return;
+  // Si el cliente está editando un input precargado, sacarle el flag
+  // para que ya no se considere "precargado" en próximas renderizaciones
+  if (input.hasAttribute('data-precargado')) {
+    input.removeAttribute('data-precargado');
+    const hint = panel.querySelector('.calc-precargado');
+    if (hint) hint.remove();
+  }
+  // Persistir
   let saved = {};
   try { saved = JSON.parse(sessionStorage.getItem('tck_calc_'+prod) || '{}'); }
   catch(e) { saved = {}; }
   saved[campo] = input.value;
   sessionStorage.setItem('tck_calc_'+prod, JSON.stringify(saved));
-  _calcRender(panel, prod);
+  _calcRender(panel);
 }
 
 // Guarda la nota de preferencia de calibre. Solo Pollo Ginosa y Pollo Optimo.
