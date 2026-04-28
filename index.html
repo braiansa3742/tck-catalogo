@@ -2,6 +2,34 @@
 <html lang="es">
 <head>
 <!-- ═══════════════════════════════════════════════════════════════════════
+     TCK CATÁLOGO — v3.2.2 — 28/04/2026
+     ──────────────────────────────────────────────────────────────────────
+     HOTFIX — sessionStorage SecurityError (28/4/2026)
+
+     Cambios v3.2.2 (sobre v3.2.1):
+       Bug crítico detectado por Sentry: en navegadores con cookies de
+       terceros bloqueadas (Chrome Android estricto, modo incógnito,
+       Brave, etc.), el acceso a sessionStorage lanza SecurityError y
+       ROMPÍA TODO EL RENDER del catálogo (los usuarios afectados veían
+       la página en blanco).
+
+       Caso real reportado: vendedor Miguel (Chrome Mobile 147 / Android 10)
+       no podía cargar el catálogo en sus visitas con WhatsApp.
+
+       FIX: wrapper _safeSS.getItem/setItem/removeItem que falla
+       silenciosamente devolviendo null si el navegador bloquea
+       sessionStorage. Toda la persistencia de calc/calibre/banner
+       reorden ahora pasa por este wrapper.
+
+       IMPACTO: si el navegador bloquea sessionStorage, la calculadora
+       y la nota de calibre dejan de persistir entre re-renders, pero
+       el catálogo sigue funcionando 100% (carga, navegación, pedido
+       por WhatsApp). Mejor degradación que crash total.
+
+       LO QUE NO CAMBIA: ningún feature, solo blindaje de errores.
+
+     ──────────────────────────────────────────────────────────────────────
+
      TCK CATÁLOGO — v3.2.1 — 28/04/2026
      ──────────────────────────────────────────────────────────────────────
      CATÁLOGO — Actualización de stock (28/4/2026)
@@ -4375,7 +4403,7 @@ function renderBody(){
       const esPollo = (it.n === 'Pollo Ginosa' || it.n === 'Pollo Optimo');
       // Escapar nombre para uso en atributo HTML (data-prod) y en value
       const _itnAttr = String(it.n).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/'/g,'&#39;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-      const calibreSaved = esPollo ? (sessionStorage.getItem('tck_cal_'+it.n) || '') : '';
+      const calibreSaved = esPollo ? (_safeSS.getItem('tck_cal_'+it.n) || '') : '';
       const _calSavedAttr = String(calibreSaved).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
       const calibreHTML = esPollo
         ? ('<div class="calibre-row">'
@@ -4389,7 +4417,7 @@ function renderBody(){
         : '';
       // v3.1.2: calculadora margen en TODAS las cards regulares (no en sin stock)
       const calcSaved = (function(){
-        try { return JSON.parse(sessionStorage.getItem('tck_calc_'+it.n) || '{}'); }
+        try { return JSON.parse(_safeSS.getItem('tck_calc_'+it.n) || '{}'); }
         catch(e) { return {}; }
       })();
       const calcOpen = !!calcSaved._open;
@@ -4511,6 +4539,25 @@ function renderBody(){
 // El sessionStorage se borra al cerrar la pestaña → privacidad asegurada.
 // ═══════════════════════════════════════════════════════════════════════
 
+// v3.2.2: wrapper seguro para sessionStorage. Algunos navegadores
+// (Chrome Android con cookies bloqueadas, modo incógnito estricto, etc.)
+// lanzan SecurityError al acceder a sessionStorage. Sin try/catch eso
+// rompía todo el render del catálogo.
+const _safeSS = {
+  getItem: function(k){
+    try { return sessionStorage.getItem(k); }
+    catch(e) { return null; }
+  },
+  setItem: function(k, v){
+    try { sessionStorage.setItem(k, v); return true; }
+    catch(e) { return false; }
+  },
+  removeItem: function(k){
+    try { sessionStorage.removeItem(k); return true; }
+    catch(e) { return false; }
+  }
+};
+
 // Toggle abrir/cerrar la calculadora de una card.
 function toggleCalcMargen(btn){
   const prod = btn.getAttribute('data-prod');
@@ -4523,10 +4570,10 @@ function toggleCalcMargen(btn){
   btn.classList.toggle('open', isOpen);
   // Guardar estado de apertura
   let saved = {};
-  try { saved = JSON.parse(sessionStorage.getItem('tck_calc_'+prod) || '{}'); }
+  try { saved = JSON.parse(_safeSS.getItem('tck_calc_'+prod) || '{}'); }
   catch(e) { saved = {}; }
   saved._open = isOpen;
-  sessionStorage.setItem('tck_calc_'+prod, JSON.stringify(saved));
+  _safeSS.setItem('tck_calc_'+prod, JSON.stringify(saved));
   // Si se abre, renderizar el resultado en base a los valores actuales del DOM
   if (isOpen) _calcRender(panel);
 }
@@ -4573,10 +4620,10 @@ function calcMargen(input){
   }
   // Persistir
   let saved = {};
-  try { saved = JSON.parse(sessionStorage.getItem('tck_calc_'+prod) || '{}'); }
+  try { saved = JSON.parse(_safeSS.getItem('tck_calc_'+prod) || '{}'); }
   catch(e) { saved = {}; }
   saved[campo] = input.value;
-  sessionStorage.setItem('tck_calc_'+prod, JSON.stringify(saved));
+  _safeSS.setItem('tck_calc_'+prod, JSON.stringify(saved));
   _calcRender(panel);
 }
 
@@ -4585,13 +4632,13 @@ function calibreGuardar(input){
   const prod = input.getAttribute('data-prod');
   if (!prod) return;
   const v = (input.value || '').trim();
-  if (v) sessionStorage.setItem('tck_cal_'+prod, v);
-  else sessionStorage.removeItem('tck_cal_'+prod);
+  if (v) _safeSS.setItem('tck_cal_'+prod, v);
+  else _safeSS.removeItem('tck_cal_'+prod);
 }
 
 // Devuelve la nota guardada de un producto, o '' si no hay.
 function calibreObtener(prodNombre){
-  return sessionStorage.getItem('tck_cal_'+prodNombre) || '';
+  return _safeSS.getItem('tck_cal_'+prodNombre) || '';
 }
 
 // ═══════════════════════════════════════════════════════════════════════
@@ -7294,7 +7341,7 @@ function toggleRepFabCard() {
 function cerrarRepFab() {
   ocultarRepFab();
   // No volver a mostrar en esta sesión
-  try { sessionStorage.setItem('tck_rep_cerrado', '1'); } catch(e) {}
+  _safeSS.setItem('tck_rep_cerrado', '1');
 }
 
 function ocultarRepFab() {
@@ -7305,7 +7352,7 @@ function ocultarRepFab() {
 // Ocultar FAB cuando el carrito tiene items
 function checkRepFabVisibility() {
   try {
-    if (sessionStorage.getItem('tck_rep_cerrado')) return;
+    if (_safeSS.getItem('tck_rep_cerrado')) return;
     var { c } = T();
     var fab = document.getElementById('rep-fab');
     if (!fab) return;
