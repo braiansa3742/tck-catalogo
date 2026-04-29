@@ -2,10 +2,44 @@
 <html lang="es">
 <head>
 <!-- ═══════════════════════════════════════════════════════════════════════
-     TCK CATÁLOGO — v3.4.0 — 29/04/2026
+     TCK CATÁLOGO — v3.5.0 — 29/04/2026
      ──────────────────────────────────────────────────────────────────────
-     PROMOS 50% OFF (mayo 2026) — Rediseño visual de cards de promo
+     CANAL META ADS — Vendedor "TCK Online" autoasignado
 
+     Cambios v3.5.0 (sobre v3.4.0):
+
+       1. NUEVO VENDEDOR INTERNO "TCK Online" (id: e46384bc-...)
+          - WhatsApp: 5492392404745 (Francisco - TCK Bussines)
+          - Es un canal centralizado para tráfico pagado (Meta, Google, etc.)
+          - Los pedidos van directo al WA de Francisco, que distribuye después
+            según zona desde tckadmin.lat
+
+       2. AUTOASIGNACIÓN cuando ?v=fb / ?v=ig / ?v=google / ?v=tiktok
+          - Antes: cliente entraba SIN vendedor → veía modal "elegir vendedor"
+            al hacer pedido.
+          - Ahora: cliente entra con ?v=fb (o canal), se autoasigna
+            automáticamente a "TCK Online" → NO ve modal → pedido directo
+            al WA de Francisco con origen_marketing='CANAL_FB'.
+
+       3. AISLAMIENTO DEL VENDEDOR INTERNO
+          - "TCK Online" NUNCA aparece en el select público de vendedores
+            (cli-reg-vendedor) ni en el modal de elección manual (sv-modal).
+          - Solo se asigna automáticamente vía URL. Clientes orgánicos
+            (sin parámetro) NO pueden elegirlo.
+          - Esto preserva la separación entre tráfico pagado y orgánico
+            para análisis y comisiones.
+
+       4. PERSISTENCIA DE SESIÓN
+          - Si un cliente entró con ?v=fb una vez y vuelve sin parámetro,
+            sigue como TCK Online (lo guardamos en clientes_auth.vendedor).
+          - Si vuelve con ?v=miguel, se reasigna a Miguel (parámetro
+            tiene prioridad sobre sesión).
+
+       5. CONSTANTES NUEVAS
+          - VEND_ONLINE: { nombre, wa, id } - vendedor interno hardcoded
+          - VEND_PUBLICA: lista filtrada (sin TCK Online) para UI pública
+
+     ──────────────────────────────────────────────────────────────────────
      Cambios v3.4.0 (sobre v3.3.0):
 
        1. MIGRACIÓN MODELO PROMOS: 1+1 → 50% OFF
@@ -4855,7 +4889,29 @@ const _imgmap = {
 </script>
 
 <script>
+// ═══════════════════════════════════════════════════════════════════════
+// v3.5.0 — VENDEDOR INTERNO "TCK Online" (canal Meta Ads / pagado)
+// ═══════════════════════════════════════════════════════════════════════
+// Vendedor centralizado que recibe TODOS los pedidos de tráfico pagado
+// (Meta, Google, TikTok, etc.). El WhatsApp es el de Francisco (Admin),
+// que después distribuye los pedidos según zona desde tckadmin.lat.
+//
+// IMPORTANTE: este vendedor NUNCA aparece en la UI pública. Solo se
+// autoasigna cuando el cliente entra con ?v=fb / ?v=ig / ?v=google.
+const VEND_ONLINE = {
+  id:     'e46384bc-8081-44a8-a180-ebce2bc7fa2e',
+  nombre: 'TCK Online',
+  wa:     '5492392404745'  // Francisco - TCK Bussines
+};
+
+// Lista pública de vendedores (la que se muestra en UI).
+// NO incluye TCK Online (es interno, solo asignado vía URL).
 const VEND=[{"nombre": "Miguel", "wa": "5492392449725"}, {"nombre": "Juan", "wa": "5492392458941"}, {"nombre": "Lisandro", "wa": "5492392548046"}];
+
+// Helper: detecta si un vendedor (por nombre) es el canal interno.
+function _esVendedorOnline(nombre) {
+  return (nombre || '').toLowerCase().trim() === 'tck online';
+}
 // ── STOCK ─────────────────────────────────────────────────────────
 // Para ocultar: agregar nombre exacto a OCULTOS
 // Para marcar sin stock: agregar nombre exacto a SIN_STOCK
@@ -5025,6 +5081,9 @@ function elegir(i){
 function cambiarVendedor(){
   // Si hay cliente logueado con vendedor fijo, no permitir cambiar
   if (_cliActivo && _cliActivo.vendedor) return;
+  // v3.5.0: si está asignado a TCK Online (canal pago), no permitir cambiar
+  // El vendedor es el canal centralizado, no se elige manualmente
+  if (vActivo && _esVendedorOnline(vActivo.nombre)) return;
   // Abrir el modal de selección
   abrirSvModal();
 }
@@ -7412,14 +7471,16 @@ function clearCartLS() {
   const params = new URLSearchParams(window.location.search);
   const vParam = (params.get('v') || '').toLowerCase().trim();
   if (!vParam) return;
-  // v2.7.5: ¿es un canal sin vendedor? (ig, fb, google, tiktok)
+  // v3.5.0: ¿es un canal sin vendedor real? (ig, fb, google, tiktok)
+  // → autoasigna TCK Online (vendedor interno centralizado)
   if (CANALES_SIN_VENDEDOR[vParam]) {
     _canalSinVendedor = CANALES_SIN_VENDEDOR[vParam];
-    // Limpiar link de vendedor previo para que no se asigne uno viejo
-    try { localStorage.removeItem('tck_vendedor_link'); } catch(e) {}
+    // Persistir en localStorage para que el próximo retorno sin parámetro
+    // siga como TCK Online (mantiene la sesión del cliente del canal pago)
+    try { localStorage.setItem('tck_vendedor_link', 'TCK_ONLINE'); } catch(e) {}
     return;
   }
-  // Caso normal: nombre de vendedor real
+  // Caso normal: nombre de vendedor real (Miguel/Juan/Lisandro)
   const idx = VEND.findIndex(v => v.nombre.toLowerCase() === vParam);
   if (idx >= 0) try { localStorage.setItem('tck_vendedor_link', idx); } catch(e) {}
 })();
@@ -7449,14 +7510,16 @@ cargarPrecios().finally(() => {
   if (loginEl) loginEl.classList.add('gone');
 
   // 2. Autoseleccionar vendedor: del ?v= → del localStorage → ninguno
-  // v2.7.5: si _canalSinVendedor está seteado (ig/fb/google), NO elegir vendedor
+  // v3.5.0: si _canalSinVendedor está seteado (ig/fb/google), autoasignar TCK Online
+  // (vendedor interno centralizado, NO aparece en UI pública)
   const params = new URLSearchParams(window.location.search);
   const vParam = (params.get('v') || '').toLowerCase().trim();
   let vendedorAutoIdx = -1;
+  let asignarTckOnline = false;
 
   if (_canalSinVendedor) {
-    // Cliente viene de IG/FB/etc. → queda sin vendedor (Modelo A)
-    vendedorAutoIdx = -1;
+    // Cliente viene de IG/FB/Google/TikTok → autoasignar TCK Online
+    asignarTckOnline = true;
   } else {
     if (vParam) {
       vendedorAutoIdx = VEND.findIndex(v => v.nombre.toLowerCase() === vParam);
@@ -7464,12 +7527,32 @@ cargarPrecios().finally(() => {
     if (vendedorAutoIdx < 0) {
       try {
         const stored = localStorage.getItem('tck_vendedor_link');
-        if (stored !== null) vendedorAutoIdx = parseInt(stored);
+        if (stored !== null) {
+          // v3.5.0: chequear si el storage dice "TCK Online" (string especial)
+          if (stored === 'TCK_ONLINE') {
+            asignarTckOnline = true;
+          } else {
+            vendedorAutoIdx = parseInt(stored);
+          }
+        }
       } catch(e) {}
     }
   }
 
-  if (vendedorAutoIdx >= 0 && VEND[vendedorAutoIdx]) {
+  if (asignarTckOnline) {
+    // v3.5.0: asignar vendedor interno TCK Online
+    vActivo = { nombre: VEND_ONLINE.nombre, wa: VEND_ONLINE.wa };
+    try { localStorage.setItem('tck_vendedor_link', 'TCK_ONLINE'); } catch(e) {}
+    // Actualizar UI mínima (sin pasar por elegir() que usa índice de VEND)
+    const vchip = document.getElementById('vchip');
+    if (vchip) vchip.textContent = VEND_ONLINE.nombre;
+    const dsub = document.getElementById('d-sub');
+    if (dsub) dsub.textContent = 'Para: ' + VEND_ONLINE.nombre;
+    const dwanom = document.getElementById('d-wa-nom');
+    if (dwanom) dwanom.textContent = VEND_ONLINE.nombre;
+    const hdrSup = document.getElementById('hdr-support');
+    if (hdrSup) hdrSup.classList.add('visible');
+  } else if (vendedorAutoIdx >= 0 && VEND[vendedorAutoIdx]) {
     elegir(vendedorAutoIdx); // asigna vActivo silenciosamente
   }
   // Si no hay vendedor, vActivo queda null → al pedir aparece el modal
@@ -8316,10 +8399,26 @@ function cliTab(tab) {
   // Si abre registro, mostrar/ocultar campos según si hay vendedor del link
   if (tab === 'registro') {
     const tieneVendedorLink = vActivo !== null;
+    // v3.5.0: si el vendedor es TCK Online (canal pago), mostrar bloque
+    // de extras pero ocultar SOLO el selector de vendedor (necesitamos
+    // ciudad y comercio para reasignar después al vendedor real por zona)
+    const esCanalOnline = tieneVendedorLink && _esVendedorOnline(vActivo.nombre);
     const extras = document.getElementById('cli-reg-extras');
-    if (extras) extras.style.display = tieneVendedorLink ? 'none' : 'block';
-    // Pre-seleccionar vendedor si viene por link
-    if (tieneVendedorLink) {
+    if (extras) {
+      if (esCanalOnline) {
+        extras.style.display = 'block';
+        // Ocultar SOLO el campo vendedor (ciudad + comercio quedan visibles)
+        const vendField = document.getElementById('cli-reg-vendedor-field');
+        if (vendField) vendField.style.display = 'none';
+      } else {
+        extras.style.display = tieneVendedorLink ? 'none' : 'block';
+        // Restaurar campo vendedor por si vino oculto antes
+        const vendField = document.getElementById('cli-reg-vendedor-field');
+        if (vendField) vendField.style.display = '';
+      }
+    }
+    // Pre-seleccionar vendedor si viene por link normal (no canal)
+    if (tieneVendedorLink && !esCanalOnline) {
       const sel = document.getElementById('cli-reg-vendedor');
       if (sel) sel.value = vActivo.nombre;
     }
@@ -8364,10 +8463,14 @@ async function cliRegistrar() {
   const btn      = document.getElementById('cli-btn-reg');
 
   // Campos opcionales — solo si están visibles (sin link de vendedor)
+  // v3.5.0: si es canal online (TCK Online), mostramos extras igual
+  // (necesitamos ciudad para reasignación posterior por zona)
   const tieneVendedorLink = vActivo !== null;
-  const comercio = tieneVendedorLink ? '' : (document.getElementById('cli-reg-comercio').value || '').trim();
-  const ciudad   = tieneVendedorLink ? '' : (document.getElementById('cli-reg-ciudad').value || '').trim();
-  // Vendedor: del link o del selector
+  const esCanalOnline = tieneVendedorLink && _esVendedorOnline(vActivo.nombre);
+  const mostrarExtras = !tieneVendedorLink || esCanalOnline;
+  const comercio = mostrarExtras ? (document.getElementById('cli-reg-comercio').value || '').trim() : '';
+  const ciudad   = mostrarExtras ? (document.getElementById('cli-reg-ciudad').value || '').trim() : '';
+  // Vendedor: del link (incluido TCK Online) o del selector
   const vendedor = tieneVendedorLink
     ? vActivo.nombre
     : (document.getElementById('cli-reg-vendedor').value || '');
