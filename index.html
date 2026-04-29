@@ -3890,6 +3890,318 @@ button,
   flex-shrink: 0;
 }
 
+/* ═══════════════════════════════════════════════════════════════════════
+   v3.4.0 — COMBOS (rediseño visual con 2 fotos + plus dorado)
+   ═══════════════════════════════════════════════════════════════════════ */
+.combo-card-v9 {
+  flex-shrink: 0;
+  width: calc(100% - 4px);
+  max-width: 480px;
+  scroll-snap-align: start;
+  background: linear-gradient(180deg, #FFFFFF 0%, #FAF4EC 100%);
+  border-radius: 20px;
+  overflow: hidden;
+  margin-bottom: 12px;
+  position: relative;
+  box-shadow: 0 6px 24px rgba(140, 0, 0, 0.12);
+  border: 1px solid rgba(212, 165, 116, 0.4);
+  display: flex;
+  flex-direction: column;
+}
+.combo-card-v9::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; height: 5px;
+  background: linear-gradient(90deg,
+    #C67B3C 0%,
+    #FFD700 30%,
+    #F4C430 50%,
+    #FFD700 70%,
+    #C67B3C 100%);
+  z-index: 2;
+}
+.combo-card-v9.urgente {
+  border: 2px solid #B71C1C;
+  box-shadow: 0 6px 28px rgba(183, 28, 28, 0.18);
+}
+.combo-card-v9.agotado {
+  opacity: 0.55;
+  filter: grayscale(0.3);
+}
+
+/* Sección visual: fotos + plus */
+.combo-visual-v9 {
+  background: linear-gradient(180deg, #FFFFFF 0%, #FFF8E1 100%);
+  padding: 24px 16px 18px;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 12px;
+  align-items: center;
+  position: relative;
+}
+.combo-visual-v9.single {
+  grid-template-columns: 1fr;
+  justify-items: center;
+  padding: 24px 16px;
+}
+.combo-foto {
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255,255,255,0.7);
+  border-radius: 12px;
+  padding: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  position: relative;
+  z-index: 1;
+  width: 100%;
+}
+.combo-visual-v9.single .combo-foto {
+  max-width: 220px;
+}
+.combo-foto img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 4px 8px rgba(0,0,0,0.1));
+}
+.combo-foto.sin-img {
+  background: linear-gradient(135deg, #FFB74D, #E65100);
+}
+.combo-img-fallback {
+  font-size: 46px;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  color: #fff;
+}
+
+/* Plus dorado dramático */
+.combo-plus {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, #F4C430 0%, #FFD700 50%, #C67B3C 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  z-index: 2;
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  box-shadow:
+    0 6px 20px rgba(196, 123, 60, 0.45),
+    0 2px 6px rgba(140, 0, 0, 0.15);
+  flex-shrink: 0;
+}
+.combo-plus::before {
+  content: '+';
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 900;
+  font-size: 46px;
+  color: #5C0000;
+  line-height: 1;
+}
+
+/* Info abajo */
+.combo-info-v9 {
+  padding: 18px 16px 16px;
+  background: linear-gradient(180deg, #FAF4EC 0%, #FFF8E1 100%);
+  border-top: 1px dashed #D4A574;
+  position: relative;
+}
+.combo-titulo-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.combo-titulo {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 900;
+  font-size: 18px;
+  color: #5C0000;
+  text-transform: uppercase;
+  line-height: 1.05;
+  letter-spacing: 0.3px;
+  flex: 1;
+  margin: 0;
+}
+.combo-zona-pill {
+  background: #1E8449;
+  color: #fff;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 800;
+  font-size: 10px;
+  padding: 4px 10px;
+  border-radius: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  white-space: nowrap;
+  box-shadow: 0 2px 4px rgba(30, 132, 73, 0.3);
+}
+.combo-zona-pill.sin-ciudad {
+  background: #8B0000;
+}
+.combo-items-v9 {
+  list-style: none;
+  padding: 0;
+  margin: 10px 0 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-weight: 500;
+}
+.combo-items-v9 li {
+  font-size: 13px;
+  color: #5C3A1E;
+  padding-left: 22px;
+  position: relative;
+  line-height: 1.4;
+}
+.combo-items-v9 li::before {
+  content: '✓';
+  position: absolute;
+  left: 4px;
+  color: #1E8449;
+  font-weight: 900;
+  font-size: 14px;
+}
+
+/* Precios */
+.combo-precios-v9 {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 4px;
+}
+.combo-precio-lista {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 16px;
+  color: #9C7050;
+  text-decoration: line-through;
+  text-decoration-color: #B71C1C;
+  text-decoration-thickness: 2px;
+  line-height: 1;
+}
+.combo-precio-v9 {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 900;
+  font-size: 36px;
+  color: #B71C1C;
+  line-height: 0.95;
+  letter-spacing: -0.8px;
+}
+.combo-precio-label {
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 11px;
+  color: #9C7050;
+  margin-bottom: 12px;
+  font-weight: 500;
+}
+
+/* Banda ahorro */
+.combo-ahorro-v9 {
+  margin-bottom: 14px;
+  display: inline-flex;
+}
+.combo-ahorro-v9 span {
+  background: linear-gradient(90deg, #1E8449 0%, #27AE60 100%);
+  color: #fff;
+  padding: 7px 14px;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 800;
+  font-size: 12px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  box-shadow:
+    0 3px 8px rgba(30, 132, 73, 0.3),
+    inset -3px 0 0 #FFD700;
+}
+.combo-icon-money {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+
+/* Stepper combo (mismo patrón que promos) */
+.combo-action-slot {
+  margin-top: 4px;
+  width: 100%;
+}
+.combo-qrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.combo-qb {
+  width: 38px;
+  height: 38px;
+  border-radius: 8px;
+  border: none;
+  font-size: 20px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  user-select: none;
+  transition: transform 0.1s;
+  font-family: 'Barlow Condensed', sans-serif;
+}
+.combo-qb:active { transform: scale(0.92); }
+.combo-qb:disabled { opacity: 0.5; cursor: not-allowed; }
+.combo-qb-m {
+  background: #F0E6D8;
+  color: #8B0000;
+}
+.combo-qb-p {
+  background: #B71C1C;
+  color: #fff;
+}
+.combo-qv {
+  min-width: 50px;
+  text-align: center;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 800;
+  font-size: 18px;
+  color: #1A0800;
+}
+
+/* Botón AGREGAR del combo (cuando qty=0) */
+.combo-btn-add {
+  width: 100%;
+  background: linear-gradient(180deg, #B71C1C 0%, #8B0000 100%);
+  color: #fff;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 900;
+  font-size: 15px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  border: none;
+  border-radius: 10px;
+  padding: 13px 12px;
+  cursor: pointer;
+  box-shadow:
+    0 3px 10px rgba(140, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255,255,255,0.18);
+  transition: transform 0.1s;
+  text-align: center;
+}
+.combo-btn-add:active { transform: scale(0.98); }
+.combo-btn-add.agotado {
+  background: #9C7050;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* === CSS LEGACY de combos (combo-card sin -v9) — mantener por compatibilidad === */
 
 /* En el drawer (carrito expandido) */
 .d-combo-group {
@@ -5526,10 +5838,22 @@ function combosRender() {
     return;
   }
 
-  // v2.1: aplicar scroll horizontal solo si hay 2+ combos, vertical si hay 1
+  // v3.4.0: aplicar scroll horizontal solo si hay 2+ combos
   scroll.classList.toggle('has-multiple', combosValidos.length > 1);
 
   sec.style.display = 'block';
+
+  // Helper: resolver URL de imagen de un producto del combo usando _imgmap
+  function imgUrlProducto(nombreProducto) {
+    if (!nombreProducto) return null;
+    const archivo = (typeof _imgmap !== 'undefined' && _imgmap[nombreProducto])
+      ? _imgmap[nombreProducto]
+      : nombreProducto + '.jpg';
+    return 'img/' + encodeURIComponent(archivo).replace(/%25/g,'%').replace(/%2F/g,'/');
+  }
+
+  // SVG de moneda inline para banda ahorro
+  const svgMoney = '<svg class="combo-icon-money" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v10M9 9.5c0-1 1-2 3-2s3 1 3 2-1 1.5-3 2c-2 .5-3 1-3 2.5s1.5 2 3 2 3-1 3-2"/></svg>';
 
   // Render de cada combo
   scroll.innerHTML = combosValidos.map(c => {
@@ -5537,64 +5861,92 @@ function combosRender() {
     const vendidosVisibles = (c.stock_offset||0) + (c.vendidos||0);
     const stockTotal = c.stock_total || 50;
     const disponiblesReales = stockTotal - (c.vendidos||0);
-    const disponiblesVisibles = stockTotal - vendidosVisibles;
-    const porcentajeBarra = Math.min(100, Math.round((vendidosVisibles / stockTotal) * 100));
     const agotado = disponiblesReales <= 0 || !c.activo;
     const precioMostrado = comboPrecioPorZona(c);
     const ahorro = (c.precio_lista||0) - precioMostrado;
 
-    // Productos del combo para el listado
-    let items = '';
+    // Productos del combo
+    let prods = [];
     try {
-      const prods = typeof c.productos === 'string' ? JSON.parse(c.productos) : c.productos;
-      items = (prods||[]).map(p => '<div class="combo-incluye-item">' + (p.cantidad || p.qty || 1) + 'x ' + (p.nombre||'') + '</div>').join('');
+      prods = typeof c.productos === 'string' ? JSON.parse(c.productos) : c.productos;
     } catch(e) {
-      items = '<div class="combo-incluye-item">' + (c.descripcion||'') + '</div>';
+      prods = [];
+    }
+    prods = prods || [];
+
+    // Items para listado con check
+    const itemsHtml = prods.map(p => {
+      const cant = p.cantidad || p.qty || 1;
+      return '<li>' + cant + '× ' + (p.nombre||'') + '</li>';
+    }).join('');
+
+    // Visual: 2 fotos lado a lado con + en el medio
+    // Si el combo tiene exactamente 2 productos → foto1 + plus + foto2
+    // Si tiene 1 o 3+ → foto centrada (fallback)
+    let visualHtml = '';
+    if (prods.length === 2) {
+      const img1 = imgUrlProducto(prods[0].nombre);
+      const img2 = imgUrlProducto(prods[1].nombre);
+      visualHtml =
+        '<div class="combo-visual-v9">' +
+          '<div class="combo-foto"><img src="' + img1 + '" alt="' + (prods[0].nombre||'').replace(/"/g,'&quot;') + '" loading="lazy" onerror="this.style.display=\'none\';this.parentElement.classList.add(\'sin-img\')"></div>' +
+          '<div class="combo-plus"></div>' +
+          '<div class="combo-foto"><img src="' + img2 + '" alt="' + (prods[1].nombre||'').replace(/"/g,'&quot;') + '" loading="lazy" onerror="this.style.display=\'none\';this.parentElement.classList.add(\'sin-img\')"></div>' +
+        '</div>';
+    } else {
+      // Fallback: imagen del combo si está, sino el primer producto
+      const fallbackImg = c.imagen_url || (prods[0] ? imgUrlProducto(prods[0].nombre) : null);
+      visualHtml =
+        '<div class="combo-visual-v9 single">' +
+          (fallbackImg
+            ? '<div class="combo-foto"><img src="' + fallbackImg + '" alt="' + (c.nombre||'').replace(/"/g,'&quot;') + '" loading="lazy"></div>'
+            : '<div class="combo-foto sin-img"><div class="combo-img-fallback">🔥</div></div>') +
+        '</div>';
     }
 
-    // Imagen con fallback
-    const imgHtml = c.imagen_url
-      ? '<img class="combo-img" src="' + c.imagen_url + '" alt="' + c.nombre + '" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\'" loading="lazy">'
-        + '<div class="combo-img-placeholder" style="display:none;position:absolute;inset:0;align-items:center;justify-content:center">🔥</div>'
-      : '<div class="combo-img-placeholder">🔥</div>';
+    // Pill de zona
+    const zonaCliente = (typeof getZonaCliente === 'function') ? getZonaCliente() : 'interior';
+    const ciudadCliente = (typeof getCiudadCliente === 'function') ? getCiudadCliente() : '';
+    const zonaPillTexto = zonaCliente === 'tl' ? 'Zona TL' : 'Zona Interior';
+    const zonaPillClass = zonaCliente === 'tl' ? '' : 'sin-ciudad';
+    const labelZona = ciudadCliente
+      ? 'Precio especial ' + ciudadCliente
+      : 'Elegí tu ciudad para ver el precio exacto';
 
-    return '<div class="combo-card' + (agotado?' agotado':'') + '" data-combo-id="' + c.id + '">' +
-      '<div class="combo-img-wrap">' +
-        imgHtml +
-        '<div class="combo-badge-oferta">🔥 -' + (c.descuento_pct||7) + '% OFF</div>' +
-        (agotado ? '<div class="combo-badge-agotado">AGOTADO</div>' : '') +
-      '</div>' +
-      '<div class="combo-body">' +
-        '<div class="combo-nombre">' +
-          '<span class="combo-nombre-texto">' + (c.nombre||'Combo') + '</span>' +
-          '<button class="combo-info-btn" onclick="combosAbrirCondiciones(\'' + c.id + '\')" aria-label="Ver condiciones">i</button>' +
+    // Stock crítico
+    const esCritico = disponiblesReales > 0 && disponiblesReales <= 5;
+    const cardClass = 'combo-card-v9' + (agotado ? ' agotado' : '') + (esCritico ? ' urgente' : '');
+
+    // Acción: stepper único (sin botón Agregar duplicado)
+    const accionHtml = qtyActual > 0
+      ? '<div class="combo-qrow">' +
+          '<button class="combo-qb combo-qb-m" onclick="combosRestar(\'' + c.id + '\')" aria-label="Quitar combo">−</button>' +
+          '<div class="combo-qv" id="combo-qv-' + c.id + '">' + qtyActual + '</div>' +
+          '<button class="combo-qb combo-qb-p" onclick="combosSumar(\'' + c.id + '\')" aria-label="Agregar combo"' + (agotado?' disabled':'') + '>+</button>' +
+        '</div>'
+      : (agotado
+          ? '<button class="combo-btn-add agotado" disabled>AGOTADO</button>'
+          : '<button class="combo-btn-add" onclick="combosSumar(\'' + c.id + '\')">+ AGREGAR AL PEDIDO</button>'
+        );
+
+    return '<div class="' + cardClass + '" data-combo-id="' + c.id + '">' +
+      visualHtml +
+      '<div class="combo-info-v9">' +
+        '<div class="combo-titulo-row">' +
+          '<h3 class="combo-titulo">' + (c.nombre||'Combo') + '</h3>' +
+          '<span class="combo-zona-pill ' + zonaPillClass + '">' + zonaPillTexto + '</span>' +
         '</div>' +
-        '<div class="combo-incluye">' +
-          '<div class="combo-incluye-label">LLEVÁS</div>' +
-          items +
+        '<ul class="combo-items-v9">' + itemsHtml + '</ul>' +
+        '<div class="combo-precios-v9">' +
+          '<span class="combo-precio-lista">' + fmt(c.precio_lista||0) + '</span>' +
+          '<span class="combo-precio-v9">' + fmt(precioMostrado) + '</span>' +
         '</div>' +
-        '<div class="combo-precios">' +
-          '<span class="combo-precio-tachado">' + fmt(c.precio_lista||0) + '</span>' +
-          '<span class="combo-precio-off">AHORRÁS ' + fmt(ahorro) + '</span>' +
-        '</div>' +
-        '<div class="combo-precio-combo">' + fmt(precioMostrado) + '</div>' +
-        '<div class="combo-barra-wrap">' +
-          '<div class="combo-progreso"><div class="combo-progreso-barra" style="width:' + porcentajeBarra + '%"></div></div>' +
-          '<div class="combo-progreso-texto">⚡ ' + porcentajeBarra + '% del stock ya vendido</div>' +
-        '</div>' +
-        '<div class="combo-legal">Fotos a modo ilustrativo · Máx. ' + (c.max_por_compra||2) + ' por compra · Stock limitado</div>' +
-        '<div class="combo-action-slot" id="combo-slot-' + c.id + '">' +
-        (qtyActual > 0
-          ? '<div class="combo-qty-row">' +
-              '<button class="combo-btn-qty" onclick="combosRestar(\'' + c.id + '\')" aria-label="Quitar combo">−</button>' +
-              '<div class="combo-qty-val">' + qtyActual + ' en carrito</div>' +
-              '<button class="combo-btn-qty" onclick="combosSumar(\'' + c.id + '\')" aria-label="Sumar combo">+</button>' +
-            '</div>'
-          : '<button class="combo-btn-add" onclick="combosSumar(\'' + c.id + '\')"' + (agotado?' disabled':'') + '>' +
-              (agotado ? 'AGOTADO' : '+ AGREGAR AL PEDIDO') +
-            '</button>'
+        '<div class="combo-precio-label">' + labelZona + '</div>' +
+        (ahorro > 0
+          ? '<div class="combo-ahorro-v9"><span>' + svgMoney + ' Ahorrás ' + fmt(ahorro) + '</span></div>'
+          : ''
         ) +
-        '</div>' +
+        '<div class="combo-action-slot" id="combo-slot-' + c.id + '">' + accionHtml + '</div>' +
       '</div>' +
     '</div>';
   }).join('');
@@ -5605,7 +5957,7 @@ function combosRender() {
       dots.innerHTML = combosValidos.map((_, i) => '<div class="combos-dot' + (i===0?' active':'') + '"></div>').join('');
       // Actualizar dot activo en scroll
       scroll.onscroll = function() {
-        const cards = scroll.querySelectorAll('.combo-card');
+        const cards = scroll.querySelectorAll('.combo-card-v9');
         let activeIdx = 0;
         const scrollLeft = scroll.scrollLeft;
         const cardWidth = cards[0] ? cards[0].offsetWidth + 12 : 297;
@@ -5643,14 +5995,15 @@ function combosActualizarSlot(comboId) {
   const agotado = disponiblesReales <= 0 || !combo.activo;
 
   slot.innerHTML = qtyActual > 0
-    ? '<div class="combo-qty-row">' +
-        '<button class="combo-btn-qty" onclick="combosRestar(\'' + comboId + '\')" aria-label="Quitar combo">−</button>' +
-        '<div class="combo-qty-val">' + qtyActual + ' en carrito</div>' +
-        '<button class="combo-btn-qty" onclick="combosSumar(\'' + comboId + '\')" aria-label="Sumar combo">+</button>' +
+    ? '<div class="combo-qrow">' +
+        '<button class="combo-qb combo-qb-m" onclick="combosRestar(\'' + comboId + '\')" aria-label="Quitar combo">−</button>' +
+        '<div class="combo-qv" id="combo-qv-' + comboId + '">' + qtyActual + '</div>' +
+        '<button class="combo-qb combo-qb-p" onclick="combosSumar(\'' + comboId + '\')" aria-label="Agregar combo"' + (agotado?' disabled':'') + '>+</button>' +
       '</div>'
-    : '<button class="combo-btn-add" onclick="combosSumar(\'' + comboId + '\')"' + (agotado?' disabled':'') + '>' +
-        (agotado ? 'AGOTADO' : '+ AGREGAR AL PEDIDO') +
-      '</button>';
+    : (agotado
+        ? '<button class="combo-btn-add agotado" disabled>AGOTADO</button>'
+        : '<button class="combo-btn-add" onclick="combosSumar(\'' + comboId + '\')">+ AGREGAR AL PEDIDO</button>'
+      );
 }
 
 // v2.5: abrir/cerrar modal de condiciones del combo
