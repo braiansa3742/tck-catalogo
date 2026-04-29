@@ -2,6 +2,61 @@
 <html lang="es">
 <head>
 <!-- ═══════════════════════════════════════════════════════════════════════
+     TCK CATÁLOGO — v3.3.0 — 29/04/2026
+     ──────────────────────────────────────────────────────────────────────
+     ZONA DEL CLIENTE — Precios diferenciados TL vs Interior
+
+     Cambios v3.3.0 (sobre v3.2.5):
+
+       1. MODAL DE BIENVENIDA "¿De dónde sos?"
+          La primera vez que un cliente entra al catálogo, se le pide
+          su ciudad de un dropdown con las 28 localidades canónicas.
+          La elección se persiste en localStorage:
+            · tck_zona_cliente   → 'tl' | 'interior'
+            · tck_ciudad_cliente → string canónico
+          Si la ciudad es Trenque Lauquen → zona TL.
+          Cualquier otra ciudad → zona Interior.
+          Cliente recurrente NO ve el modal otra vez (queda guardado).
+
+       2. PRECIOS DE COMBO POR ZONA
+          Helpers nuevos:
+            · getZonaCliente()       → 'tl' | 'interior' (default 'interior')
+            · getCiudadCliente()     → string canónico
+            · tieneZonaDefinida()    → bool
+            · setZonaCliente(ciudad) → 'tl' | 'interior'
+            · comboPrecioPorZona(c)  → precio según zona del cliente
+          Todas las llamadas a c.precio_combo en el flujo de display y
+          cálculo se reemplazaron por comboPrecioPorZona(c). El campo
+          legacy precio_combo queda como fallback en el helper.
+
+          La tabla `combos` de Supabase ahora tiene:
+            · precio_tl      → precio para zona TL
+            · precio_interior → precio para zona Interior
+            · precio_combo   → legacy (fallback si los anteriores son null)
+
+       3. PRE-RELLENADO DE LOCALIDAD
+          poblarLocalidadesSelects() ahora pre-selecciona la ciudad
+          guardada del modal de bienvenida en los 5 selects del flujo
+          de pedido (nn/vi/ci/cli-reg/rp2).
+
+       4. RECALCULO DE PRECIOS POR CAMBIO DE ZONA
+          Si en el modal final el cliente cambia su localidad y eso
+          implica cambio de zona (TL↔Interior), confirmarYEnviarWA
+          actualiza setZonaCliente() y muestra un toast avisando que
+          los precios de los combos del carrito se recalcularon.
+
+       5. DEFAULT CONSERVADOR
+          Cliente que no eligió ciudad ve precios de Interior (más altos).
+          Cuando elige TL, baja el precio (jamás al revés sin avisar).
+
+     LO QUE NO CAMBIA EN ESTA VERSIÓN:
+       · Promos individuales (siguen como 1+1 internamente, aunque están
+         apagadas en Supabase). Cuando Kimi entregue diseño nuevo se
+         migran al modelo "50% off en 1 unidad".
+       · Resto del flujo (login, drawer, productos normales, etc.).
+
+     ──────────────────────────────────────────────────────────────────────
+
      TCK CATÁLOGO — v3.2.5 — 29/04/2026
      ──────────────────────────────────────────────────────────────────────
      ACTUALIZACIÓN DE STOCK
@@ -439,12 +494,65 @@ const qty = {};                   // Cantidades por item: {"secIdx-itemIdx": can
 const qtyCombo = {};
 // v2.7.8: qtyPromo: { 'uuid-promo': cantidad_de_pares_1+1 } — cada unidad = 1 par (2u total, 1 paga)
 const qtyPromo = {};
-// _combosData: lista cargada desde Supabase con {id, nombre, productos, precio_combo, ...}
+// _combosData: lista cargada desde Supabase con {id, nombre, productos, precio_combo, precio_tl, precio_interior, ...}
 let _combosData = [];
 // v2.7.8: _promosData: lista cargada desde Supabase productos_promo
 let _promosData = [];
 // Límite de combos por compra (se carga de Supabase, default 2)
 const MAX_COMBOS_POR_COMPRA = 2;
+
+// ── v3.3.0: Zona del cliente para precios diferenciales (TL vs Interior) ──
+// La zona se deriva de la ciudad elegida por el cliente:
+//   - Trenque Lauquen → 'tl'
+//   - cualquier otra ciudad de las 27 canónicas → 'interior'
+// Se persiste en localStorage. Default: 'interior' (precios más altos = conservador).
+const LS_ZONA_CLIENTE = 'tck_zona_cliente';   // 'tl' | 'interior'
+const LS_CIUDAD_CLIENTE = 'tck_ciudad_cliente'; // string canónico
+
+function getZonaCliente() {
+  try {
+    const z = localStorage.getItem(LS_ZONA_CLIENTE);
+    return (z === 'tl' || z === 'interior') ? z : 'interior';
+  } catch(e) { return 'interior'; }
+}
+
+function getCiudadCliente() {
+  try { return localStorage.getItem(LS_CIUDAD_CLIENTE) || ''; }
+  catch(e) { return ''; }
+}
+
+function tieneZonaDefinida() {
+  try { return !!localStorage.getItem(LS_ZONA_CLIENTE); }
+  catch(e) { return false; }
+}
+
+function setZonaCliente(ciudad) {
+  // ciudad: string con la ciudad canónica elegida
+  // Devuelve la zona derivada ('tl' o 'interior')
+  if (!ciudad) return null;
+  const norm = (typeof _localidadNormalizar === 'function')
+    ? _localidadNormalizar(ciudad)
+    : String(ciudad).toLowerCase().trim();
+  const esTL = (norm === _localidadNormalizar('Trenque Lauquen'));
+  const zona = esTL ? 'tl' : 'interior';
+  try {
+    localStorage.setItem(LS_ZONA_CLIENTE, zona);
+    localStorage.setItem(LS_CIUDAD_CLIENTE, ciudad);
+  } catch(e) {}
+  return zona;
+}
+
+// Devuelve el precio del combo según la zona del cliente.
+// Fallback orden: precio_<zona> → precio_combo (legacy) → 0.
+function comboPrecioPorZona(c) {
+  if (!c) return 0;
+  const zona = getZonaCliente();
+  const campo = (zona === 'tl') ? 'precio_tl' : 'precio_interior';
+  const v = c[campo];
+  if (v != null && !isNaN(Number(v)) && Number(v) > 0) return Number(v);
+  // Legacy fallback: si Supabase no tiene precio_<zona>, usar precio_combo
+  return Number(c.precio_combo || 0);
+}
 
 // ── Estado del gesto "hold" (mantener presionado +/-) ─────────────
 let holdTimeout   = null;
@@ -613,11 +721,13 @@ function localidadesSelectHTML(opts) {
  */
 function poblarLocalidadesSelects() {
   const ids = ['nn-localidad', 'vi-localidad', 'ci-localidad', 'cli-reg-ciudad', 'rp2-ciudad'];
+  // v3.3.0: si el cliente ya eligió ciudad en el modal de bienvenida, pre-rellenamos
+  const ciudadGuardada = (typeof getCiudadCliente === 'function') ? getCiudadCliente() : '';
   for (const id of ids) {
     const sel = document.getElementById(id);
     if (!sel) continue;
     if (sel.tagName !== 'SELECT') continue; // si todavía es input legacy
-    const valorPrevio = sel.value;
+    const valorPrevio = sel.value || ciudadGuardada;
     let html = '<option value="">— Elegí localidad —</option>';
     for (const loc of _localidadesCanonicas) {
       html += '<option value="' + loc.ciudad + '">'
@@ -4478,7 +4588,7 @@ function T(){
   let tCombos=0, cCombos=0;
   (_combosData||[]).forEach(c => {
     const q = qtyCombo[c.id]||0;
-    tCombos += (c.precio_combo||0) * q;
+    tCombos += comboPrecioPorZona(c) * q;
     cCombos += q;
   });
   // v2.7.8: promos 1+1 — cada unidad de qtyPromo = 1 precio (el 2º viene gratis)
@@ -5366,7 +5476,8 @@ function combosRender() {
     const disponiblesVisibles = stockTotal - vendidosVisibles;
     const porcentajeBarra = Math.min(100, Math.round((vendidosVisibles / stockTotal) * 100));
     const agotado = disponiblesReales <= 0 || !c.activo;
-    const ahorro = (c.precio_lista||0) - (c.precio_combo||0);
+    const precioMostrado = comboPrecioPorZona(c);
+    const ahorro = (c.precio_lista||0) - precioMostrado;
 
     // Productos del combo para el listado
     let items = '';
@@ -5402,7 +5513,7 @@ function combosRender() {
           '<span class="combo-precio-tachado">' + fmt(c.precio_lista||0) + '</span>' +
           '<span class="combo-precio-off">AHORRÁS ' + fmt(ahorro) + '</span>' +
         '</div>' +
-        '<div class="combo-precio-combo">' + fmt(c.precio_combo||0) + '</div>' +
+        '<div class="combo-precio-combo">' + fmt(precioMostrado) + '</div>' +
         '<div class="combo-barra-wrap">' +
           '<div class="combo-progreso"><div class="combo-progreso-barra" style="width:' + porcentajeBarra + '%"></div></div>' +
           '<div class="combo-progreso-texto">⚡ ' + porcentajeBarra + '% del stock ya vendido</div>' +
@@ -5565,7 +5676,7 @@ function combosLineasWA() {
     } catch(e) {
       comboLineas.push('   ✓ ' + (c.descripcion||''));
     }
-    comboLineas.push('   💰 ' + fmt((c.precio_combo||0) * q) + ' (-' + (c.descuento_pct||7) + '%)');
+    comboLineas.push('   💰 ' + fmt(comboPrecioPorZona(c) * q) + ' (-' + (c.descuento_pct||7) + '%)');
     lineas.push(...comboLineas);
     lineas.push('');
   });
@@ -5870,7 +5981,7 @@ function renderDrawer(){
           '<span class="d-combo-qty-val">' + q + '</span>' +
           '<button class="d-combo-qty-btn" onclick="combosSumar(\'' + combo.id + '\')" aria-label="Sumar">+</button>' +
         '</div>' +
-        '<div class="d-combo-precio-val">' + fmt((combo.precio_combo||0) * q) + '</div>' +
+        '<div class="d-combo-precio-val">' + fmt(comboPrecioPorZona(combo) * q) + '</div>' +
       '</div>' +
     '</div>';
   });
@@ -6040,6 +6151,69 @@ function abrirIG(){
 function abrirModal(id){document.getElementById(id).classList.add('on');}
 function cerrarModal(id){document.getElementById(id).classList.remove('on');}
 function cerrarModalFondo(e,id){if(e.target===document.getElementById(id))cerrarModal(id);}
+
+// ── v3.3.0: Modal de zona del cliente ────────────────────────────
+// Se llama desde el init si !tieneZonaDefinida(). Pobla el dropdown
+// con las localidades canónicas y abre el modal.
+function abrirModalZonaCliente() {
+  const sel = document.getElementById('zc-localidad');
+  if (!sel) return;
+  // Si ya estaba poblado, no repoblar
+  if (sel.options.length > 1) {
+    abrirModal('modal-zona-cliente');
+    return;
+  }
+  // Esperar a que las localidades canónicas estén cargadas
+  function poblar() {
+    if (!Array.isArray(_localidadesCanonicas) || _localidadesCanonicas.length === 0) return false;
+    sel.innerHTML = '<option value="">— Elegí tu ciudad —</option>';
+    for (const loc of _localidadesCanonicas) {
+      const opt = document.createElement('option');
+      opt.value = loc.ciudad;
+      opt.textContent = loc.ciudad;
+      sel.appendChild(opt);
+    }
+    return true;
+  }
+  if (!poblar()) {
+    // Reintentar cuando estén cargadas
+    let intentos = 0;
+    const tick = setInterval(() => {
+      intentos++;
+      if (poblar() || intentos >= 30) {  // 30 intentos × 200ms = 6s máx
+        clearInterval(tick);
+      }
+    }, 200);
+  }
+  abrirModal('modal-zona-cliente');
+}
+
+// Se llama al tocar "Continuar" en el modal de zona.
+// Si no eligió, no cierra (es obligatorio).
+function confirmarZonaCliente() {
+  const sel = document.getElementById('zc-localidad');
+  const ciudad = (sel && sel.value || '').trim();
+  if (!ciudad) {
+    if (sel) sel.focus();
+    if (typeof toast === 'function') toast('Elegí tu ciudad para continuar', 'err');
+    else alert('Elegí tu ciudad para continuar');
+    return;
+  }
+  const zonaAnterior = getZonaCliente();
+  setZonaCliente(ciudad);
+  cerrarModal('modal-zona-cliente');
+  // Re-render combos con precios actualizados
+  if (typeof combosRender === 'function') combosRender();
+  if (typeof updateBar === 'function') updateBar();
+  if (document.getElementById('drawer') && document.getElementById('drawer').classList.contains('on')) {
+    if (typeof renderDrawer === 'function') renderDrawer();
+  }
+  // Si el cliente cambió de zona y ya tenía combos en el carrito → avisar
+  const zonaNueva = getZonaCliente();
+  if (zonaAnterior !== zonaNueva && Object.keys(qtyCombo).some(k => (qtyCombo[k] || 0) > 0)) {
+    if (typeof toast === 'function') toast('Actualizamos tus combos según tu zona', 'ok');
+  }
+}
 
 
 function toggleFAB(){
@@ -6371,6 +6545,21 @@ function confirmarYEnviarWA() {
     return;
   }
 
+  // v3.3.0: si la localidad final difiere de la del modal de bienvenida,
+  // actualizamos la zona del cliente. Si cambió la zona y hay combos en
+  // el carrito, recalculamos precios y avisamos al cliente antes de seguir.
+  const zonaPrevia = (typeof getZonaCliente === 'function') ? getZonaCliente() : 'interior';
+  if (typeof setZonaCliente === 'function') setZonaCliente(localidad);
+  const zonaNueva = (typeof getZonaCliente === 'function') ? getZonaCliente() : 'interior';
+  if (zonaPrevia !== zonaNueva && Object.keys(qtyCombo).some(k => (qtyCombo[k] || 0) > 0)) {
+    if (typeof toast === 'function') {
+      toast('Actualizamos tus combos según ' + localidad, 'ok');
+    }
+    if (typeof updateBar === 'function') updateBar();
+    // Re-render carrito si está abierto
+    if (typeof renderDrawer === 'function') renderDrawer();
+  }
+
   // Guardar datos para próxima vez
   guardarDatosCliente(nombre, comercio, localidad, telefono);
 
@@ -6525,7 +6714,7 @@ function confirmarYEnviarWA() {
       if (qc > 0) contentsBuy.push({
         id: 'combo-' + combo.id,
         quantity: qc,
-        item_price: combo.precio_combo || 0
+        item_price: comboPrecioPorZona(combo)
       });
     });
     fbqSafe('Purchase', {
@@ -6588,7 +6777,7 @@ function confirmarYEnviarWA() {
       if (q > 0) {
         prodHtml += '<div class="pod-prod-item" style="background:linear-gradient(135deg,#FFF8E1,#FFECB3);border-left:3px solid #FFD700;padding-left:8px">' +
           '<div class="pod-prod-nombre">🔥 ' + (combo.nombre||'Combo') + ' × ' + q + '</div>' +
-          '<div class="pod-prod-detalle">' + fmt((combo.precio_combo||0) * q) + ' (-' + (combo.descuento_pct||7) + '%)</div>' +
+          '<div class="pod-prod-detalle">' + fmt(comboPrecioPorZona(combo) * q) + ' (-' + (combo.descuento_pct||7) + '%)</div>' +
           '</div>';
       }
     });
@@ -6833,6 +7022,10 @@ cargarPrecios().finally(() => {
   cargarLocalidadesCanonicas().then(() => {
     // Repoblar selects que ya estén renderizados
     if (typeof poblarLocalidadesSelects === 'function') poblarLocalidadesSelects();
+    // v3.3.0: si el cliente no tiene zona definida todavía, abrir modal
+    if (!tieneZonaDefinida()) {
+      setTimeout(abrirModalZonaCliente, 350);  // pequeño delay para no chocar con el render inicial
+    }
   }).catch(e => console.error('[localidades] cargar:', e));
 
   // 1. Ocultar siempre el sv y el login — catálogo directo
@@ -7306,6 +7499,36 @@ document.addEventListener('visibilitychange', function() {
 
 
 <!-- MODAL IDENTIFICACIÓN CLIENTE ANTES DE ENVIAR WA -->
+<!-- v3.3.0: Modal de bienvenida para zona del cliente ─────────── -->
+<!-- Aparece la primera vez que el cliente entra al catálogo. -->
+<!-- Pregunta su ciudad (28 ciudades canónicas) y deriva la zona  -->
+<!-- internamente para mostrar precios correctos en los combos.   -->
+<!-- Copy: NO menciona precios — el cliente solo ve "para coordinar -->
+<!-- la entrega". La zona se aplica internamente.                  -->
+<div class="tck-modal" id="modal-zona-cliente">
+  <div class="tck-modal-box">
+    <div class="tck-modal-hdr">
+      <div class="tck-modal-title">👋 ¡Bienvenido a TCK!</div>
+    </div>
+    <div class="modal-wa-preview" style="background:#FFF8E1;border-left:3px solid #FFD700;padding:10px 12px;margin-bottom:14px;font-size:13px;line-height:1.45">
+      <b>Para arrancar, decinos de qué ciudad sos.</b><br>
+      <span style="color:var(--text2);font-weight:400">Lo necesitamos para coordinar tu entrega.</span>
+    </div>
+    <div class="tck-field">
+      <label class="tck-label">Tu ciudad <span style="color:var(--red2)">*</span></label>
+      <select class="tck-input tck-select" id="zc-localidad">
+        <option value="">— Elegí tu ciudad —</option>
+      </select>
+    </div>
+    <button class="tck-submit-wa" onclick="confirmarZonaCliente()" style="margin-top:8px">
+      Continuar
+    </button>
+    <div style="text-align:center;margin-top:10px;font-size:11px;color:var(--text3)">
+      Si tu ciudad no está, podés elegirla más tarde al confirmar el pedido.
+    </div>
+  </div>
+</div>
+
 <div class="tck-modal" id="modal-cliente-id" onclick="cerrarModalFondo(event,'modal-cliente-id')">
   <div class="tck-modal-box">
     <div class="tck-modal-hdr">
