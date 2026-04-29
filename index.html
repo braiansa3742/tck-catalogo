@@ -2,6 +2,47 @@
 <html lang="es">
 <head>
 <!-- ═══════════════════════════════════════════════════════════════════════
+     TCK CATÁLOGO — v3.5.3 — 29/04/2026
+     ──────────────────────────────────────────────────────────────────────
+     MEJORAS PANTALLA INTRO + WHATSAPP
+
+     Cambios v3.5.3 (sobre v3.5.2):
+
+       1. CTA + WHATSAPP ARRIBA (sin scrollear)
+          - Botón "Ver el catálogo" repetido después del video
+          - Botón verde de WhatsApp al lado, ambos visibles en
+            primera vista sin tener que scrollear
+          - Versión al pie también, para cierre
+
+       2. SE QUITAN LAS MARCAS
+          - Decisión estratégica: no exponer proveedores/marcas a
+            la competencia que podría intentar robar acuerdos
+          - Línea "Marcas líderes: El Shaddai, McCain, Solimeno..."
+            REMOVIDA
+
+       3. BLOQUE CRONOGRAMA "¿Cuándo llegamos a tu ciudad?"
+          - Trenque Lauquen: todos los días, mañana y tarde
+          - Zona 1 (Lunes y Martes, 12 ciudades):
+              Beruti, Paso, Madero, Pehuajó, Mones Cazón, Salazar,
+              Henderson, Daireaux, Bonifacio*, Urdampilleta,
+              Pirovano, Bolívar
+              (*Bonifacio: desde $500.000 de pedido)
+          - Zona 2 (Jueves y Viernes, 12 ciudades):
+              Pellegrini, Debary, Quenumá, Villa Maza, Tres Lomas,
+              Thompson, Salliqueló, Guaminí, Cochicó, Casbas,
+              Garré, 30 de Agosto
+          - Zona 3 (Martes, 2 ciudades):
+              Fortín, América
+
+       4. WHATSAPP TCK ONLINE: 2392-404745
+          - Botón verde con ícono SVG
+          - Link directo wa.me/5492392404745 con mensaje
+            pre-armado: "Hola TCK! Tengo una consulta..."
+
+       5. NÚMERO DE CIUDADES
+          - Era "28 ciudades" en v3.5.2 → ajustado al conteo real
+
+     ──────────────────────────────────────────────────────────────────────
      TCK CATÁLOGO — v3.5.2 — 29/04/2026
      ──────────────────────────────────────────────────────────────────────
      PANTALLA "SOBRE TCK" — Confianza para tráfico Meta Ads
@@ -4635,6 +4676,202 @@ body.intro-tck-abierta {
   .intro-tck-cta { font-size: 17px; padding: 14px 16px; }
 }
 
+/* ═══════════════════════════════════════════════════════════════════════
+   v3.5.3 — Bloque CTAs + WhatsApp + Cronograma de zonas
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* Contenedor de los 2 botones (Ver catálogo + WhatsApp) */
+.intro-tck-actions {
+  display: flex;
+  gap: 8px;
+  margin: 14px 0 18px 0;
+}
+.intro-tck-actions .intro-tck-cta {
+  flex: 1;
+}
+
+/* Botón WhatsApp (verde de WhatsApp oficial) */
+.intro-tck-wa {
+  flex: 0 0 auto;
+  width: 56px;
+  height: 56px;
+  background: linear-gradient(180deg, #25D366 0%, #1da851 100%);
+  border: none;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  text-decoration: none;
+  box-shadow: 0 4px 14px rgba(37, 211, 102, 0.35);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.intro-tck-wa:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(37, 211, 102, 0.45);
+}
+.intro-tck-wa:active {
+  transform: translateY(0);
+}
+.intro-tck-wa svg {
+  width: 28px;
+  height: 28px;
+  fill: #fff;
+}
+
+/* Versión "expandida" del botón WA (al pie, con texto) */
+.intro-tck-wa-full {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  padding: 14px 18px;
+  background: linear-gradient(180deg, #25D366 0%, #1da851 100%);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 17px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  cursor: pointer;
+  text-decoration: none;
+  box-shadow: 0 4px 14px rgba(37, 211, 102, 0.35);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  margin-top: 10px;
+}
+.intro-tck-wa-full:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(37, 211, 102, 0.45);
+}
+.intro-tck-wa-full svg {
+  width: 22px;
+  height: 22px;
+  fill: #fff;
+  flex-shrink: 0;
+}
+
+/* Bloque cronograma de zonas */
+.intro-tck-cronograma-titulo {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 16px;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: var(--red, #B71C1C);
+  letter-spacing: 0.8px;
+  margin: 8px 0 10px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.intro-tck-cronograma-titulo .ico {
+  font-size: 20px;
+}
+
+.intro-tck-zonas {
+  background: #fff;
+  border: 1px solid #f0d8d8;
+  border-radius: 12px;
+  margin-bottom: 14px;
+  overflow: hidden;
+}
+.intro-tck-zona {
+  padding: 12px 14px;
+}
+.intro-tck-zona + .intro-tck-zona {
+  border-top: 1px solid #f5e8e8;
+}
+.intro-tck-zona-cabecera {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+  flex-wrap: wrap;
+}
+.intro-tck-zona-nombre {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 15px;
+  font-weight: 800;
+  color: #2a1a1a;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.intro-tck-zona-dias {
+  background: var(--red, #B71C1C);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+.intro-tck-zona-dias.dias-todos {
+  background: #1E8449;
+}
+.intro-tck-zona-ciudades {
+  font-size: 13px;
+  line-height: 1.55;
+  color: #3a2424;
+}
+.intro-tck-zona-nota {
+  font-size: 11px;
+  color: #888;
+  font-style: italic;
+  margin-top: 4px;
+}
+
+.intro-tck-zona-noseve {
+  text-align: center;
+  font-size: 12px;
+  color: #5a3838;
+  margin: -6px 0 18px;
+}
+.intro-tck-zona-noseve a {
+  color: #1da851;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+/* Botón flotante de WhatsApp (visible en TODO el catálogo) */
+#wa-float {
+  position: fixed;
+  bottom: 80px;
+  right: 16px;
+  width: 56px;
+  height: 56px;
+  background: linear-gradient(180deg, #25D366 0%, #1da851 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 6px 20px rgba(37, 211, 102, 0.45);
+  cursor: pointer;
+  text-decoration: none;
+  z-index: 900;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  animation: wa-float-in 0.4s ease 0.6s backwards;
+}
+#wa-float:hover {
+  transform: scale(1.05);
+  box-shadow: 0 8px 24px rgba(37, 211, 102, 0.55);
+}
+#wa-float svg {
+  width: 30px;
+  height: 30px;
+  fill: #fff;
+}
+@keyframes wa-float-in {
+  from { transform: scale(0); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+/* No mostrar el botón flotante si la pantalla intro está visible */
+body.intro-tck-abierta #wa-float {
+  display: none;
+}
+
 </style>
 
 <!-- ═══════════════════════════════════════════════════════════════════════
@@ -8454,13 +8691,76 @@ document.addEventListener('visibilitychange', function() {
       </video>
     </div>
 
+    <!-- v3.5.3: CTA + WA arriba para que el cliente no tenga que scrollear -->
+    <div class="intro-tck-actions">
+      <button class="intro-tck-cta" onclick="cerrarIntroTCK()" type="button">
+        <span>Ver el catálogo</span>
+        <span class="arrow">→</span>
+      </button>
+      <a class="intro-tck-wa"
+         href="https://wa.me/5492392404745?text=Hola%20TCK!%20Tengo%20una%20consulta..."
+         target="_blank"
+         rel="noopener"
+         aria-label="Consultar por WhatsApp"
+         onclick="try{localStorage.setItem('tck_intro_visto','1');}catch(e){}">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.002-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+        </svg>
+      </a>
+    </div>
+
     <ul class="intro-tck-features">
-      <li><span><b>+130 productos</b> en pollos, congelados, pastas, huevos y papas McCain</span></li>
-      <li><span>Marcas líderes: <b>El Shaddai, McCain, Solimeno, Balcarce, La Caseriana</b></span></li>
-      <li><span><b>Envío propio gratis</b> a 28 ciudades · radio de 100 km</span></li>
+      <li><span><b>+130 productos</b> en pollos, congelados, pastas, huevos y papas</span></li>
+      <li><span><b>Envío propio gratis</b> · radio de 100 km desde Trenque Lauquen</span></li>
       <li><span><b>Sin pedido mínimo</b> · pedí lo que necesites</span></li>
       <li><span>Pago al recibir: <b>efectivo, transferencia o tarjeta</b></span></li>
     </ul>
+
+    <!-- v3.5.3: Cronograma de zonas y días de reparto -->
+    <div class="intro-tck-cronograma-titulo">
+      <span class="ico">🚛</span>
+      <span>¿Cuándo llegamos a tu ciudad?</span>
+    </div>
+    <div class="intro-tck-zonas">
+      <div class="intro-tck-zona">
+        <div class="intro-tck-zona-cabecera">
+          <span class="intro-tck-zona-nombre">🏠 Trenque Lauquen</span>
+          <span class="intro-tck-zona-dias dias-todos">Todos los días</span>
+        </div>
+        <div class="intro-tck-zona-ciudades">Mañana y tarde</div>
+      </div>
+      <div class="intro-tck-zona">
+        <div class="intro-tck-zona-cabecera">
+          <span class="intro-tck-zona-nombre">📍 Zona 1</span>
+          <span class="intro-tck-zona-dias">Lunes y Martes</span>
+        </div>
+        <div class="intro-tck-zona-ciudades">
+          Beruti · Bolívar · Daireaux · Henderson · Madero · Mones Cazón · Paso · Pehuajó · Pirovano · Salazar · Urdampilleta · Bonifacio*
+        </div>
+        <div class="intro-tck-zona-nota">* Bonifacio: pedidos desde $500.000</div>
+      </div>
+      <div class="intro-tck-zona">
+        <div class="intro-tck-zona-cabecera">
+          <span class="intro-tck-zona-nombre">📍 Zona 2</span>
+          <span class="intro-tck-zona-dias">Jueves y Viernes</span>
+        </div>
+        <div class="intro-tck-zona-ciudades">
+          30 de Agosto · Casbas · Cochicó · Debary · Garré · Guaminí · Pellegrini · Quenumá · Salliqueló · Thompson · Tres Lomas · Villa Maza
+        </div>
+      </div>
+      <div class="intro-tck-zona">
+        <div class="intro-tck-zona-cabecera">
+          <span class="intro-tck-zona-nombre">📍 Zona 3</span>
+          <span class="intro-tck-zona-dias">Martes</span>
+        </div>
+        <div class="intro-tck-zona-ciudades">América · Fortín</div>
+      </div>
+    </div>
+    <div class="intro-tck-zona-noseve">
+      ¿Tu ciudad no aparece?
+      <a href="https://wa.me/5492392404745?text=Hola%20TCK!%20Mi%20ciudad%20es%20___%20%C2%BFllegan%20hasta%20ah%C3%AD%3F"
+         target="_blank" rel="noopener">Consultá por WhatsApp →</a>
+    </div>
 
     <div class="intro-tck-galeria-titulo">📸 Conocenos por dentro</div>
     <div class="intro-tck-galeria" id="intro-tck-galeria">
@@ -8481,7 +8781,7 @@ document.addEventListener('visibilitychange', function() {
       </div>
       <div class="intro-tck-galeria-item">
         <img src="img/empresa/empresa_04_camara_fria.jpg"
-             alt="Cámara de frío con productos Ginosa"
+             alt="Cámara de frío con productos"
              loading="lazy">
       </div>
       <div class="intro-tck-galeria-item">
@@ -8515,14 +8815,36 @@ document.addEventListener('visibilitychange', function() {
       </div>
     </div>
 
+    <!-- v3.5.3: CTA + WA al pie también -->
     <div class="intro-tck-cta-wrap">
       <button class="intro-tck-cta" onclick="cerrarIntroTCK()" type="button">
         <span>Ver el catálogo</span>
         <span class="arrow">→</span>
       </button>
+      <a class="intro-tck-wa-full"
+         href="https://wa.me/5492392404745?text=Hola%20TCK!%20Tengo%20una%20consulta..."
+         target="_blank"
+         rel="noopener"
+         onclick="try{localStorage.setItem('tck_intro_visto','1');}catch(e){}">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.002-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+        </svg>
+        <span>Consultar por WhatsApp</span>
+      </a>
     </div>
   </div>
 </div>
+
+<!-- v3.5.3: Botón flotante de WhatsApp visible en TODO el catálogo -->
+<a id="wa-float"
+   href="https://wa.me/5492392404745?text=Hola%20TCK!%20Tengo%20una%20consulta..."
+   target="_blank"
+   rel="noopener"
+   aria-label="Consultar por WhatsApp">
+  <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.002-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+  </svg>
+</a>
 
 <!-- v3.3.0: Modal de bienvenida para zona del cliente ─────────── -->
 <!-- Aparece la primera vez que el cliente entra al catálogo. -->
