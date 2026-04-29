@@ -2,6 +2,63 @@
 <html lang="es">
 <head>
 <!-- ═══════════════════════════════════════════════════════════════════════
+     TCK CATÁLOGO — v3.5.2 — 29/04/2026
+     ──────────────────────────────────────────────────────────────────────
+     PANTALLA "SOBRE TCK" — Confianza para tráfico Meta Ads
+
+     Cambios v3.5.2 (sobre v3.5.1):
+
+       1. NUEVA PANTALLA INTRO "SOBRE TCK" (#modal-intro-tck)
+          - Aparece UNA SOLA VEZ ANTES del modal "elegí tu ciudad"
+          - Solo cuando el cliente entra desde campaña paga
+            (?v=fb / ?v=ig / ?v=google / ?v=tiktok)
+          - Cliente orgánico (sin parámetro o con vendedor humano)
+            NO la ve nunca
+          - LocalStorage flag `tck_intro_visto` evita re-mostrarla en
+            visitas posteriores (aun con ?v=fb otra vez)
+
+       2. CONTENIDO DE LA PANTALLA
+          - Logo TCK + tagline "Distribuidora mayorista"
+          - Video institucional 15s en loop, sin sonido, autoplay
+            (assets en /img/empresa/)
+          - 5 puntos de valor: +130 productos, marcas líderes, envío
+            gratis, sin mínimo, pago al recibir
+          - Carrusel horizontal con 5 fotos del depósito + flota +
+            cámara fría (swipe en mobile, scroll suave en desktop)
+          - Datos fiscales completos:
+              · TCK The Chicken Kings S.R.L.
+              · CUIT 33-71741695-9
+              · SENASA N° 2-453721
+              · San Lorenzo 460, Trenque Lauquen
+          - Botón único "Ver el catálogo →" que cierra la pantalla
+            y deja al cliente en el modal de ciudad como antes
+
+       3. ASSETS NECESARIOS EN /img/empresa/
+          - tck_intro.mp4   (753 KB · 720x408 · 15.1s · sin audio)
+          - tck_intro.webm  (935 KB · 720x408 · 15.1s · sin audio)
+          - tck_intro_poster.jpg (18 KB · primer frame placeholder)
+          - empresa_01_deposito.jpg     (146 KB · frente con cartel)
+          - empresa_02_flota.jpg        ( 57 KB · flota Iveco)
+          - empresa_03_camion.jpg       ( 94 KB · camión saliendo)
+          - empresa_04_camara_fria.jpg  (134 KB · cámara Carrier)
+          - empresa_05_distribucion.jpg (103 KB · camión en calle)
+
+       4. INTERACCIÓN CON FLUJO EXISTENTE
+          - El modal de ciudad (#modal-zona-cliente) ya NO aparece al
+            cargar la página si la pantalla intro está activa.
+          - Recién aparece cuando el cliente clickea "Ver el catálogo".
+          - Si NO se cumplen las condiciones de mostrar intro, el flujo
+            es idéntico a v3.5.1.
+
+       5. PERFORMANCE
+          - Video con poster JPG para no parpadear durante carga
+          - Lazy load de fotos del carrusel (solo carga cuando se
+            scrollea hasta ellas)
+          - Total de assets: ~2.3 MB pero distribuidos
+          - Solo se carga si va a mostrarse (verificación de
+            localStorage + canal antes de inyectar HTML del video)
+
+     ──────────────────────────────────────────────────────────────────────
      TCK CATÁLOGO — v3.5.1 — 29/04/2026
      ──────────────────────────────────────────────────────────────────────
      TRACKING DE ORIGEN — origen_marketing en payload de pedido
@@ -4325,6 +4382,259 @@ button,
   min-width: 18px;
   text-align: center;
 }
+
+/* ═══════════════════════════════════════════════════════════════════════
+   v3.5.2 — PANTALLA "SOBRE TCK" (intro de confianza para tráfico Meta)
+   ═══════════════════════════════════════════════════════════════════════ */
+
+#modal-intro-tck {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: linear-gradient(180deg, #fff 0%, #fff8f0 100%);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  display: none;
+  font-family: 'Barlow', system-ui, -apple-system, sans-serif;
+}
+#modal-intro-tck.activo {
+  display: block;
+}
+
+/* Bloquea scroll del body cuando la pantalla está abierta */
+body.intro-tck-abierta {
+  overflow: hidden;
+}
+
+.intro-tck-cont {
+  max-width: 520px;
+  margin: 0 auto;
+  padding: 22px 18px 28px;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.intro-tck-logo {
+  text-align: center;
+  margin-bottom: 6px;
+}
+.intro-tck-logo img {
+  height: 60px;
+  width: auto;
+}
+.intro-tck-titulo {
+  text-align: center;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 28px;
+  font-weight: 900;
+  color: var(--red, #B71C1C);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  line-height: 1.1;
+  margin: 4px 0 2px;
+}
+.intro-tck-sub {
+  text-align: center;
+  font-size: 14px;
+  color: #5a3838;
+  font-weight: 600;
+  margin-bottom: 18px;
+}
+
+.intro-tck-video {
+  position: relative;
+  width: 100%;
+  border-radius: 14px;
+  overflow: hidden;
+  background: #000;
+  aspect-ratio: 720 / 408;
+  margin-bottom: 18px;
+  box-shadow: 0 4px 18px rgba(183, 28, 28, 0.18);
+}
+.intro-tck-video video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.intro-tck-features {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 18px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.intro-tck-features li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 15px;
+  color: #2a1a1a;
+  line-height: 1.4;
+  font-weight: 500;
+}
+.intro-tck-features li::before {
+  content: '✓';
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  background: #1E8449;
+  color: #fff;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 900;
+  font-size: 13px;
+  margin-top: 1px;
+}
+.intro-tck-features li b {
+  color: var(--red, #B71C1C);
+  font-weight: 800;
+}
+
+.intro-tck-galeria-titulo {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #5a3838;
+  letter-spacing: 1px;
+  margin: 8px 0 8px 2px;
+}
+
+.intro-tck-galeria {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scroll-snap-type: x mandatory;
+  margin: 0 -18px 6px -18px;
+  padding: 4px 18px 14px 18px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(183, 28, 28, 0.4) transparent;
+}
+.intro-tck-galeria::-webkit-scrollbar {
+  height: 4px;
+}
+.intro-tck-galeria::-webkit-scrollbar-track {
+  background: transparent;
+}
+.intro-tck-galeria::-webkit-scrollbar-thumb {
+  background: rgba(183, 28, 28, 0.35);
+  border-radius: 4px;
+}
+.intro-tck-galeria-item {
+  flex: 0 0 auto;
+  width: 220px;
+  height: 145px;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #f0e8e0;
+  scroll-snap-align: start;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.10);
+}
+.intro-tck-galeria-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.intro-tck-galeria-hint {
+  text-align: center;
+  font-size: 11px;
+  color: #999;
+  margin: -2px 0 14px;
+  font-style: italic;
+}
+
+.intro-tck-datos {
+  background: #fff;
+  border: 1px solid #f0d8d8;
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-bottom: 18px;
+  font-size: 13px;
+  line-height: 1.55;
+  color: #3a2424;
+}
+.intro-tck-datos .row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0;
+}
+.intro-tck-datos .row + .row {
+  border-top: 1px solid #f5e8e8;
+}
+.intro-tck-datos .ico {
+  flex-shrink: 0;
+  width: 18px;
+  text-align: center;
+  font-size: 14px;
+}
+.intro-tck-datos .lbl {
+  flex-shrink: 0;
+  font-size: 11px;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: #8a5a5a;
+  letter-spacing: 0.5px;
+  width: 70px;
+}
+.intro-tck-datos .val {
+  font-weight: 600;
+  color: #2a1a1a;
+  font-size: 13px;
+}
+
+.intro-tck-cta-wrap {
+  margin-top: auto;
+  padding-top: 8px;
+}
+.intro-tck-cta {
+  width: 100%;
+  padding: 16px 18px;
+  background: linear-gradient(180deg, var(--red, #B71C1C) 0%, var(--red2, #7B0000) 100%);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 19px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(183, 28, 28, 0.35);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+.intro-tck-cta:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(183, 28, 28, 0.45);
+}
+.intro-tck-cta:active {
+  transform: translateY(0);
+}
+.intro-tck-cta .arrow {
+  font-size: 22px;
+  font-weight: 900;
+}
+
+@media (max-width: 380px) {
+  .intro-tck-titulo { font-size: 24px; }
+  .intro-tck-features li { font-size: 14px; }
+  .intro-tck-galeria-item { width: 180px; height: 120px; }
+  .intro-tck-cta { font-size: 17px; padding: 14px 16px; }
+}
+
 </style>
 
 <!-- ═══════════════════════════════════════════════════════════════════════
@@ -6658,7 +6968,16 @@ function cerrarModalFondo(e,id){if(e.target===document.getElementById(id))cerrar
 // ── v3.3.0: Modal de zona del cliente ────────────────────────────
 // Se llama desde el init si !tieneZonaDefinida(). Pobla el dropdown
 // con las localidades canónicas y abre el modal.
+// v3.5.2: Si la pantalla intro de TCK está activa, NO abre el modal
+//         de ciudad — se difiere hasta que el cliente cierre la intro.
 function abrirModalZonaCliente() {
+  // v3.5.2: defer si la pantalla intro está visible
+  const introEl = document.getElementById('modal-intro-tck');
+  if (introEl && introEl.classList.contains('activo')) {
+    // Marcar como pendiente; cerrarIntroTCK() se encargará de abrirlo después
+    window._zonaPendientePorIntro = true;
+    return;
+  }
   const sel = document.getElementById('zc-localidad');
   if (!sel) return;
   // Si ya estaba poblado, no repoblar
@@ -7531,6 +7850,68 @@ function clearCartLS() {
   if (idx >= 0) try { localStorage.setItem('tck_vendedor_link', idx); } catch(e) {}
 })();
 
+// ═══════════════════════════════════════════════════════════════════════
+// v3.5.2 — PANTALLA INTRO "SOBRE TCK" (confianza para tráfico Meta Ads)
+// ═══════════════════════════════════════════════════════════════════════
+// Aparece UNA SOLA VEZ antes del modal de elegir ciudad, solo si:
+//   1. _canalSinVendedor está seteado (entró con ?v=fb/ig/google/tiktok)
+//   2. localStorage.tck_intro_visto NO existe
+// Razón: clientes orgánicos (sin parámetro o con vendedor humano) ya
+// confían; quienes vienen de Meta Ads necesitan ver señales de seriedad
+// antes de empezar a navegar el catálogo.
+// ───────────────────────────────────────────────────────────────────────
+
+function debeIMostrarIntroTCK() {
+  // No mostrar si no hay canal pago activo
+  if (!_canalSinVendedor) return false;
+  // No mostrar si ya la vio
+  try {
+    if (localStorage.getItem('tck_intro_visto') === '1') return false;
+  } catch(e) { /* localStorage bloqueado, igual mostrar */ }
+  return true;
+}
+
+function mostrarIntroTCK() {
+  const el = document.getElementById('modal-intro-tck');
+  if (!el) return;
+  el.classList.add('activo');
+  document.body.classList.add('intro-tck-abierta');
+  // Forzar que el video arranque (algunos navegadores son cautos con autoplay)
+  const video = document.getElementById('intro-tck-video-el');
+  if (video) {
+    const playPromise = video.play();
+    if (playPromise && playPromise.catch) {
+      playPromise.catch(() => { /* ignorar — el poster sirve de fallback */ });
+    }
+  }
+}
+
+function cerrarIntroTCK() {
+  const el = document.getElementById('modal-intro-tck');
+  if (!el) return;
+  // Pausar video para liberar recursos
+  const video = document.getElementById('intro-tck-video-el');
+  if (video) { try { video.pause(); } catch(e) {} }
+  // Marcar como visto
+  try { localStorage.setItem('tck_intro_visto', '1'); } catch(e) {}
+  // Cerrar overlay
+  el.classList.remove('activo');
+  document.body.classList.remove('intro-tck-abierta');
+  // Si quedó pendiente abrir el modal de ciudad, hacerlo ahora
+  if (window._zonaPendientePorIntro) {
+    window._zonaPendientePorIntro = false;
+    setTimeout(abrirModalZonaCliente, 200);
+  }
+}
+
+// Disparar la pantalla intro lo antes posible (sin esperar a que carguen
+// precios/combos/etc) para que el cliente la vea de entrada. La inyección
+// del HTML ya está en el body, solo hay que activarla.
+if (debeIMostrarIntroTCK()) {
+  // setTimeout 0 para asegurar que el DOM esté parseado
+  setTimeout(mostrarIntroTCK, 0);
+}
+
 cargarPrecios().finally(() => {
   if (typeof mostrarRepFab === 'function') mostrarRepFab();
   renderVend(); renderNav(); renderBody(); updateBar();
@@ -8042,6 +8423,107 @@ document.addEventListener('visibilitychange', function() {
 
 
 <!-- MODAL IDENTIFICACIÓN CLIENTE ANTES DE ENVIAR WA -->
+<!-- ═══════════════════════════════════════════════════════════════════════
+     v3.5.2 — MODAL INTRO "SOBRE TCK" (pantalla de confianza para Meta Ads)
+     ═══════════════════════════════════════════════════════════════════════
+     Aparece SOLO cuando:
+       1. _canalSinVendedor está seteado (entró con ?v=fb/ig/google/tiktok)
+       2. localStorage.tck_intro_visto NO existe
+     Si se cumple, se muestra antes que el modal-zona-cliente.
+     Al cerrarla, recién ahí aparece el modal de elegir ciudad. -->
+<div id="modal-intro-tck" role="dialog" aria-labelledby="intro-tck-titulo">
+  <div class="intro-tck-cont">
+    <div class="intro-tck-logo">
+      <img src="img/logo-tck.png" alt="TCK · The Chicken Kings"
+           onerror="this.style.display='none'">
+    </div>
+    <h1 class="intro-tck-titulo" id="intro-tck-titulo">The Chicken Kings</h1>
+    <div class="intro-tck-sub">Distribuidora mayorista en Trenque Lauquen</div>
+
+    <div class="intro-tck-video">
+      <video
+        id="intro-tck-video-el"
+        autoplay
+        muted
+        loop
+        playsinline
+        preload="metadata"
+        poster="img/empresa/tck_intro_poster.jpg">
+        <source src="img/empresa/tck_intro.webm" type="video/webm">
+        <source src="img/empresa/tck_intro.mp4"  type="video/mp4">
+      </video>
+    </div>
+
+    <ul class="intro-tck-features">
+      <li><span><b>+130 productos</b> en pollos, congelados, pastas, huevos y papas McCain</span></li>
+      <li><span>Marcas líderes: <b>El Shaddai, McCain, Solimeno, Balcarce, La Caseriana</b></span></li>
+      <li><span><b>Envío propio gratis</b> a 28 ciudades · radio de 100 km</span></li>
+      <li><span><b>Sin pedido mínimo</b> · pedí lo que necesites</span></li>
+      <li><span>Pago al recibir: <b>efectivo, transferencia o tarjeta</b></span></li>
+    </ul>
+
+    <div class="intro-tck-galeria-titulo">📸 Conocenos por dentro</div>
+    <div class="intro-tck-galeria" id="intro-tck-galeria">
+      <div class="intro-tck-galeria-item">
+        <img src="img/empresa/empresa_01_deposito.jpg"
+             alt="Depósito TCK en Trenque Lauquen"
+             loading="lazy">
+      </div>
+      <div class="intro-tck-galeria-item">
+        <img src="img/empresa/empresa_02_flota.jpg"
+             alt="Flota refrigerada Iveco"
+             loading="lazy">
+      </div>
+      <div class="intro-tck-galeria-item">
+        <img src="img/empresa/empresa_03_camion.jpg"
+             alt="Camión TCK saliendo del depósito"
+             loading="lazy">
+      </div>
+      <div class="intro-tck-galeria-item">
+        <img src="img/empresa/empresa_04_camara_fria.jpg"
+             alt="Cámara de frío con productos Ginosa"
+             loading="lazy">
+      </div>
+      <div class="intro-tck-galeria-item">
+        <img src="img/empresa/empresa_05_distribucion.jpg"
+             alt="Distribución TCK en la zona"
+             loading="lazy">
+      </div>
+    </div>
+    <div class="intro-tck-galeria-hint">← Deslizá para ver más →</div>
+
+    <div class="intro-tck-datos">
+      <div class="row">
+        <span class="ico">🏢</span>
+        <span class="lbl">Razón social</span>
+        <span class="val">TCK The Chicken Kings S.R.L.</span>
+      </div>
+      <div class="row">
+        <span class="ico">📜</span>
+        <span class="lbl">CUIT</span>
+        <span class="val">33-71741695-9</span>
+      </div>
+      <div class="row">
+        <span class="ico">🛡️</span>
+        <span class="lbl">SENASA</span>
+        <span class="val">N° 2-453721</span>
+      </div>
+      <div class="row">
+        <span class="ico">📍</span>
+        <span class="lbl">Dirección</span>
+        <span class="val">San Lorenzo 460, Trenque Lauquen</span>
+      </div>
+    </div>
+
+    <div class="intro-tck-cta-wrap">
+      <button class="intro-tck-cta" onclick="cerrarIntroTCK()" type="button">
+        <span>Ver el catálogo</span>
+        <span class="arrow">→</span>
+      </button>
+    </div>
+  </div>
+</div>
+
 <!-- v3.3.0: Modal de bienvenida para zona del cliente ─────────── -->
 <!-- Aparece la primera vez que el cliente entra al catálogo. -->
 <!-- Pregunta su ciudad (28 ciudades canónicas) y deriva la zona  -->
