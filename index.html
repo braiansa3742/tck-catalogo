@@ -2,6 +2,36 @@
 <html lang="es">
 <head>
 <!-- ═══════════════════════════════════════════════════════════════════════
+     TCK CATÁLOGO — v3.5.1 — 29/04/2026
+     ──────────────────────────────────────────────────────────────────────
+     TRACKING DE ORIGEN — origen_marketing en payload de pedido
+
+     Cambios v3.5.1 (sobre v3.5.0):
+
+       1. NUEVO CAMPO origen_marketing EN PAYLOAD
+          - Hasta v3.5.0, el catálogo capturaba ?v=fb/ig/google/tiktok pero
+            NO lo persistía a Supabase. Solo se autoasignaba TCK Online y
+            se mandaba origen='Catalogo Web TCK' (string fijo).
+          - v3.5.1: el payload del pedido ahora incluye origen_marketing
+            con el canal real: 'fb', 'ig', 'google', 'tiktok',
+            'web_cliente' o 'directo'.
+          - Apps Script v25.5.0+ guarda este campo en pedidos_zona.origen
+            y permite queries del tipo:
+              SELECT * FROM pedidos_zona WHERE origen='fb';
+            para medir conversiones de campañas pagas.
+
+       2. PERSISTENCIA DE CANAL EN LOCALSTORAGE
+          - Si el cliente entró con ?v=fb y vuelve días después sin
+            parámetro, _canalSinVendedor está en null pero localStorage
+            guarda 'tck_vendedor_link=TCK_ONLINE'. En ese caso, se
+            recupera el origen como 'fb' (último canal conocido).
+          - Esto evita perder tracking en visitas de retorno.
+
+       3. SIN CAMBIOS DE UX
+          - Es un cambio puramente backend / tracking. El cliente final
+            no ve nada distinto a v3.5.0.
+
+     ──────────────────────────────────────────────────────────────────────
      TCK CATÁLOGO — v3.5.0 — 29/04/2026
      ──────────────────────────────────────────────────────────────────────
      CANAL META ADS — Vendedor "TCK Online" autoasignado
@@ -6961,6 +6991,8 @@ async function saveOrderToSheets(payload) {
     if (payload.descuento)     params.set('descuento',     String(payload.descuento));
     if (payload.subtotal)      params.set('subtotal',      String(payload.subtotal));
     if (payload.cuponAplicado) params.set('cuponAplicado', payload.cuponAplicado);
+    // v3.5.1: tracking de canal de marketing (fb / ig / google / tiktok / web_cliente / directo)
+    if (payload.origen_marketing) params.set('origen_marketing', payload.origen_marketing);
     const url = SHEETS_ENDPOINT + '?' + params.toString();
     await fetch(url, { method: 'GET', mode: 'no-cors' });
     console.log('[TCK Sheets] Pedido enviado via GET');
@@ -7157,6 +7189,20 @@ function confirmarYEnviarWA() {
     detallePedido:  detalleSinHeader,
     estado:         'Pendiente',
     origen:         _cliActivo ? 'web_cliente' : 'Catalogo Web TCK',
+    // v3.5.1: origen_marketing — canal real para tracking en pedidos_zona.origen.
+    // Prioridad: _canalSinVendedor (sesión activa) → localStorage TCK_ONLINE → cliente vs anónimo
+    origen_marketing: (function(){
+      if (_canalSinVendedor === 'CANAL_FB')     return 'fb';
+      if (_canalSinVendedor === 'CANAL_IG')     return 'ig';
+      if (_canalSinVendedor === 'CANAL_GOOGLE') return 'google';
+      if (_canalSinVendedor === 'CANAL_TIKTOK') return 'tiktok';
+      // Fallback: leer último canal de localStorage (visitas de retorno
+      // sin parámetro ?v= pero con sesión persistida desde campaña).
+      try {
+        if (localStorage.getItem('tck_vendedor_link') === 'TCK_ONLINE') return 'fb';
+      } catch(e) {}
+      return _cliActivo ? 'web_cliente' : 'directo';
+    })(),
     cliente_id:     _cliIdPedido || '',
     // v2.6.3: si aplica cupón, mandar subtotal + descuento al Sheet
     subtotal:       descuento > 0 ? subtotal : '',
