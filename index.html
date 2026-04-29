@@ -2,9 +2,56 @@
 <html lang="es">
 <head>
 <!-- ═══════════════════════════════════════════════════════════════════════
-     TCK CATÁLOGO — v3.3.0 — 29/04/2026
+     TCK CATÁLOGO — v3.4.0 — 29/04/2026
      ──────────────────────────────────────────────────────────────────────
-     ZONA DEL CLIENTE — Precios diferenciados TL vs Interior
+     PROMOS 50% OFF (mayo 2026) — Rediseño visual de cards de promo
+
+     Cambios v3.4.0 (sobre v3.3.0):
+
+       1. MIGRACIÓN MODELO PROMOS: 1+1 → 50% OFF
+          Las promos pasaron del modelo "1 paga + 1 gratis" a "50% off
+          en cada unidad, sin tope de cantidad". Cada qtyPromo = 1 unidad
+          física (no más pares).
+            · promosRender(): nuevo template con foto grande, banda verde
+              de ahorro, badge dorado rotado -4°, stepper estilo catálogo
+              (sin botón "Agregar" separado).
+            · promosSumar(): qty = qty+1 (no x2 internamente)
+            · promosLineasWA(): formato "🎁 *50% OFF: NOMBRE* × N"
+            · promosConsumirStock(): consume q (no q*2)
+            · T(): cPromos += q (no q*2)
+            · Drawer: "🎁 50% OFF: Nombre × N" (sin "pares")
+            · WhatsApp: "🎁 *PROMOS 50% OFF*"
+
+       2. NUEVA COLUMNA Supabase: precio_normal
+          Antes asumíamos precio_normal = precio_unitario * 2 (modelo 1+1).
+          Ahora la columna precio_normal en productos_promo guarda el
+          precio antes del descuento real. Fallback: precio*2 si NULL.
+
+       3. REDISEÑO VISUAL CARDS DE PROMO
+            · Cards CLARAS con borde cobre #D4A574 (1.5px)
+            · Cards URGENTES (stock <= 10) con borde rojo brillante #B71C1C
+              (2px) y sombra rojiza
+            · Foto del producto en aspect-ratio 1:1 sobre fondo crema cálido
+            · Badge "-50% OFF" dorado rotado -4° flotante esquina sup-izq
+            · Badge "Stock real" / "Últimas N" pill burdeos esquina sup-der
+            · Banda verde de ahorro con gradient sutil + icono SVG moneda
+              + acento dorado inset derecho (sin animaciones)
+            · Stepper único centrado: − N + (sin botón Agregar duplicado)
+            · Tipografía: Barlow Condensed para headlines/precios + Inter
+              para texto cuerpo (presentación, items)
+
+       4. HEADER DE SECCIÓN PROMOS REDISEÑADO
+            · Fondo crema con patrón kraft sutil (líneas diagonales 4-6%)
+            · Ornamento decorativo: líneas dorado-cobre con rombo dorado
+            · Título "50% OFF" en rojo TCK, "en seleccionados" debajo
+            · Chip "📅 Vence 31/05/2026" con borde dashed dorado
+
+       5. SEPARADOR DECORATIVO REUTILIZABLE
+            · Nueva clase .divider-orn (líneas + rombo dorado central)
+            · Disponible para usar antes de cualquier sección
+
+     ═══════════════════════════════════════════════════════════════════════
+     ZONA DEL CLIENTE — Precios diferenciados TL vs Interior (v3.3.0)
 
      Cambios v3.3.0 (sobre v3.2.5):
 
@@ -492,11 +539,11 @@ const qty = {};                   // Cantidades por item: {"secIdx-itemIdx": can
 // ── Estado de combos (v2 — combos OFERTAS) ────────────────────────
 // qtyCombo: { 'combo_crujiente': cantidad, 'combo_rendidor': cantidad }
 const qtyCombo = {};
-// v2.7.8: qtyPromo: { 'uuid-promo': cantidad_de_pares_1+1 } — cada unidad = 1 par (2u total, 1 paga)
+// v3.4.0: qtyPromo: { 'uuid-promo': cantidad } — cada qty = 1 unidad al 50% OFF
 const qtyPromo = {};
 // _combosData: lista cargada desde Supabase con {id, nombre, productos, precio_combo, precio_tl, precio_interior, ...}
 let _combosData = [];
-// v2.7.8: _promosData: lista cargada desde Supabase productos_promo
+// v3.4.0: _promosData: lista cargada desde Supabase productos_promo (modelo 50% OFF)
 let _promosData = [];
 // Límite de combos por compra (se carga de Supabase, default 2)
 const MAX_COMBOS_POR_COMPRA = 2;
@@ -3487,8 +3534,9 @@ button,
 }
 
 /* ═══════════════════════════════════════════════════════════════════════
-   v2.7.8 — PROMOS DE ABRIL (1+1 por vencimiento)
-   Paleta: rojo TCK #8B0000 · dorado #D4A574/#FFD700 · negro #1a1a1a · crema #FAF4EC
+   v3.4.0 — PROMOS 50% OFF (mayo 2026)
+   Estilo: card clara, foto grande arriba, banda verde de ahorro, stepper
+   Paleta TCK: rojo #8B0000 · dorado #FFD700 · cobre #D4A574 · crema #FAF4EC
    ═══════════════════════════════════════════════════════════════════════ */
 #promos-section {
   margin: 0;
@@ -3496,8 +3544,8 @@ button,
 }
 .promos-wrap {
   position: relative;
-  background: linear-gradient(135deg, #1a1a1a 0%, #2a1010 50%, #1a0505 100%);
-  padding: 18px 12px 20px;
+  background: linear-gradient(180deg, #FFF8E1 0%, #FAF4EC 100%);
+  padding: 18px 12px 22px;
   overflow: hidden;
   border-bottom: 3px solid #D4A574;
 }
@@ -3505,9 +3553,9 @@ button,
   position: absolute;
   inset: 0;
   background: repeating-linear-gradient(
-    45deg,
-    transparent 0, transparent 40px,
-    rgba(212,165,116,0.04) 40px, rgba(212,165,116,0.04) 42px
+    135deg,
+    transparent 0, transparent 18px,
+    rgba(212,165,116,0.05) 18px, rgba(212,165,116,0.05) 19px
   );
   pointer-events: none;
 }
@@ -3515,318 +3563,333 @@ button,
   position: relative;
   z-index: 1;
   text-align: center;
-  padding: 8px 4px 14px;
+  padding: 6px 4px 14px;
+}
+/* Ornamento decorativo: líneas dorado-cobre con rombo central */
+.promos-orn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin: 0 auto 8px;
+  max-width: 200px;
+}
+.promos-orn::before, .promos-orn::after {
+  content: '';
+  flex: 1;
+  height: 1.5px;
+  background: linear-gradient(90deg, transparent 0%, #D4A574 50%, #C67B3C 100%);
+}
+.promos-orn::after {
+  background: linear-gradient(270deg, transparent 0%, #D4A574 50%, #C67B3C 100%);
+}
+.promos-orn-diamond {
+  width: 8px;
+  height: 8px;
+  background: #FFD700;
+  transform: rotate(45deg);
+  box-shadow: 0 0 8px rgba(255,215,0,0.5);
+  flex-shrink: 0;
 }
 .promos-eyebrow {
   font-family: 'Barlow', sans-serif;
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 3px;
-  color: #FFD700;
+  color: #C67B3C;
   margin-bottom: 6px;
-  opacity: 0.95;
 }
 .promos-title-big {
   font-family: 'Barlow Condensed', sans-serif;
-  font-size: 42px;
+  font-size: 36px;
   font-weight: 900;
-  color: #fff;
+  color: #8B0000;
   line-height: 0.95;
-  letter-spacing: 1px;
-  text-shadow: 0 2px 8px rgba(0,0,0,0.5);
-}
-.promos-title-sep {
-  line-height: 0.3;
-  margin: 2px 0;
-}
-.promos-title-slash {
-  display: inline-block;
-  font-family: 'Barlow Condensed', sans-serif;
-  font-size: 28px;
-  font-weight: 900;
-  color: #D4A574;
-  transform: skew(-12deg);
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
 }
 .promos-subtitle {
   font-family: 'Barlow', sans-serif;
   font-size: 11px;
   font-weight: 600;
-  color: #FAF4EC;
-  opacity: 0.75;
+  color: #5C3A1E;
   letter-spacing: 1px;
   margin-top: 8px;
 }
+.promos-vence {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 12px;
+  background: rgba(255,248,225,0.6);
+  border: 1px dashed #D4A574;
+  color: #5C3A1E;
+  padding: 5px 14px;
+  border-radius: 16px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.4px;
+  font-family: 'Inter', system-ui, sans-serif;
+}
+.promos-vence b { color: #8B0000; font-weight: 700; }
 .promos-grid {
   position: relative;
   z-index: 1;
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 10px;
-  margin-top: 6px;
+  gap: 12px;
+  margin-top: 8px;
 }
-@media (min-width: 580px) {
-  .promos-grid { grid-template-columns: repeat(3, 1fr); }
-  .promos-title-big { font-size: 52px; }
-}
-@media (min-width: 780px) {
-  .promos-grid { grid-template-columns: repeat(4, 1fr); }
-}
-/* === v3.1.1: promo card con paleta TCK semántica === */
+
+/* === CARD DE PROMO === */
 .promo-card {
-  position: relative;
-  background: var(--surface-primary);
-  border-radius: 12px;
+  background: linear-gradient(180deg, #FFFFFF 0%, #FAF4EC 100%);
+  border-radius: 16px;
   overflow: hidden;
+  border: 1.5px solid #D4A574;
+  box-shadow: 0 4px 16px rgba(140, 0, 0, 0.08);
+  position: relative;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 3px 10px rgba(0,0,0,0.18), 0 0 0 1.5px var(--accent-promo);
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
 }
-.promo-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 5px 14px rgba(0,0,0,0.22), 0 0 0 2px var(--accent-promo-intense);
+.promo-card:active {
+  transform: scale(0.98);
 }
-/* === v3.1.1: badge 1+1 cobre sólido === */
-.promo-card-badge {
-  position: absolute;
-  top: 8px; left: 8px;
-  background: var(--accent-promo);
-  color: var(--text-primary);
-  font-family: 'Barlow Condensed', sans-serif;
-  font-size: 16px;
-  font-weight: 900;
-  padding: 4px 10px;
-  border-radius: 12px;
-  letter-spacing: 0.5px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.18);
-  z-index: 2;
+.promo-card.urgente {
+  border: 2px solid #B71C1C;
+  box-shadow: 0 4px 20px rgba(183, 28, 28, 0.18);
 }
-.promo-card-badge-urgente {
-  position: absolute;
-  top: 8px; right: 8px;
-  background: linear-gradient(135deg, #DC143C, #8B0000);
-  color: #fff;
-  font-family: 'Barlow Condensed', sans-serif;
-  font-size: 10px;
-  font-weight: 900;
-  padding: 3px 8px;
-  border-radius: 12px;
-  letter-spacing: 0.8px;
-  box-shadow: 0 2px 8px rgba(220,20,60,0.5);
-  z-index: 2;
-  animation: promoUrgPulse 1.4s ease-in-out infinite;
-}
-@keyframes promoUrgPulse {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.75; transform: scale(1.04); }
-}
-.promo-card-img {
-  aspect-ratio: 1 / 1;
-  background: linear-gradient(135deg, #f5ede0, #e8ddc9);
+
+/* Foto grande arriba */
+.promo-card-img-wrap {
   position: relative;
+  aspect-ratio: 1;
+  background: linear-gradient(180deg, #FFFFFF 0%, #FFF8E1 100%);
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
+  padding: 12px;
 }
-.promo-card-img img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
+.promo-card-img-wrap img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 4px 12px rgba(0,0,0,0.15));
 }
-.promo-card-img.sin-img::before {
-  content: '📦';
+.promo-img-fallback {
   font-size: 48px;
-  opacity: 0.25;
+  opacity: 0.4;
 }
-.promo-card-img::after {
-  content: '';
+
+/* Badges flotantes */
+.promo-badge {
   position: absolute;
-  inset: 0;
-  background: repeating-linear-gradient(
-    45deg,
-    transparent 0, transparent 25px,
-    rgba(139,0,0,0.04) 25px, rgba(139,0,0,0.04) 26px
-  );
-  pointer-events: none;
+  z-index: 2;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
+.promo-badge-off {
+  top: 10px;
+  left: 10px;
+  background: linear-gradient(135deg, #FFD700 0%, #F4C430 100%);
+  color: #5C0000;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 12px;
+  padding: 5px 11px;
+  border-radius: 8px;
+  transform: rotate(-4deg);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+}
+.promo-badge-stock {
+  top: 12px;
+  right: 10px;
+  background: rgba(140, 0, 0, 0.85);
+  color: #fff;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 9px;
+  padding: 4px 9px;
+  border-radius: 12px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+}
+.promo-badge-urgente {
+  top: 12px;
+  right: 10px;
+  background: rgba(183, 28, 28, 0.95);
+  color: #fff;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 11px;
+  padding: 5px 11px;
+  border-radius: 12px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+}
+
+/* Body */
 .promo-card-body {
-  padding: 10px 10px 12px;
+  padding: 10px 9px 9px;
+  flex: 1;
   display: flex;
   flex-direction: column;
-  flex: 1;
+  align-items: center;
+  text-align: center;
   gap: 4px;
 }
-.promo-card-nombre {
-  font-family: 'Barlow', sans-serif;
-  font-weight: 700;
-  font-size: 13px;
-  line-height: 1.2;
-  color: #1a1a1a;
-  margin-bottom: 2px;
-}
 .promo-card-marca {
-  font-family: 'Barlow', sans-serif;
-  font-size: 10.5px;
-  color: #666;
-  opacity: 0.85;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 9px;
+  color: #C67B3C;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  font-weight: 700;
+}
+.promo-card-nombre {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700;
+  font-size: 15px;
+  color: #1A0800;
+  line-height: 1.1;
+  text-transform: uppercase;
+}
+.promo-card-pres {
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 11px;
+  color: #9C7050;
+  font-weight: 500;
   margin-bottom: 4px;
 }
 .promo-card-precios {
   display: flex;
-  flex-direction: column;
-  gap: 0;
-  margin: 6px 0 4px;
-  position: relative;
-}
-.promo-card-precios-antes-row {
-  display: flex;
   align-items: baseline;
-  gap: 6px;
-  margin-bottom: 2px;
+  justify-content: center;
+  gap: 8px;
+  margin: 4px 0;
 }
-.promo-card-precios-antes-label {
-  font-family: 'Barlow', sans-serif;
-  font-size: 10px;
-  font-weight: 700;
-  color: #999;
-  text-transform: uppercase;
-  letter-spacing: 0.8px;
-}
-.promo-card-precio-viejo {
+.promo-precio-tachado {
   font-family: 'Barlow Condensed', sans-serif;
-  font-size: 18px;
-  font-weight: 800;
-  color: #999;
+  font-size: 14px;
+  color: #9C7050;
   text-decoration: line-through;
-  text-decoration-color: #C62828;
-  text-decoration-thickness: 3px;
+  text-decoration-color: #B71C1C;
+  text-decoration-thickness: 2px;
   line-height: 1;
 }
-.promo-card-divisor {
-  height: 1px;
-  background: linear-gradient(90deg, transparent, #D4A574, transparent);
-  margin: 5px 0;
-}
-.promo-card-precios-ahora-row {
-  display: flex;
-  align-items: baseline;
-  gap: 6px;
-}
-.promo-card-precios-ahora-label {
-  font-family: 'Barlow', sans-serif;
-  font-size: 10px;
-  font-weight: 700;
-  color: #8B0000;
-  text-transform: uppercase;
-  letter-spacing: 0.8px;
-}
-.promo-card-precio-nuevo {
+.promo-precio-ahora {
   font-family: 'Barlow Condensed', sans-serif;
   font-weight: 900;
-  font-size: 30px;
-  color: #8B0000;
-  line-height: 1;
+  font-size: 26px;
+  color: #B71C1C;
+  line-height: 0.95;
   letter-spacing: -0.5px;
-  text-shadow: 0 1px 2px rgba(139,0,0,0.15);
 }
-.promo-card-precio-unidad {
-  display: block;
-  background: linear-gradient(135deg, #2E7D32, #1B5E20);
-  color: #fff;
-  font-family: 'Barlow Condensed', sans-serif;
-  font-size: 13px;
-  font-weight: 900;
-  padding: 5px 10px;
-  border-radius: 6px;
-  letter-spacing: 0.5px;
-  margin-top: 8px;
-  text-align: center;
-  box-shadow: 0 2px 8px rgba(46,125,50,0.3);
-  text-transform: uppercase;
-}
-.promo-card-precio-unidad-pct {
-  display: inline-block;
-  background: #FFD700;
-  color: #8B0000;
-  font-size: 12px;
-  font-weight: 900;
-  padding: 1px 6px;
-  border-radius: 3px;
-  margin-left: 5px;
-  letter-spacing: 0.5px;
-  vertical-align: baseline;
-}
-.promo-card-mini {
-  font-family: 'Barlow', sans-serif;
-  font-size: 9px;
-  color: #888;
-  font-style: italic;
-  margin: 4px 0 2px;
-}
-.promo-action-slot {
-  margin-top: auto;
-  padding-top: 6px;
-}
-.promo-card-btn {
+.promo-banda-ahorro {
+  margin-top: 6px;
   width: 100%;
-  background: linear-gradient(135deg, #8B0000, #5C0000);
+  background: linear-gradient(90deg, #1E8449 0%, #27AE60 100%);
   color: #fff;
-  border: 1.5px solid #D4A574;
+  padding: 6px 10px;
   border-radius: 8px;
-  padding: 9px 6px;
-  font-family: 'Barlow Condensed', sans-serif;
-  font-size: 13px;
-  font-weight: 900;
-  letter-spacing: 0.5px;
-  cursor: pointer;
-  transition: all 0.15s;
-  box-shadow: 0 2px 6px rgba(139,0,0,0.3);
-}
-.promo-card-btn:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 10px rgba(139,0,0,0.45);
-}
-.promo-card-btn:active {
-  transform: scale(0.97);
-}
-.promo-qty-row {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 4px;
-  background: #fff;
-  border: 1.5px solid #D4A574;
-  border-radius: 8px;
-  padding: 4px;
+  justify-content: center;
+  box-shadow: inset -3px 0 0 #FFD700;
 }
-.promo-btn-qty {
-  width: 30px; height: 30px;
-  border-radius: 6px;
-  background: linear-gradient(135deg, #8B0000, #5C0000);
-  color: #fff;
+.promo-banda-ahorro span {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 800;
+  font-size: 11px;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.promo-icon-money {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+
+/* Action slot: stepper */
+.promo-action-slot {
+  margin-top: 10px;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+.promo-qrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+.promo-qb {
+  width: 32px;
+  height: 32px;
+  border-radius: 7px;
   border: none;
   font-size: 18px;
-  font-weight: 900;
+  font-weight: 700;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.15s;
-}
-.promo-btn-qty:active {
-  transform: scale(0.92);
-}
-.promo-qty-val {
-  flex: 1;
+  flex-shrink: 0;
+  user-select: none;
+  transition: transform 0.1s;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
   font-family: 'Barlow Condensed', sans-serif;
-  font-size: 11.5px;
-  font-weight: 800;
-  color: #1a1a1a;
-  text-align: center;
-  letter-spacing: 0.3px;
 }
+.promo-qb:active { transform: scale(0.9); }
+.promo-qb-m {
+  background: #F0E6D8;
+  color: #8B0000;
+}
+.promo-qb-p {
+  background: #B71C1C;
+  color: #fff;
+}
+.promo-qv {
+  min-width: 36px;
+  text-align: center;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 800;
+  font-size: 16px;
+  color: #1A0800;
+}
+
+/* Separador decorativo editorial (también disponible para combos) */
+.divider-orn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin: 4px auto 18px;
+  max-width: 60%;
+}
+.divider-orn::before,
+.divider-orn::after {
+  content: '';
+  flex: 1;
+  height: 1.5px;
+  background: linear-gradient(90deg, transparent 0%, #D4A574 50%, #C67B3C 100%);
+}
+.divider-orn::after {
+  background: linear-gradient(270deg, transparent 0%, #D4A574 50%, #C67B3C 100%);
+}
+.divider-orn span {
+  width: 8px;
+  height: 8px;
+  background: #FFD700;
+  transform: rotate(45deg);
+  box-shadow: 0 0 8px rgba(255, 215, 0, 0.4);
+  flex-shrink: 0;
+}
+
 
 /* En el drawer (carrito expandido) */
 .d-combo-group {
@@ -4591,12 +4654,12 @@ function T(){
     tCombos += comboPrecioPorZona(c) * q;
     cCombos += q;
   });
-  // v2.7.8: promos 1+1 — cada unidad de qtyPromo = 1 precio (el 2º viene gratis)
+  // v3.4.0: promos 50% off — cada qtyPromo = 1 unidad al precio con descuento
   let tPromos=0, cPromos=0;
   (_promosData||[]).forEach(p => {
     const q = qtyPromo[p.id]||0;
     tPromos += Number(p.precio_unitario||0) * q;
-    cPromos += q * 2; // contamos las 2 unidades físicas
+    cPromos += q;
   });
   const subtotal = tProd + tCombos + tPromos;
   const c = cProd + cCombos + cPromos;
@@ -4685,16 +4748,17 @@ function filtroCategoria(catId, btn){
 function jump(id, btn){ return filtroCategoria(id, btn); }
 
 function renderBody(){
-  // v2.7.8: sección PROMOS (OFERTAS DE ABRIL — 1+1 por vencimiento) va ANTES de combos
+  // v3.4.0: sección PROMOS (50% OFF mayo 2026) va ANTES de combos
   const promosHtml = '<div id="promos-section" style="display:none;">'
     + '<div class="promos-wrap">'
     +   '<div class="promos-bg-stripes"></div>'
     +   '<div class="promos-header">'
-    +     '<div class="promos-eyebrow">🔥 OFERTAS DE ABRIL</div>'
-    +     '<div class="promos-title-big">COMPRÁS 1</div>'
-    +     '<div class="promos-title-sep"><span class="promos-title-slash">/</span></div>'
-    +     '<div class="promos-title-big">TE REGALAMOS 1</div>'
-    +     '<div class="promos-subtitle">Sin límite · Solo contado · Hasta agotar stock</div>'
+    +     '<div class="promos-eyebrow">🔥 PROMOS DEL MES</div>'
+    +     '<div class="promos-orn"><div class="promos-orn-diamond"></div></div>'
+    +     '<div class="promos-title-big">50% OFF</div>'
+    +     '<div class="promos-title-big" style="font-size:24px;color:#5C0000;margin-top:2px;">en seleccionados</div>'
+    +     '<div class="promos-subtitle">Sin límite de unidades · Hasta agotar stock</div>'
+    +     '<div class="promos-vence">📅 Vence <b>31/05/2026</b></div>'
     +   '</div>'
     +   '<div class="promos-grid" id="promos-grid"></div>'
     + '</div>'
@@ -5733,11 +5797,12 @@ function combosLimpiar() {
 }
 
 // ═══════════════════════════════════════════════════════════════════════
-// v2.7.8 — PROMOS DE ABRIL (1+1 por vencimiento)
+// v3.4.0 — PROMOS 50% OFF (mayo 2026)
 // ═══════════════════════════════════════════════════════════════════════
-// Mecánica: cliente toca "Agregar" → se suma 1 unidad al qtyPromo[id]
-// Cada unidad = 1 PAR (1 pagado + 1 gratis) → carrito muestra 2u físicas
-// Stock descuenta de 2 en 2.
+// Mecánica: cliente toca + del stepper → se suma 1 unidad al qtyPromo[id]
+// Cada qty = 1 unidad física al precio con 50% de descuento.
+// Sin tope de unidades por cliente (mientras haya stock).
+// Stock descuenta 1 a 1 al confirmar pedido.
 // NO se combina con cupón 10% (excluido del subtotalElegible en T())
 async function promosCargar() {
   try {
@@ -5774,44 +5839,48 @@ function promosRender() {
     const qtyActual = qtyPromo[p.id] || 0;
     const stockDisp = Number(p.stock_disponible || 0);
     const precio = Number(p.precio_unitario || 0);
+    const precioNormal = Number(p.precio_normal || precio * 2);
+    const ahorro = precioNormal - precio;
     const esCritico = stockDisp <= 10;
-    const badgeUrgente = esCritico
-      ? '<div class="promo-card-badge-urgente">⚠️ ÚLTIMAS ' + stockDisp + '</div>'
-      : '';
+    const cardClass = esCritico ? 'promo-card urgente' : 'promo-card';
+    const badgeStock = esCritico
+      ? '<span class="promo-badge promo-badge-urgente">Últimas ' + stockDisp + '</span>'
+      : '<span class="promo-badge promo-badge-stock">Stock real</span>';
+
     const imgSrc = p.imagen_url || '';
     const imgHtml = imgSrc
-      ? '<img src="' + imgSrc + '" alt="' + (p.producto_nombre||'').replace(/"/g,'&quot;') + '" loading="lazy" onerror="this.style.display=\'none\';this.parentElement.classList.add(\'sin-img\');">'
-      : '';
+      ? '<img src="' + imgSrc + '" alt="' + (p.producto_nombre||'').replace(/"/g,'&quot;') + '" loading="lazy">'
+      : '<div class="promo-img-fallback">📦</div>';
 
-    const btnHtml = qtyActual > 0
-      ? '<div class="promo-qty-row">' +
-          '<button class="promo-btn-qty" onclick="promosRestar(\'' + p.id + '\')" aria-label="Quitar">−</button>' +
-          '<div class="promo-qty-val">' + (qtyActual*2) + ' u en carrito</div>' +
-          '<button class="promo-btn-qty" onclick="promosSumar(\'' + p.id + '\')" aria-label="Sumar">+</button>' +
-        '</div>'
-      : '<button class="promo-card-btn" onclick="promosSumar(\'' + p.id + '\')">AGREGAR · LLEVO 2</button>';
+    // SVG de moneda inline (pequeño, blanco)
+    const svgMoney = '<svg class="promo-icon-money" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v10M9 9.5c0-1 1-2 3-2s3 1 3 2-1 1.5-3 2c-2 .5-3 1-3 2.5s1.5 2 3 2 3-1 3-2"/></svg>';
 
-    return '<div class="promo-card" data-promo-id="' + p.id + '">' +
-      '<div class="promo-card-badge">1+1</div>' +
-      badgeUrgente +
-      '<div class="promo-card-img">' + imgHtml + '</div>' +
+    // Stepper siempre visible (estilo catálogo TCK)
+    const stepperHtml =
+      '<div class="promo-qrow">' +
+        '<button class="promo-qb promo-qb-m" onclick="promosRestar(\'' + p.id + '\')" aria-label="Quitar">−</button>' +
+        '<div class="promo-qv" id="promo-qv-' + p.id + '">' + qtyActual + '</div>' +
+        '<button class="promo-qb promo-qb-p" onclick="promosSumar(\'' + p.id + '\')" aria-label="Agregar">+</button>' +
+      '</div>';
+
+    return '<div class="' + cardClass + '" data-promo-id="' + p.id + '">' +
+      '<div class="promo-card-img-wrap">' +
+        '<span class="promo-badge promo-badge-off">-50% OFF</span>' +
+        badgeStock +
+        imgHtml +
+      '</div>' +
       '<div class="promo-card-body">' +
+        '<div class="promo-card-marca">' + (p.descripcion_corta||'Solimeno') + '</div>' +
         '<div class="promo-card-nombre">' + (p.producto_nombre||'') + '</div>' +
-        '<div class="promo-card-marca">' + (p.descripcion_corta||p.presentacion||'') + '</div>' +
+        '<div class="promo-card-pres">' + (p.presentacion||'') + '</div>' +
         '<div class="promo-card-precios">' +
-          '<div class="promo-card-precios-antes-row">' +
-            '<span class="promo-card-precios-antes-label">Antes</span>' +
-            '<span class="promo-card-precio-viejo">' + fmt(precio * 2) + '</span>' +
-          '</div>' +
-          '<div class="promo-card-divisor"></div>' +
-          '<div class="promo-card-precios-ahora-row">' +
-            '<span class="promo-card-precios-ahora-label">Ahora</span>' +
-            '<div class="promo-card-precio-nuevo">' + fmt(precio) + '</div>' +
-          '</div>' +
-          '<div class="promo-card-precio-unidad">🎁 AHORRÁS ' + fmt(precio) + ' <span class="promo-card-precio-unidad-pct">50% OFF</span></div>' +
+          '<span class="promo-precio-tachado">' + fmt(precioNormal) + '</span>' +
+          '<span class="promo-precio-ahora">' + fmt(precio) + '</span>' +
         '</div>' +
-        '<div class="promo-card-mini">Hasta agotar stock · vence may-26</div>' +
-        '<div class="promo-action-slot" id="promo-slot-' + p.id + '">' + btnHtml + '</div>' +
+        '<div class="promo-banda-ahorro">' +
+          '<span>' + svgMoney + ' Ahorrás ' + fmt(ahorro) + '</span>' +
+        '</div>' +
+        '<div class="promo-action-slot" id="promo-slot-' + p.id + '">' + stepperHtml + '</div>' +
       '</div>' +
     '</div>';
   }).join('');
@@ -5820,26 +5889,19 @@ function promosRender() {
 function promosActualizarSlot(promoId) {
   const promo = (_promosData||[]).find(p => p.id === promoId);
   if (!promo) return;
-  const slot = document.getElementById('promo-slot-' + promoId);
-  if (!slot) return;
+  // Solo refrescar el contador (el stepper siempre está visible)
   const qtyActual = qtyPromo[promoId] || 0;
-  slot.innerHTML = qtyActual > 0
-    ? '<div class="promo-qty-row">' +
-        '<button class="promo-btn-qty" onclick="promosRestar(\'' + promoId + '\')" aria-label="Quitar">−</button>' +
-        '<div class="promo-qty-val">' + (qtyActual*2) + ' u en carrito</div>' +
-        '<button class="promo-btn-qty" onclick="promosSumar(\'' + promoId + '\')" aria-label="Sumar">+</button>' +
-      '</div>'
-    : '<button class="promo-card-btn" onclick="promosSumar(\'' + promoId + '\')">AGREGAR · LLEVO 2</button>';
+  const qv = document.getElementById('promo-qv-' + promoId);
+  if (qv) qv.textContent = qtyActual;
 }
 
 function promosSumar(promoId) {
   const promo = (_promosData||[]).find(p => p.id === promoId);
   if (!promo) return;
-  // Verificar que haya stock suficiente (cada qty consume 2 unidades)
+  // Modelo 50% off: 1 qty = 1 unidad (sin pares)
   const actual = qtyPromo[promoId] || 0;
   const stockDisp = Number(promo.stock_disponible || 0);
-  const consumido = (actual + 1) * 2;
-  if (consumido > stockDisp) {
+  if ((actual + 1) > stockDisp) {
     if (typeof combosToast === 'function') {
       combosToast('Solo quedan ' + stockDisp + ' unidades de este producto');
     }
@@ -5870,7 +5932,7 @@ function promosLimpiar() {
   promosRender();
 }
 
-// Líneas WhatsApp de las promos (formato compatible con parser Apps Script)
+// Líneas WhatsApp de las promos (formato compatible con parser Apps Script v25.3.0+)
 function promosLineasWA() {
   const lineas = [];
   (_promosData||[]).forEach(p => {
@@ -5878,10 +5940,9 @@ function promosLineasWA() {
     if (q <= 0) return;
     const precio = Number(p.precio_unitario || 0);
     const nombre = p.producto_nombre || '';
-    // Cada qty = 1 par (2 unidades: 1 paga + 1 gratis)
-    // Formato parser-friendly: "Nx Nombre → $total"
-    lineas.push('🎁 *1+1 ' + nombre.toUpperCase() + '* × ' + q + ' par' + (q>1?'es':''));
-    lineas.push('   ✓ ' + (q*2) + 'u total (' + q + ' paga' + (q>1?'s':'') + ' + ' + q + ' gratis)');
+    // Modelo 50% off: 1 qty = 1 unidad
+    // Formato parser-friendly: "🎁 *50% OFF: Nombre* × N"
+    lineas.push('🎁 *50% OFF: ' + nombre.toUpperCase() + '* × ' + q);
     lineas.push('   💰 ' + fmt(precio * q));
     lineas.push('');
   });
@@ -5893,7 +5954,7 @@ async function promosConsumirStock() {
   const consumidos = [];
   (_promosData||[]).forEach(p => {
     const q = qtyPromo[p.id] || 0;
-    if (q > 0) consumidos.push({ id: p.id, cantidad: q * 2, nombre: p.producto_nombre });
+    if (q > 0) consumidos.push({ id: p.id, cantidad: q, nombre: p.producto_nombre });
   });
   if (consumidos.length === 0) return;
 
@@ -5942,14 +6003,14 @@ function renderDrawer(){
   if(!c){body.innerHTML='<div class="d-empty">Todav\u00eda no agregaste productos</div>';foot.style.display='none';return;}
   let html='';
 
-  // v2.7.8: PROMOS 1+1 primero (arriba de todo por ser lo más urgente)
+  // v3.4.0: PROMOS 50% OFF primero (arriba de todo por ser lo más urgente)
   (_promosData||[]).forEach(promo => {
     const q = qtyPromo[promo.id] || 0;
     if (q <= 0) return;
     const precio = Number(promo.precio_unitario || 0);
     html += '<div class="d-combo-group" style="border-color:#D4A574;background:linear-gradient(135deg,#fff9f0,#fff4e1);">' +
-      '<div class="d-combo-title" style="color:#8B0000;">🎁 1+1 ' + (promo.producto_nombre||'') + ' × ' + q + ' par' + (q>1?'es':'') + '</div>' +
-      '<div class="d-combo-item">' + (q*2) + 'u total — pagás ' + q + ', ' + q + ' gratis</div>' +
+      '<div class="d-combo-title" style="color:#8B0000;">🎁 50% OFF: ' + (promo.producto_nombre||'') + ' × ' + q + '</div>' +
+      '<div class="d-combo-item">' + (promo.presentacion||'') + '</div>' +
       '<div class="d-combo-precio">' +
         '<div class="d-combo-qty">' +
           '<button class="d-combo-qty-btn" onclick="promosRestar(\'' + promo.id + '\')" aria-label="Quitar">−</button>' +
@@ -6585,7 +6646,7 @@ function confirmarYEnviarWA() {
     }
   });
 
-  // v2.7.8: PROMOS 1+1 arriba de todo en el mensaje
+  // v3.4.0: PROMOS 50% OFF arriba de todo en el mensaje
   const lineasPromosWA = promosLineasWA();
   let promosCount = 0;
   let promosUnidades = 0;
@@ -6593,11 +6654,11 @@ function confirmarYEnviarWA() {
     const q = qtyPromo[p.id] || 0;
     if (q > 0) {
       promosCount++;
-      promosUnidades += q * 2; // 2 unidades físicas por par
+      promosUnidades += q; // 1 qty = 1 unidad
     }
   });
   if (lineasPromosWA.length > 0) {
-    lineasProductos.push('🎁 *OFERTAS 1+1 — COMPRÁS 1 LLEVÁS 2*');
+    lineasProductos.push('🎁 *PROMOS 50% OFF*');
     lineasProductos.push('');
     lineasProductos.push(...lineasPromosWA);
   }
@@ -6731,7 +6792,7 @@ function confirmarYEnviarWA() {
   // v2: Descontar stock de combos en Supabase (fire-and-forget)
   combosConsumirStock().catch(e => console.error('[combos] Error al consumir stock:', e));
 
-  // v2.7.8: Descontar stock de promos 1+1 en Supabase (fire-and-forget)
+  // v3.4.0: Descontar stock de promos 50% off en Supabase (fire-and-forget)
   promosConsumirStock().catch(e => console.error('[promos] Error al consumir stock:', e));
 
   // v2.6.3: Marcar cupón como usado si se aplicó (fire-and-forget)
@@ -6981,7 +7042,7 @@ function loadCartLS() {
       Object.keys(data.qtyCombo).forEach(function(k) { if (data.qtyCombo[k] > 0) qtyCombo[k] = data.qtyCombo[k]; });
       // combosRender se llama después cuando combosCargar termine
     }
-    // v2.7.8: Restaurar promos 1+1 del carrito
+    // v3.4.0: Restaurar promos 50% off del carrito
     if (data.qtyPromo) {
       Object.keys(data.qtyPromo).forEach(function(k) { if (data.qtyPromo[k] > 0) qtyPromo[k] = data.qtyPromo[k]; });
       // promosRender se llama después cuando promosCargar termine
@@ -7016,7 +7077,7 @@ cargarPrecios().finally(() => {
 
   // v2: Cargar combos de Supabase (fire-and-forget, no bloquea el init)
   combosCargar();
-  // v2.7.8: Cargar promos 1+1 de Supabase
+  // v3.4.0: Cargar promos 50% off de Supabase
   promosCargar();
   // v3.2.4: Cargar las 27 localidades canónicas para los dropdowns
   cargarLocalidadesCanonicas().then(() => {
