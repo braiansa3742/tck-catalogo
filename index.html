@@ -1702,6 +1702,15 @@ button,
 
 
 /* ── BOTÓN AYUDA EN HEADER ── */
+/* v3.5.5: pill "Sobre TCK" en el header — reemplaza al #info-float flotante.
+   Estilo: pill discreta tipo ghost button rojo. Visible siempre, no compite
+   visualmente con Ayuda (dorado) ni con Carrito (dorado más fuerte). */
+.hdr-sobre{background:rgba(255,255,255,.08);border:1.5px solid rgba(255,255,255,.4);border-radius:20px;padding:6px 12px;font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:800;color:#fff;cursor:pointer;transition:background .15s,border-color .15s;white-space:nowrap;letter-spacing:.3px;display:flex;align-items:center;gap:5px;-webkit-tap-highlight-color:transparent;}
+.hdr-sobre:hover{background:rgba(255,255,255,.18);border-color:rgba(255,255,255,.65);}
+.hdr-sobre:active{background:rgba(255,255,255,.28);}
+/* Ocultar cuando la pantalla intro está abierta (no tiene sentido si ya está viendo "Sobre TCK") */
+body.intro-tck-abierta .hdr-sobre{display:none;}
+
 .hdr-support{background:rgba(255,215,0,.22);border:2px solid rgba(255,215,0,.6);border-radius:20px;padding:7px 14px;font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:800;color:#FFD700;cursor:pointer;transition:background .15s,border-color .15s,box-shadow .15s;white-space:nowrap;letter-spacing:.5px;text-transform:uppercase;display:none;align-items:center;gap:6px;-webkit-tap-highlight-color:transparent;box-shadow:0 0 12px rgba(255,215,0,.2);}
 .hdr-support.visible{display:flex;}
 .hdr-support:active{background:rgba(255,215,0,.38);border-color:rgba(255,215,0,.9);}
@@ -4912,47 +4921,14 @@ body.intro-tck-abierta #wa-float {
   display: none;
 }
 
-/* Botón flotante "Sobre nosotros" — para que el cliente
-   pueda re-consultar el cronograma, datos fiscales, etc.
-   v3.5.4: Cambiado de ícono solo a pill con texto para claridad */
-#info-float {
-  position: fixed;
-  bottom: 144px;  /* arriba del botón de WhatsApp */
-  right: 16px;
-  height: 44px;
-  padding: 0 16px 0 12px;
-  background: #fff;
-  border: 2px solid var(--red, #B71C1C);
-  border-radius: 22px;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  box-shadow: 0 4px 14px rgba(183, 28, 28, 0.25);
-  cursor: pointer;
-  z-index: 899;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-  animation: wa-float-in 0.4s ease 0.8s backwards;
-  font-family: 'Barlow Condensed', sans-serif;
-  font-size: 14px;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  color: var(--red, #B71C1C);
-  text-decoration: none;
-  user-select: none;
-}
-#info-float:hover {
-  transform: scale(1.03);
-  box-shadow: 0 6px 18px rgba(183, 28, 28, 0.35);
-}
-#info-float .info-ico {
-  font-size: 16px;
-  line-height: 1;
-}
-/* No mostrar el botón info si la pantalla intro está visible */
-body.intro-tck-abierta #info-float {
+/* v3.5.5: ocultar también cuando el drawer (carrito) está abierto.
+   Antes el WA tapaba items del detalle de pedido. */
+body.drawer-abierto #wa-float {
   display: none;
 }
+
+/* v3.5.5: CSS de #info-float eliminado — el botón "Sobre nosotros" ahora
+   está en el header (pill normal, no flotante). Ver #hdr-sobre-tck. */
 
 </style>
 
@@ -5335,7 +5311,7 @@ src="https://www.facebook.com/tr?id=2034313150514758&ev=PageView&noscript=1"
 </div></div>
 <div class="hdr"><div class="hdr-stripe"></div><div class="hdr-body">
 <div class="hdr-brand"><div class="hdr-brand-name">THE CHICKEN <span>KINGS</span></div><div class="hdr-brand-sub" id="hdr-price-status">Cat&aacute;logo Abril 2026 &middot; Trenque Lauquen</div></div>
-<div class="hdr-right"><div class="cart-pill" id="cart-pill"></div><button id="cli-btn-volver-portal" onclick="cliVolverPortal()" style="display:none;background:rgba(255,215,0,.15);border:1.5px solid rgba(255,215,0,.4);border-radius:20px;padding:6px 12px;font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:800;color:var(--gold);cursor:pointer;white-space:nowrap;letter-spacing:.3px">← Mi cuenta</button><button id="cli-btn-micuenta" class="btn-cuenta registrarme" onclick="cliBotonHeader()">🎁 Registrarme</button><button class="hdr-support" id="hdr-support" onclick="toggleFAB()" aria-label="Ayuda"><svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor" style="opacity:.85;flex-shrink:0"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z"/></svg> Ayuda</button><div class="vchip" id="vchip" onclick="cambiarVendedor()"></div></div>
+<div class="hdr-right"><div class="cart-pill" id="cart-pill"></div><button id="cli-btn-volver-portal" onclick="cliVolverPortal()" style="display:none;background:rgba(255,215,0,.15);border:1.5px solid rgba(255,215,0,.4);border-radius:20px;padding:6px 12px;font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:800;color:var(--gold);cursor:pointer;white-space:nowrap;letter-spacing:.3px">← Mi cuenta</button><button id="cli-btn-micuenta" class="btn-cuenta registrarme" onclick="cliBotonHeader()">🎁 Registrarme</button><button class="hdr-sobre" id="hdr-sobre-tck" onclick="reabrirIntroTCK()" aria-label="Conocé TCK">📍 Sobre TCK</button><button class="hdr-support" id="hdr-support" onclick="toggleFAB()" aria-label="Ayuda"><svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor" style="opacity:.85;flex-shrink:0"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z"/></svg> Ayuda</button><div class="vchip" id="vchip" onclick="cambiarVendedor()"></div></div>
 </div><div class="catnav" id="catnav"></div></div>
 <!-- v2.6.1 — Banner de registro (aparece una sola vez hasta que lo cierren) -->
 <div class="banner-registro hidden" id="banner-registro">
@@ -5380,7 +5356,7 @@ src="https://www.facebook.com/tr?id=2034313150514758&ev=PageView&noscript=1"
 <div class="orderbar">
 <div class="ob-empty" id="ob-empty"><div class="ob-empty-t">Arm&aacute; tu pedido</div><div class="ob-empty-s">Sum&aacute; productos y envi&aacute;lo por WhatsApp</div></div>
 <div class="ob-data" id="ob-data"><div class="ob-items" id="ob-items"></div><div class="ob-total" id="ob-total"></div></div>
-<button class="btn-det" id="btn-det" onclick="openDrawer()">Ver detalle</button>
+<button class="btn-det" id="btn-det" onclick="openDrawer()">🛒 Mi pedido</button>
 <button class="btn-wa" id="btn-wa" onclick="sendWA()"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.125.558 4.122 1.532 5.852L.057 23.737a.5.5 0 00.606.606l5.885-1.475A11.945 11.945 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22a9.944 9.944 0 01-5.073-1.386l-.363-.214-3.771.945.963-3.655-.236-.378A9.954 9.954 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg> Enviar pedido</button>
 </div>
 <div class="overlay" id="overlay" onclick="closeDrawer()"></div>
@@ -7065,8 +7041,8 @@ async function promosConsumirStock() {
 // ═══════════════════════════════════════════════════════════════════════
 
 
-function openDrawer(){renderDrawer();document.getElementById('drawer').classList.add('on');document.getElementById('overlay').classList.add('on');}
-function closeDrawer(){document.getElementById('drawer').classList.remove('on');document.getElementById('overlay').classList.remove('on');}
+function openDrawer(){renderDrawer();document.getElementById('drawer').classList.add('on');document.getElementById('overlay').classList.add('on');document.body.classList.add('drawer-abierto');}
+function closeDrawer(){document.getElementById('drawer').classList.remove('on');document.getElementById('overlay').classList.remove('on');document.body.classList.remove('drawer-abierto');}
 
 function renderDrawer(){
   const{t,c}=T();
@@ -8967,15 +8943,8 @@ document.addEventListener('visibilitychange', function() {
   </svg>
 </a>
 
-<!-- v3.5.4: Botón flotante "Sobre nosotros" — re-abre la pantalla intro.
-     Cambiado de "ℹ" solo a pill con texto para que sea claro qué hace. -->
-<button id="info-float"
-        type="button"
-        onclick="reabrirIntroTCK()"
-        aria-label="Ver información sobre TCK">
-  <span class="info-ico">🏢</span>
-  <span>Sobre nosotros</span>
-</button>
+<!-- v3.5.5: Eliminado #info-float flotante (era invasivo, tapaba contenido).
+     "Sobre nosotros" ahora vive en el header como pill al lado de Ayuda. -->
 
 <!-- v3.3.0: Modal de bienvenida para zona del cliente ─────────── -->
 <!-- Aparece la primera vez que el cliente entra al catálogo. -->
