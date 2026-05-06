@@ -2,6 +2,56 @@
 <html lang="es">
 <head>
 <!-- ═══════════════════════════════════════════════════════════════════════
+     TCK CATÁLOGO — v3.6.8 — 06/05/2026
+     ──────────────────────────────────────────────────────────────────────
+     LOGO + DIFERENCIACIÓN VISUAL DE CARDS FULL-WIDTH
+
+     Cambios v3.6.8 (sobre v3.6.7):
+
+       20. LOGO PATH CORREGIDO:
+           src "img/logo-tck.png" → "img/logo.png"
+           El archivo en el repo se llama logo.png (no logo-tck.png).
+           El fallback al texto "THE CHICKEN KINGS" sigue activo si la
+           imagen no carga.
+
+       21. DIFERENCIACIÓN VISUAL DE CARDS DUAL:
+           Antes Fino de Ave Cocida y MDM Carne Molida se veían iguales
+           (ambos full-width con doble foto + labels idénticos). Quedaba
+           confuso cuál era el destacado.
+           Ahora cada uno tiene su identidad visual via la clase variante
+           que genera el render automáticamente:
+
+             card-dual-red   (badge_tipo "red")  → DORADO/PREMIUM
+                                                   → Fino de Ave Cocida ★ NUEVO
+             card-dual-oport (badge_tipo "oport") → VERDE/OPORTUNIDAD
+                                                    → MDM ▼ OPORTUNIDAD
+             card-dual-plain (sin badge)          → blanco neutro (default)
+
+           Borde, glow y fondo distintos para cada uno. El badge existente
+           (★ NUEVO o ▼ OPORTUNIDAD) refuerza la diferencia.
+
+       22. LABELS PERSONALIZABLES POR ITEM (it.label1, it.label2):
+           Antes hardcoded "Producto / Uso ideal" para toda card-dual.
+           Ahora el render lee it.label1 y it.label2 con fallback a los
+           defaults. Aplicado a:
+             Fino de Ave Cocida: "Producto" / "Uso ideal"
+             MDM:                "Carne molida" / "Listo en empanadas"
+           Diferencia textual además de visual.
+
+           El render queda preparado para futuras cards-dual (si en algún
+           momento querés destacar otro producto, agregás img2 + label1 +
+           label2 al item del CAT y listo, no toca código).
+
+     Asignación de clase variante en el render (línea ~6736):
+       Antes: 'card'+(it.img2?' card-dual':'')+...
+       Ahora: 'card'+(it.img2?' card-dual card-dual-'+(it.badge_tipo||'plain'):'')+...
+
+     Reversibilidad:
+       - Logo: cambiar el src en línea ~5828
+       - Diferenciación: comentar el bloque CSS .card-dual-red/oport en
+         el @media. Vuelve al diseño v3.6.7 (gemelo) inmediatamente.
+
+     ──────────────────────────────────────────────────────────────────────
      TCK CATÁLOGO — v3.6.7 — 06/05/2026
      ──────────────────────────────────────────────────────────────────────
      LOGO TCK + REORDEN TROZADOS
@@ -5582,6 +5632,38 @@ body.drawer-abierto #wa-float {
 
   /* v3.6.7 — Logo del header más bajo en mobile chico para no inflar header */
   .hdr-brand-logo { max-height: 30px; }
+
+  /* ═════════════════════════════════════════════════════════════════
+     v3.6.8 — Diferenciación visual de cards full-width
+     ═════════════════════════════════════════════════════════════════
+     Antes Fino y MDM se veían como gemelos: ambos full-width con doble
+     foto y labels "Producto / Uso ideal" idénticos. Imposible distinguir
+     cuál era el destacado.
+
+     Ahora cada uno tiene una "identidad" visual:
+       · Fino (★ NUEVO, badge_tipo "red")  → variante DORADA con borde
+         dorado y leve glow. Comunica novedad/premium.
+       · MDM  (▼ OPORTUNIDAD, badge_tipo "oport") → variante VERDE con
+         borde verde sólido y fondo verde muy claro. Comunica precio.
+
+     La asignación es automática vía la clase card-dual-{badge_tipo} que
+     genera el render. Si en el futuro hacés full-width otro producto,
+     toma su variante según el badge_tipo automáticamente.
+     ─────────────────────────────────────────────────────────────────── */
+
+  /* Fino de Ave Cocida — variante NUEVO (dorado/premium) */
+  .card.card-dual-red {
+    border: 2px solid var(--gold);
+    box-shadow: 0 2px 14px rgba(255,215,0,0.20);
+    background: linear-gradient(180deg, #FFFBEA 0%, #FFFFFF 25%);
+  }
+
+  /* MDM - Carne Molida — variante OPORTUNIDAD (verde) */
+  .card.card-dual-oport {
+    border: 2px solid #2E7D32;
+    box-shadow: 0 2px 14px rgba(46,125,50,0.18);
+    background: linear-gradient(180deg, #E8F5E9 0%, #FFFFFF 25%);
+  }
 }
 
 </style>
@@ -5966,7 +6048,7 @@ src="https://www.facebook.com/tr?id=2034313150514758&ev=PageView&noscript=1"
 <div class="sv-cards" id="sv-cards"></div>
 </div></div>
 <div class="hdr"><div class="hdr-stripe"></div><div class="hdr-body">
-<div class="hdr-brand"><img class="hdr-brand-logo" src="img/logo-tck.png" alt="TCK · The Chicken Kings" onerror="this.outerHTML='&lt;div class=&quot;hdr-brand-name&quot;&gt;THE CHICKEN &lt;span&gt;KINGS&lt;/span&gt;&lt;/div&gt;'"><div class="hdr-brand-sub" id="hdr-price-status">Cat&aacute;logo Abril 2026 &middot; Trenque Lauquen</div></div>
+<div class="hdr-brand"><img class="hdr-brand-logo" src="img/logo.png" alt="TCK · The Chicken Kings" onerror="this.outerHTML='&lt;div class=&quot;hdr-brand-name&quot;&gt;THE CHICKEN &lt;span&gt;KINGS&lt;/span&gt;&lt;/div&gt;'"><div class="hdr-brand-sub" id="hdr-price-status">Cat&aacute;logo Abril 2026 &middot; Trenque Lauquen</div></div>
 <div class="hdr-right"><div class="cart-pill" id="cart-pill"></div><button id="cli-btn-volver-portal" onclick="cliVolverPortal()" style="display:none;background:rgba(255,215,0,.15);border:1.5px solid rgba(255,215,0,.4);border-radius:20px;padding:6px 12px;font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:800;color:var(--gold);cursor:pointer;white-space:nowrap;letter-spacing:.3px">← Mi cuenta</button><button id="cli-btn-micuenta" class="btn-cuenta registrarme" onclick="cliBotonHeader()">🎁 Registrarme</button><button class="hdr-sobre" id="hdr-sobre-tck" onclick="reabrirIntroTCK()" aria-label="Conocé TCK">📍 Sobre TCK</button><button class="hdr-pedir-vend" id="hdr-pedir-vend" onclick="abrirModalPedirVendedor()" aria-label="Pedir contacto humano">🙋 Necesito un vendedor</button><button class="hdr-support" id="hdr-support" onclick="toggleFAB()" aria-label="Ayuda"><svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor" style="opacity:.85;flex-shrink:0"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z"/></svg> Ayuda</button><div class="vchip" id="vchip" onclick="cambiarVendedor()"></div></div>
 </div><div class="catnav" id="catnav"></div></div>
 <!-- v2.6.1 — Banner de registro (aparece una sola vez hasta que lo cierren) -->
@@ -6261,7 +6343,7 @@ const SIN_STOCK = new Set([
   //     aunque el stock físico no esté confirmado (orden operativa).
 ]);
 
-const CAT=[{"id": "pollos", "sec": "POLLOS CONGELADOS", "col1": "#B71C1C", "col2": "#7B0000", "shaddai": false, "items": [{"n": "Pollo Ginosa", "p": "x 20 Kg", "pr": 86000, "img": "pollo_ginosa", "badge": "POLLO PREMIUM", "badge_tipo": "gold", "pu": "&#x2248;$4,300 / kg"}, {"n": "Pollo Optimo", "p": "x 20 Kg", "pr": 72000, "img": "pollo_optimo", "badge": "&#x2605; MAS PEDIDO", "badge_tipo": "red", "pu": "&#x2248;$3,600 / kg"}, {"n": "Suprema", "p": "x 5 Kg", "pr": 33000, "img": "supremas_bolsa", "badge": "&#x2605; MAS PEDIDO", "badge_tipo": "red", "pu": "&#x2248;$6,600 / kg"}, {"n": "Suprema IQF", "p": "x 15 Kg", "pr": 102000, "img": "suprema_iqf", "pu": "&#x2248;$6,800 / kg"}, {"n": "Suprema B IQF", "p": "x 20 Kg", "pr": 136000, "img": "suprema_iqf", "pu": "&#x2248;$6,800 / kg"}]}, {"id": "trozados", "sec": "TROZADOS", "col1": "#6D2C00", "col2": "#3B1500", "shaddai": false, "items": [{"n": "Fino de Ave Cocida", "p": "Cocida y desmenuzada · x 10 Kg", "pr": 62400, "img2": "img/empanada mordida.png", "pu": "&#x2248;$6,240 / kg", "badge": "&#x2605; NUEVO", "badge_tipo": "red"}, {"n": "Alita Congelada Granel", "p": "x 15 Kg", "pr": 44000, "img": "alas", "pu": "&#x2248;$2,933 / kg"}, {"n": "Cuarto Trasero IQF", "p": "x 15 Kg", "pr": 53000, "img": "patamuslo", "badge": "&#x2605; MAS PEDIDO", "badge_tipo": "red", "pu": "&#x2248;$3,533 / kg"}, {"n": "MDM - Carne Molida de Pollo", "p": "Ideal relleno empanadas · x 20 Kg", "pr": 34000, "img": "mdm", "img2": "img/empanada mordida.png", "badge": "&#x25BC; OPORTUNIDAD", "badge_tipo": "oport", "pu": "&#x2248;$1,700 / kg"}]}, {"id": "shaddai", "sec": "REBOZADOS", "col1": "#922B21", "col2": "#5C1A14", "shaddai": true, "items": [{"n": "Medallon de Pollo Clasico", "p": "El Shaddai &middot; x 6 Kg", "pr": 28500, "img": "medallon_clasico_v2", "pu": "&#x2248;$4,750 / kg"}, {"n": "Medallon Pollo c/Cheddar", "p": "El Shaddai &middot; x 6 Kg", "pr": 47800, "img": "medallon_cheddar_v2", "pu": "&#x2248;$7,967 / kg"}, {"n": "Medallon Pollo JyQ", "p": "El Shaddai &middot; x 6 Kg", "pr": 33500, "img": "medallon_jyq_v2", "pu": "&#x2248;$5,583 / kg"}, {"n": "Medallon Pollo y Espinaca", "p": "El Shaddai &middot; x 6 Kg", "pr": 33000, "img": "medallon_espinaca_v2", "pu": "&#x2248;$5,500 / kg"}, {"n": "Formita Clasica", "p": "El Shaddai &middot; x 6 Kg", "pr": 28500, "img": "formita_clasica_v2", "pu": "&#x2248;$4,750 / kg"}, {"n": "Formitas Pollo JyQ", "p": "El Shaddai &middot; x 6 Kg", "pr": 33500, "img": "formita_jyq_v2", "pu": "&#x2248;$5,583 / kg"}, {"n": "Nuggets de Pollo Crocante", "p": "El Shaddai &middot; x 6 Kg", "pr": 34500, "img": "nuggets_v2", "pu": "&#x2248;$5,750 / kg"}, {"n": "Bocadito de Papa y Jamon", "p": "El Shaddai &middot; x 6 Kg", "pr": 29000, "img": "bocadito_v2", "pu": "&#x2248;$4,833 / kg"}, {"n": "Pechuguitas al Verdeo", "p": "El Shaddai &middot; x 6 Kg", "pr": 45500, "img": "pechuguitas_v2", "pu": "&#x2248;$7,583 / kg"}, {"n": "Filet Merluza Finas Hierbas", "p": "El Shaddai &middot; x 6 Kg", "pr": 45600, "img": "merluza_hierbas_v2", "pu": "&#x2248;$7,600 / kg"}, {"n": "Filet de Merluza Rebozado", "p": "El Shaddai &middot; x 6 Kg", "pr": 43700, "img": "merluza_rebozado", "pu": "&#x2248;$7,283 / kg"}, {"n": "Milanesa de Soja a Granel", "p": "Solimeno &middot; &#x26A0; ULTIMO STOCK Vence 05/26 &middot; x 6 Kg", "pr": 38600, "img": "milanesa_soja_granel", "badge": "&#x25BC; OFERTA", "badge_tipo": "oport", "pu": "&#x2248;$6,433 / kg"}, {"n": "Milanesa de Soja y Espinaca", "p": "Solimeno &middot; x 6 Kg", "pr": 38600, "img": "milanesa_soja_espinaca", "badge": "&#x2605; NUEVO", "badge_tipo": "red", "pu": "&#x2248;$6,433 / kg"}, {"n": "Bocadito Clasico", "p": "GTA &middot; x 5 Kg", "pr": 27500, "img": "bocadito_clasico_gta", "badge": "&#x2605; NUEVO", "badge_tipo": "red", "pu": "&#x2248;$5,500 / kg"}]}, {"id": "mila", "sec": "MILANESAS Y HAMBURGUESAS", "col1": "#7B241C", "col2": "#4A1510", "shaddai": false, "items": [{"n": "Milanesa de Nalga", "p": "x 5 Kg", "pr": 68000, "img": "milanesa_nalga_v2", "pu": "&#x2248;$13,600 / kg"}, {"n": "Milanesa de Pollo", "p": "x 5 Kg", "pr": 40500, "img": "milanesa_pollo_v2", "pu": "&#x2248;$5,300 / kg"}, {"n": "Hamburguesa 100% Carne", "p": "x 4 Kg (100g c/u)", "pr": 46600, "img": "hamburguesa_carne", "pu": "&#x2248;$1,165 / unidad"}, {"n": "Hamburguesa de Pollo", "p": "Lujo Pampeano &middot; x 5 Kg", "pr": 40500, "img": "hamburguesa_pollo", "badge": "&#x2605; NUEVO", "badge_tipo": "red", "pu": "&#x2248;$8,100 / kg"}]}, {"id": "papas_mccain", "sec": "McCAIN & BALCARCE", "col1": "#BA4A00", "col2": "#7A3000", "shaddai": false, "items": [{"n": "Pulpa de Palta", "p": "Pickers by McCain · x 450 Grs", "pr": 12200, "img": "pulpa_palta", "pu": ""}, {"n": "Papa Baston Balcarce", "p": "x 2,5 Kg", "pr": 8000, "img": "papa_baston", "badge": "&#x2605; MAS PEDIDO", "badge_tipo": "red", "pu": "&#x2248;$3,200 / kg"}]}, {"id": "huevos", "sec": "HUEVOS", "col1": "#D4A000", "col2": "#8B6500", "shaddai": false, "items": [{"n": "Maple N° 2", "p": "30 unidades", "pr": 4800, "img": "huevos_maple", "pu": ""}, {"n": "Maple N° 1", "p": "30 unidades", "pr": 5500, "img": "huevos_maple", "pu": ""}, {"n": "Cajita 1/2 Docena N° 2", "p": "6 unidades", "pr": 1350, "img": "huevos_cajita", "pu": ""}]}, {"id": "verd", "sec": "VERDURAS CONGELADAS", "col1": "#1E8449", "col2": "#0E4D29", "shaddai": false, "items": [{"n": "Arándanos Solimeno", "p": "500 Grs", "pr": 9000, "img": "arandanos", "pu": ""}, {"n": "Brocoli", "p": "500 Grs", "pr": 5800, "img": "brocoli", "pu": ""}, {"n": "Espinacas", "p": "500 Grs", "pr": 4000, "img": "espinaca", "pu": ""}, {"n": "Morron", "p": "500 Grs", "pr": 7000, "img": "morron", "pu": ""}, {"n": "Primavera", "p": "500 Grs", "pr": 5000, "img": "primavera", "pu": ""}, {"n": "Frutos Rojos", "p": "500 Grs", "pr": 11000, "img": "frutos_rojos", "pu": ""}, {"n": "Cebolla", "p": "500 Grs", "pr": 4000, "img": "cebolla", "pu": ""}]}, {"id": "pastas", "sec": "PASTAS LA CASERIANA", "col1": "#1A5276", "col2": "#0D2B3E", "shaddai": false, "items": [{"n": "Ravioles de Calabaza", "p": "500 Grs", "pr": 2700, "img": "ravioles", "pu": ""}, {"n": "Raviolones Espinaca y Mozz", "p": "Masa Integral · 500 Grs", "pr": 3900, "img": "ravioles", "pu": ""}, {"n": "Gnoquis de Papa", "p": "500 Grs", "pr": 2100, "img": "gnoquis", "pu": ""}, {"n": "Gnoquis de Espinaca", "p": "500 Grs", "pr": 2100, "img": "gnoquis_espinaca", "pu": ""}, {"n": "Sorrentinos Jamon y Queso", "p": "500 Grs", "pr": 4200, "img": "sorrentinos", "pu": ""}, {"n": "Sorrentinos Ricota 4 Quesos", "p": "400 Grs", "pr": 2600, "img": "sorrentinos", "pu": ""}]}];
+const CAT=[{"id": "pollos", "sec": "POLLOS CONGELADOS", "col1": "#B71C1C", "col2": "#7B0000", "shaddai": false, "items": [{"n": "Pollo Ginosa", "p": "x 20 Kg", "pr": 86000, "img": "pollo_ginosa", "badge": "POLLO PREMIUM", "badge_tipo": "gold", "pu": "&#x2248;$4,300 / kg"}, {"n": "Pollo Optimo", "p": "x 20 Kg", "pr": 72000, "img": "pollo_optimo", "badge": "&#x2605; MAS PEDIDO", "badge_tipo": "red", "pu": "&#x2248;$3,600 / kg"}, {"n": "Suprema", "p": "x 5 Kg", "pr": 33000, "img": "supremas_bolsa", "badge": "&#x2605; MAS PEDIDO", "badge_tipo": "red", "pu": "&#x2248;$6,600 / kg"}, {"n": "Suprema IQF", "p": "x 15 Kg", "pr": 102000, "img": "suprema_iqf", "pu": "&#x2248;$6,800 / kg"}, {"n": "Suprema B IQF", "p": "x 20 Kg", "pr": 136000, "img": "suprema_iqf", "pu": "&#x2248;$6,800 / kg"}]}, {"id": "trozados", "sec": "TROZADOS", "col1": "#6D2C00", "col2": "#3B1500", "shaddai": false, "items": [{"n": "Fino de Ave Cocida", "p": "Cocida y desmenuzada · x 10 Kg", "pr": 62400, "img2": "img/empanada mordida.png", "label1": "Producto", "label2": "Uso ideal", "pu": "&#x2248;$6,240 / kg", "badge": "&#x2605; NUEVO", "badge_tipo": "red"}, {"n": "Alita Congelada Granel", "p": "x 15 Kg", "pr": 44000, "img": "alas", "pu": "&#x2248;$2,933 / kg"}, {"n": "Cuarto Trasero IQF", "p": "x 15 Kg", "pr": 53000, "img": "patamuslo", "badge": "&#x2605; MAS PEDIDO", "badge_tipo": "red", "pu": "&#x2248;$3,533 / kg"}, {"n": "MDM - Carne Molida de Pollo", "p": "Ideal relleno empanadas · x 20 Kg", "pr": 34000, "img": "mdm", "img2": "img/empanada mordida.png", "label1": "Carne molida", "label2": "Listo en empanadas", "badge": "&#x25BC; OPORTUNIDAD", "badge_tipo": "oport", "pu": "&#x2248;$1,700 / kg"}]}, {"id": "shaddai", "sec": "REBOZADOS", "col1": "#922B21", "col2": "#5C1A14", "shaddai": true, "items": [{"n": "Medallon de Pollo Clasico", "p": "El Shaddai &middot; x 6 Kg", "pr": 28500, "img": "medallon_clasico_v2", "pu": "&#x2248;$4,750 / kg"}, {"n": "Medallon Pollo c/Cheddar", "p": "El Shaddai &middot; x 6 Kg", "pr": 47800, "img": "medallon_cheddar_v2", "pu": "&#x2248;$7,967 / kg"}, {"n": "Medallon Pollo JyQ", "p": "El Shaddai &middot; x 6 Kg", "pr": 33500, "img": "medallon_jyq_v2", "pu": "&#x2248;$5,583 / kg"}, {"n": "Medallon Pollo y Espinaca", "p": "El Shaddai &middot; x 6 Kg", "pr": 33000, "img": "medallon_espinaca_v2", "pu": "&#x2248;$5,500 / kg"}, {"n": "Formita Clasica", "p": "El Shaddai &middot; x 6 Kg", "pr": 28500, "img": "formita_clasica_v2", "pu": "&#x2248;$4,750 / kg"}, {"n": "Formitas Pollo JyQ", "p": "El Shaddai &middot; x 6 Kg", "pr": 33500, "img": "formita_jyq_v2", "pu": "&#x2248;$5,583 / kg"}, {"n": "Nuggets de Pollo Crocante", "p": "El Shaddai &middot; x 6 Kg", "pr": 34500, "img": "nuggets_v2", "pu": "&#x2248;$5,750 / kg"}, {"n": "Bocadito de Papa y Jamon", "p": "El Shaddai &middot; x 6 Kg", "pr": 29000, "img": "bocadito_v2", "pu": "&#x2248;$4,833 / kg"}, {"n": "Pechuguitas al Verdeo", "p": "El Shaddai &middot; x 6 Kg", "pr": 45500, "img": "pechuguitas_v2", "pu": "&#x2248;$7,583 / kg"}, {"n": "Filet Merluza Finas Hierbas", "p": "El Shaddai &middot; x 6 Kg", "pr": 45600, "img": "merluza_hierbas_v2", "pu": "&#x2248;$7,600 / kg"}, {"n": "Filet de Merluza Rebozado", "p": "El Shaddai &middot; x 6 Kg", "pr": 43700, "img": "merluza_rebozado", "pu": "&#x2248;$7,283 / kg"}, {"n": "Milanesa de Soja a Granel", "p": "Solimeno &middot; &#x26A0; ULTIMO STOCK Vence 05/26 &middot; x 6 Kg", "pr": 38600, "img": "milanesa_soja_granel", "badge": "&#x25BC; OFERTA", "badge_tipo": "oport", "pu": "&#x2248;$6,433 / kg"}, {"n": "Milanesa de Soja y Espinaca", "p": "Solimeno &middot; x 6 Kg", "pr": 38600, "img": "milanesa_soja_espinaca", "badge": "&#x2605; NUEVO", "badge_tipo": "red", "pu": "&#x2248;$6,433 / kg"}, {"n": "Bocadito Clasico", "p": "GTA &middot; x 5 Kg", "pr": 27500, "img": "bocadito_clasico_gta", "badge": "&#x2605; NUEVO", "badge_tipo": "red", "pu": "&#x2248;$5,500 / kg"}]}, {"id": "mila", "sec": "MILANESAS Y HAMBURGUESAS", "col1": "#7B241C", "col2": "#4A1510", "shaddai": false, "items": [{"n": "Milanesa de Nalga", "p": "x 5 Kg", "pr": 68000, "img": "milanesa_nalga_v2", "pu": "&#x2248;$13,600 / kg"}, {"n": "Milanesa de Pollo", "p": "x 5 Kg", "pr": 40500, "img": "milanesa_pollo_v2", "pu": "&#x2248;$5,300 / kg"}, {"n": "Hamburguesa 100% Carne", "p": "x 4 Kg (100g c/u)", "pr": 46600, "img": "hamburguesa_carne", "pu": "&#x2248;$1,165 / unidad"}, {"n": "Hamburguesa de Pollo", "p": "Lujo Pampeano &middot; x 5 Kg", "pr": 40500, "img": "hamburguesa_pollo", "badge": "&#x2605; NUEVO", "badge_tipo": "red", "pu": "&#x2248;$8,100 / kg"}]}, {"id": "papas_mccain", "sec": "McCAIN & BALCARCE", "col1": "#BA4A00", "col2": "#7A3000", "shaddai": false, "items": [{"n": "Pulpa de Palta", "p": "Pickers by McCain · x 450 Grs", "pr": 12200, "img": "pulpa_palta", "pu": ""}, {"n": "Papa Baston Balcarce", "p": "x 2,5 Kg", "pr": 8000, "img": "papa_baston", "badge": "&#x2605; MAS PEDIDO", "badge_tipo": "red", "pu": "&#x2248;$3,200 / kg"}]}, {"id": "huevos", "sec": "HUEVOS", "col1": "#D4A000", "col2": "#8B6500", "shaddai": false, "items": [{"n": "Maple N° 2", "p": "30 unidades", "pr": 4800, "img": "huevos_maple", "pu": ""}, {"n": "Maple N° 1", "p": "30 unidades", "pr": 5500, "img": "huevos_maple", "pu": ""}, {"n": "Cajita 1/2 Docena N° 2", "p": "6 unidades", "pr": 1350, "img": "huevos_cajita", "pu": ""}]}, {"id": "verd", "sec": "VERDURAS CONGELADAS", "col1": "#1E8449", "col2": "#0E4D29", "shaddai": false, "items": [{"n": "Arándanos Solimeno", "p": "500 Grs", "pr": 9000, "img": "arandanos", "pu": ""}, {"n": "Brocoli", "p": "500 Grs", "pr": 5800, "img": "brocoli", "pu": ""}, {"n": "Espinacas", "p": "500 Grs", "pr": 4000, "img": "espinaca", "pu": ""}, {"n": "Morron", "p": "500 Grs", "pr": 7000, "img": "morron", "pu": ""}, {"n": "Primavera", "p": "500 Grs", "pr": 5000, "img": "primavera", "pu": ""}, {"n": "Frutos Rojos", "p": "500 Grs", "pr": 11000, "img": "frutos_rojos", "pu": ""}, {"n": "Cebolla", "p": "500 Grs", "pr": 4000, "img": "cebolla", "pu": ""}]}, {"id": "pastas", "sec": "PASTAS LA CASERIANA", "col1": "#1A5276", "col2": "#0D2B3E", "shaddai": false, "items": [{"n": "Ravioles de Calabaza", "p": "500 Grs", "pr": 2700, "img": "ravioles", "pu": ""}, {"n": "Raviolones Espinaca y Mozz", "p": "Masa Integral · 500 Grs", "pr": 3900, "img": "ravioles", "pu": ""}, {"n": "Gnoquis de Papa", "p": "500 Grs", "pr": 2100, "img": "gnoquis", "pu": ""}, {"n": "Gnoquis de Espinaca", "p": "500 Grs", "pr": 2100, "img": "gnoquis_espinaca", "pu": ""}, {"n": "Sorrentinos Jamon y Queso", "p": "500 Grs", "pr": 4200, "img": "sorrentinos", "pu": ""}, {"n": "Sorrentinos Ricota 4 Quesos", "p": "400 Grs", "pr": 2600, "img": "sorrentinos", "pu": ""}]}];
 
 // qty, vActivo, fmt declarados en bloque de estado global (top del archivo)
 // v2: T() ahora incluye combos. Retorna {t, c, tCombos, cCombos, tProductos, cProductos}
@@ -6733,7 +6815,7 @@ function renderBody(){
         + '<div class="calc-hint">Compara precios por kg</div>'
         + '</div>'
       );
-      return '<div class="card'+(it.img2?' card-dual':'')+( sec.shaddai?' shaddai':'')+(q>0?' has-qty':'')+(sinStock?' card-sinstock':'')+'" data-key="'+key+'">'
+      return '<div class="card'+(it.img2?' card-dual card-dual-'+(it.badge_tipo||'plain'):'')+( sec.shaddai?' shaddai':'')+(q>0?' has-qty':'')+(sinStock?' card-sinstock':'')+'" data-key="'+key+'">'
         +(it.img2
         ? ('<div class="card-img-area" style="position:relative;display:flex;gap:2px;">'+bdgSinStock+bdg+bdgNoCupon
           +'<img class="card-img card-img-left" src="'
@@ -6741,7 +6823,7 @@ function renderBody(){
           +'" alt="'+it.n+'" loading="lazy" decoding="async" style="flex:1;min-width:0;height:160px;object-fit:cover;padding:0;">'
           +'<img class="card-img card-img-right" src="'+it.img2+'" alt="uso" loading="lazy" decoding="async" style="flex:1;min-width:0;height:160px;object-fit:cover;padding:0;">'
           +'</div>'
-          +'<div style="display:flex;gap:2px;padding:2px 4px 0;"><div style="flex:1;font-size:9px;color:var(--text3);text-align:center;font-style:italic;">Producto</div><div style="flex:1;font-size:9px;color:var(--text3);text-align:center;font-style:italic;">Uso ideal</div></div>'
+          +'<div style="display:flex;gap:2px;padding:2px 4px 0;"><div style="flex:1;font-size:9px;color:var(--text3);text-align:center;font-style:italic;">'+(it.label1||'Producto')+'</div><div style="flex:1;font-size:9px;color:var(--text3);text-align:center;font-style:italic;">'+(it.label2||'Uso ideal')+'</div></div>'
           +'<div class="card-sep"></div>')
         : ('<div class="card-img-area">'+bdgSinStock+bdg+bdgNoCupon
           +'<img class="card-img" src="img/'+encodeURIComponent(_imgmap[it.n]||it.n+'.jpg').replace(/%25/g,'%').replace(/%2F/g,'/')+'" alt="'+it.n+'" loading="lazy" decoding="async">'
