@@ -2,6 +2,53 @@
 <html lang="es">
 <head>
 <!-- ═══════════════════════════════════════════════════════════════════════
+     TCK CATÁLOGO — v3.6.4 — 06/05/2026
+     ──────────────────────────────────────────────────────────────────────
+     DENSIDAD MOBILE (Fase 1) — más productos por pantalla
+
+     Captura del 6/5: en iPhone 17 Pro Max (~932px alto, la pantalla más
+     grande de iPhone) solo entran 2 productos por pantalla. En Samsung
+     A14 (~740px) entra 1. Para B2B operativo, eso es brutal.
+
+     Cambios v3.6.4 (sobre v3.6.3) — todo CSS, override final en @media:
+
+       1. .card-img height: 160px → 90px (recupera ~70px por card).
+          La imagen sigue siendo reconocible pero deja de ser monumento.
+
+       2. .banner-registro display:none en mobile (≤768px).
+          Es redundante con el botón "🎁 Registrarme" del header.
+          Recupera ~95px de viewport por encima de la grilla.
+
+       3. .calc-toggle + .calibre-row + .calc-content display:none en mobile.
+          La calculadora de margen y la nota de calibre son features avanzadas
+          que el ~90% de los usuarios mobile no usan. Se conservan en desktop.
+          Recupera ~25-30px por card.
+
+       4. Paddings reducidos en mobile:
+          - .hdr-body: 9/13/7 → 6/10/4
+          - .catnav: 6/16/12 → 4/12/6
+          - .card-body: 8/9/9 → 6/7/7
+          - .card-pres / .card-pkg / .card-price-box / .card-name:
+            margin-bottom y padding reducidos.
+          Recupera ~30px global + ~10px por card.
+
+     Resultado esperado:
+       Card de ~360px → ~220px (-39%).
+       Productos visibles por pantalla en Samsung A14: 1 → ~3.
+       Productos visibles por pantalla en iPhone 17 Pro Max: 2 → ~4.
+
+     NO se toca:
+       - HTML (cards, header, banners, todo igual)
+       - JS (lógica de carrito, stepper, Meta Pixel, sin cambios)
+       - .banner-cupon-activo (v3.6.2): el dorado de cupón sigue visible
+       - .banner-pedido-armado (v3.6.2): recuperación de carrito sigue activo
+       - Desktop: el CSS desktop queda intacto, los cambios son @media≤768px
+
+     Reversibilidad:
+       Si algo se ve mal, comentar el bloque @media v3.6.4 al final del <style>.
+       Vuelve al estado v3.6.3 inmediatamente.
+
+     ──────────────────────────────────────────────────────────────────────
      TCK CATÁLOGO — v3.6.3 — 06/05/2026
      ──────────────────────────────────────────────────────────────────────
      ALTA DE STOCK: Suprema IQF (15 kg)
@@ -5238,6 +5285,49 @@ body.drawer-abierto #wa-float {
 
 /* v3.5.5: CSS de #info-float eliminado — el botón "Sobre nosotros" ahora
    está en el header (pill normal, no flotante). Ver #hdr-sobre-tck. */
+
+/* ═══════════════════════════════════════════════════════════════════════
+   v3.6.4 — DENSIDAD MOBILE
+   ──────────────────────────────────────────────────────────────────────
+   Override final para mobile (≤768px). Apunta a subir la cantidad de
+   productos visibles por pantalla de ~1 a ~3-4 sin tocar HTML ni JS.
+
+   Cambios:
+   1. .card-img height 160→90px (foto más chica, suficiente para reconocer)
+   2. .banner-registro oculto (redundante con botón "Registrarme" del header)
+   3. .calc-toggle + .calibre-row ocultos (90% no los usa, ruido visual)
+   4. Paddings reducidos en .hdr-body, .catnav, .card-body y precios
+
+   NO se toca:
+   - .banner-cupon-activo (v3.6.2 — combate amnesia del cupón, sigue visible)
+   - banner-pedido-armado (v3.6.2 — recupera carritos abandonados)
+   - HTML, JS, lógica del carrito, stepper
+
+   Si algo sale mal, comentar todo este bloque y vuelve al estado anterior.
+   ─────────────────────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  /* 1. CARD IMAGE — bajar de 160px a 90px (recupera ~70px por card) */
+  .card-img { height: 90px; padding: 4px; }
+
+  /* 2. BANNER REGISTRO — redundante con botón header en mobile */
+  .banner-registro { display: none !important; }
+
+  /* 3. CALCULADORA Y NOTA DE CALIBRE — ocultos en mobile (ruido B2B) */
+  .calc-toggle,
+  .calibre-row,
+  .calc-content { display: none !important; }
+
+  /* 4a. HEADER MÁS COMPACTO */
+  .hdr-body { padding: 6px 10px 4px; }
+  .catnav   { padding: 4px 12px 6px; }
+
+  /* 4b. CARD BODY MÁS COMPACTA */
+  .card-body { padding: 6px 7px 7px; }
+  .card-pres { margin-bottom: 2px; padding: 2px 5px; }
+  .card-pkg  { margin-bottom: 3px; padding: 2px 5px; }
+  .card-price-box { margin-bottom: 4px; padding: 4px 5px; }
+  .card-name { margin-bottom: 4px; }
+}
 
 </style>
 
