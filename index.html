@@ -2,6 +2,46 @@
 <html lang="es">
 <head>
 <!-- ═══════════════════════════════════════════════════════════════════════
+     TCK CATÁLOGO — v3.6.14 — 06/05/2026 — REINTENTO POST-BUG
+     ──────────────────────────────────────────────────────────────────────
+     PIXEL DE GOOGLE ADS — VERSIÓN CORREGIDA
+
+     Cambio v3.6.14 (sobre v3.6.13):
+
+       BUG previo (v3.6.14 anterior, descartada):
+         Insertamos un segundo bloque <script> con
+         "function gtag(){dataLayer.push(arguments);}" y
+         "gtag('config','AW-16651738476')" para Google Ads.
+         Esto generaba un SyntaxError silencioso porque la función
+         gtag ya estaba declarada en el bloque de Google Analytics.
+         Resultado: el segundo bloque no ejecutaba, pero peor: el JS
+         global del catálogo no terminaba de cargar y aparecían:
+           · qty is not defined (línea 7361)
+           · _cliActivo is not defined (línea 13204)
+           · PRICES_CSV_URL is not defined
+         El catálogo quedaba EN BLANCO después del banner inicial.
+
+       Solución v3.6.14 corregida:
+         a) NO redeclarar gtag en otro <script>. En vez de eso, agregar
+            "gtag('config', 'AW-16651738476')" DENTRO del mismo bloque
+            de Google Analytics, justo después de gtag('config',
+            'G-5B3G4JZZS3'). gtag soporta múltiples configs.
+         b) En confirmarYEnviarWA(), disparar el evento de conversión
+            justo después del fbqSafe('Purchase'). value=t (total con
+            descuento), transaction_id=pedidoId. try/catch defensivo.
+
+       Datos de la conversión:
+         - Conversion ID:     AW-16651738476
+         - Send-to label:     AW-16651738476/uO-hCKWT3qgcEOy6lYQ-
+         - Nombre conversión: "Pedido enviado por WhatsApp"
+
+     Reversibilidad:
+       - Quitar la línea "gtag('config', 'AW-16651738476')" del bloque
+         de Google Analytics.
+       - Comentar el bloque "v3.6.14 · Google Ads Conversion" de
+         confirmarYEnviarWA().
+
+     ──────────────────────────────────────────────────────────────────────
      TCK CATÁLOGO — v3.6.13 — 06/05/2026
      ──────────────────────────────────────────────────────────────────────
      FECHA DE ENTREGA ESTIMADA EN EL MODAL DE PEDIDO
@@ -1916,13 +1956,21 @@ function _pxResetCart() { _pxCarted = {}; }
 setInterval(function(){ _pxCarted = {}; }, 3000);
 </script>
 
-<!-- Google Analytics -->
+<!-- Google Analytics + Google Ads (gtag.js compartido) -->
+<!-- v3.6.14: el tag de Google Ads se carga junto con Analytics para evitar
+     redeclarar la función gtag en otro <script> (causaría SyntaxError:
+     Identifier 'gtag' has already been declared y rompe el resto del JS). -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-5B3G4JZZS3"></script>
 <script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
   gtag('js', new Date());
   gtag('config', 'G-5B3G4JZZS3');
+  // v3.6.14: Conversion ID de Google Ads — pixel para tracking de
+  // conversiones de la campaña Search-1TCK - Tier 1 - Búsqueda.
+  // El evento gtag('event', 'conversion', {...}) se dispara desde
+  // confirmarYEnviarWA() al enviar el pedido por WhatsApp.
+  gtag('config', 'AW-16651738476');
 </script>
 <!-- Sentry -->
 <script
@@ -9435,6 +9483,27 @@ function confirmarYEnviarWA() {
       order_id: pedidoId,
       origen_marketing: (utmLeer() || {}).origen_marketing || null
     });
+  } catch(e) { /* no bloquear el envío */ }
+
+  // ── v3.6.14 · Google Ads Conversion ────────────────────────────
+  // Dispara la conversión "Pedido enviado por WhatsApp" en Google Ads.
+  // gtag ya está cargado desde el <head> (junto con Analytics, en el
+  // mismo bloque para no redeclarar la función — eso causaba un
+  // SyntaxError que rompía qty, _cliActivo, PRICES_CSV_URL en v3.6.14
+  // anterior. Ahora gtag es único y reusado).
+  // - value: total real del pedido (con cupón aplicado si hay descuento)
+  // - currency: ARS
+  // - transaction_id: pedidoId único (deduplicación)
+  // - try/catch defensivo: nunca bloquea el envío del pedido.
+  try {
+    if (typeof gtag === 'function') {
+      gtag('event', 'conversion', {
+        'send_to': 'AW-16651738476/uO-hCKWT3qgcEOy6lYQ-',
+        'value': t,
+        'currency': 'ARS',
+        'transaction_id': pedidoId
+      });
+    }
   } catch(e) { /* no bloquear el envío */ }
 
   // v2: Descontar stock de combos en Supabase (fire-and-forget)
