@@ -2,6 +2,117 @@
 <html lang="es">
 <head>
 <!-- ═══════════════════════════════════════════════════════════════════════
+     TCK CATÁLOGO — v3.6.12 — 06/05/2026
+     ──────────────────────────────────────────────────────────────────────
+     CIUDADES COMO CHIPS · DÍA COMO TÍTULO
+
+     Cambio v3.6.12 (sobre v3.6.11):
+
+       35. REFACTOR del cronograma de zonas en pantalla "Sobre TCK":
+
+           Antes — orientado a logística interna:
+             📍 ZONA 1   [LUNES Y MARTES]
+             Beruti · Bolívar · Daireaux · Henderson · ...
+             (texto corrido difícil de escanear)
+
+           Ahora — orientado al cliente:
+             🚚 LUNES Y MARTES
+             [Beruti] [Bolívar] [Daireaux] [Henderson] ...
+             (chips visuales, escaneables de un vistazo)
+
+           Insight base de Braian: "Zona 1/2/3" es jerga LOGÍSTICA
+           INTERNA de TCK. El cliente NO piensa en zonas, piensa en
+           "¿qué día llegan a mi pueblo?". El día tiene que ser el
+           título principal, no un pill secundario.
+
+           Cambios concretos:
+           - Eliminado el texto "📍 Zona 1/2/3" (jerga interna)
+           - El día (era pill rojo chiquito) ahora es el header
+             principal: 17px Barlow Condensed bold rojo
+           - Trenque Lauquen "🏠 Todos los días" en verde (#1E8449)
+           - Las ciudades pasan de texto corrido (`Beruti · Bolívar · ...`)
+             a chips individuales con background crema (#FAF4EC),
+             border crema oscuro, font 12px
+           - Bonifacio* tiene chip variante (.chip-nota) en dorado
+             para diferenciarlo visualmente como caso especial
+           - Trenque Lauquen tiene chip único con sub-texto
+             "(mañana y tarde)" en font más chico
+
+           Reversibilidad:
+           - El HTML del modal cambió. Las clases viejas
+             (.intro-tck-zona-cabecera, .intro-tck-zona-nombre,
+             .intro-tck-zona-ciudades) quedan declaradas en CSS por
+             si algún código legacy las usa, pero el render principal
+             ahora usa .intro-tck-zona-chips + .intro-tck-chip.
+
+     Pendiente Fase B (no incluido):
+       - Acordeón colapsable: solo se abre la zona del cliente
+         si está logueado y tiene ciudad cargada. Las otras
+         colapsadas para no abrumar.
+       - Reemplazar video por imagen estática única
+       - Menú hamburguesa ☰ para botones secundarios
+
+     ──────────────────────────────────────────────────────────────────────
+     TCK CATÁLOGO — v3.6.11 — 06/05/2026
+     ──────────────────────────────────────────────────────────────────────
+     CTA STICKY + LOGO MÁS GRANDE + BOTONES HEADER COMPACTOS
+
+     Cambios v3.6.11 (sobre v3.6.10):
+
+       32. CTA STICKY en pantalla "Sobre TCK":
+           Antes: el CTA "Ver el catálogo" iba después del cronograma +
+           "tu ciudad" + 4 features. En mobile chico, quedaba CORTADO
+           por el viewport — el cliente tenía que scrollear para
+           encontrarlo y muchos no lo veían.
+
+           Ahora: hay un .intro-tck-sticky-cta con position: sticky;
+           bottom: 0 dentro del modal. Está SIEMPRE visible al final del
+           viewport mientras el cliente scrollea. El CTA del medio
+           (.intro-tck-actions) fue eliminado para no duplicar.
+
+           El sticky tiene gradiente de transparencia + blur para que el
+           contenido detrás se vea suave, no cortado bruscamente.
+
+       33. LOGO MÁS GRANDE en mobile:
+           max-height: 30px → 40px (33% más grande)
+           min-width de .hdr-brand: 70px → 100px
+           Antes el logo se veía diminuto al lado de los botones; ahora
+           tiene presencia visual sin desplazar la marca.
+
+       34. BOTONES HEADER COMPACTOS en pantallas chicas (<420px):
+           Para que el logo más grande NO empuje aún más el scroll
+           horizontal, en pantallas <420px (iPhone SE, A14, etc.) los
+           textos "Sobre TCK" / "Necesito un vendedor" / "Ayuda" se
+           ocultan, dejando solo el emoji o icono. El target táctil se
+           mantiene en 38px+ con padding ajustado.
+
+           HTML cambiado: el texto de los 3 botones se envolvió en
+           <span class="hdr-btn-txt">, y el CSS lo oculta selectivamente
+           bajo el media query 420px. Pantallas más grandes (≥420px)
+           siguen mostrando el texto completo.
+
+           Esto reduce el ancho del .hdr-right de ~240px a ~150px en
+           mobile chico, dándole margen al logo más grande.
+
+     Resultado:
+       - El cliente abre Sobre TCK y ve el botón "Ver el catálogo"
+         desde el primer momento
+       - El logo se ve grande y prominente en home
+       - El scroll horizontal del header solo aparece si hay vchip
+         + cart-pill al lado de los 3 botones (raro)
+
+     Reversibilidad:
+       - Sticky CTA: comentar el bloque .intro-tck-sticky-cta del CSS
+         y restaurar el .intro-tck-actions del medio en el HTML
+       - Logo grande: cambiar max-height: 40px → 30px en mobile
+       - Botones compactos: eliminar el bloque @media (max-width: 420px)
+
+     Pendiente Fase B:
+       - Acordeón de zonas con chips (cierra zonas no relevantes)
+       - Reemplazar video por imagen estática única
+       - Menú hamburguesa ☰ para botones secundarios
+
+     ──────────────────────────────────────────────────────────────────────
      TCK CATÁLOGO — v3.6.10 — 06/05/2026
      ──────────────────────────────────────────────────────────────────────
      PANTALLA "SOBRE TCK" OPTIMIZADA (Quick wins análisis Kimi)
@@ -5501,39 +5612,66 @@ body.intro-tck-abierta {
   overflow: hidden;
 }
 .intro-tck-zona {
-  padding: 12px 14px;
+  padding: 14px 14px 12px;
 }
 .intro-tck-zona + .intro-tck-zona {
   border-top: 1px solid #f5e8e8;
 }
-.intro-tck-zona-cabecera {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 6px;
-  flex-wrap: wrap;
-}
-.intro-tck-zona-nombre {
-  font-family: 'Barlow Condensed', sans-serif;
-  font-size: 15px;
-  font-weight: 800;
-  color: #2a1a1a;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
+/* v3.6.12 — .intro-tck-zona-cabecera y .intro-tck-zona-nombre ya no se usan
+   (eliminamos el "Zona 1/2/3" que era jerga interna). Quedan los selectores
+   por compatibilidad pero sin estilos. */
+.intro-tck-zona-cabecera { display: contents; }
+.intro-tck-zona-nombre { display: none; }
+
+/* v3.6.12 — Día como título principal (era pill chico, ahora es el header) */
 .intro-tck-zona-dias {
-  background: var(--red, #B71C1C);
-  color: #fff;
-  font-size: 11px;
-  font-weight: 700;
-  padding: 3px 8px;
-  border-radius: 12px;
+  display: block;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 17px;
+  font-weight: 800;
+  color: var(--red, #B71C1C);
   text-transform: uppercase;
-  letter-spacing: 0.4px;
+  letter-spacing: 0.6px;
+  margin-bottom: 10px;
+  line-height: 1.2;
 }
 .intro-tck-zona-dias.dias-todos {
-  background: #1E8449;
+  color: #1E8449;
 }
+
+/* v3.6.12 — Ciudades como chips visuales (reemplaza el texto corrido) */
+.intro-tck-zona-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.intro-tck-chip {
+  display: inline-block;
+  background: #FAF4EC;
+  border: 1px solid #E8D5BB;
+  color: #5a4030;
+  padding: 5px 11px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  line-height: 1.3;
+}
+.intro-tck-chip small {
+  font-size: 10px;
+  font-weight: 500;
+  color: #8a7060;
+  margin-left: 3px;
+}
+/* Variante para Bonifacio* (con asterisco de nota) — más sutil */
+.intro-tck-chip.chip-nota {
+  background: #FFF8E7;
+  border-color: #E8C880;
+  color: #6a5020;
+}
+
+/* v3.6.12 — .intro-tck-zona-ciudades queda como fallback por si algún código
+   legacy sigue renderizando texto corrido en lugar de chips. */
 .intro-tck-zona-ciudades {
   font-size: 13px;
   line-height: 1.55;
@@ -5543,7 +5681,7 @@ body.intro-tck-abierta {
   font-size: 11px;
   color: #888;
   font-style: italic;
-  margin-top: 4px;
+  margin-top: 8px;
 }
 
 .intro-tck-zona-noseve {
@@ -5847,6 +5985,63 @@ body.drawer-abierto #wa-float {
   .intro-tck-galeria-item {
     width: 100% !important;
     height: 110px !important;
+  }
+
+  /* ═════════════════════════════════════════════════════════════════
+     v3.6.11 — Logo grande + CTA sticky + botones header compactos
+     ═════════════════════════════════════════════════════════════════ */
+
+  /* 32. Logo del header MÁS GRANDE en mobile (antes 30px → ahora 40px) */
+  .hdr-brand-logo { max-height: 40px !important; }
+  .hdr-brand { min-width: 100px !important; }
+
+  /* 33. CTA STICKY en pantalla Sobre TCK: siempre visible al fondo del modal */
+  /* Evita que el cliente tenga que scrollear para encontrar "Ver el catálogo" */
+  .intro-tck-sticky-cta {
+    position: sticky;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    display: flex;
+    gap: 8px;
+    padding: 12px 16px;
+    margin: 16px -16px -16px -16px;
+    background: linear-gradient(180deg, rgba(255,250,240,0) 0%, rgba(255,250,240,0.95) 30%, rgba(255,250,240,1) 100%);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    border-top: 1px solid rgba(183,28,28,0.1);
+    z-index: 10;
+  }
+  .intro-tck-sticky-cta .intro-tck-cta { flex: 1; }
+  .intro-tck-sticky-cta .intro-tck-wa {
+    flex: 0 0 auto;
+    width: 56px;
+    height: 56px;
+  }
+
+  /* Padding bottom extra al contenedor para que el sticky no tape los datos legales */
+  .intro-tck-cont { padding-bottom: 20px; }
+}
+
+/* ═════════════════════════════════════════════════════════════════
+   v3.6.11 — Pantallas chicas (<420px): solo emojis en botones header
+   ═════════════════════════════════════════════════════════════════
+   En iPhone SE / Samsung A14 / pantallas estrechas, los textos
+   "Sobre TCK" / "Necesito un vendedor" / "Ayuda" empujan al logo
+   y generan scroll horizontal. Con solo emojis se libera espacio
+   para que el logo entre cómodo y los botones siguen siendo táctiles.
+   ═════════════════════════════════════════════════════════════════ */
+@media (max-width: 420px) {
+  .hdr-sobre .hdr-btn-txt,
+  .hdr-pedir-vend .hdr-btn-txt,
+  .hdr-support .hdr-btn-txt {
+    display: none;
+  }
+  /* Padding compacto cuando solo hay emoji, manteniendo target táctil >= 36px */
+  .hdr-sobre, .hdr-pedir-vend, .hdr-support {
+    padding: 6px 10px !important;
+    min-width: 38px;
+    font-size: 14px !important;
   }
 }
 
@@ -6233,7 +6428,7 @@ src="https://www.facebook.com/tr?id=2034313150514758&ev=PageView&noscript=1"
 </div></div>
 <div class="hdr"><div class="hdr-stripe"></div><div class="hdr-body">
 <div class="hdr-brand"><img class="hdr-brand-logo" src="img/logo.png" alt="TCK · The Chicken Kings" onerror="this.outerHTML='&lt;div class=&quot;hdr-brand-name&quot;&gt;THE CHICKEN &lt;span&gt;KINGS&lt;/span&gt;&lt;/div&gt;'"><div class="hdr-brand-sub" id="hdr-price-status">Cat&aacute;logo Abril 2026 &middot; Trenque Lauquen</div></div>
-<div class="hdr-right"><div class="cart-pill" id="cart-pill"></div><button id="cli-btn-volver-portal" onclick="cliVolverPortal()" style="display:none;background:rgba(255,215,0,.15);border:1.5px solid rgba(255,215,0,.4);border-radius:20px;padding:6px 12px;font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:800;color:var(--gold);cursor:pointer;white-space:nowrap;letter-spacing:.3px">← Mi cuenta</button><button id="cli-btn-micuenta" class="btn-cuenta registrarme" onclick="cliBotonHeader()">🎁 Registrarme</button><button class="hdr-sobre" id="hdr-sobre-tck" onclick="reabrirIntroTCK()" aria-label="Conocé TCK">📍 Sobre TCK</button><button class="hdr-pedir-vend" id="hdr-pedir-vend" onclick="abrirModalPedirVendedor()" aria-label="Pedir contacto humano">🙋 Necesito un vendedor</button><button class="hdr-support" id="hdr-support" onclick="toggleFAB()" aria-label="Ayuda"><svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor" style="opacity:.85;flex-shrink:0"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z"/></svg> Ayuda</button><div class="vchip" id="vchip" onclick="cambiarVendedor()"></div></div>
+<div class="hdr-right"><div class="cart-pill" id="cart-pill"></div><button id="cli-btn-volver-portal" onclick="cliVolverPortal()" style="display:none;background:rgba(255,215,0,.15);border:1.5px solid rgba(255,215,0,.4);border-radius:20px;padding:6px 12px;font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:800;color:var(--gold);cursor:pointer;white-space:nowrap;letter-spacing:.3px">← Mi cuenta</button><button id="cli-btn-micuenta" class="btn-cuenta registrarme" onclick="cliBotonHeader()">🎁 Registrarme</button><button class="hdr-sobre" id="hdr-sobre-tck" onclick="reabrirIntroTCK()" aria-label="Conocé TCK">📍 <span class="hdr-btn-txt">Sobre TCK</span></button><button class="hdr-pedir-vend" id="hdr-pedir-vend" onclick="abrirModalPedirVendedor()" aria-label="Pedir contacto humano">🙋 <span class="hdr-btn-txt">Necesito un vendedor</span></button><button class="hdr-support" id="hdr-support" onclick="toggleFAB()" aria-label="Ayuda"><svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor" style="opacity:.85;flex-shrink:0"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z"/></svg> <span class="hdr-btn-txt">Ayuda</span></button><div class="vchip" id="vchip" onclick="cambiarVendedor()"></div></div>
 </div><div class="catnav" id="catnav"></div></div>
 <!-- v2.6.1 — Banner de registro (aparece una sola vez hasta que lo cierren) -->
 <div class="banner-registro hidden" id="banner-registro">
@@ -9951,43 +10146,61 @@ document.addEventListener('visibilitychange', function() {
 
     <!-- v3.6.10 — Cronograma de zonas MOVIDO al tope (era bloque 7, ahora va 2do) -->
     <!-- "¿Llegás a mi pueblo?" es la pregunta #1 del almacenero. Si no llegás, se va. -->
+    <!-- v3.6.12 — Refactor: "Zona 1/2/3" es interno nuestro. El cliente piensa
+         en términos de "¿qué día llegan?". El día pasa a título principal,
+         las ciudades quedan como chips visuales. -->
     <div class="intro-tck-cronograma-titulo">
       <span class="ico">🚛</span>
       <span>¿Cu&aacute;ndo llegamos a tu ciudad?</span>
     </div>
     <div class="intro-tck-zonas">
       <div class="intro-tck-zona">
-        <div class="intro-tck-zona-cabecera">
-          <span class="intro-tck-zona-nombre">🏠 Trenque Lauquen</span>
-          <span class="intro-tck-zona-dias dias-todos">Todos los d&iacute;as</span>
+        <div class="intro-tck-zona-dias dias-todos">🏠 Todos los d&iacute;as</div>
+        <div class="intro-tck-zona-chips">
+          <span class="intro-tck-chip">Trenque Lauquen <small>(ma&ntilde;ana y tarde)</small></span>
         </div>
-        <div class="intro-tck-zona-ciudades">Ma&ntilde;ana y tarde</div>
       </div>
       <div class="intro-tck-zona">
-        <div class="intro-tck-zona-cabecera">
-          <span class="intro-tck-zona-nombre">📍 Zona 1</span>
-          <span class="intro-tck-zona-dias">Lunes y Martes</span>
-        </div>
-        <div class="intro-tck-zona-ciudades">
-          Beruti &middot; Bol&iacute;var &middot; Daireaux &middot; Henderson &middot; Madero &middot; Mones Caz&oacute;n &middot; Paso &middot; Pehuaj&oacute; &middot; Pirovano &middot; Salazar &middot; Urdampilleta &middot; Bonifacio*
+        <div class="intro-tck-zona-dias">🚚 Lunes y Martes</div>
+        <div class="intro-tck-zona-chips">
+          <span class="intro-tck-chip">Beruti</span>
+          <span class="intro-tck-chip">Bol&iacute;var</span>
+          <span class="intro-tck-chip">Daireaux</span>
+          <span class="intro-tck-chip">Henderson</span>
+          <span class="intro-tck-chip">Madero</span>
+          <span class="intro-tck-chip">Mones Caz&oacute;n</span>
+          <span class="intro-tck-chip">Paso</span>
+          <span class="intro-tck-chip">Pehuaj&oacute;</span>
+          <span class="intro-tck-chip">Pirovano</span>
+          <span class="intro-tck-chip">Salazar</span>
+          <span class="intro-tck-chip">Urdampilleta</span>
+          <span class="intro-tck-chip chip-nota">Bonifacio*</span>
         </div>
         <div class="intro-tck-zona-nota">* Bonifacio: condiciones especiales, consultar por WhatsApp</div>
       </div>
       <div class="intro-tck-zona">
-        <div class="intro-tck-zona-cabecera">
-          <span class="intro-tck-zona-nombre">📍 Zona 2</span>
-          <span class="intro-tck-zona-dias">Jueves y Viernes</span>
-        </div>
-        <div class="intro-tck-zona-ciudades">
-          30 de Agosto &middot; Casbas &middot; Cochic&oacute; &middot; Debary &middot; Garr&eacute; &middot; Guamin&iacute; &middot; Pellegrini &middot; Quenum&aacute; &middot; Sallliquel&oacute; &middot; Thompson &middot; Tres Lomas &middot; Villa Maza
+        <div class="intro-tck-zona-dias">🚚 Jueves y Viernes</div>
+        <div class="intro-tck-zona-chips">
+          <span class="intro-tck-chip">30 de Agosto</span>
+          <span class="intro-tck-chip">Casbas</span>
+          <span class="intro-tck-chip">Cochic&oacute;</span>
+          <span class="intro-tck-chip">Debary</span>
+          <span class="intro-tck-chip">Garr&eacute;</span>
+          <span class="intro-tck-chip">Guamin&iacute;</span>
+          <span class="intro-tck-chip">Pellegrini</span>
+          <span class="intro-tck-chip">Quenum&aacute;</span>
+          <span class="intro-tck-chip">Salliquel&oacute;</span>
+          <span class="intro-tck-chip">Thompson</span>
+          <span class="intro-tck-chip">Tres Lomas</span>
+          <span class="intro-tck-chip">Villa Maza</span>
         </div>
       </div>
       <div class="intro-tck-zona">
-        <div class="intro-tck-zona-cabecera">
-          <span class="intro-tck-zona-nombre">📍 Zona 3</span>
-          <span class="intro-tck-zona-dias">Martes</span>
+        <div class="intro-tck-zona-dias">🚚 Martes</div>
+        <div class="intro-tck-zona-chips">
+          <span class="intro-tck-chip">Am&eacute;rica</span>
+          <span class="intro-tck-chip">Fort&iacute;n</span>
         </div>
-        <div class="intro-tck-zona-ciudades">Am&eacute;rica &middot; Fort&iacute;n</div>
       </div>
     </div>
     <div class="intro-tck-zona-noseve">
@@ -10004,23 +10217,10 @@ document.addEventListener('visibilitychange', function() {
       <li><span><b>Pag&aacute;s cuando recib&iacute;s</b> &middot; efectivo o transferencia</span></li>
     </ul>
 
-    <!-- v3.6.10 — CTA principal único (se eliminó el del pie por redundancia) -->
-    <div class="intro-tck-actions">
-      <button class="intro-tck-cta" onclick="cerrarIntroTCK()" type="button">
-        <span>Ver el cat&aacute;logo</span>
-        <span class="arrow">→</span>
-      </button>
-      <a class="intro-tck-wa"
-         href="https://wa.me/5492392404745?text=Hola%20TCK!%20Tengo%20una%20consulta..."
-         target="_blank"
-         rel="noopener"
-         aria-label="Consultar por WhatsApp"
-         onclick="try{localStorage.setItem('tck_intro_visto','1');}catch(e){}">
-        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-          <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.002-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
-        </svg>
-      </a>
-    </div>
+    <!-- v3.6.11 — Eliminado el CTA del medio (.intro-tck-actions). Ahora hay
+         un CTA sticky abajo del modal que está SIEMPRE visible al scrollear.
+         El cliente ve el botón "Ver el catálogo" desde el primer momento sin
+         tener que buscar dónde está. -->
 
     <!-- v3.6.10 — Video SIN autoplay y SIN preload. El cliente toca play si quiere ver. -->
     <!-- Antes: autoplay + preload="metadata" descargaba 5-15 MB en 3G antes del primer paint -->
@@ -10065,6 +10265,27 @@ document.addEventListener('visibilitychange', function() {
         <span class="ico">🛡️</span>
         <span class="val">SENASA N&deg; 2-453721 &middot; San Lorenzo 460, Trenque Lauquen</span>
       </div>
+    </div>
+
+    <!-- v3.6.11 — CTA STICKY siempre visible al fondo del modal -->
+    <!-- Antes el botón quedaba después del cronograma + features y muchas
+         veces caía fuera del primer viewport. Ahora está fijo al fondo y
+         el cliente lo ve desde que abre la pantalla. -->
+    <div class="intro-tck-sticky-cta">
+      <button class="intro-tck-cta" onclick="cerrarIntroTCK()" type="button">
+        <span>Ver el cat&aacute;logo</span>
+        <span class="arrow">→</span>
+      </button>
+      <a class="intro-tck-wa"
+         href="https://wa.me/5492392404745?text=Hola%20TCK!%20Tengo%20una%20consulta..."
+         target="_blank"
+         rel="noopener"
+         aria-label="Consultar por WhatsApp"
+         onclick="try{localStorage.setItem('tck_intro_visto','1');}catch(e){}">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.002-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+        </svg>
+      </a>
     </div>
   </div>
 </div>
