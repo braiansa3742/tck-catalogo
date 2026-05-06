@@ -2,6 +2,67 @@
 <html lang="es">
 <head>
 <!-- ═══════════════════════════════════════════════════════════════════════
+     TCK CATÁLOGO — v3.6.13 — 06/05/2026
+     ──────────────────────────────────────────────────────────────────────
+     FECHA DE ENTREGA ESTIMADA EN EL MODAL DE PEDIDO
+
+     Cambio v3.6.13 (sobre v3.6.12):
+
+       36. INFERENCIA DE FECHA DE ENTREGA SEGÚN LOCALIDAD:
+
+           Insight de Braian: la ciudad NO es solo metadata, es info
+           OPERATIVA que el cliente necesita ver al armar el pedido.
+           "¿Cuándo me llega?" es una de las preguntas críticas. Hoy el
+           catálogo hace que el cliente la PREGUNTE en el WhatsApp.
+           A partir de ahora, la pantalla y el WA ya lo muestran solos.
+
+           Implementación:
+
+           a) Funciones portadas de tck-ventas v14.9.1:
+              · ZONA_DB_A_TECNICA_CAT (mapea 'Zona 1' → 'zona1', etc)
+              · ZONA_DIAS_SALIDA_CAT (días válidos por zona)
+              · _proximoDiaSemana_cat() (próximo día válido)
+              · inferirEntregaDesdeLocalidadCat() — devuelve {dia, fechaISO,
+                ciudadCanonica, zona, mensajeCorto, mensajeLargo}
+              Lógica idéntica a la de ventas (zona1=Lun, zona2=Jue,
+              america_fortin=Mar, tl=hoy si <17:30 sino próximo hábil).
+              Hora de corte TL: 17:30.
+
+           b) Panel verde de entrega estimada en el modal-cliente-id:
+              · Aparece bajo el select de localidad
+              · Se actualiza en vivo con onchange del select
+              · Muestra: "🚚 Tu pedido llegará el martes 12 de mayo"
+              · Sub-texto: "📍 Pehuajó · Zona: Zona 1"
+              · Diseño: gradiente verde claro + border verde, da seguridad
+
+           c) Llamada automática de ciActualizarEntregaEstimada al:
+              · cargarDatosCliente (localStorage de visitante)
+              · cliPreRellenarModal x2 (cliente logueado, hay 2 versiones
+                históricas que conviven en el código)
+              · onchange del <select id="ci-localidad">
+
+           d) Línea agregada al mensaje de WhatsApp:
+              · "🚚 *Entrega estimada:* martes 12 de mayo · Pehuajó"
+              · Va justo después de "📍 *Localidad:* ..."
+              · El cliente queda con constancia escrita en el chat WA
+              · Francisco/vendedor lo ve al recibir el pedido
+
+           e) Defensa: try/catch alrededor de la inferencia para que
+              jamás bloquee el envío del pedido. Si falla por algún
+              motivo, el WA sigue saliendo (sin la línea, no bloquea).
+
+     Reversibilidad:
+       - Comentar el panel #ci-entrega-estimada del HTML
+       - Quitar la línea try{}/catch{} del bloque que arma el WA (línea
+         que usa inferirEntregaDesdeLocalidadCat)
+       - Funciones nuevas no rompen nada si no se llaman, quedan ahí
+
+     Próximo cambio en pipeline (v3.6.14):
+       - Pixel/tag de Google Ads (gtag) + evento conversion al enviar
+         pedido. Pendiente del Conversion ID que tiene que crear Braian
+         en la UI de Google Ads.
+
+     ──────────────────────────────────────────────────────────────────────
      TCK CATÁLOGO — v3.6.12 — 06/05/2026
      ──────────────────────────────────────────────────────────────────────
      CIUDADES COMO CHIPS · DÍA COMO TÍTULO
@@ -1637,6 +1698,118 @@ function poblarLocalidadesSelects() {
     sel.innerHTML = html;
     if (valorPrevio) sel.value = valorPrevio;
   }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+
+// ═══════════════════════════════════════════════════════════════════
+// v3.6.13 — INFERENCIA DE FECHA DE ENTREGA SEGÚN LOCALIDAD
+// ═══════════════════════════════════════════════════════════════════
+// Portado de tck-ventas v14.9.1 (función inferirEntregaDesdeLocalidad).
+// Lógica de zonas:
+//   zona1 (Lun + Mar)        → próximo lunes
+//   zona2 (Jue + Vie)        → próximo jueves
+//   america_fortin (Mar)     → próximo martes
+//   tl (Trenque Lauquen)     → si hora < 17:30 → hoy, sino próximo día hábil
+// Hora de corte TL: 17:30. Si pasa esa hora, el pedido va al día siguiente.
+//
+// Esto permite mostrar al cliente al armar el pedido:
+//   "🚚 Tu pedido llegará el martes 12 de mayo"
+// Y también incluirlo en el mensaje de WhatsApp.
+// ═══════════════════════════════════════════════════════════════════
+
+const ZONA_DB_A_TECNICA_CAT = {
+  'Zona 1':                 'zona1',
+  'Zona 2':                 'zona2',
+  'Solo América y Fortín':  'america_fortin',
+  'Venta local':            'tl'
+};
+
+const ZONA_DIAS_SALIDA_CAT = {
+  'zona1':           [1],
+  'zona2':           [4],
+  'america_fortin':  [2],
+  'tl':              [0,1,2,3,4,5,6]
+};
+
+const ZONA_NOMBRE_AMIGABLE_CAT = {
+  'zona1':           'Zona 1',
+  'zona2':           'Zona 2',
+  'america_fortin':  'América / Fortín',
+  'tl':              'Trenque Lauquen'
+};
+
+function _diaSemanaNombre_cat(d) {
+  return ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'][d];
+}
+function _mesNombre_cat(m) {
+  return ['enero','febrero','marzo','abril','mayo','junio',
+          'julio','agosto','septiembre','octubre','noviembre','diciembre'][m];
+}
+function _proximoDiaSemana_cat(diasValidos, baseDate) {
+  const d = baseDate ? new Date(baseDate) : new Date();
+  d.setHours(12, 0, 0, 0);
+  for (let i = 0; i < 14; i++) {
+    if (diasValidos.indexOf(d.getDay()) >= 0) return d;
+    d.setDate(d.getDate() + 1);
+  }
+  return null;
+}
+
+/**
+ * Infiere fecha de entrega desde una localidad.
+ * @param {string} localidad - Texto libre o canónico
+ * @returns {object|null} { dia, fechaISO, ciudadCanonica, zona, zonaAmigable, mensajeCorto, mensajeLargo }
+ */
+function inferirEntregaDesdeLocalidadCat(localidad) {
+  if (!localidad) return null;
+  if (typeof localidadCanonicaDe !== 'function') return null;
+
+  const canon = localidadCanonicaDe(localidad);
+  if (!canon) return null;
+
+  const zona = ZONA_DB_A_TECNICA_CAT[canon.zona] || canon.zona;
+  const diasValidos = ZONA_DIAS_SALIDA_CAT[zona];
+  if (!diasValidos) return null;
+
+  const ahora = new Date();
+  const horaActual = ahora.getHours() + (ahora.getMinutes() / 60);
+  let fechaSalida;
+
+  if (zona === 'tl') {
+    if (horaActual >= 17.5) {
+      fechaSalida = new Date(ahora);
+      fechaSalida.setDate(fechaSalida.getDate() + 1);
+      fechaSalida.setHours(12, 0, 0, 0);
+      while (fechaSalida.getDay() === 0 || fechaSalida.getDay() === 6) {
+        fechaSalida.setDate(fechaSalida.getDate() + 1);
+      }
+    } else {
+      fechaSalida = new Date(ahora);
+      fechaSalida.setHours(12, 0, 0, 0);
+    }
+  } else {
+    fechaSalida = _proximoDiaSemana_cat(diasValidos);
+    if (!fechaSalida) return null;
+  }
+
+  const nombreDia = _diaSemanaNombre_cat(fechaSalida.getDay());
+  const nombreMes = _mesNombre_cat(fechaSalida.getMonth());
+  const diaTxt = nombreDia + ' ' + fechaSalida.getDate() + ' de ' + nombreMes;
+  const fechaISO = fechaSalida.getFullYear() + '-' +
+                   String(fechaSalida.getMonth()+1).padStart(2,'0') + '-' +
+                   String(fechaSalida.getDate()).padStart(2,'0');
+  const zonaAmigable = ZONA_NOMBRE_AMIGABLE_CAT[zona] || zona;
+
+  return {
+    dia: diaTxt,
+    fechaISO: fechaISO,
+    ciudadCanonica: canon.ciudad,
+    zona: zona,
+    zonaAmigable: zonaAmigable,
+    mensajeCorto: '🚚 Tu pedido llegará el ' + diaTxt,
+    mensajeLargo: '🚚 *Entrega estimada:* ' + diaTxt + ' · ' + canon.ciudad
+  };
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -8768,6 +8941,10 @@ function cargarDatosCliente(){
     if(d.localidad) document.getElementById('ci-localidad').value = d.localidad;
     if(d.telefono)  document.getElementById('ci-telefono').value  = d.telefono;
   }catch(e){}
+  // v3.6.13: actualizar panel de entrega si quedó cargada localidad
+  if (typeof ciActualizarEntregaEstimada === 'function') {
+    setTimeout(ciActualizarEntregaEstimada, 50);
+  }
 }
 
 function guardarDatosCliente(nombre, comercio, localidad, telefono){
@@ -8913,6 +9090,40 @@ function sendWA() {
 // ── GOOGLE SHEETS ENDPOINT ─────────────────────────────────────
 // SHEETS_ENDPOINT declarado en bloque de estado global
 
+// v3.6.13: actualiza el panel "Entrega estimada" al elegir localidad
+// en el modal-cliente-id. Se dispara desde onchange del select y también
+// después de pre-rellenar (cuando el cliente ya tiene ciudad guardada).
+function ciActualizarEntregaEstimada() {
+  const sel = document.getElementById('ci-localidad');
+  const panel = document.getElementById('ci-entrega-estimada');
+  const txt = document.getElementById('ci-entrega-estimada-txt');
+  const zonaEl = document.getElementById('ci-entrega-estimada-zona');
+  if (!sel || !panel || !txt || !zonaEl) return;
+
+  const loc = (sel.value || '').trim();
+  if (!loc) {
+    panel.style.display = 'none';
+    return;
+  }
+
+  // Si las localidades canónicas todavía no se cargaron, esperar
+  if (typeof inferirEntregaDesdeLocalidadCat !== 'function') {
+    panel.style.display = 'none';
+    return;
+  }
+
+  const info = inferirEntregaDesdeLocalidadCat(loc);
+  if (!info) {
+    // Ciudad no canónica (raro porque el select solo tiene canónicas)
+    panel.style.display = 'none';
+    return;
+  }
+
+  txt.textContent = info.mensajeCorto;
+  zonaEl.textContent = '📍 ' + info.ciudadCanonica + ' · Zona: ' + info.zonaAmigable;
+  panel.style.display = 'block';
+}
+
 // v3.6.2: helper que setea el nombre del vendedor en el modal de envío
 // (preview "Tu pedido se enviará a:" + label del textarea de comentario).
 function _setVendedorEnModalEnvio(nombre) {
@@ -8970,6 +9181,10 @@ function cliPreRellenarModal() {
     if (c && !c.value) c.value = _cliActivo.comercio || '';
     if (l && !l.value) l.value = _cliActivo.ciudad || '';
     if (t && !t.value) t.value = _cliActivo.telefono || '';
+  }
+  // v3.6.13: actualizar panel de entrega si pre-cargó localidad
+  if (typeof ciActualizarEntregaEstimada === 'function') {
+    setTimeout(ciActualizarEntregaEstimada, 50);
   }
 }
 
@@ -9094,6 +9309,17 @@ function confirmarYEnviarWA() {
   ];
   if(comercio) L.push('🏪 *Comercio:* ' + comercio);
   L.push('📍 *Localidad:* ' + localidad);
+  // v3.6.13: agregar fecha estimada de entrega al mensaje WA
+  // Ayuda a Francisco/vendedor a ver de un vistazo cuándo despachar
+  // y al cliente a tener constancia escrita en su chat
+  try {
+    const _entregaInfo = (typeof inferirEntregaDesdeLocalidadCat === 'function')
+      ? inferirEntregaDesdeLocalidadCat(localidad)
+      : null;
+    if (_entregaInfo) {
+      L.push(_entregaInfo.mensajeLargo);
+    }
+  } catch(e) { /* no bloquear el envío */ }
   L.push('', sep, '');
   L = L.concat(lineasProductos);
   // v2.6.3: si aplica cupón, mostrar subtotal + descuento + total
@@ -10391,10 +10617,15 @@ document.addEventListener('visibilitychange', function() {
     <div class="tck-field">
       <label class="tck-label">Localidad <span style="color:var(--red2)">*</span></label>
       <!-- v3.2.4: select canónico (anti-typos) -->
-      <select class="tck-input tck-select" id="ci-localidad">
+      <select class="tck-input tck-select" id="ci-localidad" onchange="ciActualizarEntregaEstimada()">
         <option value="">— Elegí localidad —</option>
       </select>
       <button type="button" class="tck-localidad-otra-btn" onclick="abrirModalCiudadNoAtendida()" style="margin-top:6px;background:none;border:none;color:var(--red2);font-size:12px;text-decoration:underline;cursor:pointer;padding:4px 0;">Mi ciudad no está aquí</button>
+      <!-- v3.6.13: panel de entrega estimada que se actualiza al elegir localidad -->
+      <div id="ci-entrega-estimada" style="display:none;margin-top:10px;padding:10px 12px;background:linear-gradient(180deg,#E8F5E9 0%,#FFFFFF 100%);border:1.5px solid #2E7D32;border-radius:10px;">
+        <div style="font-size:12px;font-weight:700;color:#1B5E20;line-height:1.4;" id="ci-entrega-estimada-txt">—</div>
+        <div style="font-size:11px;color:#5a3838;margin-top:3px;line-height:1.3;" id="ci-entrega-estimada-zona">—</div>
+      </div>
     </div>
     <div class="tck-field">
       <label class="tck-label">Teléfono / WhatsApp <span class="tck-campo-opcional">(opcional — para que podamos avisarte)</span></label>
@@ -12532,6 +12763,10 @@ function cliPreRellenarModal() {
     const el = document.getElementById(id);
     if (el && !el.value && val) el.value = val;
   });
+  // v3.6.13: actualizar panel de entrega si pre-cargó localidad
+  if (typeof ciActualizarEntregaEstimada === 'function') {
+    setTimeout(ciActualizarEntregaEstimada, 50);
+  }
 }
 
 // ── AUTO-LOGIN AL INICIAR ─────────────────────────────────────
