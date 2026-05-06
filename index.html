@@ -2,6 +2,19 @@
 <html lang="es">
 <head>
 <!-- ═══════════════════════════════════════════════════════════════════════
+     TCK CATÁLOGO — v3.6.1 — 05/05/2026
+     ──────────────────────────────────────────────────────────────────────
+     FIX: imágenes de los 4 productos nuevos no cargaban
+
+     Causa: el _imgmap traduce nombre de producto → archivo.
+     Sin entrada en _imgmap, el fallback construye la URL con el nombre
+     del producto codificado (ej: "Milanesa%20de%20Soja%20a%20Granel.jpg")
+     que no matchea con los archivos reales subidos al repo
+     (ej: "milanesa_soja_granel.jpg").
+
+     Solución: agregar 4 entradas al _imgmap con el mapeo correcto.
+
+     ──────────────────────────────────────────────────────────────────────
      TCK CATÁLOGO — v3.6.0 — 05/05/2026
      ──────────────────────────────────────────────────────────────────────
      PRODUCTOS NUEVOS + UNIFICACIÓN COMPLETA SHEET ↔ HTML
@@ -5559,7 +5572,12 @@ const _imgmap = {
   "merluza_hierbas_v2":        "Filet Merluza Finas Hierbas.jpg",
   "merluza_granel_v2":         "Filet Merluza a Granel.jpg",
   "milanesa_nalga_v2":         "Milanesa de Nalga.jpg",
-  "milanesa_pollo_v2":         "Milanesa de Pollo.jpg"
+  "milanesa_pollo_v2":         "Milanesa de Pollo.jpg",
+  // v3.6.1 — productos nuevos (5/5/2026)
+  "Milanesa de Soja a Granel":   "milanesa_soja_granel.jpg",
+  "Milanesa de Soja y Espinaca": "milanesa_soja_espinaca.jpg",
+  "Bocadito Clasico":            "bocadito_clasico_gta.jpg",
+  "Hamburguesa de Pollo":        "hamburguesa_pollo.jpg"
 };
 </script>
 
