@@ -2,6 +2,59 @@
 <html lang="es">
 <head>
 <!-- ═══════════════════════════════════════════════════════════════════════
+     TCK CATÁLOGO — v3.6.14 — 06/05/2026
+     ──────────────────────────────────────────────────────────────────────
+     PIXEL DE GOOGLE ADS (gtag.js + evento conversion)
+
+     Cambio v3.6.14 (sobre v3.6.13):
+
+       37. INSTALACIÓN COMPLETA del tag de Google Ads para tracking
+           de conversiones de la campaña Search-1TCK - Tier 1 - Búsqueda.
+
+           Datos de la conversión:
+           - Conversion ID:     AW-16651738476
+           - Send-to label:     AW-16651738476/uO-hCKWT3qgcEOy6lYQ-
+           - Nombre conversión: "Pedido enviado por WhatsApp"
+           - Categoría:         Compra
+           - Valor:             dinámico (total real del pedido con cupón)
+           - Currency:          ARS
+           - Modelo atribución: Basado en datos
+           - Ventana posclic:   90 días
+           - Recuento:          Una (no Todas, primer pedido es el
+                                que importa contra el click)
+
+           Implementación:
+
+           a) Tag global (gtag.js) en <head>:
+              · Insertado JUSTO después del bloque del Meta Pixel
+              · Carga async desde googletagmanager.com
+              · gtag('config', 'AW-16651738476') al inicio
+              · NO interfiere con Meta Pixel ni con Google Analytics
+
+           b) Evento de conversión en confirmarYEnviarWA():
+              · Insertado JUSTO después del bloque fbqSafe('Purchase', ...)
+              · gtag('event', 'conversion', { send_to, value, currency, transaction_id })
+              · value = t (total real del pedido, con descuento aplicado)
+              · transaction_id = pedidoId (deduplicación si se reenvía)
+              · try/catch defensivo: NO bloquea el envío del pedido si falla
+
+           Beneficios:
+
+           - Google Ads va a SABER cuándo un click se convierte en pedido
+           - IA Max va a poder optimizar pujas hacia keywords que generan
+             conversiones reales (no solo clicks)
+           - Vamos a poder ver ROAS real (return on ad spend) por keyword
+           - Próximamente vamos a poder cambiar la estrategia de oferta
+             de "Maximizar clics" → "Maximizar conversiones" → "ROAS objetivo"
+             (cuando tengamos al menos 30 conversiones/mes para que la IA
+             tenga datos suficientes)
+
+           Reversibilidad:
+           - Comentar el bloque <!-- Google Ads Tag --> en el <head>
+           - Comentar el bloque "v3.6.14 · Google Ads Conversion" en
+             confirmarYEnviarWA()
+
+     ──────────────────────────────────────────────────────────────────────
      TCK CATÁLOGO — v3.6.13 — 06/05/2026
      ──────────────────────────────────────────────────────────────────────
      FECHA DE ENTREGA ESTIMADA EN EL MODAL DE PEDIDO
@@ -6242,6 +6295,25 @@ src="https://www.facebook.com/tr?id=2034313150514758&ev=PageView&noscript=1"
 /></noscript>
 <!-- End Meta Pixel Code -->
 
+<!-- ═══════════════════════════════════════════════════════════════════════
+     v3.6.14 · Google Ads Conversion Tag (gtag.js)
+     Conversion ID: AW-16651738476 — cuenta Google Ads gerenciathechickenkings
+     Send-to label: AW-16651738476/uO-hCKWT3qgcEOy6lYQ- (conversión "Pedido enviado por WhatsApp")
+     El evento de conversión se dispara desde confirmarYEnviarWA() en el momento
+     exacto en que el cliente envía su pedido por WhatsApp. Mandamos el TOTAL
+     real del pedido (con descuento de cupón aplicado) y el transaction_id
+     para que Google deduplique conversiones.
+     ═══════════════════════════════════════════════════════════════════════ -->
+<!-- Google Ads Tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=AW-16651738476"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'AW-16651738476');
+</script>
+<!-- End Google Ads Tag -->
+
 </head>
 <body>
 <div class="app">
@@ -9435,6 +9507,26 @@ function confirmarYEnviarWA() {
       order_id: pedidoId,
       origen_marketing: (utmLeer() || {}).origen_marketing || null
     });
+  } catch(e) { /* no bloquear el envío */ }
+
+  // ── v3.6.14 · Google Ads Conversion ────────────────────────────
+  // Dispara la conversión "Pedido enviado por WhatsApp" en Google Ads.
+  // - value: total real del pedido (con cupón aplicado si hay descuento)
+  // - currency: ARS
+  // - transaction_id: pedidoId único, para que Google deduplique si el
+  //   evento se dispara más de una vez (ej: cliente vuelve atrás y reenvía).
+  // - try/catch defensivo: nunca bloquea el envío del pedido.
+  // gtag se carga async desde el <head>; si todavía no está listo,
+  // window.dataLayer.push igual encola el evento.
+  try {
+    if (typeof gtag === 'function') {
+      gtag('event', 'conversion', {
+        'send_to': 'AW-16651738476/uO-hCKWT3qgcEOy6lYQ-',
+        'value': t,
+        'currency': 'ARS',
+        'transaction_id': pedidoId
+      });
+    }
   } catch(e) { /* no bloquear el envío */ }
 
   // v2: Descontar stock de combos en Supabase (fire-and-forget)
