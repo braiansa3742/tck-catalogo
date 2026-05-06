@@ -2,6 +2,93 @@
 <html lang="es">
 <head>
 <!-- ═══════════════════════════════════════════════════════════════════════
+     TCK CATÁLOGO — v3.6.10 — 06/05/2026
+     ──────────────────────────────────────────────────────────────────────
+     PANTALLA "SOBRE TCK" OPTIMIZADA (Quick wins análisis Kimi)
+
+     Insight base: 32% conversión registro→primera compra (24/74). El 68%
+     que no compra abandona en buena parte por la fricción entre el
+     registro y el catálogo. La pantalla "Sobre TCK" es uno de los puntos
+     críticos: hoy son 4-6 scrolls antes de llegar al catálogo.
+
+     Cambios v3.6.10 (sobre v3.6.9):
+
+       24. REORDEN DE BLOQUES de la pantalla #modal-intro-tck:
+           Antes (12 bloques): logo · título · subtítulo · VIDEO · CTA ·
+                               4 features · CRONOGRAMA · "tu ciudad" ·
+                               GALERÍA 5 fotos · hint · DATOS LEGALES ·
+                               CTA pie redundante.
+           Ahora (8 bloques):  logo · título · subtítulo · CRONOGRAMA ·
+                               "tu ciudad" · 4 features · CTA · video
+                               (sin autoplay) · galería 2 fotos · datos
+                               legales (al fondo, simplificados).
+
+           "¿Llegás a mi pueblo?" pasa al 4° bloque (era 7°). Es la
+           pregunta #1 del almacenero.
+
+       25. ELIMINADO el segundo CTA al pie (.intro-tck-cta-wrap).
+           Era redundante con el de arriba (.intro-tck-actions). Un CTA
+           menos = menos confusión.
+
+       26. ELIMINADO el hint "← Deslizá para ver más →"
+           Con galería de 2 fotos en grid 2 columnas no hace falta scroll
+           horizontal.
+
+       27. COPY NUEVO en subtítulo + 4 features (responde objeciones
+           concretas del almacenero):
+             Subtítulo: "Distribuidora mayorista..." → "Pollos y congelados
+                        con envío propio a 25 pueblos"
+             Feature 1: "+130 productos en pollos, congelados, pastas..."
+                        → "130 productos · pollos, rebozados, pastas, huevos"
+             Feature 2: "Envío propio gratis · radio 100 km..."
+                        → "Llegamos a tu pueblo · sin costo de envío"
+             Feature 3: "Sin pedido mínimo · pedí lo que necesites"
+                        → "Pedís lo que necesitás · desde 1 caja"
+             Feature 4: "Pago al recibir: efectivo, transferencia o tarjeta"
+                        → "Pagás cuando recibís · efectivo o transferencia"
+
+       28. TÍTULO más chico en mobile (28px → 22px).
+
+       29. DATOS LEGALES simplificados:
+           Antes: 4 filas (Razón social, CUIT, SENASA, Dirección).
+           Ahora: 2 filas combinadas:
+             🏢 TCK The Chicken Kings S.R.L. · CUIT 33-71741695-9
+             🛡️ SENASA N° 2-453721 · San Lorenzo 460, Trenque Lauquen
+           Color más sutil (#6a5644 en vez de #2a1a1a) para no competir
+           con CTAs.
+
+       30. VIDEO sin autoplay y sin preload:
+           Antes: <video autoplay preload="metadata" ...>
+                  En 3G, descargaba 5-15 MB antes del primer paint.
+           Ahora: <video preload="none" controls ...>
+                  El cliente toca ▶ si quiere ver. Cero peso por default.
+           Eliminado video.play() automático en mostrarIntroTCK().
+
+       31. GALERÍA reducida de 5 fotos a 2 (depósito + camión):
+           ~500 KB → ~200 KB de peso.
+           Layout cambiado de scroll horizontal a grid 2 columnas.
+           loading="lazy" mantenido.
+
+           Eliminadas: empresa_02_flota, empresa_04_camara_fria,
+                       empresa_05_distribucion. Los archivos siguen en
+                       el repo, solo se quitaron del HTML.
+
+     Logo path corregido: src de "img/logo-tck.png" a "img/logo.png"
+     (consistente con v3.6.8).
+
+     Reversibilidad:
+       - Reorden HTML: el bloque #modal-intro-tck se reescribió, hay que
+         restaurar desde v3.6.9 si se quiere volver al orden anterior.
+       - CSS: comentar el bloque "v3.6.10 — Pantalla Sobre TCK" del @media.
+       - Video autoplay: agregar autoplay al <video> y restaurar el
+         video.play() en mostrarIntroTCK().
+
+     Pendiente Fase B (próxima sesión, requiere mockup):
+       - Acordeón de zonas con chips (cierra zonas no relevantes)
+       - CTA sticky en footer
+       - Reemplazar video por imagen estática única
+
+     ──────────────────────────────────────────────────────────────────────
      TCK CATÁLOGO — v3.6.9 — 06/05/2026
      ──────────────────────────────────────────────────────────────────────
      LOGO SIEMPRE VISIBLE EN MOBILE — fix de scroll horizontal del header
@@ -5230,17 +5317,17 @@ body.intro-tck-abierta {
   background: #fff;
   border: 1px solid #f0d8d8;
   border-radius: 12px;
-  padding: 14px 16px;
+  padding: 10px 14px;
   margin-bottom: 18px;
-  font-size: 13px;
-  line-height: 1.55;
-  color: #3a2424;
+  font-size: 11px;
+  line-height: 1.45;
+  color: #6a5644;
 }
 .intro-tck-datos .row {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 4px 0;
+  padding: 3px 0;
 }
 .intro-tck-datos .row + .row {
   border-top: 1px solid #f5e8e8;
@@ -5249,21 +5336,24 @@ body.intro-tck-abierta {
   flex-shrink: 0;
   width: 18px;
   text-align: center;
-  font-size: 14px;
+  font-size: 13px;
+  opacity: 0.75;
 }
+/* v3.6.10 — .lbl ya no se usa (datos en línea única) pero queda el selector
+   por compatibilidad si volviera a aparecer en algún render legacy */
 .intro-tck-datos .lbl {
   flex-shrink: 0;
-  font-size: 11px;
+  font-size: 10px;
   text-transform: uppercase;
   font-weight: 700;
-  color: #8a5a5a;
+  color: #8a7060;
   letter-spacing: 0.5px;
   width: 70px;
 }
 .intro-tck-datos .val {
   font-weight: 600;
-  color: #2a1a1a;
-  font-size: 13px;
+  color: #6a5644;
+  font-size: 11px;
 }
 
 .intro-tck-cta-wrap {
@@ -5734,6 +5824,30 @@ body.drawer-abierto #wa-float {
     scrollbar-width: none;
   }
   .hdr-right::-webkit-scrollbar { display: none; }
+
+  /* ═════════════════════════════════════════════════════════════════
+     v3.6.10 — Pantalla "Sobre TCK" optimizada (Quick wins de Kimi)
+     ═════════════════════════════════════════════════════════════════
+     Aplicado: reordenar bloques (zonas al tope), eliminar segundo CTA
+     redundante, eliminar hint de galería, copy nuevo, video sin autoplay,
+     galería reducida a 2 fotos, datos legales sutiles.
+     ═════════════════════════════════════════════════════════════════ */
+
+  /* Título Sobre TCK más chico en mobile (era 28px → 22px) */
+  .intro-tck-titulo { font-size: 22px !important; }
+
+  /* Galería de 2 fotos: que ocupen 2 columnas de la misma altura
+     (en lugar del scroll horizontal de 5) */
+  .intro-tck-galeria {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    overflow-x: visible;
+  }
+  .intro-tck-galeria-item {
+    width: 100% !important;
+    height: 110px !important;
+  }
 }
 
 </style>
@@ -9228,14 +9342,9 @@ function mostrarIntroTCK() {
   if (!el) return;
   el.classList.add('activo');
   document.body.classList.add('intro-tck-abierta');
-  // Forzar que el video arranque (algunos navegadores son cautos con autoplay)
-  const video = document.getElementById('intro-tck-video-el');
-  if (video) {
-    const playPromise = video.play();
-    if (playPromise && playPromise.catch) {
-      playPromise.catch(() => { /* ignorar — el poster sirve de fallback */ });
-    }
-  }
+  // v3.6.10: Ya NO autoplay. El video tiene preload="none" + controls.
+  // El cliente toca ▶ si quiere ver. En 3G, autoplay descargaba 5-15 MB
+  // antes del primer paint, matando la conversión.
 }
 
 function cerrarIntroTCK() {
@@ -9832,31 +9941,73 @@ document.addEventListener('visibilitychange', function() {
      Al cerrarla, recién ahí aparece el modal de elegir ciudad. -->
 <div id="modal-intro-tck" role="dialog" aria-labelledby="intro-tck-titulo">
   <div class="intro-tck-cont">
+    <!-- v3.6.10 — REORDEN: zonas al tope (filtro #1 de compra), datos legales abajo -->
     <div class="intro-tck-logo">
-      <img src="img/logo-tck.png" alt="TCK · The Chicken Kings"
+      <img src="img/logo.png" alt="TCK · The Chicken Kings"
            onerror="this.style.display='none'">
     </div>
     <h1 class="intro-tck-titulo" id="intro-tck-titulo">The Chicken Kings</h1>
-    <div class="intro-tck-sub">Distribuidora mayorista en Trenque Lauquen</div>
+    <div class="intro-tck-sub">Pollos y congelados con env&iacute;o propio a 25 pueblos</div>
 
-    <div class="intro-tck-video">
-      <video
-        id="intro-tck-video-el"
-        autoplay
-        muted
-        loop
-        playsinline
-        preload="metadata"
-        poster="img/empresa/tck_intro_poster.jpg">
-        <source src="img/empresa/tck_intro.webm" type="video/webm">
-        <source src="img/empresa/tck_intro.mp4"  type="video/mp4">
-      </video>
+    <!-- v3.6.10 — Cronograma de zonas MOVIDO al tope (era bloque 7, ahora va 2do) -->
+    <!-- "¿Llegás a mi pueblo?" es la pregunta #1 del almacenero. Si no llegás, se va. -->
+    <div class="intro-tck-cronograma-titulo">
+      <span class="ico">🚛</span>
+      <span>¿Cu&aacute;ndo llegamos a tu ciudad?</span>
+    </div>
+    <div class="intro-tck-zonas">
+      <div class="intro-tck-zona">
+        <div class="intro-tck-zona-cabecera">
+          <span class="intro-tck-zona-nombre">🏠 Trenque Lauquen</span>
+          <span class="intro-tck-zona-dias dias-todos">Todos los d&iacute;as</span>
+        </div>
+        <div class="intro-tck-zona-ciudades">Ma&ntilde;ana y tarde</div>
+      </div>
+      <div class="intro-tck-zona">
+        <div class="intro-tck-zona-cabecera">
+          <span class="intro-tck-zona-nombre">📍 Zona 1</span>
+          <span class="intro-tck-zona-dias">Lunes y Martes</span>
+        </div>
+        <div class="intro-tck-zona-ciudades">
+          Beruti &middot; Bol&iacute;var &middot; Daireaux &middot; Henderson &middot; Madero &middot; Mones Caz&oacute;n &middot; Paso &middot; Pehuaj&oacute; &middot; Pirovano &middot; Salazar &middot; Urdampilleta &middot; Bonifacio*
+        </div>
+        <div class="intro-tck-zona-nota">* Bonifacio: condiciones especiales, consultar por WhatsApp</div>
+      </div>
+      <div class="intro-tck-zona">
+        <div class="intro-tck-zona-cabecera">
+          <span class="intro-tck-zona-nombre">📍 Zona 2</span>
+          <span class="intro-tck-zona-dias">Jueves y Viernes</span>
+        </div>
+        <div class="intro-tck-zona-ciudades">
+          30 de Agosto &middot; Casbas &middot; Cochic&oacute; &middot; Debary &middot; Garr&eacute; &middot; Guamin&iacute; &middot; Pellegrini &middot; Quenum&aacute; &middot; Sallliquel&oacute; &middot; Thompson &middot; Tres Lomas &middot; Villa Maza
+        </div>
+      </div>
+      <div class="intro-tck-zona">
+        <div class="intro-tck-zona-cabecera">
+          <span class="intro-tck-zona-nombre">📍 Zona 3</span>
+          <span class="intro-tck-zona-dias">Martes</span>
+        </div>
+        <div class="intro-tck-zona-ciudades">Am&eacute;rica &middot; Fort&iacute;n</div>
+      </div>
+    </div>
+    <div class="intro-tck-zona-noseve">
+      ¿Tu ciudad no aparece?
+      <a href="https://wa.me/5492392404745?text=Hola%20TCK!%20Mi%20ciudad%20es%20___%20%C2%BFllegan%20hasta%20ah%C3%AD%3F"
+         target="_blank" rel="noopener">Consult&aacute; por WhatsApp →</a>
     </div>
 
-    <!-- v3.5.3: CTA + WA arriba para que el cliente no tenga que scrollear -->
+    <!-- v3.6.10 — Features con copy nuevo (responde objeciones concretas) -->
+    <ul class="intro-tck-features">
+      <li><span><b>130 productos</b> &middot; pollos, rebozados, pastas, huevos</span></li>
+      <li><span><b>Llegamos a tu pueblo</b> &middot; sin costo de env&iacute;o</span></li>
+      <li><span><b>Ped&iacute;s lo que necesit&aacute;s</b> &middot; desde 1 caja</span></li>
+      <li><span><b>Pag&aacute;s cuando recib&iacute;s</b> &middot; efectivo o transferencia</span></li>
+    </ul>
+
+    <!-- v3.6.10 — CTA principal único (se eliminó el del pie por redundancia) -->
     <div class="intro-tck-actions">
       <button class="intro-tck-cta" onclick="cerrarIntroTCK()" type="button">
-        <span>Ver el catálogo</span>
+        <span>Ver el cat&aacute;logo</span>
         <span class="arrow">→</span>
       </button>
       <a class="intro-tck-wa"
@@ -9871,128 +10022,49 @@ document.addEventListener('visibilitychange', function() {
       </a>
     </div>
 
-    <ul class="intro-tck-features">
-      <li><span><b>+130 productos</b> en pollos, congelados, pastas, huevos y papas</span></li>
-      <li><span><b>Envío propio gratis</b> · radio de 100 km desde Trenque Lauquen</span></li>
-      <li><span><b>Sin pedido mínimo</b> · pedí lo que necesites</span></li>
-      <li><span>Pago al recibir: <b>efectivo, transferencia o tarjeta</b></span></li>
-    </ul>
-
-    <!-- v3.5.3: Cronograma de zonas y días de reparto -->
-    <div class="intro-tck-cronograma-titulo">
-      <span class="ico">🚛</span>
-      <span>¿Cuándo llegamos a tu ciudad?</span>
-    </div>
-    <div class="intro-tck-zonas">
-      <div class="intro-tck-zona">
-        <div class="intro-tck-zona-cabecera">
-          <span class="intro-tck-zona-nombre">🏠 Trenque Lauquen</span>
-          <span class="intro-tck-zona-dias dias-todos">Todos los días</span>
-        </div>
-        <div class="intro-tck-zona-ciudades">Mañana y tarde</div>
-      </div>
-      <div class="intro-tck-zona">
-        <div class="intro-tck-zona-cabecera">
-          <span class="intro-tck-zona-nombre">📍 Zona 1</span>
-          <span class="intro-tck-zona-dias">Lunes y Martes</span>
-        </div>
-        <div class="intro-tck-zona-ciudades">
-          Beruti · Bolívar · Daireaux · Henderson · Madero · Mones Cazón · Paso · Pehuajó · Pirovano · Salazar · Urdampilleta · Bonifacio*
-        </div>
-        <div class="intro-tck-zona-nota">* Bonifacio: condiciones especiales, consultar por WhatsApp</div>
-      </div>
-      <div class="intro-tck-zona">
-        <div class="intro-tck-zona-cabecera">
-          <span class="intro-tck-zona-nombre">📍 Zona 2</span>
-          <span class="intro-tck-zona-dias">Jueves y Viernes</span>
-        </div>
-        <div class="intro-tck-zona-ciudades">
-          30 de Agosto · Casbas · Cochicó · Debary · Garré · Guaminí · Pellegrini · Quenumá · Salliqueló · Thompson · Tres Lomas · Villa Maza
-        </div>
-      </div>
-      <div class="intro-tck-zona">
-        <div class="intro-tck-zona-cabecera">
-          <span class="intro-tck-zona-nombre">📍 Zona 3</span>
-          <span class="intro-tck-zona-dias">Martes</span>
-        </div>
-        <div class="intro-tck-zona-ciudades">América · Fortín</div>
-      </div>
-    </div>
-    <div class="intro-tck-zona-noseve">
-      ¿Tu ciudad no aparece?
-      <a href="https://wa.me/5492392404745?text=Hola%20TCK!%20Mi%20ciudad%20es%20___%20%C2%BFllegan%20hasta%20ah%C3%AD%3F"
-         target="_blank" rel="noopener">Consultá por WhatsApp →</a>
+    <!-- v3.6.10 — Video SIN autoplay y SIN preload. El cliente toca play si quiere ver. -->
+    <!-- Antes: autoplay + preload="metadata" descargaba 5-15 MB en 3G antes del primer paint -->
+    <div class="intro-tck-video">
+      <video
+        id="intro-tck-video-el"
+        muted
+        loop
+        playsinline
+        controls
+        preload="none"
+        poster="img/empresa/tck_intro_poster.jpg">
+        <source src="img/empresa/tck_intro.webm" type="video/webm">
+        <source src="img/empresa/tck_intro.mp4"  type="video/mp4">
+      </video>
     </div>
 
+    <!-- v3.6.10 — Galería reducida de 5 fotos a 2 (depósito + camión). 60% menos peso. -->
     <div class="intro-tck-galeria-titulo">📸 Conocenos por dentro</div>
     <div class="intro-tck-galeria" id="intro-tck-galeria">
       <div class="intro-tck-galeria-item">
         <img src="img/empresa/empresa_01_deposito.jpg"
-             alt="Depósito TCK en Trenque Lauquen"
-             loading="lazy">
-      </div>
-      <div class="intro-tck-galeria-item">
-        <img src="img/empresa/empresa_02_flota.jpg"
-             alt="Flota refrigerada Iveco"
+             alt="Dep&oacute;sito TCK en Trenque Lauquen"
              loading="lazy">
       </div>
       <div class="intro-tck-galeria-item">
         <img src="img/empresa/empresa_03_camion.jpg"
-             alt="Camión TCK saliendo del depósito"
-             loading="lazy">
-      </div>
-      <div class="intro-tck-galeria-item">
-        <img src="img/empresa/empresa_04_camara_fria.jpg"
-             alt="Cámara de frío con productos"
-             loading="lazy">
-      </div>
-      <div class="intro-tck-galeria-item">
-        <img src="img/empresa/empresa_05_distribucion.jpg"
-             alt="Distribución TCK en la zona"
+             alt="Cami&oacute;n TCK saliendo del dep&oacute;sito"
              loading="lazy">
       </div>
     </div>
-    <div class="intro-tck-galeria-hint">← Deslizá para ver más →</div>
+    <!-- Hint "Deslizá para ver más" eliminado (con 2 fotos no hace falta, ya entran) -->
 
+    <!-- v3.6.10 — Datos legales simplificados (4 filas → 2 filas) y al fondo -->
+    <!-- Son validador de formalidad, no apertura. Color más sutil para no competir con CTAs. -->
     <div class="intro-tck-datos">
       <div class="row">
         <span class="ico">🏢</span>
-        <span class="lbl">Razón social</span>
-        <span class="val">TCK The Chicken Kings S.R.L.</span>
-      </div>
-      <div class="row">
-        <span class="ico">📜</span>
-        <span class="lbl">CUIT</span>
-        <span class="val">33-71741695-9</span>
+        <span class="val">TCK The Chicken Kings S.R.L. &middot; CUIT 33-71741695-9</span>
       </div>
       <div class="row">
         <span class="ico">🛡️</span>
-        <span class="lbl">SENASA</span>
-        <span class="val">N° 2-453721</span>
+        <span class="val">SENASA N&deg; 2-453721 &middot; San Lorenzo 460, Trenque Lauquen</span>
       </div>
-      <div class="row">
-        <span class="ico">📍</span>
-        <span class="lbl">Dirección</span>
-        <span class="val">San Lorenzo 460, Trenque Lauquen</span>
-      </div>
-    </div>
-
-    <!-- v3.5.3: CTA + WA al pie también -->
-    <div class="intro-tck-cta-wrap">
-      <button class="intro-tck-cta" onclick="cerrarIntroTCK()" type="button">
-        <span>Ver el catálogo</span>
-        <span class="arrow">→</span>
-      </button>
-      <a class="intro-tck-wa-full"
-         href="https://wa.me/5492392404745?text=Hola%20TCK!%20Tengo%20una%20consulta..."
-         target="_blank"
-         rel="noopener"
-         onclick="try{localStorage.setItem('tck_intro_visto','1');}catch(e){}">
-        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-          <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.002-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
-        </svg>
-        <span>Consultar por WhatsApp</span>
-      </a>
     </div>
   </div>
 </div>
