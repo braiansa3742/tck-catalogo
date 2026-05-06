@@ -2,6 +2,64 @@
 <html lang="es">
 <head>
 <!-- ═══════════════════════════════════════════════════════════════════════
+     TCK CATÁLOGO — v3.6.5 — 06/05/2026
+     ──────────────────────────────────────────────────────────────────────
+     DENSIDAD MOBILE (Fase 1.5) — promos compactadas + dual + header
+
+     Después de v3.6.4 los productos regulares quedaron compactos (entran
+     4 por pantalla en iPhone Pro Max), pero quedaron 4 cosas mal:
+
+       a) Promos 50% OFF gigantes (header ~250px, imagen cuadrada de 170px)
+       b) Card dual (Fino de Ave Cocida) con 2 imágenes cuadradas grandes
+       c) Header del catálogo: título "THE CHICKEN KINGS" tapado por los
+          botones del lado derecho
+       d) Cards de "Sin Stock" rompían altura del grid 2x2
+
+     Cambios v3.6.5 (sobre v3.6.4) — todo CSS extendiendo el mismo @media:
+
+       5. HEADER DE PROMOS 50% OFF compactado:
+          - .promos-wrap padding 18/12/22 → 10/10/14
+          - .promos-orn (ornamento decorativo) display:none en mobile
+          - .promos-title-big 36px → 24px
+          - .promos-eyebrow / .promos-subtitle / .promos-vence reducidos
+          Resultado: ~250px → ~120px de altura del header de promos.
+
+       6. PROMO CARD imagen:
+          - .promo-card-img-wrap aspect-ratio 1 → 1.4 (más horizontal)
+          - padding 12px → 6px
+          Resultado: imagen ~170px → ~95px en card de 170px de ancho.
+
+       7. CARD DUAL (Fino de Ave Cocida):
+          - .card-dual .card-img-left/right aspect-ratio 1/1 → 1.6
+          - labels más chicas
+          Resultado: card baja de ~280px a ~150px.
+
+       8. COMBO CARD: mismos cambios (preventivo, combos hoy inactivos).
+
+       9. HEADER DEL CATÁLOGO: .hdr-brand-sub display:none en mobile.
+          El subtítulo "ACTUALIZADOS · TRENQUE LAUQUEN" no aporta y suma
+          alto. Sin él, el título "THE CHICKEN KINGS" queda más visible.
+
+      10. BOTONES DEL HEADER más compactos:
+          - .hdr-sobre, .hdr-pedir-vend padding 6/12 → 5/9, font 12 → 11
+          El botón primario "🎁 Registrarme" no se toca (es el CTA).
+          Nota: si querés más espacio, en una Fase 2 los movemos a un
+          menú hamburguesa ☰. No lo hago ahora porque toca HTML.
+
+      11. .sec-grid { align-items: stretch } y .card { height: 100% }
+          Cards de altura pareja en grid 2x2. Las "Sin Stock" ya no
+          dejan huecos abajo.
+
+     Reversibilidad:
+       Todo vive en un solo @media al final del <style>. Comentar el bloque
+       v3.6.4-v3.6.5 vuelve al estado v3.6.3 al instante.
+
+     Pendiente para Fase 2 (no incluido acá):
+       - Botones del header en menú hamburguesa ☰ (toca HTML)
+       - Card horizontal layout (toca HTML del renderBody)
+       - Card expandible on tap (toca JS + HTML)
+
+     ──────────────────────────────────────────────────────────────────────
      TCK CATÁLOGO — v3.6.4 — 06/05/2026
      ──────────────────────────────────────────────────────────────────────
      DENSIDAD MOBILE (Fase 1) — más productos por pantalla
@@ -5298,6 +5356,15 @@ body.drawer-abierto #wa-float {
    3. .calc-toggle + .calibre-row ocultos (90% no los usa, ruido visual)
    4. Paddings reducidos en .hdr-body, .catnav, .card-body y precios
 
+   v3.6.5 — DENSIDAD MOBILE FASE 1.5 (compresión de promos + dual + header):
+   5. Header de promos 50% OFF compactado (era ~250px, queda ~120px)
+   6. .promo-card-img-wrap aspect-ratio 1 → altura fija más baja
+   7. .card-dual imágenes left/right reducidas
+   8. .combo-* imágenes reducidas (por si vuelven combos activos)
+   9. .hdr-brand-sub oculto (subtítulo "ACTUALIZADOS · TRENQUE LAUQUEN")
+   10. Botones del header con font-size y padding más chicos
+   11. .sec-grid align-items: stretch para emparejar alturas de cards
+
    NO se toca:
    - .banner-cupon-activo (v3.6.2 — combate amnesia del cupón, sigue visible)
    - banner-pedido-armado (v3.6.2 — recupera carritos abandonados)
@@ -5327,6 +5394,54 @@ body.drawer-abierto #wa-float {
   .card-pkg  { margin-bottom: 3px; padding: 2px 5px; }
   .card-price-box { margin-bottom: 4px; padding: 4px 5px; }
   .card-name { margin-bottom: 4px; }
+
+  /* ═════════════════════════════════════════════════════════════════
+     v3.6.5 — extensiones
+     ═════════════════════════════════════════════════════════════════ */
+
+  /* 5. HEADER DE PROMOS 50% OFF — compactar de ~250px a ~120px */
+  .promos-wrap     { padding: 10px 10px 14px; }
+  .promos-header   { padding: 4px 2px 8px; }
+  .promos-orn      { display: none; }            /* ornamento decorativo fuera */
+  .promos-eyebrow  { font-size: 10px; letter-spacing: 2px; margin-bottom: 3px; }
+  .promos-title-big{ font-size: 24px; letter-spacing: 0.8px; }
+  .promos-subtitle { font-size: 10px; letter-spacing: 0.5px; margin-top: 4px; }
+  .promos-vence    { margin-top: 6px; padding: 3px 10px; font-size: 10px; }
+  .promos-grid     { gap: 8px; margin-top: 4px; }
+
+  /* 6. PROMO CARD — imagen más baja (era cuadrada, ahora horizontal) */
+  .promo-card-img-wrap { aspect-ratio: 1.4; padding: 6px; }
+  .promo-card-body     { padding: 8px 9px 9px; }   /* compactar el body */
+  .promo-card          { border-radius: 12px; }
+
+  /* 7. CARD DUAL (Fino de Ave Cocida) — bajar la altura de las imágenes */
+  .card-dual .card-img-left,
+  .card-dual .card-img-right {
+    aspect-ratio: 1.6;            /* más horizontal que cuadrado */
+  }
+  .card-dual .card-img-area { gap: 2px; }
+  .card-dual-labels { padding: 0; }
+  .card-dual-label  { font-size: 9px; padding: 1px 3px 0; }
+
+  /* 8. COMBO CARD — preventivo (combos hoy inactivos pero por si vuelven) */
+  .combo-img-wrap { aspect-ratio: 1.4; }
+  .combo-body     { padding: 8px 9px 9px; }
+
+  /* 9. HEADER DEL CATÁLOGO: ocultar subtítulo "ACTUALIZADOS · TRENQUE..." */
+  .hdr-brand-sub { display: none; }
+
+  /* 10. BOTONES DEL HEADER más compactos para que entren más */
+  .hdr-sobre,
+  .hdr-pedir-vend {
+    padding: 5px 9px;
+    font-size: 11px;
+    letter-spacing: 0.2px;
+  }
+  /* El botón "🎁 Registrarme" sigue siendo el primario, no se achica */
+
+  /* 11. GRID DE SECCIÓN — emparejar alturas de cards (incluye sin stock) */
+  .sec-grid { align-items: stretch; }
+  .card { height: 100%; }
 }
 
 </style>
