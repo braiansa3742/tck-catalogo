@@ -2,6 +2,32 @@
 <html lang="es">
 <head>
 <!-- ═══════════════════════════════════════════════════════════════════════
+     TCK CATÁLOGO — v3.6.9 — 06/05/2026
+     ──────────────────────────────────────────────────────────────────────
+     LOGO SIEMPRE VISIBLE EN MOBILE — fix de scroll horizontal del header
+
+     Cambios v3.6.9 (sobre v3.6.8):
+
+       23. FIX: el logo quedaba fuera de pantalla en mobile chico.
+           Causa: los 5+ botones del lado derecho (cart-pill + Registrarme +
+           Sobre TCK + Necesito vendedor + Ayuda + vchip) ocupaban más ancho
+           que el viewport. .hdr-body con overflow visible permitía que el
+           contenido se desbordara, empujando el logo fuera del viewport por
+           la izquierda.
+
+           Solución integral en mobile:
+           - .hdr-body { overflow: hidden } → no scrollea como un todo
+           - .hdr-brand { flex: 0 0 auto; min-width: 70px; max-width: 50% }
+             → la marca queda anclada izquierda con tamaño mínimo
+           - .hdr-right { overflow-x: auto } → el scroll horizontal vive
+             solo dentro del contenedor de botones
+           - .hdr-brand-logo: max-height 32px, max-width 100%
+
+           Resultado: el logo queda SIEMPRE visible. El cliente puede
+           scrollear los botones del lado derecho para acceder a "Ayuda"
+           o vchip si lo necesita, sin que el logo se mueva.
+
+     ──────────────────────────────────────────────────────────────────────
      TCK CATÁLOGO — v3.6.8 — 06/05/2026
      ──────────────────────────────────────────────────────────────────────
      LOGO + DIFERENCIACIÓN VISUAL DE CARDS FULL-WIDTH
@@ -5664,6 +5690,50 @@ body.drawer-abierto #wa-float {
     box-shadow: 0 2px 14px rgba(46,125,50,0.18);
     background: linear-gradient(180deg, #E8F5E9 0%, #FFFFFF 25%);
   }
+
+  /* ═════════════════════════════════════════════════════════════════
+     v3.6.9 — Logo siempre visible en mobile (fix scroll horizontal)
+     ═════════════════════════════════════════════════════════════════
+     Antes: los 5+ botones del lado derecho (cart-pill + Registrarme +
+     Sobre TCK + Necesito vendedor + Ayuda + vchip) ocupaban más ancho
+     que el viewport. El header desbordaba a la derecha empujando el
+     logo fuera de la pantalla por la izquierda.
+
+     Ahora: el .hdr-body está clipeado (overflow hidden) y el scroll
+     horizontal queda confinado dentro de .hdr-right. El logo queda
+     anclado a la izquierda, SIEMPRE VISIBLE. El cliente puede
+     scrollear los botones si necesita llegar a "Ayuda" o el chip
+     de vendedor sin afectar la posición del logo.
+     ─────────────────────────────────────────────────────────────────── */
+
+  /* El body del header NO scrollea como un todo */
+  .hdr-body {
+    overflow: hidden;
+    flex-wrap: nowrap;
+  }
+
+  /* La marca queda anclada a la izquierda con tamaño mínimo */
+  .hdr-brand {
+    flex: 0 0 auto;
+    min-width: 70px;
+    max-width: 50%;
+  }
+  .hdr-brand-logo {
+    max-height: 32px;
+    max-width: 100%;
+    width: auto;
+    height: auto;
+  }
+
+  /* El lado derecho absorbe el scroll horizontal SIN afectar al logo */
+  .hdr-right {
+    flex: 1 1 auto;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .hdr-right::-webkit-scrollbar { display: none; }
 }
 
 </style>
