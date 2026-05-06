@@ -2,6 +2,96 @@
 <html lang="es">
 <head>
 <!-- ═══════════════════════════════════════════════════════════════════════
+     TCK CATÁLOGO — v3.6.2 — 06/05/2026
+     ──────────────────────────────────────────────────────────────────────
+     ACTIVACIÓN — apuntando a los 50 registrados que no compraron
+
+     Insight de la BD (al 05/05/2026):
+       · 74 usuarios registrados desde el rediseño (13/4)
+       · 32% conversión registro → primera compra (24 de 74)
+       · 68% se registró y nunca compró
+       · 5.8 días promedio entre alta y primera compra
+     El problema dominante NO es retención (los que compran, repiten mucho).
+     Es ACTIVACIÓN: el salto entre "ya me registré" y "hago el primer pedido".
+
+     Cambios v3.6.2 (sobre v3.6.1):
+
+       1. BANNER STICKY DE CUPÓN ACTIVO
+          Antes: el cupón aparecía en cli-flow-exito y nunca más.
+          Ahora: banner dorado persistente mientras cuponDisponible() === true.
+          Combate la "amnesia del cupón".
+
+       2. WA FLOTANTE DINÁMICO
+          Antes: href hardcodeado a 5492392404745 aunque el cliente tenga
+                 vendedor real asignado (Miguel/Juan/Lisandro).
+          Ahora: usa vActivo.wa si es vendedor real; fallback TCK Online.
+          Función actualizarWaFlotante() llamada desde elegir(), bloque de
+          auto-asignación TCK Online, e init.
+
+       3. ELIMINADO LINK "COMPLETAR MIS DATOS"
+          Era una distracción en la pantalla de éxito post-registro.
+          El cliente lo puede hacer desde el portal después del primer pedido.
+
+       6. AUTO-ASIGNACIÓN TCK ONLINE A REGISTROS ORGÁNICOS
+          Antes: cliente sin ?v= y sin LS → vActivo=null → modal sv al enviar.
+          Ahora: cliente sin vendedor previo queda auto-asignado a TCK Online.
+          La infraestructura ya existía (canal Meta), solo se extendió la
+          condición de activación a registro orgánico.
+          Resultado: cero modales en el flow. El modal sv solo aparece si
+          el cliente lo pide explícitamente desde "cambiar vendedor".
+
+       7. BOTÓN "NECESITO UN VENDEDOR / VISITA / LLAMADA" EN HEADER
+          Convierte la pregunta forzada del sistema en una opción del cliente.
+          3 sub-opciones (vendedor / visita / llamada) abren WA a TCK Online
+          (Francisco) con texto pre-armado + contexto del cliente. Francisco
+          deriva manualmente al vendedor de la zona.
+
+       8. TEXTAREA OPCIONAL EN MODAL DE ENVÍO
+          "¿Algo que comentarle a [Vendedor]?" antes del botón de enviar.
+          El comentario se anexa al final del mensaje WA.
+          Combate "el catálogo no conversa" — abre canal de duda residual.
+
+       5. BANNER "TENÉS UN PEDIDO ARMADO"
+          Aparece al cargar si el carrito guardado tiene items y la última
+          modificación fue ≥1h y ≤7 días atrás. Banner rojo TCK con borde
+          dorado, botón "Ver pedido" abre el drawer. Recupera carritos
+          abandonados de sesiones previas.
+          Se cierra: con la X (sessionStorage), al vaciar el carrito,
+          o al enviar el pedido.
+
+       9. MODAL DE ZONA AHORA CONDICIONAL
+          Antes: el modal "¿De dónde sos?" se abría automáticamente al
+                 cargar para todos los visitantes nuevos. Era una puerta
+                 más antes de ver productos.
+          Hoy:   los precios de productos sueltos NO se diferencian por
+                 zona, las promos tampoco, y los 2 únicos combos con
+                 precio_tl ≠ precio_interior están INACTIVOS desde antes.
+                 Entonces el modal preguntaba algo cuya respuesta no
+                 cambiaba ningún precio.
+          Ahora: _evaluarAbrirModalZona() se llama desde el final de
+                 combosCargar(). Solo abre si hay al menos un combo
+                 ACTIVO con precio_tl ≠ precio_interior y el cliente
+                 todavía no tiene zona definida.
+          Captura de zona: sigue funcionando, pero al CHECKOUT
+                 (modal de envío, campo "Localidad" obligatorio entre
+                 las 27 canónicas → setZonaCliente automáticamente).
+          Reactivación automática: si en el futuro vuelve a haber un
+                 combo con precio diferenciado, el modal vuelve solo
+                 sin necesidad de tocar código.
+
+     Sin cambios:
+       - Backend (Apps Script, Supabase)
+       - Mensaje WA con descuento (parser de admin sigue igual; el
+         "💬 *Comentario:*" va al final, no rompe parser)
+       - Manifesto de diseño (todo respeta los 10 principios)
+       - Flujo de registro / OTP / PIN
+       - Combos / promos / cálculo de precios
+
+     Sí toca:
+       - clientes_auth: nada (se sigue guardando "TCK Online" como vendedor
+         de los registros orgánicos, igual que con tráfico Meta)
+
+     ──────────────────────────────────────────────────────────────────────
      TCK CATÁLOGO — v3.6.1 — 05/05/2026
      ──────────────────────────────────────────────────────────────────────
      FIX: imágenes de los 4 productos nuevos no cargaban
@@ -842,6 +932,31 @@ function setZonaCliente(ciudad) {
     localStorage.setItem(LS_CIUDAD_CLIENTE, ciudad);
   } catch(e) {}
   return zona;
+}
+
+// v3.6.2 — ¿Hay combos activos con precio diferenciado por zona?
+// Solo en ese caso vale la pena preguntar la zona ANTES de pedir.
+// Si todos los precios son iguales, el modal de zona es pura fricción
+// (la ciudad se va a capturar igual al completar el modal de envío,
+// que pide "Localidad" entre las 27 canónicas como campo obligatorio).
+function _hayCombosConPrecioDiferenciado() {
+  if (!Array.isArray(_combosData) || _combosData.length === 0) return false;
+  return _combosData.some(c =>
+    c && c.activo &&
+    c.precio_tl != null && c.precio_interior != null &&
+    Number(c.precio_tl) > 0 && Number(c.precio_interior) > 0 &&
+    Number(c.precio_tl) !== Number(c.precio_interior)
+  );
+}
+
+// v3.6.2 — Evalúa si abrir el modal de zona automáticamente.
+// Lo abre solo si: el cliente no tiene zona definida + hay combos
+// activos con precio diferenciado. Si todos los combos tienen mismo
+// precio (o no hay combos), NO molesta al cliente con el modal.
+function _evaluarAbrirModalZona() {
+  if (tieneZonaDefinida()) return;
+  if (!_hayCombosConPrecioDiferenciado()) return;
+  setTimeout(abrirModalZonaCliente, 350);
 }
 
 // Devuelve el precio del combo según la zona del cliente.
@@ -1761,6 +1876,13 @@ button,
 .hdr-sobre{background:rgba(255,255,255,.08);border:1.5px solid rgba(255,255,255,.4);border-radius:20px;padding:6px 12px;font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:800;color:#fff;cursor:pointer;transition:background .15s,border-color .15s;white-space:nowrap;letter-spacing:.3px;display:flex;align-items:center;gap:5px;-webkit-tap-highlight-color:transparent;}
 .hdr-sobre:hover{background:rgba(255,255,255,.18);border-color:rgba(255,255,255,.65);}
 .hdr-sobre:active{background:rgba(255,255,255,.28);}
+
+/* v3.6.2 — Botón "Necesito un vendedor" en el header */
+/* Convierte la pregunta forzada "¿quién es tu vendedor?" en una opción
+   que el cliente activa cuando la necesita. */
+.hdr-pedir-vend{background:rgba(255,255,255,.08);border:1.5px solid rgba(255,255,255,.4);border-radius:20px;padding:6px 12px;font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:800;color:#fff;cursor:pointer;transition:background .15s,border-color .15s;white-space:nowrap;letter-spacing:.3px;display:flex;align-items:center;gap:5px;-webkit-tap-highlight-color:transparent;}
+.hdr-pedir-vend:hover{background:rgba(255,255,255,.18);border-color:rgba(255,255,255,.65);}
+.hdr-pedir-vend:active{background:rgba(255,255,255,.28);}
 /* Ocultar cuando la pantalla intro está abierta (no tiene sentido si ya está viendo "Sobre TCK") */
 body.intro-tck-abierta .hdr-sobre{display:none;}
 
@@ -1830,6 +1952,127 @@ body.intro-tck-abierta .hdr-sobre{display:none;}
   font-weight: 900;
   font-family: 'Barlow Condensed', sans-serif;
   flex-shrink: 0;
+}
+
+/* v3.6.2 — Banner sticky "Tenés un pedido armado" */
+/* Aparece al cargar si hay items en el carrito guardado en LS y la última
+   modificación fue hace >= 1 hora (≠ sesión actual). Recupera carritos
+   abandonados, una de las hipótesis del 68% que se registró y no compró. */
+.banner-pedido-armado {
+  background: linear-gradient(135deg, #6B0000 0%, #8B0000 100%);
+  border: 2px solid #FFD700;
+  border-radius: 12px;
+  padding: 11px 14px;
+  margin: 10px 10px 0;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  box-shadow: 0 3px 12px rgba(107,0,0,.4), 0 0 14px rgba(255,215,0,.18);
+  font-family: 'Barlow Condensed', sans-serif;
+  position: relative;
+}
+.banner-pedido-armado.hidden { display: none; }
+.banner-pedido-armado-ico {
+  font-size: 26px;
+  flex-shrink: 0;
+  filter: drop-shadow(0 1px 2px rgba(0,0,0,.3));
+}
+.banner-pedido-armado-txt { flex: 1; min-width: 0; color: #fff; }
+.banner-pedido-armado-titulo {
+  font-size: 14px;
+  font-weight: 900;
+  letter-spacing: .3px;
+  line-height: 1.1;
+}
+.banner-pedido-armado-sub {
+  font-size: 11px;
+  font-weight: 600;
+  font-family: 'Barlow', sans-serif;
+  margin-top: 2px;
+  opacity: .85;
+}
+.banner-pedido-armado-btn {
+  background: #FFD700;
+  color: #5C0000;
+  border: none;
+  border-radius: 18px;
+  padding: 8px 14px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: .3px;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+.banner-pedido-armado-btn:active { transform: scale(.96); }
+.banner-pedido-armado-close {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  background: transparent;
+  border: none;
+  color: #fff;
+  opacity: .55;
+  font-size: 18px;
+  font-weight: 700;
+  cursor: pointer;
+  line-height: 1;
+  padding: 4px;
+}
+.banner-pedido-armado-close:active { opacity: 1; }
+
+/* v3.6.2 — Banner de CUPÓN ACTIVO (sticky cuando hay cupón disponible) */
+/* Aparece para clientes logueados con cupón_1ra_compra_disponible=true.
+   Se oculta automáticamente al usar el cupón. Recordatorio persistente
+   para combatir la "amnesia del cupón" tras el registro. */
+.banner-cupon-activo {
+  background: linear-gradient(135deg, #FFD700 0%, #E6A500 50%, #B8860B 100%);
+  border: 2px solid #8B0000;
+  border-radius: 12px;
+  padding: 10px 14px;
+  margin: 10px 10px 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  box-shadow: 0 3px 12px rgba(184,134,11,.4), 0 0 14px rgba(255,215,0,.3);
+  font-family: 'Barlow Condensed', sans-serif;
+  position: relative;
+  animation: banner-cupon-pulse 3s ease-in-out infinite;
+}
+.banner-cupon-activo.hidden { display: none; }
+@keyframes banner-cupon-pulse {
+  0%, 100% { box-shadow: 0 3px 12px rgba(184,134,11,.4), 0 0 14px rgba(255,215,0,.3); }
+  50%      { box-shadow: 0 3px 12px rgba(184,134,11,.4), 0 0 22px rgba(255,215,0,.55); }
+}
+.banner-cupon-activo-ico {
+  font-size: 28px;
+  flex-shrink: 0;
+  filter: drop-shadow(0 1px 2px rgba(0,0,0,.2));
+}
+.banner-cupon-activo-txt {
+  flex: 1;
+  min-width: 0;
+  color: #5C0000;
+}
+.banner-cupon-activo-titulo {
+  font-size: 15px;
+  font-weight: 900;
+  letter-spacing: .3px;
+  line-height: 1.1;
+}
+.banner-cupon-activo-titulo b {
+  color: #8B0000;
+  font-size: 17px;
+}
+.banner-cupon-activo-sub {
+  font-size: 11px;
+  font-weight: 700;
+  font-family: 'Barlow', sans-serif;
+  margin-top: 2px;
+  letter-spacing: .2px;
+  opacity: .9;
 }
 
 /* v2.6.1 — Banner de registro arriba del catálogo */
@@ -5143,7 +5386,9 @@ src="https://www.facebook.com/tr?id=2034313150514758&ev=PageView&noscript=1"
 
       <button class="cli-flow-btn" onclick="cliFlowExitoCerrar()">Ver catálogo →</button>
 
-      <button class="cli-flow-link" onclick="cliFlowCompletarDatos()">Completar mis datos</button>
+      <!-- v3.6.2: link "Completar mis datos" eliminado.
+           Era una distracción en el flujo de activación. Si el cliente quiere
+           completar datos, lo hace desde el portal después del primer pedido. -->
     </div>
 
     <!-- PANTALLA 5: Login con PIN (para cliente existente) -->
@@ -5364,7 +5609,7 @@ src="https://www.facebook.com/tr?id=2034313150514758&ev=PageView&noscript=1"
 </div></div>
 <div class="hdr"><div class="hdr-stripe"></div><div class="hdr-body">
 <div class="hdr-brand"><div class="hdr-brand-name">THE CHICKEN <span>KINGS</span></div><div class="hdr-brand-sub" id="hdr-price-status">Cat&aacute;logo Abril 2026 &middot; Trenque Lauquen</div></div>
-<div class="hdr-right"><div class="cart-pill" id="cart-pill"></div><button id="cli-btn-volver-portal" onclick="cliVolverPortal()" style="display:none;background:rgba(255,215,0,.15);border:1.5px solid rgba(255,215,0,.4);border-radius:20px;padding:6px 12px;font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:800;color:var(--gold);cursor:pointer;white-space:nowrap;letter-spacing:.3px">← Mi cuenta</button><button id="cli-btn-micuenta" class="btn-cuenta registrarme" onclick="cliBotonHeader()">🎁 Registrarme</button><button class="hdr-sobre" id="hdr-sobre-tck" onclick="reabrirIntroTCK()" aria-label="Conocé TCK">📍 Sobre TCK</button><button class="hdr-support" id="hdr-support" onclick="toggleFAB()" aria-label="Ayuda"><svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor" style="opacity:.85;flex-shrink:0"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z"/></svg> Ayuda</button><div class="vchip" id="vchip" onclick="cambiarVendedor()"></div></div>
+<div class="hdr-right"><div class="cart-pill" id="cart-pill"></div><button id="cli-btn-volver-portal" onclick="cliVolverPortal()" style="display:none;background:rgba(255,215,0,.15);border:1.5px solid rgba(255,215,0,.4);border-radius:20px;padding:6px 12px;font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:800;color:var(--gold);cursor:pointer;white-space:nowrap;letter-spacing:.3px">← Mi cuenta</button><button id="cli-btn-micuenta" class="btn-cuenta registrarme" onclick="cliBotonHeader()">🎁 Registrarme</button><button class="hdr-sobre" id="hdr-sobre-tck" onclick="reabrirIntroTCK()" aria-label="Conocé TCK">📍 Sobre TCK</button><button class="hdr-pedir-vend" id="hdr-pedir-vend" onclick="abrirModalPedirVendedor()" aria-label="Pedir contacto humano">🙋 Necesito un vendedor</button><button class="hdr-support" id="hdr-support" onclick="toggleFAB()" aria-label="Ayuda"><svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor" style="opacity:.85;flex-shrink:0"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z"/></svg> Ayuda</button><div class="vchip" id="vchip" onclick="cambiarVendedor()"></div></div>
 </div><div class="catnav" id="catnav"></div></div>
 <!-- v2.6.1 — Banner de registro (aparece una sola vez hasta que lo cierren) -->
 <div class="banner-registro hidden" id="banner-registro">
@@ -5375,6 +5620,29 @@ src="https://www.facebook.com/tr?id=2034313150514758&ev=PageView&noscript=1"
     <div class="banner-registro-sub">En tu primera compra · <b>Hasta $20.000 de ahorro</b></div>
   </div>
   <button class="banner-registro-btn" onclick="cliBotonHeader()">Registrarme</button>
+</div>
+
+<!-- v3.6.2 — Banner sticky de CUPÓN ACTIVO -->
+<!-- Aparece cuando _cliActivo && cuponDisponible(). Se oculta solo al usar
+     el cupón. Recordatorio persistente del incentivo principal. -->
+<div class="banner-cupon-activo hidden" id="banner-cupon-activo">
+  <div class="banner-cupon-activo-ico">🎁</div>
+  <div class="banner-cupon-activo-txt">
+    <div class="banner-cupon-activo-titulo">Tenés <b>10% OFF</b> activo</div>
+    <div class="banner-cupon-activo-sub">En tu primer pedido · Hasta $20.000 de ahorro</div>
+  </div>
+</div>
+
+<!-- v3.6.2 — Banner sticky "Tenés un pedido armado" -->
+<!-- Recupera carritos abandonados de sesiones previas (≥1h de antigüedad). -->
+<div class="banner-pedido-armado hidden" id="banner-pedido-armado">
+  <button class="banner-pedido-armado-close" onclick="pedidoArmadoBannerCerrar()" aria-label="Cerrar">&times;</button>
+  <div class="banner-pedido-armado-ico">🛒</div>
+  <div class="banner-pedido-armado-txt">
+    <div class="banner-pedido-armado-titulo">Tenés un pedido armado</div>
+    <div class="banner-pedido-armado-sub" id="banner-pedido-armado-sub">Lo dejaste a medio · Mirá tu carrito</div>
+  </div>
+  <button class="banner-pedido-armado-btn" onclick="pedidoArmadoBannerAbrirCarrito()">Ver pedido</button>
 </div>
 
 <!-- v2.7.2 — Banner PWA (solo si logueado y hoy no fue cerrado) -->
@@ -5683,6 +5951,8 @@ async function cuponMarcarUsado() {
   cliGuardar(_cliActivo);
   // v2.6.5: quitar badge dorado del botón header
   if (typeof cliQuitarBadgeCupon === 'function') cliQuitarBadgeCupon();
+  // v3.6.2: ocultar banner sticky de cupón activo
+  if (typeof cuponBannerOcultar === 'function') cuponBannerOcultar();
   // PATCH en Supabase (silencioso si las columnas no existen)
   try {
     await fetch(SB_URL + '/rest/v1/clientes_auth?id=eq.' + _cliActivo.id, {
@@ -5696,6 +5966,106 @@ async function cuponMarcarUsado() {
   } catch(e) {
     console.warn('[cupon] No se pudo marcar como usado en DB (puede que las columnas no existan):', e);
   }
+}
+
+// v3.6.2 — BANNER STICKY DE CUPÓN ACTIVO ──────────────────────
+// Combate la "amnesia del cupón": el cliente ve el cupón en la pantalla
+// post-registro pero después no aparece más. Con este banner, mientras
+// el cupón esté disponible, lo recuerda en cada visita.
+function cuponBannerEvaluar() {
+  const b = document.getElementById('banner-cupon-activo');
+  if (!b) return;
+  // Solo si hay cliente logueado y cupón disponible
+  if (_cliActivo && typeof cuponDisponible === 'function' && cuponDisponible()) {
+    b.classList.remove('hidden');
+  } else {
+    b.classList.add('hidden');
+  }
+}
+
+function cuponBannerOcultar() {
+  const b = document.getElementById('banner-cupon-activo');
+  if (b) b.classList.add('hidden');
+}
+
+// v3.6.2 — BANNER STICKY "TENÉS UN PEDIDO ARMADO" ──────────────
+// Aparece al cargar si hay items en el carrito guardado en LS y la última
+// modificación fue hace ≥ 1 hora (≠ sesión actual). Se oculta cuando el
+// cliente toca "Ver pedido" o "Cerrar", o cuando vacía el carrito.
+function _formatearAntiguedad(ts) {
+  if (!ts) return '';
+  const ms = Date.now() - ts;
+  const horas = Math.floor(ms / 3600000);
+  if (horas < 1)   return 'hace un rato';
+  if (horas < 24)  return 'hace ' + horas + (horas === 1 ? ' hora' : ' horas');
+  const dias = Math.floor(horas / 24);
+  if (dias < 7)    return 'hace ' + dias + (dias === 1 ? ' día' : ' días');
+  return ''; // > 7 días → no mostramos antigüedad (no se muestra el banner)
+}
+
+function pedidoArmadoBannerEvaluar() {
+  const b = document.getElementById('banner-pedido-armado');
+  if (!b) return;
+  // Si el cliente lo cerró en esta sesión, no mostrarlo
+  try {
+    if (sessionStorage.getItem('tck_banner_armado_cerrado') === '1') {
+      b.classList.add('hidden');
+      return;
+    }
+  } catch(e) {}
+
+  // Leer ts del carrito guardado
+  let ts = 0, hayItems = false;
+  try {
+    const raw = localStorage.getItem('tck_cart');
+    if (raw) {
+      const data = JSON.parse(raw);
+      ts = data.ts || 0;
+      const tieneSimples = data.qty   && Object.keys(data.qty).some(k => data.qty[k] > 0);
+      const tieneCombos  = data.qtyCombo && Object.keys(data.qtyCombo).some(k => data.qtyCombo[k] > 0);
+      const tienePromos  = data.qtyPromo && Object.keys(data.qtyPromo).some(k => data.qtyPromo[k] > 0);
+      hayItems = tieneSimples || tieneCombos || tienePromos;
+    }
+  } catch(e) {}
+
+  if (!hayItems) {
+    b.classList.add('hidden');
+    return;
+  }
+
+  // Solo mostrar si el carrito es de sesión previa (≥ 1h)
+  const ms = Date.now() - ts;
+  if (!ts || ms < 3600000) {
+    b.classList.add('hidden');
+    return;
+  }
+
+  // Si es muy viejo (> 7 días), tampoco
+  if (ms > 7 * 24 * 3600000) {
+    b.classList.add('hidden');
+    return;
+  }
+
+  // Actualizar el subtítulo con la antigüedad
+  const sub = document.getElementById('banner-pedido-armado-sub');
+  if (sub) {
+    const ant = _formatearAntiguedad(ts);
+    sub.textContent = ant ? 'Lo armaste ' + ant + ' · Tocá para terminar' : 'Tocá para terminar tu pedido';
+  }
+  b.classList.remove('hidden');
+}
+
+function pedidoArmadoBannerCerrar() {
+  const b = document.getElementById('banner-pedido-armado');
+  if (b) b.classList.add('hidden');
+  // Solo durante esta sesión (que no moleste si el cliente lo descartó)
+  try { sessionStorage.setItem('tck_banner_armado_cerrado', '1'); } catch(e) {}
+}
+
+function pedidoArmadoBannerAbrirCarrito() {
+  pedidoArmadoBannerCerrar();
+  // Abrir el drawer del carrito
+  if (typeof openDrawer === 'function') openDrawer();
 }
 
 function T(){
@@ -5759,6 +6129,8 @@ function elegir(i){
   if (hdrSup) hdrSup.classList.add('visible');
   cerrarFAB();
   saveCartLS();
+  // v3.6.2: refrescar WA flotante con vendedor real
+  if (typeof actualizarWaFlotante === 'function') actualizarWaFlotante();
   // Si hay cliente logueado sin vendedor, guardarlo
   if (_cliActivo && !_cliActivo.vendedor) {
     _cliActivo.vendedor = vActivo.nombre;
@@ -5769,6 +6141,79 @@ function elegir(i){
       body: JSON.stringify({ vendedor: vActivo.nombre })
     }).catch(() => {});
   }
+}
+
+// v3.6.2: WA FLOTANTE DINÁMICO ─────────────────────────────────
+// Si vActivo es vendedor real → href apunta al WA del vendedor.
+// Si vActivo es TCK Online o null → href apunta a TCK Online (Francisco).
+// Se llama desde elegir(), del bloque de auto-asignación TCK Online,
+// y desde el init después de cargar localStorage.
+function actualizarWaFlotante() {
+  const wf = document.getElementById('wa-float');
+  if (!wf) return;
+  let waNumero, nombreVend;
+  if (vActivo && vActivo.wa && !_esVendedorOnline(vActivo.nombre)) {
+    // Vendedor real (Miguel/Juan/Lisandro)
+    waNumero = vActivo.wa;
+    nombreVend = vActivo.nombre;
+  } else {
+    // TCK Online o sin vendedor → Francisco
+    waNumero = VEND_ONLINE.wa;
+    nombreVend = 'TCK';
+  }
+  const texto = encodeURIComponent('Hola ' + nombreVend + '! Tengo una consulta...');
+  wf.href = 'https://wa.me/' + waNumero + '?text=' + texto;
+}
+
+// v3.6.2 — MODAL "NECESITO UN VENDEDOR / VISITA / LLAMADA" ─────
+// Convierte la pregunta forzada del sistema en una opción del cliente.
+// Las 3 opciones disparan WA a TCK Online (Francisco) con texto pre-armado.
+function abrirModalPedirVendedor() {
+  const ov = document.getElementById('pv-overlay');
+  const sh = document.getElementById('pv-sheet');
+  if (!ov || !sh) return;
+  ov.style.display = 'flex';
+  // Forzar reflow antes de aplicar transform para que la transición funcione
+  void sh.offsetWidth;
+  sh.style.transform = 'translateY(0)';
+}
+
+function cerrarModalPedirVendedor() {
+  const ov = document.getElementById('pv-overlay');
+  const sh = document.getElementById('pv-sheet');
+  if (!ov || !sh) return;
+  sh.style.transform = 'translateY(100%)';
+  setTimeout(() => { ov.style.display = 'none'; }, 350);
+}
+
+function pedirVendedorViaWA(tipo) {
+  // Construir mensaje según tipo
+  let textoBase;
+  if (tipo === 'vendedor')      textoBase = 'Hola TCK! Estoy mirando el catálogo y quería que me asignen un vendedor de mi zona.';
+  else if (tipo === 'visita')   textoBase = 'Hola TCK! Estoy mirando el catálogo y quería coordinar una visita a mi local.';
+  else if (tipo === 'llamada')  textoBase = 'Hola TCK! Estoy mirando el catálogo y quería que me llamen para charlar el pedido.';
+  else                          textoBase = 'Hola TCK! Tengo una consulta.';
+
+  // Sumar contexto si hay cliente logueado
+  let contexto = '';
+  if (_cliActivo) {
+    const partes = [];
+    if (_cliActivo.nombre)    partes.push('Soy ' + _cliActivo.nombre);
+    if (_cliActivo.comercio)  partes.push('del local "' + _cliActivo.comercio + '"');
+    if (_cliActivo.ciudad)    partes.push('de ' + _cliActivo.ciudad);
+    if (partes.length) contexto = '\n\n' + partes.join(', ') + '.';
+  } else {
+    // Si hay zona detectada, sumarla como pista mínima
+    try {
+      const z = (typeof getZonaCliente === 'function') ? getZonaCliente() : null;
+      if (z && z !== 'interior') contexto = '\n\nMi zona: ' + z + '.';
+    } catch(e) {}
+  }
+
+  const mensaje = encodeURIComponent(textoBase + contexto);
+  const url = 'https://wa.me/' + VEND_ONLINE.wa + '?text=' + mensaje;
+  window.open(url, '_blank');
+  cerrarModalPedirVendedor();
 }
 
 function cambiarVendedor(){
@@ -6570,6 +7015,11 @@ async function combosCargar() {
       updateBar();
       if (document.getElementById('drawer') && document.getElementById('drawer').classList.contains('on')) renderDrawer();
     }
+    // v3.6.2: ahora que sabemos si hay combos con precio diferenciado por zona,
+    // evaluamos si vale la pena abrir el modal de zona automáticamente.
+    if (typeof _evaluarAbrirModalZona === 'function') {
+      _evaluarAbrirModalZona();
+    }
   } catch (e) {
     console.error('[combos] Error al cargar combos:', e);
     _combosData = [];
@@ -7192,7 +7642,7 @@ function renderDrawer(){
   saveCartLS();
 }
 
-function clearCart(){Object.keys(qty).forEach(k=>delete qty[k]);combosLimpiar();promosLimpiar();renderBody();updateBar();renderDrawer();clearCartLS();if(typeof mostrarRepFab==='function')mostrarRepFab();}
+function clearCart(){Object.keys(qty).forEach(k=>delete qty[k]);combosLimpiar();promosLimpiar();renderBody();updateBar();renderDrawer();clearCartLS();if(typeof mostrarRepFab==='function')mostrarRepFab();if(typeof pedidoArmadoBannerCerrar==='function')pedidoArmadoBannerCerrar();}
 
 // holdTimeout, holdInterval, holdTriggered declarados en bloque de estado global
 
@@ -7554,7 +8004,7 @@ function elegirDesdeModal(idx) {
   cerrarSvModal();
   // Continuar con el pedido
   setTimeout(() => {
-    document.getElementById('wa-preview-vendedor').textContent = vActivo.nombre;
+    _setVendedorEnModalEnvio(vActivo.nombre);
     cargarDatosCliente();
     cliPreRellenarModal();
     // ── v2.7.6 · Meta Pixel — InitiateCheckout (flujo con selector) ──
@@ -7581,7 +8031,7 @@ function elegirSinVendedor() {
   vActivo = { nombre: 'Administración', wa: '5492314475357' };
   cerrarSvModal();
   setTimeout(() => {
-    document.getElementById('wa-preview-vendedor').textContent = 'Administración';
+    _setVendedorEnModalEnvio('Administración');
     cargarDatosCliente();
     cliPreRellenarModal();
     // ── v2.7.6 · Meta Pixel — InitiateCheckout (flujo sin vendedor) ──
@@ -7632,7 +8082,7 @@ function sendWA() {
       content_type: 'product'
     });
   } catch(e) { /* no bloquear checkout */ }
-  document.getElementById('wa-preview-vendedor').textContent = vActivo.nombre;
+  _setVendedorEnModalEnvio(vActivo.nombre);
   cargarDatosCliente();
   cliPreRellenarModal();
   abrirModal('modal-cliente-id');
@@ -7641,6 +8091,19 @@ function sendWA() {
 // Confirmar datos y enviar WA
 // ── GOOGLE SHEETS ENDPOINT ─────────────────────────────────────
 // SHEETS_ENDPOINT declarado en bloque de estado global
+
+// v3.6.2: helper que setea el nombre del vendedor en el modal de envío
+// (preview "Tu pedido se enviará a:" + label del textarea de comentario).
+function _setVendedorEnModalEnvio(nombre) {
+  const prev = document.getElementById('wa-preview-vendedor');
+  if (prev) prev.textContent = nombre;
+  const lbl = document.getElementById('ci-coment-vendnom');
+  if (lbl) {
+    // Si es TCK Online, decir "TCK" (más natural en el textarea).
+    lbl.textContent = (typeof _esVendedorOnline === 'function' && _esVendedorOnline(nombre))
+      ? 'TCK' : nombre;
+  }
+}
 
 async function saveOrderToSheets(payload) {
   try {
@@ -7702,6 +8165,9 @@ function confirmarYEnviarWA() {
   const comercio  = (document.getElementById('ci-comercio').value||'').trim();
   const localidad = (document.getElementById('ci-localidad').value||'').trim();
   const telefono  = (document.getElementById('ci-telefono').value||'').trim().replace(/\D/g,'');
+  // v3.6.2: comentario opcional al vendedor
+  const comentEl  = document.getElementById('ci-comentario');
+  const comentario = comentEl ? (comentEl.value || '').trim() : '';
 
   function _resetBtn() {
     _enviandoPedido = false;
@@ -7825,6 +8291,11 @@ function confirmarYEnviarWA() {
       '📋 ¿Podés confirmarme si el pedido está tomado?',
       '🚚 ¿Cuándo me llegará la entrega?'
     );
+  }
+
+  // v3.6.2: comentario opcional del cliente (al final del mensaje)
+  if (comentario) {
+    L.push('', sep, '', '💬 *Comentario:*', comentario);
   }
 
   const mensajeCompleto = L.join('\n');
@@ -8148,11 +8619,13 @@ function parseCsvLine(line) {
 // ── LOCALSTORAGE ─────────────────────────────────────────────────
 function saveCartLS() {
   try {
+    // v3.6.2: timestamp de última modificación para el banner "pedido armado"
     localStorage.setItem('tck_cart', JSON.stringify({
       qty: qty,
       qtyCombo: qtyCombo,
       qtyPromo: qtyPromo,
-      vActivo: vActivo ? VEND.indexOf(vActivo) : -1
+      vActivo: vActivo ? VEND.indexOf(vActivo) : -1,
+      ts: Date.now()
     }));
   } catch(e) {}
 }
@@ -8264,10 +8737,11 @@ function cerrarIntroTCK() {
   // Cerrar overlay
   el.classList.remove('activo');
   document.body.classList.remove('intro-tck-abierta');
-  // Si quedó pendiente abrir el modal de ciudad, hacerlo ahora
+  // Si quedó pendiente abrir el modal de ciudad, hacerlo ahora.
+  // v3.6.2: solo se abre si hay combos con precio diferenciado por zona.
   if (window._zonaPendientePorIntro) {
     window._zonaPendientePorIntro = false;
-    setTimeout(abrirModalZonaCliente, 200);
+    setTimeout(_evaluarAbrirModalZona, 200);
   }
 }
 
@@ -8316,10 +8790,11 @@ cargarPrecios().finally(() => {
   cargarLocalidadesCanonicas().then(() => {
     // Repoblar selects que ya estén renderizados
     if (typeof poblarLocalidadesSelects === 'function') poblarLocalidadesSelects();
-    // v3.3.0: si el cliente no tiene zona definida todavía, abrir modal
-    if (!tieneZonaDefinida()) {
-      setTimeout(abrirModalZonaCliente, 350);  // pequeño delay para no chocar con el render inicial
-    }
+    // v3.6.2: el modal de zona ya NO se abre automáticamente al cargar.
+    // La ciudad se captura cuando el cliente arma el pedido (modal de envío,
+    // campo "Localidad" obligatorio entre las 27 canónicas → setZonaCliente).
+    // Si en algún momento hay combos activos con precio diferenciado por zona,
+    // _evaluarAbrirModalZona() lo abrirá desde el final de combosCargar.
   }).catch(e => console.error('[localidades] cargar:', e));
 
   // 1. Ocultar siempre el sv y el login — catálogo directo
@@ -8356,6 +8831,15 @@ cargarPrecios().finally(() => {
         }
       } catch(e) {}
     }
+    // v3.6.2: REGISTRO ORGÁNICO → TCK ONLINE
+    // Si después de todo no hay vendedor (ni por URL ni por LS), el cliente
+    // es orgánico y NO conoce a un vendedor en particular. Lo asignamos a
+    // TCK Online (Francisco) para evitar la fricción del modal al checkout.
+    // Si el cliente quiere un vendedor real, toca el botón "Necesito un
+    // vendedor" del header (v3.6.2).
+    if (!asignarTckOnline && (vendedorAutoIdx < 0 || isNaN(vendedorAutoIdx))) {
+      asignarTckOnline = true;
+    }
   }
 
   if (asignarTckOnline) {
@@ -8371,15 +8855,22 @@ cargarPrecios().finally(() => {
     if (dwanom) dwanom.textContent = VEND_ONLINE.nombre;
     const hdrSup = document.getElementById('hdr-support');
     if (hdrSup) hdrSup.classList.add('visible');
+    // v3.6.2: refrescar WA flotante hacia TCK Online
+    if (typeof actualizarWaFlotante === 'function') actualizarWaFlotante();
   } else if (vendedorAutoIdx >= 0 && VEND[vendedorAutoIdx]) {
     elegir(vendedorAutoIdx); // asigna vActivo silenciosamente
   }
-  // Si no hay vendedor, vActivo queda null → al pedir aparece el modal
+  // v3.6.2: vActivo ya no queda null. Cualquier cliente sin vendedor real
+  // queda como TCK Online por la lógica de "registro orgánico" arriba.
 
   // 3. Renderizar cards del modal de vendedor
   renderSvModal();
 
   setTimeout(loadCartLS, 100);
+
+  // v3.6.2: refrescar WA flotante con el vendedor que quedó asignado
+  // (cubre el caso de TCK Online auto-asignado, vendedor de URL, o vendedor de LS)
+  if (typeof actualizarWaFlotante === 'function') actualizarWaFlotante();
 
   // v2.6.1 — Actualizar botón header y mostrar banner de registro
   setTimeout(function() {
@@ -8399,6 +8890,10 @@ cargarPrecios().finally(() => {
         btn.appendChild(badge);
       }
     }
+    // v3.6.2: evaluar banner sticky de cupón activo (al cargar la sesión)
+    if (typeof cuponBannerEvaluar === 'function') cuponBannerEvaluar();
+    // v3.6.2: evaluar banner "Tenés un pedido armado" (al cargar la sesión)
+    if (typeof pedidoArmadoBannerEvaluar === 'function') pedidoArmadoBannerEvaluar();
   }, 300);
 });
 
@@ -8990,7 +9485,43 @@ document.addEventListener('visibilitychange', function() {
   </div>
 </div>
 
+<!-- v3.6.2 — Modal "Necesito un vendedor / visita / llamada" -->
+<!-- 3 opciones que abren WA a TCK Online (Francisco) con mensaje pre-armado.
+     Francisco deriva manualmente al vendedor de la zona del cliente. -->
+<div id="pv-overlay" style="display:none;position:fixed;inset:0;z-index:550;background:rgba(0,0,0,.6);backdrop-filter:blur(3px);align-items:flex-end;justify-content:center;">
+  <div id="pv-sheet" style="background:#fff;border-radius:24px 24px 0 0;width:100%;max-width:480px;padding:22px 20px 36px;box-shadow:0 -8px 40px rgba(0,0,0,.25);transform:translateY(100%);transition:transform .35s cubic-bezier(.34,1.56,.64,1);">
+    <div style="width:48px;height:5px;background:#ddd;border-radius:3px;margin:0 auto 16px;"></div>
+    <div style="font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:900;color:var(--red);text-align:center;margin-bottom:6px;">¿Cómo te ayudamos?</div>
+    <div style="font-size:13px;color:#6c6356;text-align:center;margin-bottom:18px;line-height:1.4;">Elegí una opción y te conectamos con la persona adecuada de TCK.</div>
+    <button class="pv-opt" onclick="pedirVendedorViaWA('vendedor')" style="display:flex;width:100%;align-items:center;gap:12px;background:#FFF8E7;border:2px solid #E6A500;border-radius:14px;padding:14px;margin-bottom:10px;cursor:pointer;font-family:inherit;text-align:left;-webkit-tap-highlight-color:transparent;">
+      <span style="font-size:26px;flex-shrink:0;">🙋</span>
+      <span style="flex:1;min-width:0;">
+        <span style="display:block;font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:900;color:#5C0000;">Quiero un vendedor de mi zona</span>
+        <span style="display:block;font-size:11px;color:#6c6356;margin-top:2px;">Te asignamos uno que conozca tu pueblo</span>
+      </span>
+    </button>
+    <button class="pv-opt" onclick="pedirVendedorViaWA('visita')" style="display:flex;width:100%;align-items:center;gap:12px;background:#F0F8FF;border:2px solid #1976D2;border-radius:14px;padding:14px;margin-bottom:10px;cursor:pointer;font-family:inherit;text-align:left;-webkit-tap-highlight-color:transparent;">
+      <span style="font-size:26px;flex-shrink:0;">🚛</span>
+      <span style="flex:1;min-width:0;">
+        <span style="display:block;font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:900;color:#0D47A1;">Quiero que me visiten</span>
+        <span style="display:block;font-size:11px;color:#6c6356;margin-top:2px;">Programamos una visita a tu local</span>
+      </span>
+    </button>
+    <button class="pv-opt" onclick="pedirVendedorViaWA('llamada')" style="display:flex;width:100%;align-items:center;gap:12px;background:#F1F8E9;border:2px solid #388E3C;border-radius:14px;padding:14px;margin-bottom:18px;cursor:pointer;font-family:inherit;text-align:left;-webkit-tap-highlight-color:transparent;">
+      <span style="font-size:26px;flex-shrink:0;">📞</span>
+      <span style="flex:1;min-width:0;">
+        <span style="display:block;font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:900;color:#1B5E20;">Que me llamen</span>
+        <span style="display:block;font-size:11px;color:#6c6356;margin-top:2px;">Te llamamos para charlar tu pedido</span>
+      </span>
+    </button>
+    <button onclick="cerrarModalPedirVendedor()" style="display:block;width:100%;background:transparent;border:none;color:#6c6356;font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;padding:8px;cursor:pointer;letter-spacing:.3px;">Cancelar</button>
+  </div>
+</div>
+
 <!-- v3.5.3: Botón flotante de WhatsApp visible en TODO el catálogo -->
+<!-- v3.6.2: el href se setea dinámicamente vía actualizarWaFlotante().
+     Si vActivo es vendedor real (Miguel/Juan/Lisandro) → WA del vendedor.
+     Si vActivo es TCK Online o null → WA de TCK Online (Francisco). -->
 <a id="wa-float"
    href="https://wa.me/5492392404745?text=Hola%20TCK!%20Tengo%20una%20consulta..."
    target="_blank"
@@ -9063,6 +9594,11 @@ document.addEventListener('visibilitychange', function() {
     <div class="tck-field">
       <label class="tck-label">Teléfono / WhatsApp <span class="tck-campo-opcional">(opcional — para que podamos avisarte)</span></label>
       <input class="tck-input" id="ci-telefono" type="tel" placeholder="Ej: 2392 123456" autocomplete="tel" inputmode="tel">
+    </div>
+    <!-- v3.6.2: comentario opcional al vendedor (combate "el catálogo no conversa") -->
+    <div class="tck-field">
+      <label class="tck-label">¿Algo que comentarle a <span id="ci-coment-vendnom">tu vendedor</span>? <span class="tck-campo-opcional">(opcional)</span></label>
+      <textarea class="tck-input" id="ci-comentario" rows="2" placeholder="Ej: Si no hay pollo entero, mandame trozado · Llevar mañana temprano · Pasame por la trasera" style="resize:vertical;min-height:54px;font-family:inherit;font-size:13px;line-height:1.4;"></textarea>
     </div>
     <button class="tck-submit-wa" onclick="confirmarYEnviarWA()">
       <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.2 1.36.172 1.872.104.571-.074 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.122.553 4.112 1.522 5.84L.057 23.882a.5.5 0 00.612.612l6.042-1.465A11.952 11.952 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.891 0-3.659-.52-5.168-1.426l-.37-.217-3.835.929.929-3.835-.217-.37A9.952 9.952 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
@@ -9723,6 +10259,9 @@ function cliPostLoginNotificarCupon() {
     setTimeout(pwaBannerEvaluarMostrar, 600);
   }
 
+  // v3.6.2: evaluar banner sticky de cupón activo
+  if (typeof cuponBannerEvaluar === 'function') cuponBannerEvaluar();
+
   if (typeof cuponDisponible !== 'function' || !cuponDisponible()) return;
 
   // Toast informativo
@@ -10297,6 +10836,8 @@ function cliFlowExitoCerrar() {
   // Ocultar banner
   const banner = document.getElementById('banner-registro');
   if (banner) banner.classList.add('hidden');
+  // v3.6.2: mostrar banner sticky de cupón activo (si corresponde)
+  if (typeof cuponBannerEvaluar === 'function') cuponBannerEvaluar();
   // v2.6.4: toast verde confirmando que está logueado
   if (_cliActivo) {
     const t = document.createElement('div');
