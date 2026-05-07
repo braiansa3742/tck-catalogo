@@ -2,6 +2,67 @@
 <html lang="es">
 <head>
 <!-- ═══════════════════════════════════════════════════════════════════════
+     TCK CATÁLOGO — v3.7.0 — 06/05/2026
+     ──────────────────────────────────────────────────────────────────────
+     N40b — STOCK CON SUPABASE COMO SINGLE SOURCE OF TRUTH
+
+     Cambios v3.7.0 (sobre v3.6.14):
+
+       1. Eliminado el Set hardcoded SIN_STOCK con sus 12 strings.
+          Ahora arranca como `new Set()` vacío y se llena dinámicamente
+          desde productos_canonicos.sin_stock=true en Supabase.
+
+       2. Polling cada 30 segundos a productos_canonicos. Cuando Braian
+          hace UPDATE en Supabase, los clientes con la PWA abierta ven
+          el cambio en menos de 30 segundos sin refrescar nada.
+
+       3. Sistema completo nuevo (replicado del patrón de tck-ventas v14.11.0):
+            - cargarSinStockDesdeSupabase() — fetch + cache localStorage 1h
+            - _refrescarSinStockBg() — fetch silencioso para polling
+            - _aplicarSinStock() — actualiza Set + fuerza re-render de grilla
+            - _iniciarPollingSinStock() — setInterval(30s) + visibilitychange
+          Diferencia con ventas: el catálogo necesita FORZAR re-render
+          de la grilla cuando cambia el stock (en ventas el tomador se
+          re-renderiza naturalmente con cada acción).
+
+       4. Comportamiento de fallback:
+            - Si Supabase falla al boot: usa cache localStorage si existe.
+            - Si el cache también falla: SIN_STOCK queda vacío
+              (decisión segura: "todos con stock" mejor que ocultar).
+            - El polling reintenta cada 30s indefinidamente.
+
+       5. Beneficio operativo:
+            - Cambiar stock = 1 SQL en Supabase (30 segundos).
+            - Ya no hace falta editar HTML del catálogo + commit + deploy.
+            - Cliente que está mirando el catálogo ve el badge "Sin stock"
+              aparecer o desaparecer en menos de 30s.
+
+     PRESERVADO desde v3.6.14:
+       - Pixel Google Ads (AW-16651738476)
+       - Sistema de canonización de localidades (rutas + función SQL)
+       - Cupón 10% primera compra
+       - PWA, login OTP, todo el resto
+
+     DEPLOY v3.7.0:
+       1. Verificar Supabase tiene los 9 productos correctos con sin_stock=true
+            (Brocoli, Gnoquis Espinaca, Nuggets, Pulpa Palta, Ravioles
+            Calabaza, Raviolones Espinaca, Sorrentinos JyQ, Sorrentinos
+            Ricota, Suprema B IQF)
+       2. Subir este archivo al repo tck-catalogo como index.html
+       3. Hard refresh (Cmd+Shift+R) — IMPORTANTE: el localStorage tiene
+          el cache viejo, hay que borrar `tck_cat_sin_stock_v1` o esperar
+          1h para que el TTL lo invalide. Hard refresh + esperar 30s del
+          primer polling es suficiente.
+       4. Smoke test:
+            a) Cargar catálogo → verificar que aparezcan badges "Sin
+               stock" en los 9 productos correctos.
+            b) Hacer SQL: UPDATE productos_canonicos SET sin_stock=true
+               WHERE id=10 (Medallon Clasico). Esperar 30s. La card
+               debe pasar a estado "sin stock" sin refrescar la página.
+            c) Revertir: SET sin_stock=false WHERE id=10.
+
+═════════════════════════════════════════════════════════════════════════ -->
+<!-- ═══════════════════════════════════════════════════════════════════════
      TCK CATÁLOGO — v3.6.14 — 06/05/2026 — REINTENTO POST-BUG
      ──────────────────────────────────────────────────────────────────────
      PIXEL DE GOOGLE ADS — VERSIÓN CORREGIDA
@@ -1585,6 +1646,11 @@ const LS_KEY              = 'tck_cliente_id';
 const LS_ULTIMO           = 'tck_ultimo_pedido';
 const CLI_KEY             = 'tck_cli_v2';
 const PRECIOS_CACHE_KEY   = 'tck_precios_cache';
+
+// ── v3.7.0 N40b · Cache de stock dinámico desde Supabase ───────────
+const SIN_STOCK_CACHE_KEY = 'tck_cat_sin_stock_v1';
+const SIN_STOCK_CACHE_TTL = 60 * 60 * 1000;   // 1h
+const SIN_STOCK_POLL_MS   = 30 * 1000;        // 30s (polling foreground)
 
 // ── v2.7.5 · Tracking UTM / canal de origen ───────────────────────
 const UTM_KEY             = 'tck_utm_v1';       // localStorage: {data, exp}
@@ -6914,34 +6980,99 @@ function _esVendedorOnline(nombre) {
   return (nombre || '').toLowerCase().trim() === 'tck online';
 }
 // ── STOCK ─────────────────────────────────────────────────────────
-// Para ocultar: agregar nombre exacto a OCULTOS
-// Para marcar sin stock: agregar nombre exacto a SIN_STOCK
+// Para ocultar: agregar nombre exacto a OCULTOS (sigue siendo hardcoded
+// porque no cambia frecuentemente y no requiere sincronización con Supabase)
 const OCULTOS = new Set([
   'Papas Noisette'
 ]);
 
-const SIN_STOCK = new Set([
-  // Existentes desde versiones anteriores:
-  'Nuggets de Pollo Crocante',
-  'Ravioles de Calabaza',
-  'Raviolones Espinaca y Mozz',
-  'Gnoquis de Espinaca',
-  'Sorrentinos Jamon y Queso',
-  'Sorrentinos Ricota 4 Quesos',
-  'Suprema B IQF',
-  'Brocoli',
-  // v3.2.1 (28/4/2026) — agregados según reporte de Joan:
-  'Filet Merluza Finas Hierbas',
-  'Filet de Merluza Rebozado',
-  'Bocadito de Papa y Jamon',
-  'Formita Clasica'
-  // v3.2.5 (29/4/2026):
-  //   - ALTA DE STOCK (quitados): Maple N° 1, Maple N° 2.
-  //   - BAJA DE STOCK (agregado): Suprema IQF (15kg).
-  // v3.6.3 (06/5/2026):
-  //   - ALTA DE STOCK (quitada): Suprema IQF (15kg) ahora se vende
-  //     aunque el stock físico no esté confirmado (orden operativa).
-]);
+// v3.7.0 N40b: SIN_STOCK arranca VACÍO y se llena dinámicamente desde
+// productos_canonicos.sin_stock=true en Supabase. Polling cada 30s
+// detecta cambios automáticamente.
+//
+// Historia (preservada como referencia):
+//   v3.2.1 (28/4/2026) — agregados según reporte de Joan: Filet Merluza
+//     Finas Hierbas, Filet de Merluza Rebozado, Bocadito de Papa y
+//     Jamon, Formita Clasica.
+//   v3.2.5 (29/4/2026): ALTA DE STOCK (Maple N° 1 y 2). BAJA: Suprema IQF.
+//   v3.6.3 (06/05/2026): ALTA Suprema IQF.
+//   v3.7.0 (06/05/2026): eliminado el hardcoded — Supabase como SSOT.
+const SIN_STOCK = new Set();
+
+// ─── v3.7.0 N40b — Carga dinámica de stock desde Supabase ─────────
+// Reusa SB_URL y SB_KEY ya definidos arriba (línea ~1648).
+let _sinStockPollingTimer = null;
+
+async function cargarSinStockDesdeSupabase() {
+  // 1. Intentar cache localStorage si está vigente
+  try {
+    const cached = localStorage.getItem(SIN_STOCK_CACHE_KEY);
+    if (cached) {
+      const data = JSON.parse(cached);
+      if (data && data.ts && (Date.now() - data.ts) < SIN_STOCK_CACHE_TTL && Array.isArray(data.nombres)) {
+        _aplicarSinStock(data.nombres);
+        // Refrescar en background para mantener cache fresco
+        _refrescarSinStockBg();
+        return;
+      }
+    }
+  } catch(e) { /* cache corrupto: seguir al fetch */ }
+
+  // 2. Sin cache válido — fetch directo
+  await _refrescarSinStockBg();
+}
+
+async function _refrescarSinStockBg() {
+  try {
+    const resp = await fetch(
+      SB_URL + '/rest/v1/productos_canonicos?select=nombre&sin_stock=eq.true&activo=eq.true',
+      { headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY } }
+    );
+    if (!resp.ok) return;
+    const data = await resp.json();
+    const nombres = (data || []).map(function(r) { return r.nombre; }).filter(Boolean);
+    _aplicarSinStock(nombres);
+    try {
+      localStorage.setItem(SIN_STOCK_CACHE_KEY, JSON.stringify({ ts: Date.now(), nombres: nombres }));
+    } catch(e) { /* localStorage lleno o no disponible: ignorar */ }
+  } catch(e) {
+    // Fallback silencioso: si Supabase falla, SIN_STOCK queda como esté.
+    // Decisión segura: "todos con stock" mejor que ocultar productos.
+  }
+}
+
+function _aplicarSinStock(nombres) {
+  // Comparar con el estado actual para evitar re-renders innecesarios
+  const nuevoSet = new Set(nombres || []);
+  const cambio = (nuevoSet.size !== SIN_STOCK.size) ||
+                 [...nuevoSet].some(function(n) { return !SIN_STOCK.has(n); });
+
+  if (!cambio) return; // sin cambios: no re-rendear
+
+  // Mutar el Set (no reasignar — preserva referencias en SIN_STOCK.has)
+  SIN_STOCK.clear();
+  nuevoSet.forEach(function(n) { SIN_STOCK.add(n); });
+
+  // Forzar re-render de la grilla si ya está pintada
+  if (typeof renderBody === 'function' && document.querySelector('.card')) {
+    try { renderBody(); } catch(e) { /* render fallido: el badge se actualizará en próximo render natural */ }
+  }
+}
+
+function _iniciarPollingSinStock() {
+  if (_sinStockPollingTimer) return;
+  _sinStockPollingTimer = setInterval(function() {
+    if (document.hidden) return; // pausa si la pestaña está en background
+    _refrescarSinStockBg();
+  }, SIN_STOCK_POLL_MS);
+
+  // Si la pestaña vuelve a foreground, refrescar inmediatamente
+  document.addEventListener('visibilitychange', function() {
+    if (!document.hidden) _refrescarSinStockBg();
+  });
+}
+// ─── Fin v3.7.0 N40b ──────────────────────────────────────────────
+
 
 const CAT=[{"id": "pollos", "sec": "POLLOS CONGELADOS", "col1": "#B71C1C", "col2": "#7B0000", "shaddai": false, "items": [{"n": "Pollo Ginosa", "p": "x 20 Kg", "pr": 86000, "img": "pollo_ginosa", "badge": "POLLO PREMIUM", "badge_tipo": "gold", "pu": "&#x2248;$4,300 / kg"}, {"n": "Pollo Optimo", "p": "x 20 Kg", "pr": 72000, "img": "pollo_optimo", "badge": "&#x2605; MAS PEDIDO", "badge_tipo": "red", "pu": "&#x2248;$3,600 / kg"}, {"n": "Suprema", "p": "x 5 Kg", "pr": 33000, "img": "supremas_bolsa", "badge": "&#x2605; MAS PEDIDO", "badge_tipo": "red", "pu": "&#x2248;$6,600 / kg"}, {"n": "Suprema IQF", "p": "x 15 Kg", "pr": 102000, "img": "suprema_iqf", "pu": "&#x2248;$6,800 / kg"}, {"n": "Suprema B IQF", "p": "x 20 Kg", "pr": 136000, "img": "suprema_iqf", "pu": "&#x2248;$6,800 / kg"}]}, {"id": "trozados", "sec": "TROZADOS", "col1": "#6D2C00", "col2": "#3B1500", "shaddai": false, "items": [{"n": "Fino de Ave Cocida", "p": "Cocida y desmenuzada · x 10 Kg", "pr": 62400, "img2": "img/empanada mordida.png", "label1": "Producto", "label2": "Uso ideal", "pu": "&#x2248;$6,240 / kg", "badge": "&#x2605; NUEVO", "badge_tipo": "red"}, {"n": "Alita Congelada Granel", "p": "x 15 Kg", "pr": 44000, "img": "alas", "pu": "&#x2248;$2,933 / kg"}, {"n": "Cuarto Trasero IQF", "p": "x 15 Kg", "pr": 53000, "img": "patamuslo", "badge": "&#x2605; MAS PEDIDO", "badge_tipo": "red", "pu": "&#x2248;$3,533 / kg"}, {"n": "MDM - Carne Molida de Pollo", "p": "Ideal relleno empanadas · x 20 Kg", "pr": 34000, "img": "mdm", "img2": "img/empanada mordida.png", "label1": "Carne molida", "label2": "Listo en empanadas", "badge": "&#x25BC; OPORTUNIDAD", "badge_tipo": "oport", "pu": "&#x2248;$1,700 / kg"}]}, {"id": "shaddai", "sec": "REBOZADOS", "col1": "#922B21", "col2": "#5C1A14", "shaddai": true, "items": [{"n": "Medallon de Pollo Clasico", "p": "El Shaddai &middot; x 6 Kg", "pr": 28500, "img": "medallon_clasico_v2", "pu": "&#x2248;$4,750 / kg"}, {"n": "Medallon Pollo c/Cheddar", "p": "El Shaddai &middot; x 6 Kg", "pr": 47800, "img": "medallon_cheddar_v2", "pu": "&#x2248;$7,967 / kg"}, {"n": "Medallon Pollo JyQ", "p": "El Shaddai &middot; x 6 Kg", "pr": 33500, "img": "medallon_jyq_v2", "pu": "&#x2248;$5,583 / kg"}, {"n": "Medallon Pollo y Espinaca", "p": "El Shaddai &middot; x 6 Kg", "pr": 33000, "img": "medallon_espinaca_v2", "pu": "&#x2248;$5,500 / kg"}, {"n": "Formita Clasica", "p": "El Shaddai &middot; x 6 Kg", "pr": 28500, "img": "formita_clasica_v2", "pu": "&#x2248;$4,750 / kg"}, {"n": "Formitas Pollo JyQ", "p": "El Shaddai &middot; x 6 Kg", "pr": 33500, "img": "formita_jyq_v2", "pu": "&#x2248;$5,583 / kg"}, {"n": "Nuggets de Pollo Crocante", "p": "El Shaddai &middot; x 6 Kg", "pr": 34500, "img": "nuggets_v2", "pu": "&#x2248;$5,750 / kg"}, {"n": "Bocadito de Papa y Jamon", "p": "El Shaddai &middot; x 6 Kg", "pr": 29000, "img": "bocadito_v2", "pu": "&#x2248;$4,833 / kg"}, {"n": "Pechuguitas al Verdeo", "p": "El Shaddai &middot; x 6 Kg", "pr": 45500, "img": "pechuguitas_v2", "pu": "&#x2248;$7,583 / kg"}, {"n": "Filet Merluza Finas Hierbas", "p": "El Shaddai &middot; x 6 Kg", "pr": 45600, "img": "merluza_hierbas_v2", "pu": "&#x2248;$7,600 / kg"}, {"n": "Filet de Merluza Rebozado", "p": "El Shaddai &middot; x 6 Kg", "pr": 43700, "img": "merluza_rebozado", "pu": "&#x2248;$7,283 / kg"}, {"n": "Milanesa de Soja a Granel", "p": "Solimeno &middot; &#x26A0; ULTIMO STOCK Vence 05/26 &middot; x 6 Kg", "pr": 38600, "img": "milanesa_soja_granel", "badge": "&#x25BC; OFERTA", "badge_tipo": "oport", "pu": "&#x2248;$6,433 / kg"}, {"n": "Milanesa de Soja y Espinaca", "p": "Solimeno &middot; x 6 Kg", "pr": 38600, "img": "milanesa_soja_espinaca", "badge": "&#x2605; NUEVO", "badge_tipo": "red", "pu": "&#x2248;$6,433 / kg"}, {"n": "Bocadito Clasico", "p": "GTA &middot; x 5 Kg", "pr": 27500, "img": "bocadito_clasico_gta", "badge": "&#x2605; NUEVO", "badge_tipo": "red", "pu": "&#x2248;$5,500 / kg"}]}, {"id": "mila", "sec": "MILANESAS Y HAMBURGUESAS", "col1": "#7B241C", "col2": "#4A1510", "shaddai": false, "items": [{"n": "Milanesa de Nalga", "p": "x 5 Kg", "pr": 68000, "img": "milanesa_nalga_v2", "pu": "&#x2248;$13,600 / kg"}, {"n": "Milanesa de Pollo", "p": "x 5 Kg", "pr": 40500, "img": "milanesa_pollo_v2", "pu": "&#x2248;$5,300 / kg"}, {"n": "Hamburguesa 100% Carne", "p": "x 4 Kg (100g c/u)", "pr": 46600, "img": "hamburguesa_carne", "pu": "&#x2248;$1,165 / unidad"}, {"n": "Hamburguesa de Pollo", "p": "Lujo Pampeano &middot; x 5 Kg", "pr": 40500, "img": "hamburguesa_pollo", "badge": "&#x2605; NUEVO", "badge_tipo": "red", "pu": "&#x2248;$8,100 / kg"}]}, {"id": "papas_mccain", "sec": "McCAIN & BALCARCE", "col1": "#BA4A00", "col2": "#7A3000", "shaddai": false, "items": [{"n": "Pulpa de Palta", "p": "Pickers by McCain · x 450 Grs", "pr": 12200, "img": "pulpa_palta", "pu": ""}, {"n": "Papa Baston Balcarce", "p": "x 2,5 Kg", "pr": 8000, "img": "papa_baston", "badge": "&#x2605; MAS PEDIDO", "badge_tipo": "red", "pu": "&#x2248;$3,200 / kg"}]}, {"id": "huevos", "sec": "HUEVOS", "col1": "#D4A000", "col2": "#8B6500", "shaddai": false, "items": [{"n": "Maple N° 2", "p": "30 unidades", "pr": 4800, "img": "huevos_maple", "pu": ""}, {"n": "Maple N° 1", "p": "30 unidades", "pr": 5500, "img": "huevos_maple", "pu": ""}, {"n": "Cajita 1/2 Docena N° 2", "p": "6 unidades", "pr": 1350, "img": "huevos_cajita", "pu": ""}]}, {"id": "verd", "sec": "VERDURAS CONGELADAS", "col1": "#1E8449", "col2": "#0E4D29", "shaddai": false, "items": [{"n": "Arándanos Solimeno", "p": "500 Grs", "pr": 9000, "img": "arandanos", "pu": ""}, {"n": "Brocoli", "p": "500 Grs", "pr": 5800, "img": "brocoli", "pu": ""}, {"n": "Espinacas", "p": "500 Grs", "pr": 4000, "img": "espinaca", "pu": ""}, {"n": "Morron", "p": "500 Grs", "pr": 7000, "img": "morron", "pu": ""}, {"n": "Primavera", "p": "500 Grs", "pr": 5000, "img": "primavera", "pu": ""}, {"n": "Frutos Rojos", "p": "500 Grs", "pr": 11000, "img": "frutos_rojos", "pu": ""}, {"n": "Cebolla", "p": "500 Grs", "pr": 4000, "img": "cebolla", "pu": ""}]}, {"id": "pastas", "sec": "PASTAS LA CASERIANA", "col1": "#1A5276", "col2": "#0D2B3E", "shaddai": false, "items": [{"n": "Ravioles de Calabaza", "p": "500 Grs", "pr": 2700, "img": "ravioles", "pu": ""}, {"n": "Raviolones Espinaca y Mozz", "p": "Masa Integral · 500 Grs", "pr": 3900, "img": "ravioles", "pu": ""}, {"n": "Gnoquis de Papa", "p": "500 Grs", "pr": 2100, "img": "gnoquis", "pu": ""}, {"n": "Gnoquis de Espinaca", "p": "500 Grs", "pr": 2100, "img": "gnoquis_espinaca", "pu": ""}, {"n": "Sorrentinos Jamon y Queso", "p": "500 Grs", "pr": 4200, "img": "sorrentinos", "pu": ""}, {"n": "Sorrentinos Ricota 4 Quesos", "p": "400 Grs", "pr": 2600, "img": "sorrentinos", "pu": ""}]}];
 
@@ -9897,6 +10028,13 @@ cargarPrecios().finally(() => {
   combosCargar();
   // v3.4.0: Cargar promos 50% off de Supabase
   promosCargar();
+  // v3.7.0 N40b: Cargar stock dinámico desde Supabase + iniciar polling 30s
+  // El primer fetch puede llegar después del primer render. Cuando llega,
+  // _aplicarSinStock() compara con el estado actual y si hay cambios
+  // fuerza re-render (las cards aparecen con el badge "Sin stock" correcto).
+  cargarSinStockDesdeSupabase().then(function() {
+    _iniciarPollingSinStock();
+  });
   // v3.2.4: Cargar las 27 localidades canónicas para los dropdowns
   cargarLocalidadesCanonicas().then(() => {
     // Repoblar selects que ya estén renderizados
