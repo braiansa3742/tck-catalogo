@@ -2,6 +2,51 @@
 <html lang="es">
 <head>
 <!-- ═══════════════════════════════════════════════════════════════════════
+     TCK CATÁLOGO — v3.7.2 — 07/05/2026
+     ──────────────────────────────────────────────────────────────────────
+     N42 Bloque-C: Deprecar escrituras a clientes_master.
+
+     Cambios v3.7.2 (sobre v3.7.1):
+
+       Función cliVincularMaster (línea ~11320) reducida a NO-OP.
+
+       Antes (v3.7.1):
+         La función se llamaba desde 5 lugares distintos (registro,
+         login, recuperación de cuenta, etc) y hacía:
+           1. GET /clientes_master?cliente_auth_id=...
+           2. GET /clientes_master?telefono=...
+           3. PATCH (si existía) o POST (si no)
+         Resultado: cada cliente nuevo del catálogo creaba una fila en
+         clientes_master con nombre_canonical='' (vacío en momento de
+         registro), telefono y vendedor.
+
+       Ahora (v3.7.2):
+         La función queda como `return;` simple. Los 5 call sites
+         (10358, 11266, 12047, 12071, 12194) NO se modifican —
+         siguen llamando una función que no hace nada (fire-and-forget,
+         ninguno espera el resultado).
+
+       Por qué:
+         clientes_master tenía 90% de filas sin xubio_id ni
+         cliente_auth_id correctos. En N42 se decidió usar
+         clientes_activos.xubio_id como master natural (1004 vínculos
+         validados manualmente, resuelve el caso N-a-1 — Alicia y
+         Alberto Pedernera al mismo CUIT del marido titular).
+
+         Apps Script ya está en v25.13.0 con sincronizarClienteMaster
+         como no-op. Este es el segundo escritor que faltaba.
+
+       En sesión futura: borrar las 5 llamadas + deprecar la tabla.
+
+     PRESERVADO desde v3.7.1:
+       - Maple N°3 en CAT[]
+       - Sistema dinámico de stock
+       - Pixel Google Ads, canonización ciudades, cupón 10%, PWA
+       - clientes_auth (login/registro/cupón) NO se toca
+
+═══════════════════════════════════════════════════════════════════════ -->
+
+<!-- ═══════════════════════════════════════════════════════════════════════
      TCK CATÁLOGO — v3.7.1 — 06/05/2026
      ──────────────────────────────────────────────────────────────────────
      Producto nuevo: Maple N° 3 — huevos blancos x30 — $4,500
@@ -11318,26 +11363,44 @@ async function cliRegistrar() {
 }
 
 // ── VINCULAR CON clientes_master ─────────────────────────────
-// Se llama al registrarse o loguearse — une clientes_auth con clientes_master
+// v3.7.2 N42-Bloque-C: DEPRECADA.
+//
+// Esta función mantenía la tabla clientes_master. En la sesión N42 (07/05/2026)
+// se decidió deprecar clientes_master en favor de clientes_activos.xubio_id
+// como master natural (1004 vínculos validados manualmente, resuelve N-a-1).
+//
+// Apps Script ya tiene sincronizarClienteMaster como no-op desde v25.13.0.
+// Este es el segundo escritor (el catálogo escribía cada vez que un cliente
+// se registraba/loguueaba — ver logs API).
+//
+// Los 5 call sites (10358, 11266, 12047, 12071, 12194) siguen llamando esta
+// función fire-and-forget: ninguno espera el resultado. Por eso queda como
+// no-op sin tocar nada más. En sesión futura: borrar las llamadas + tabla.
+//
+// La info real del cliente vive ahora en:
+//   - clientes_auth (login/registro/cupón) — fuente de verdad para el catálogo
+//   - clientes_activos (datos comerciales) — fuente para vendedores
+//   - clientes_xubio (snapshot Xubio) — fuente para facturación
 async function cliVincularMaster(cli) {
+  // No-op intencional. Ver comentario arriba.
+  return;
+}
+
+/* ── Función original v3.7.1 archivada como referencia ─────────
+   (NO descomentar — escribe a tabla clientes_master que está siendo deprecada)
+
+async function _cliVincularMaster_LEGACY_v3_7_1(cli) {
   if (!cli || !cli.id) return;
   try {
-    // Buscar si ya existe en clientes_master por telefono o cliente_auth_id
     const tel = (cli.telefono || '').replace(/\D/g, '');
     let existente = null;
-
-    // 1. Buscar por cliente_auth_id (ya vinculado antes)
     const porAuth = await sbGet('clientes_master?cliente_auth_id=eq.' + cli.id + '&select=*');
     if (porAuth && porAuth.length) { existente = porAuth[0]; }
-
-    // 2. Buscar por teléfono
     if (!existente && tel) {
       const porTel = await sbGet('clientes_master?telefono=eq.' + encodeURIComponent(tel) + '&select=*');
       if (porTel && porTel.length) { existente = porTel[0]; }
     }
-
     if (existente) {
-      // Actualizar cliente_auth_id si no estaba vinculado
       const updates = {};
       if (!existente.cliente_auth_id) updates.cliente_auth_id = cli.id;
       if (!existente.telefono && tel) updates.telefono = tel;
@@ -11346,7 +11409,6 @@ async function cliVincularMaster(cli) {
         await sbPatch('clientes_master?id=eq.' + existente.id, updates);
       }
     } else {
-      // Crear entrada nueva en clientes_master
       await sbPost('clientes_master', {
         nombre_canonical: cli.nombre || '',
         cliente_auth_id:  cli.id,
@@ -11360,6 +11422,7 @@ async function cliVincularMaster(cli) {
     console.warn('cliVincularMaster:', e);
   }
 }
+*/
 
 // ── INVITADO ─────────────────────────────────────────────────
 function cliInvitado() {
