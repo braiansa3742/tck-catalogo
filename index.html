@@ -2,6 +2,34 @@
 <html lang="es">
 <head>
 <!-- ═══════════════════════════════════════════════════════════════════════
+     TCK CATÁLOGO — v3.7.3 — 07/05/2026
+     ──────────────────────────────────────────────────────────────────────
+     N42 Bloque-C: Limpieza llamadas no-op a cliVincularMaster.
+
+     Cambios v3.7.3 (sobre v3.7.2):
+
+       En v3.7.2 la función cliVincularMaster quedó como no-op (return;).
+       Las 5 llamadas en distintos flujos seguían:
+         - Línea ~10403 (registro OTP legacy)
+         - Línea ~11311 (login con clave)
+         - Línea ~12110 (flujo PIN login automático)
+         - Línea ~12134 (flujo PIN registro nuevo)
+         - Línea ~12257 (flujo PIN login con clave existente)
+
+       En v3.7.3 esas 5 llamadas se ELIMINAN. La función no-op se preserva
+       por si quedan llamadas no detectadas en otros lugares, para no
+       romper. Es código muerto pero no-bloqueante.
+
+     PRESERVADO desde v3.7.2:
+       - clientes_master deprecada (tabla intacta, solo no se escribe más)
+       - Maple N°3 en CAT[]
+       - Sistema dinámico de stock
+       - Pixel Google Ads, canonización ciudades, cupón 10%, PWA
+       - clientes_auth (login/registro/cupón) NO se toca
+
+═══════════════════════════════════════════════════════════════════════ -->
+
+<!-- ═══════════════════════════════════════════════════════════════════════
      TCK CATÁLOGO — v3.7.2 — 07/05/2026
      ──────────────────────────────────────────────────────────────────────
      N42 Bloque-C: Deprecar escrituras a clientes_master.
@@ -10400,7 +10428,7 @@ async function otpCompletarRegistro() {
     const nuevo = await sbPost('clientes_auth', payload);
     const cli = Array.isArray(nuevo) ? nuevo[0] : nuevo;
     cliGuardar(cli);
-    cliVincularMaster(cli);
+    // v3.7.3 N42-C: cliVincularMaster() removida. Era no-op desde v3.7.2.
     // Marcar que es primer pedido — al segundo pedido mostramos paso 2
     try { localStorage.setItem('tck_pedidos_count', '1'); } catch(e) {}
     // ── v2.7.6 · Meta Pixel — CompleteRegistration (flow OTP legacy) ──
@@ -11308,7 +11336,7 @@ async function cliLogin() {
     const cli = data[0];
     if (cli.clave_hash !== hash) { cliSetErr('cli-err-login', 'Contraseña incorrecta'); btn.disabled = false; btn.textContent = 'Ingresar →'; return; }
     cliGuardar(cli);
-    cliVincularMaster(cli);
+    // v3.7.3 N42-C: cliVincularMaster() removida. Era no-op desde v3.7.2.
     cliEntrarPortal(cli);
   } catch(e) {
     cliSetErr('cli-err-login', 'Error de conexión. Intentá de nuevo.');
@@ -12107,7 +12135,7 @@ async function cliFlowPinGuardar() {
       const datos = await sbGet('clientes_auth?telefono=eq.' + encodeURIComponent(_flowTel) + '&select=*');
       if (datos && datos.length) {
         cliGuardar(datos[0]);
-        cliVincularMaster(datos[0]);
+        // v3.7.3 N42-C: cliVincularMaster() removida. Era no-op desde v3.7.2.
         cliEntrarPortal(datos[0]);
         // v2.6.5: notificar cupón si tiene
         if (typeof cliPostLoginNotificarCupon === 'function') cliPostLoginNotificarCupon();
@@ -12131,7 +12159,7 @@ async function cliFlowPinGuardar() {
       const nuevo = await sbPost('clientes_auth', payload);
       const cli = Array.isArray(nuevo) ? nuevo[0] : nuevo;
       cliGuardar(cli);
-      cliVincularMaster(cli);
+      // v3.7.3 N42-C: cliVincularMaster() removida. Era no-op desde v3.7.2.
       // Marcar cupón de primera compra disponible
       try { localStorage.setItem('tck_cupon_1ra_compra', '1'); } catch(e) {}
       // ── v2.7.6 · Meta Pixel — CompleteRegistration (flow PIN) ────
@@ -12254,7 +12282,7 @@ async function cliFlowLoginPinVerificar() {
     if (_flowClienteData.clave_hash === hash) {
       // Login OK
       cliGuardar(_flowClienteData);
-      cliVincularMaster(_flowClienteData);
+      // v3.7.3 N42-C: cliVincularMaster() removida. Era no-op desde v3.7.2.
       cliEntrarPortal(_flowClienteData);
       // v2.6.5: notificar cupón si tiene
       if (typeof cliPostLoginNotificarCupon === 'function') cliPostLoginNotificarCupon();
