@@ -2,6 +2,64 @@
 <html lang="es">
 <head>
 <!-- ═══════════════════════════════════════════════════════════════════════
+     TCK CATÁLOGO — v3.8.0 — 09/05/2026
+     ──────────────────────────────────────────────────────────────────────
+     FEATURE: detalle_estructurado JSON en payload (datos sin emojis).
+
+     CONTEXTO:
+       Hasta v3.7.x el catálogo solo mandaba `detallePedido` como string
+       formateado para WhatsApp (con emojis). Apps Script tenía que parsear
+       ese string para crear el presupuesto Xubio. Eso causaba 3 bugs:
+
+         · Bug A — descuento del cupón ignorado al crear Xubio (cliente
+           paga de más en factura).
+         · Bug B — promos formato viejo no se parseaban (pedidos perdían
+           items y total no cuadraba).
+         · Bug C — emoji 🍝 (pastas) no estaba en regex del parser →
+           Gnoquis se mapeaba como Papa Baston duplicado.
+
+       Detectado y documentado en sesión 9/5/2026.
+
+     CAMBIOS v3.8.0:
+
+       1. ARMADO DE DETALLE_ESTRUCTURADO (JSON):
+          Antes de armar el payload, se construye un objeto:
+            {
+              v: 1,
+              items: [
+                {tipo, nombre_canonico, cantidad, precio_unitario,
+                 subtotal, elegible_cupon, ...},
+                ...
+              ],
+              subtotal, subtotal_elegible_cupon, descuento_cupon,
+              cupon_aplicado, total
+            }
+          Cada item tiene tipo (producto / combo / promo) + flag
+          elegible_cupon (true para los que NO son pollo/trozados/promo/combo).
+
+       2. NUEVO CAMPO EN PAYLOAD:
+          payload.detalle_estructurado = JSON.stringify(detalleEstructurado)
+          Apps Script v25.17.0+ lo guarda en Sheet col T y lo usa
+          para crear el presupuesto Xubio sin parsear emojis.
+
+       3. COMPATIBILIDAD:
+          · El detalle string para WhatsApp se sigue mandando igual
+            (detallePedido). El cliente NO ve ningún cambio.
+          · Apps Script viejos (< v25.17.0) ignoran el campo nuevo
+            sin romper nada.
+
+     PRE-REQUISITOS DEPLOY:
+       1. Apps Script v25.17.0 desplegado.
+       2. Sheet col T1 = 'detalle_estructurado'.
+       3. Recién después: deployar este HTML.
+
+     IMPACTO EN BUGS:
+       · Bug A → resuelto (AS aplica descuento desde JSON).
+       · Bug B → resuelto (no hay parseo, viene tipo 'promo' explícito).
+       · Bug C → mitigado (no se usa el parser para pedidos del catálogo).
+
+═══════════════════════════════════════════════════════════════════════ -->
+<!-- ═══════════════════════════════════════════════════════════════════════
      TCK CATÁLOGO — v3.7.3 — 07/05/2026
      ──────────────────────────────────────────────────────────────────────
      N42 Bloque-C: Limpieza llamadas no-op a cliVincularMaster.
@@ -9646,6 +9704,90 @@ function confirmarYEnviarWA() {
   const _min = pad(arDate.getMinutes());
   const pedidoId = 'TCK-'+_yy+_mm+_dd+'-'+_hh+_min+'-'+_vNombre+'-'+_rand;
 
+  // ════════════════════════════════════════════════════════════════
+  // 🆕 v3.8.0 — Construir DETALLE ESTRUCTURADO (JSON)
+  // ────────────────────────────────────────────────────────────────
+  // Hasta v3.7.x el catálogo solo mandaba `detallePedido` como string
+  // con emojis. Apps Script tenía que parsear ese string para crear el
+  // presupuesto Xubio, lo que generaba bugs (items perdidos, promos no
+  // reconocidas, cupón ignorado).
+  //
+  // Desde v3.8.0 mandamos también `detalle_estructurado`: un JSON con
+  // todos los items, sus categorías, elegibilidad para cupón, y datos
+  // del cupón aplicado. Apps Script v25.17.0+ lee esto y evita el parser.
+  //
+  // Para pedidos manuales WhatsApp y app Tomador (que aún no implementan
+  // esto), `detalle_estructurado` no se manda y AS cae al parser viejo.
+  // ════════════════════════════════════════════════════════════════
+  const itemsEstructurados = [];
+
+  // Productos (catálogo)
+  CAT.forEach((s, si) => s.items.forEach((it, ii) => {
+    const qProd = qty[si+'-'+ii] || 0;
+    if (qProd > 0) {
+      itemsEstructurados.push({
+        tipo: 'producto',
+        nombre_canonico: it.n,
+        seccion_id: s.id,
+        cantidad: qProd,
+        precio_unitario: it.pr,
+        subtotal: it.pr * qProd,
+        elegible_cupon: cuponEsElegibleCat(s.id)
+      });
+    }
+  }));
+
+  // Combos (NO elegibles para cupón por diseño — el catálogo los excluye en T())
+  (_combosData || []).forEach(c => {
+    const qC = qtyCombo[c.id] || 0;
+    if (qC > 0) {
+      const precioCombo = (typeof comboPrecioPorZona === 'function')
+        ? comboPrecioPorZona(c)
+        : Number(c.precio_unitario || 0);
+      itemsEstructurados.push({
+        tipo: 'combo',
+        nombre_canonico: c.nombre || c.id,
+        combo_id: c.id,
+        cantidad: qC,
+        precio_unitario: precioCombo,
+        subtotal: precioCombo * qC,
+        elegible_cupon: false
+      });
+    }
+  });
+
+  // Promos 50% OFF (NO elegibles para cupón por diseño)
+  (_promosData || []).forEach(pr => {
+    const qP = qtyPromo[pr.id] || 0;
+    if (qP > 0) {
+      const precioPromo = Number(pr.precio_unitario || 0);
+      itemsEstructurados.push({
+        tipo: 'promo',
+        nombre_canonico: pr.producto_nombre || pr.id,
+        promo_id: pr.id,
+        cantidad: qP,
+        precio_unitario: precioPromo,
+        subtotal: precioPromo * qP,
+        elegible_cupon: false
+      });
+    }
+  });
+
+  // Recalcular subtotal_elegible para precisión (debería coincidir con el
+  // subtotalElegible de T(), pero lo computamos de los items para defensa)
+  let _subtElig = 0;
+  itemsEstructurados.forEach(it => { if (it.elegible_cupon) _subtElig += it.subtotal; });
+
+  const detalleEstructurado = {
+    v: 1,
+    items: itemsEstructurados,
+    subtotal: subtotal,
+    subtotal_elegible_cupon: _subtElig,
+    descuento_cupon: descuento || 0,
+    cupon_aplicado: descuento > 0 ? 'CUPON-1RA-COMPRA-10PCT' : '',
+    total: t
+  };
+
   const payload = {
     pedidoId:      pedidoId,
     fechaHora:     fechaAR,
@@ -9678,7 +9820,11 @@ function confirmarYEnviarWA() {
     // v2.6.3: si aplica cupón, mandar subtotal + descuento al Sheet
     subtotal:       descuento > 0 ? subtotal : '',
     descuento:      descuento > 0 ? descuento : '',
-    cuponAplicado:  descuento > 0 ? 'CUPON-1RA-COMPRA-10PCT' : ''
+    cuponAplicado:  descuento > 0 ? 'CUPON-1RA-COMPRA-10PCT' : '',
+    // v3.8.0: JSON estructurado del detalle (Apps Script v25.17.0+ lo lee
+    // para evitar el parser de emojis y garantizar precisión en Xubio).
+    // Lo mandamos como string para que llegue intacto al payload form-encoded.
+    detalle_estructurado: JSON.stringify(detalleEstructurado)
   };
 
   // Fire-and-forget: no await, WhatsApp se abre siempre
