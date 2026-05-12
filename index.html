@@ -2,6 +2,52 @@
 <html lang="es">
 <head>
 <!-- ═══════════════════════════════════════════════════════════════════════
+     TCK CATÁLOGO — v3.8.1 — 12/05/2026
+     ──────────────────────────────────────────────────────────────────────
+     FIX: atribución de canales pagos (Google Ads vs Meta Ads)
+
+     PROBLEMA:
+       Tomás García y María Rosa Pajón compraron por $406k desde Google Ads
+       (sitelinks con ?v=google) pero quedaron marcados como origen='fb'
+       en pedidos_zona. Google Ads reportó 0 conversiones, todas atribuidas
+       a Meta. Causa: 2 bugs en la lógica de atribución.
+
+     CAUSA 1: utmCapturar era first-touch absoluto.
+       Si el cliente entró 1ra vez por ?v=fb (campaña Meta hace semanas),
+       quedaba pegado como FB para siempre. Aunque después clickeara
+       ?v=google, la función retornaba en la línea "if (previo) return"
+       y no actualizaba el canal guardado.
+
+     CAUSA 2: fallback hardcodeado en confirmarYEnviarWA.
+       Cuando _canalSinVendedor era null (segunda visita, vínculo
+       directo, etc.), el código asumía: si localStorage tiene
+       TCK_ONLINE → es FB. Eso era cierto cuando solo había Meta,
+       pero TCK_ONLINE también se setea por Google/IG/TikTok.
+
+     FIX v3.8.1:
+       1. utmCapturar ahora es LAST-TOUCH: cada ?v= o utm_* nuevo
+          en la URL sobrescribe lo guardado. Alineado con cómo
+          Google Ads y Meta atribuyen conversiones.
+
+       2. El fallback en origen_marketing (línea ~9815) ya no asume
+          FB. Lee el origen real desde utmLeer() (que tras patch 1
+          contiene el último canal verdadero).
+
+     IMPACTO ESPERADO:
+       · Próximas compras desde Google Ads → origen='google' correctamente
+       · Google Ads va a empezar a ver conversiones reales (estaban
+         "robadas" por la atribución a Meta)
+       · No cambia nada para clientes Meta orgánicos (siguen siendo 'fb')
+       · No cambia nada para vendedores reales (Miguel/Juan/Lisandro)
+
+     SIN CAMBIOS en:
+       · detalle_estructurado JSON (v3.8.0)
+       · Trust screen, cupón 1ra compra, modal canalización
+       · Apps Script v25.17.0 (compatible)
+       · Pixel Google Ads AW-16651738476 (sigue disparando igual)
+
+═══════════════════════════════════════════════════════════════════════ -->
+<!-- ═══════════════════════════════════════════════════════════════════════
      TCK CATÁLOGO — v3.8.0 — 09/05/2026
      ──────────────────────────────────────────────────────────────────────
      FEATURE: detalle_estructurado JSON en payload (datos sin emojis).
@@ -2085,8 +2131,11 @@ const fmt = n => '$' + Math.round(n).toLocaleString('es-AR');
 
 // ── v2.7.5 · Helpers de tracking UTM ──────────────────────────────
 // Captura UTMs + ?v= de la URL actual y los guarda en localStorage.
-// Se ejecuta SOLO si hay algún parámetro relevante (first-touch wins).
-// Si ya hay UTMs guardados vigentes, no los pisa (atribución estable).
+// Se ejecuta SOLO si hay algún parámetro relevante.
+// v3.8.1: LAST-TOUCH WINS — si llega ?v= o utm_* nuevo en la URL,
+// SOBRESCRIBE lo guardado previamente. Antes era first-touch (cliente
+// que entraba 1ra vez por FB quedaba pegado como FB para siempre,
+// aunque después volviera por Google → conversiones mal atribuidas).
 function utmCapturar() {
   try {
     const params = new URLSearchParams(window.location.search);
@@ -2096,9 +2145,8 @@ function utmCapturar() {
     const hayUTM = utmFields.some(k => params.get(k));
     const hayCanal = vParam && CANALES_SIN_VENDEDOR[vParam];
     if (!hayUTM && !hayCanal) return;
-    // ¿Ya hay captura previa vigente? (first-touch wins)
-    const previo = utmLeer();
-    if (previo && previo.origen_marketing) return;
+    // v3.8.1: ya NO chequeamos previo — el ?v= actual SIEMPRE gana.
+    // Esto es last-touch real, alineado con cómo atribuyen Google/Meta.
     const data = {
       origen_marketing: hayCanal ? CANALES_SIN_VENDEDOR[vParam] : null,
       utm_source:   params.get('utm_source')   || null,
@@ -2114,6 +2162,8 @@ function utmCapturar() {
       data.utm_source = vParam;
     }
     localStorage.setItem(UTM_KEY, JSON.stringify({ data, exp: Date.now() + UTM_TTL }));
+    // v3.8.1: log para debug de atribución
+    console.log('[utm] capturado (last-touch):', data.origen_marketing || data.utm_source, '· ?v=' + vParam);
   } catch(e) { /* localStorage lleno o bloqueado, no es crítico */ }
 }
 // Lee UTMs guardados (si están vigentes). Retorna objeto con los campos o null.
@@ -9803,16 +9853,25 @@ function confirmarYEnviarWA() {
     estado:         'Pendiente',
     origen:         _cliActivo ? 'web_cliente' : 'Catalogo Web TCK',
     // v3.5.1: origen_marketing — canal real para tracking en pedidos_zona.origen.
-    // Prioridad: _canalSinVendedor (sesión activa) → localStorage TCK_ONLINE → cliente vs anónimo
+    // Prioridad: _canalSinVendedor (sesión actual) → UTM guardado → cliente vs anónimo
+    // v3.8.1: FIX bug atribución. Antes asumía TCK_ONLINE=fb hardcodeado,
+    // lo que rompía atribución de Google (cliente que entró 1ra vez por FB
+    // y volvió por Google quedaba como fb). Ahora lee el origen real
+    // desde el UTM guardado, que con last-touch ya tiene el canal correcto.
     origen_marketing: (function(){
       if (_canalSinVendedor === 'CANAL_FB')     return 'fb';
       if (_canalSinVendedor === 'CANAL_IG')     return 'ig';
       if (_canalSinVendedor === 'CANAL_GOOGLE') return 'google';
       if (_canalSinVendedor === 'CANAL_TIKTOK') return 'tiktok';
-      // Fallback: leer último canal de localStorage (visitas de retorno
-      // sin parámetro ?v= pero con sesión persistida desde campaña).
+      // Fallback v3.8.1: leer el último canal del UTM guardado (last-touch).
+      // utmLeer() devuelve el origen_marketing del último ?v= captado.
       try {
-        if (localStorage.getItem('tck_vendedor_link') === 'TCK_ONLINE') return 'fb';
+        const utmData = (typeof utmLeer === 'function') ? utmLeer() : null;
+        if (utmData && utmData.origen_marketing) {
+          // Mapear CANAL_X → 'x' (mismo formato que el switch de arriba)
+          const mapa = { 'CANAL_FB':'fb', 'CANAL_IG':'ig', 'CANAL_GOOGLE':'google', 'CANAL_TIKTOK':'tiktok' };
+          if (mapa[utmData.origen_marketing]) return mapa[utmData.origen_marketing];
+        }
       } catch(e) {}
       return _cliActivo ? 'web_cliente' : 'directo';
     })(),
