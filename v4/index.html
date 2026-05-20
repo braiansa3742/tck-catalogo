@@ -6616,7 +6616,8 @@ body.drawer-abierto #wa-float {
 /* Banner preview (solo visible si estás en /v4/) */
 .v4-preview-bar{
   display:none;
-  position:fixed;top:0;left:0;right:0;
+  /* v4.11.0: sticky en lugar de fixed para que NO tape el header */
+  position:sticky;top:0;left:0;right:0;
   background:linear-gradient(135deg,#FFE27A,#FFD700);
   color:#5C0000;
   padding:6px 12px;
@@ -6629,7 +6630,7 @@ body.drawer-abierto #wa-float {
 }
 .v4-preview-bar b{font-weight:900}
 body.v4-mode .v4-preview-bar{display:block}
-body.v4-mode .hdr{margin-top:24px}
+/* v4.11.0: removido margin-top:24px legacy (era para el banner fixed viejo) */
 
 /* Esconder el header viejo en modo v4 */
 body.v4-mode .hdr-stripe{display:none}
@@ -8000,6 +8001,52 @@ body.v4-mode .body .card .qrow *{cursor:pointer}
   object-fit:contain;
   display:block;
 }
+/* v4.11.0: carrusel hero (estilo IG: scroll horizontal + snap + dots) */
+.v4-sheet-hero-carrusel{
+  width:100%;height:100%;
+  display:flex;
+  overflow-x:auto;
+  scroll-snap-type:x mandatory;
+  scroll-behavior:smooth;
+  -webkit-overflow-scrolling:touch;
+  scrollbar-width:none;
+}
+.v4-sheet-hero-carrusel::-webkit-scrollbar{display:none}
+.v4-sheet-hero-carrusel .v4-sheet-hero-slide{
+  flex:0 0 100%;
+  width:100%;height:100%;
+  display:flex;align-items:center;justify-content:center;
+  scroll-snap-align:center;
+  scroll-snap-stop:always;
+}
+.v4-sheet-hero-carrusel .v4-sheet-hero-slide img,
+.v4-sheet-hero-carrusel > img{
+  max-width:88%;max-height:88%;
+  object-fit:contain;
+  display:block;
+  pointer-events:none;
+  user-select:none;
+}
+.v4-sheet-hero-dots{
+  position:absolute;
+  bottom:10px;left:0;right:0;
+  display:flex;justify-content:center;gap:6px;
+  z-index:3;
+  pointer-events:none;
+}
+.v4-sheet-hero-dot{
+  width:7px;height:7px;
+  border-radius:50%;
+  background:rgba(0,0,0,.32);
+  transition:all .2s;
+  box-shadow:0 0 0 1px rgba(255,255,255,.45);
+}
+.v4-sheet-hero-dot.active{
+  background:#fff;
+  width:18px;
+  border-radius:5px;
+  box-shadow:0 0 0 1px rgba(0,0,0,.18);
+}
 .v4-sheet-hero-badges{
   position:absolute;top:12px;left:12px;
   display:flex;gap:6px;flex-wrap:wrap;
@@ -8733,6 +8780,11 @@ body.v4-mode .v4-bottombar.show{
 }
 .v4-bb-send:disabled:active{transform:none}
 
+/* v4.11.0: ocultar el botón WhatsApp verde del bottombar (decisión 21/5/2026).
+   El cliente tiene un solo CTA: tap en la barra → drawer → enviar.
+   Reversible: quitar este bloque para reactivarlo. */
+body.v4-mode .v4-bottombar .v4-bb-send{display:none !important}
+
 /* En vista-home no mostramos barra (no hay nada que agregar todavía) */
 body.v4-mode.v4-vista-home .v4-bottombar{
   transform:translateY(110%);
@@ -9177,7 +9229,7 @@ src="https://www.facebook.com/tr?id=2034313150514758&ev=PageView&noscript=1"
 <!-- ═══════════════ v4.0.0 PREVIEW BANNER ═══════════════ -->
 <!-- Solo visible cuando body tiene .v4-mode (set por JS si pathname /v4/) -->
 <div class="v4-preview-bar" id="v4-preview-bar">
-  👀 PREVIEW · <b>v4.10.0</b> en desarrollo · Producción en <a href="https://tckcatalogo.com" style="color:#5C0000;text-decoration:underline;font-weight:900">tckcatalogo.com</a>
+  👀 PREVIEW · <b>v4.11.0</b> en desarrollo · Producción en <a href="https://tckcatalogo.com" style="color:#5C0000;text-decoration:underline;font-weight:900">tckcatalogo.com</a>
 </div>
 
 <!-- ═══════════════ v4.0.0 HEADER LIMPIO ═══════════════ -->
@@ -9338,7 +9390,7 @@ src="https://www.facebook.com/tr?id=2034313150514758&ev=PageView&noscript=1"
       <a onclick="v4MenuClose()">Privacidad</a>
     </div>
     <div class="v4-menu-foot-version">
-      TCK Catálogo <b>v4.10.0</b> · The Chickens King S.R.L.
+      TCK Catálogo <b>v4.11.0</b> · The Chickens King S.R.L.
     </div>
   </div>
 </aside>
@@ -9503,10 +9555,13 @@ src="https://www.facebook.com/tr?id=2034313150514758&ev=PageView&noscript=1"
   <div class="v4-sheet-handle" id="v4-sheet-handle"><div class="v4-sheet-handle-bar"></div></div>
   <button class="v4-sheet-close" onclick="v4SheetClose()" aria-label="Cerrar">✕</button>
   <div class="v4-sheet-body" id="v4-sheet-body">
-    <!-- Hero -->
+    <!-- Hero — v4.11.0: carrusel para productos con múltiples imágenes -->
     <div class="v4-sheet-hero">
       <div class="v4-sheet-hero-badges" id="v4-sheet-hero-badges"></div>
-      <img id="v4-sheet-hero-img" src="" alt="" loading="lazy">
+      <div class="v4-sheet-hero-carrusel" id="v4-sheet-hero-carrusel">
+        <img id="v4-sheet-hero-img" src="" alt="" loading="lazy">
+      </div>
+      <div class="v4-sheet-hero-dots" id="v4-sheet-hero-dots" hidden></div>
     </div>
 
     <!-- Info -->
@@ -17322,28 +17377,115 @@ function confirmarCiudadNoAtendida() {
   };
 
   // Renderizar contenido del sheet con un producto
+  // v4.11.0: helpers del carrusel del hero
+  function v4SheetDotsRebuild(){
+    const carrusel = document.getElementById('v4-sheet-hero-carrusel');
+    const dotsEl = document.getElementById('v4-sheet-hero-dots');
+    if (!carrusel || !dotsEl) return;
+    const slides = carrusel.querySelectorAll('.v4-sheet-hero-slide');
+    if (slides.length <= 1) {
+      // 1 sola imagen: no mostrar dots
+      dotsEl.setAttribute('hidden', '');
+      dotsEl.innerHTML = '';
+      return;
+    }
+    dotsEl.removeAttribute('hidden');
+    dotsEl.innerHTML = '';
+    slides.forEach(function(_, idx){
+      const d = document.createElement('div');
+      d.className = 'v4-sheet-hero-dot' + (idx === 0 ? ' active' : '');
+      dotsEl.appendChild(d);
+    });
+  }
+  function v4SheetDotsSync(){
+    const carrusel = document.getElementById('v4-sheet-hero-carrusel');
+    const dotsEl = document.getElementById('v4-sheet-hero-dots');
+    if (!carrusel || !dotsEl) return;
+    const slides = carrusel.querySelectorAll('.v4-sheet-hero-slide');
+    if (slides.length <= 1) return;
+    const slideWidth = carrusel.clientWidth;
+    if (!slideWidth) return;
+    const active = Math.round(carrusel.scrollLeft / slideWidth);
+    const dots = dotsEl.querySelectorAll('.v4-sheet-hero-dot');
+    dots.forEach(function(d, i){
+      d.classList.toggle('active', i === active);
+    });
+  }
+  // Listener de scroll del carrusel — único setup
+  let _v4CarruselListenerSetup = false;
+  function v4SetupCarruselListener(){
+    if (_v4CarruselListenerSetup) return;
+    const carrusel = document.getElementById('v4-sheet-hero-carrusel');
+    if (!carrusel) {
+      setTimeout(v4SetupCarruselListener, 200);
+      return;
+    }
+    let _tick = null;
+    carrusel.addEventListener('scroll', function(){
+      if (_tick) cancelAnimationFrame(_tick);
+      _tick = requestAnimationFrame(v4SheetDotsSync);
+    }, { passive: true });
+    _v4CarruselListenerSetup = true;
+  }
+  if (document.readyState !== 'loading') {
+    setTimeout(v4SetupCarruselListener, 100);
+  } else {
+    document.addEventListener('DOMContentLoaded', function(){ setTimeout(v4SetupCarruselListener, 100); });
+  }
+
   function v4SheetRender(it, sec, sinStock){
-    // Hero
-    const heroImg = document.getElementById('v4-sheet-hero-img');
+    // Hero (v4.11.0: carrusel con todas las imágenes disponibles)
+    const carrusel = document.getElementById('v4-sheet-hero-carrusel');
     const heroBadges = document.getElementById('v4-sheet-hero-badges');
-    if (heroImg) {
-      // Reusa el mapeo de imagen del legacy
-      let imgSrc = '';
+    if (carrusel) {
+      // Reunir todas las imágenes disponibles del producto
+      const imgs = [];
+      // Imagen principal (resolver con _imgmap o construir del nombre)
+      let mainSrc = '';
       try {
         if (typeof _imgmap !== 'undefined' && _imgmap[it.n]) {
-          imgSrc = 'img/' + _imgmap[it.n];
+          mainSrc = 'img/' + _imgmap[it.n];
+        } else if (it.img) {
+          mainSrc = 'img/' + it.img + '.jpg';
         } else {
-          imgSrc = 'img/' + encodeURIComponent(it.n + '.jpg').replace(/%25/g,'%').replace(/%2F/g,'/');
+          mainSrc = 'img/' + encodeURIComponent(it.n + '.jpg').replace(/%25/g,'%').replace(/%2F/g,'/');
         }
       } catch(e){
-        imgSrc = 'img/' + encodeURIComponent(it.n + '.jpg');
+        mainSrc = 'img/' + encodeURIComponent(it.n + '.jpg');
       }
-      heroImg.src = imgSrc;
-      heroImg.alt = it.n;
-      // Si la imagen falla, mantener el gradiente del contenedor (sin imagen visible)
-      heroImg.onerror = function(){ heroImg.style.display = 'none'; };
-      heroImg.onload = function(){ heroImg.style.display = ''; };
-      heroImg.style.display = '';
+      imgs.push({ src: mainSrc, alt: it.n });
+      // Imagen secundaria si existe (it.img2 — Fino de Ave Cocida, MDM)
+      if (it.img2) {
+        imgs.push({ src: it.img2, alt: it.n + ' — uso ideal' });
+      }
+      // Reset y construir slides
+      carrusel.innerHTML = '';
+      imgs.forEach(function(imgInfo, idx){
+        const slide = document.createElement('div');
+        slide.className = 'v4-sheet-hero-slide';
+        const img = document.createElement('img');
+        img.src = imgInfo.src;
+        img.alt = imgInfo.alt;
+        img.loading = 'lazy';
+        // Si la primera imagen falla, ocultar el slide (mantener gradiente)
+        if (idx === 0) {
+          img.onerror = function(){ img.style.display = 'none'; };
+        } else {
+          // Si una secundaria falla, sacar el slide completo
+          img.onerror = function(){
+            slide.remove();
+            v4SheetDotsRebuild();
+          };
+        }
+        // Mantener id legacy en la primera imagen por si algún código viejo lo busca
+        if (idx === 0) img.id = 'v4-sheet-hero-img';
+        slide.appendChild(img);
+        carrusel.appendChild(slide);
+      });
+      // Reset scroll a la primera slide
+      carrusel.scrollLeft = 0;
+      // Construir dots
+      v4SheetDotsRebuild();
     }
     // Badges del hero
     if (heroBadges) {
@@ -18854,11 +18996,11 @@ function confirmarCiudadNoAtendida() {
   function v4UpdatePreviewBanner(){
     const bar = document.getElementById('v4-preview-bar');
     if (!bar) return;
-    bar.innerHTML = '👀 PREVIEW · <b>v4.10.0</b> en desarrollo · Producci&oacute;n en <a href="https://tckcatalogo.com" style="color:#5C0000;text-decoration:underline;font-weight:900">tckcatalogo.com</a>';
+    bar.innerHTML = '👀 PREVIEW · <b>v4.11.0</b> en desarrollo · Producci&oacute;n en <a href="https://tckcatalogo.com" style="color:#5C0000;text-decoration:underline;font-weight:900">tckcatalogo.com</a>';
   }
   v4UpdatePreviewBanner();
 
-  console.log('%c[TCK v4.10.0]%c Fase 5 · descripciones x53 productos · ocultos Suprema B IQF / Pulpa Palta / Brocoli · candidato a migración',
+  console.log('%c[TCK v4.11.0]%c banner sticky · sin WA verde · carrusel hero',
     'background:#8B0000;color:#FFD700;padding:2px 6px;border-radius:3px;font-weight:bold',
     'color:#5C3A1E');
 
