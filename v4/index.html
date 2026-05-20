@@ -6766,6 +6766,175 @@ body.v4-mode .hdr{
 }
 .v4-hdr-cart-badge.show{display:flex}
 
+/* ═══════════════════════════════════════════════════════════════
+   v4.14.0 B4.3: Ícono "Mis pedidos" en header (clipboard + badge)
+   ═══════════════════════════════════════════════════════════════ */
+.v4-hdr-pedidos{position:relative}
+.v4-hdr-pedidos-badge{
+  position:absolute;top:4px;right:4px;
+  background:var(--gold);color:#5C0000;
+  border:2px solid #1A0800;
+  border-radius:50%;
+  min-width:18px;height:18px;
+  padding:0 4px;
+  display:none;
+  align-items:center;justify-content:center;
+  font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:10px;
+  line-height:1;
+}
+.v4-hdr-pedidos-badge.show{display:flex}
+
+/* Overlay "Mis pedidos" — pantalla completa */
+body.mp-open{overflow:hidden}
+.mp-overlay{
+  position:fixed;inset:0;
+  z-index:1100;
+  background:var(--cream);
+  display:none;
+  flex-direction:column;
+  animation:mpFadeIn .25s ease;
+}
+.mp-overlay.on{display:flex}
+@keyframes mpFadeIn{from{opacity:0}to{opacity:1}}
+.mp-hdr{
+  background:linear-gradient(135deg,#1A0800 0%,#8B0000 100%);
+  color:#fff;
+  padding:20px 18px 18px;
+  display:flex;align-items:center;gap:12px;
+  flex-shrink:0;
+  border-bottom:2px solid var(--gold);
+  box-shadow:0 2px 12px rgba(0,0,0,.18);
+}
+.mp-hdr-back{
+  background:rgba(255,215,0,.18);
+  color:var(--gold);
+  border:1.5px solid rgba(255,215,0,.5);
+  border-radius:10px;
+  width:38px;height:38px;
+  font-size:22px;line-height:1;
+  cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;
+}
+.mp-hdr-back:active{background:rgba(255,215,0,.32)}
+.mp-hdr-title-wrap{flex:1;min-width:0}
+.mp-hdr-title{
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:22px;font-weight:900;
+  letter-spacing:.5px;
+  color:var(--gold);
+  line-height:1.1;
+}
+.mp-hdr-sub{
+  font-size:12px;
+  color:rgba(255,255,255,.7);
+  margin-top:2px;
+}
+.mp-body{
+  flex:1 1 auto;
+  overflow-y:auto;
+  -webkit-overflow-scrolling:touch;
+  padding:16px 16px 24px;
+}
+.mp-empty{
+  text-align:center;
+  padding:48px 24px;
+  color:var(--text2);
+}
+.mp-empty-icon{
+  font-size:54px;
+  margin-bottom:14px;
+  opacity:.55;
+}
+.mp-empty-title{
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:22px;font-weight:900;
+  color:var(--red);
+  margin-bottom:6px;
+  letter-spacing:.3px;
+}
+.mp-empty-sub{
+  font-size:14px;color:var(--text2);
+  margin-bottom:22px;
+  line-height:1.5;
+}
+.mp-empty-btn{
+  background:linear-gradient(135deg,var(--red) 0%,#5C0000 100%);
+  color:#fff;border:none;
+  border-radius:12px;
+  padding:13px 26px;
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:15px;font-weight:900;
+  letter-spacing:.5px;text-transform:uppercase;
+  cursor:pointer;
+  box-shadow:0 3px 14px rgba(139,0,0,.22);
+}
+.mp-empty-btn:active{transform:scale(.97)}
+
+/* Card de pedido en la lista */
+.mp-card{
+  background:#fff;
+  border-radius:14px;
+  border:1.5px solid rgba(255,215,0,.4);
+  margin-bottom:12px;
+  padding:14px 16px;
+  cursor:pointer;
+  transition:transform .12s,box-shadow .12s;
+  box-shadow:0 2px 8px rgba(139,0,0,.06);
+}
+.mp-card:active{
+  transform:scale(.985);
+  box-shadow:0 1px 4px rgba(139,0,0,.04);
+}
+.mp-card-head{
+  display:flex;justify-content:space-between;
+  align-items:center;
+  gap:8px;
+  margin-bottom:8px;
+}
+.mp-card-num{
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:13px;font-weight:900;
+  color:var(--text);
+  letter-spacing:.3px;
+  word-break:break-all;
+  flex:1;min-width:0;
+}
+.mp-card-estado{
+  flex-shrink:0;
+  padding:4px 11px;
+  border-radius:14px;
+  font-family:'Barlow Condensed',sans-serif;
+  font-weight:900;font-size:10.5px;
+  letter-spacing:1.2px;text-transform:uppercase;
+  background:#FFD700;color:#5C0000;
+}
+.mp-card-estado.mp-estado-confirmado{background:#4CAF50;color:#fff}
+.mp-card-estado.mp-estado-entregado{background:#2E7D32;color:#fff}
+.mp-card-estado.mp-estado-cancelado{background:#888;color:#fff}
+.mp-card-body{
+  display:flex;justify-content:space-between;
+  align-items:flex-end;
+  gap:8px;
+}
+.mp-card-fecha{
+  font-size:12px;
+  color:var(--text3);
+  line-height:1.4;
+}
+.mp-card-resumen{
+  font-size:12.5px;
+  color:var(--text2);
+  margin-top:3px;
+}
+.mp-card-total{
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:18px;font-weight:900;
+  color:var(--red);
+  flex-shrink:0;
+  line-height:1;
+}
+
 /* ═══════════════ MENÚ LATERAL ═══════════════ */
 .v4-menu-backdrop{
   position:fixed;inset:0;
@@ -9361,7 +9530,7 @@ src="https://www.facebook.com/tr?id=2034313150514758&ev=PageView&noscript=1"
 <!-- ═══════════════ v4.0.0 PREVIEW BANNER ═══════════════ -->
 <!-- Solo visible cuando body tiene .v4-mode (set por JS si pathname /v4/) -->
 <div class="v4-preview-bar" id="v4-preview-bar">
-  👀 PREVIEW · <b>v4.13.0</b> en desarrollo · Producción en <a href="https://tckcatalogo.com" style="color:#5C0000;text-decoration:underline;font-weight:900">tckcatalogo.com</a>
+  👀 PREVIEW · <b>v4.14.0</b> en desarrollo · Producción en <a href="https://tckcatalogo.com" style="color:#5C0000;text-decoration:underline;font-weight:900">tckcatalogo.com</a>
 </div>
 
 <!-- ═══════════════ v4.0.0 HEADER LIMPIO ═══════════════ -->
@@ -9376,6 +9545,11 @@ src="https://www.facebook.com/tr?id=2034313150514758&ev=PageView&noscript=1"
   </div>
   <button class="v4-hdr-btn" id="v4-btn-search" aria-label="Buscar" onclick="v4SearchOpen()">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+  </button>
+  <!-- v4.14.0 B4.3: ícono Mis Pedidos (clipboard) con badge contador -->
+  <button class="v4-hdr-btn v4-hdr-pedidos" id="v4-btn-pedidos" aria-label="Mis pedidos" onclick="verMisPedidos()" style="display:none">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="3" width="12" height="18" rx="2"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="13" y2="16"/></svg>
+    <span class="v4-hdr-pedidos-badge" id="v4-hdr-pedidos-badge">0</span>
   </button>
   <button class="v4-hdr-btn v4-hdr-cart" id="v4-btn-cart" aria-label="Mi pedido" onclick="openDrawer()">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1.5"/><circle cx="19" cy="21" r="1.5"/><path d="M2 3h2l3.6 12.59a2 2 0 0 0 2 1.41h8.7a2 2 0 0 0 2-1.61L23 6H6"/></svg>
@@ -9522,7 +9696,7 @@ src="https://www.facebook.com/tr?id=2034313150514758&ev=PageView&noscript=1"
       <a onclick="v4MenuClose()">Privacidad</a>
     </div>
     <div class="v4-menu-foot-version">
-      TCK Catálogo <b>v4.13.0</b> · The Chickens King S.R.L.
+      TCK Catálogo <b>v4.14.0</b> · The Chickens King S.R.L.
     </div>
   </div>
 </aside>
@@ -12939,9 +13113,20 @@ function confirmarYEnviarWA() {
     const numEl = document.getElementById('pod-numero');
     if (numEl) numEl.textContent = pedidoId;
   } catch(e){}
-  // Si hay cliente logueado, mostrar botón "ver mis pedidos"
+  // v4.14.0 B4.3: el botón "Ver todos mis pedidos" se muestra si hay 2+
+  // pedidos en localStorage (no solo para cliente registrado). Si es el
+  // primer pedido del cliente, no tiene sentido ofrecer "ver todos".
   const btnPortal = document.getElementById('pedido-ok-btn-portal');
-  if (btnPortal) btnPortal.style.display = _cliActivo ? 'block' : 'none';
+  if (btnPortal) {
+    try {
+      const cantPedidos = (typeof _tckLeerPedidosLS === 'function')
+        ? _tckLeerPedidosLS().length
+        : 0;
+      btnPortal.style.display = (cantPedidos >= 2) ? 'inline-flex' : 'none';
+    } catch(e){
+      btnPortal.style.display = 'none';
+    }
+  }
 
   // Popup de registro — solo si NO está logueado
   if (!_cliActivo) {
@@ -13902,7 +14087,173 @@ function hablarConVendedorDesdeDetalle(pedidoId){
   window.open('https://wa.me/' + waNum + '?text=' + encodeURIComponent(msg), '_blank');
 }
 
-console.log('%c[TCK v4.13.0 B4.1+B4.2]%c pantalla \u00e9xito + persistencia pedido + detalle',
+// ═══════════════════════════════════════════════════════════════════════
+// v4.14.0 B4.3 — Pantalla "Mis pedidos" (historial del cliente)
+// ─────────────────────────────────────────────────────────────────────
+// Lee localStorage (`tck_pedidos_v1` poblado por B4.2) y muestra todos los
+// pedidos en una pantalla overlay con cards clickeables. Cada card lleva
+// a `abrirDetallePedido(pedidoId)` (la pantalla detalle de B4.1).
+//
+// Entrada: ícono 📋 en el header v4 (badge con contador) o botón "Ver
+// todos mis pedidos" en la pantalla éxito.
+//
+// IMPORTANTE: NO refresca estados desde Supabase en esta versión. Los
+// estados son los que se guardaron en el momento de crear el pedido.
+// Si el admin actualizó el estado después (Confirmado, Entregado), no
+// se ve acá. Trade-off aceptado: simplicidad vs estado en vivo.
+// Si los clientes piden estado en vivo, agregar endpoint GET en Apps
+// Script y refrescar en `verMisPedidos()`.
+// ═══════════════════════════════════════════════════════════════════════
+
+function verMisPedidos(){
+  // Cerrar pantalla éxito si está abierta
+  const pedOk = document.getElementById('pedido-ok');
+  if (pedOk && pedOk.classList.contains('on')) pedOk.classList.remove('on');
+
+  // Renderizar contenido + abrir overlay
+  renderMisPedidos();
+  const ov = document.getElementById('mp-overlay');
+  if (ov){
+    ov.classList.add('on');
+    document.body.classList.add('mp-open');
+    // Scroll al top del body interno
+    const b = document.getElementById('mp-body');
+    if (b) b.scrollTop = 0;
+  }
+}
+
+function cerrarMisPedidos(){
+  const ov = document.getElementById('mp-overlay');
+  if (ov) ov.classList.remove('on');
+  document.body.classList.remove('mp-open');
+}
+
+function renderMisPedidos(){
+  const body = document.getElementById('mp-body');
+  const sub  = document.getElementById('mp-hdr-sub');
+  if (!body) return;
+
+  let pedidos = _tckLeerPedidosLS();
+  // Ordenar del más reciente al más viejo (por fecha)
+  pedidos = pedidos.slice().sort(function(a, b){
+    const fa = (a && a.fecha) || '';
+    const fb = (b && b.fecha) || '';
+    return fb.localeCompare(fa);
+  });
+
+  // Actualizar subtítulo
+  if (sub){
+    if (pedidos.length === 0){
+      sub.textContent = 'Sin pedidos todavía';
+    } else if (pedidos.length === 1){
+      sub.textContent = '1 pedido';
+    } else {
+      sub.textContent = pedidos.length + ' pedidos';
+    }
+  }
+
+  // Empty state
+  if (pedidos.length === 0){
+    body.innerHTML =
+      '<div class="mp-empty">' +
+        '<div class="mp-empty-icon">📋</div>' +
+        '<div class="mp-empty-title">Sin pedidos todavía</div>' +
+        '<div class="mp-empty-sub">Cuando hagas tu primer pedido, vas a verlo acá.<br>Los pedidos se guardan en este dispositivo.</div>' +
+        '<button class="mp-empty-btn" onclick="cerrarMisPedidos()">Empezar a comprar</button>' +
+      '</div>';
+    return;
+  }
+
+  // Render de la lista
+  let html = '';
+  pedidos.forEach(function(p){
+    if (!p || !p.pedidoId) return;
+    const estado = p.estado || 'Pendiente';
+    const estadoClass = 'mp-estado-' + estado.toLowerCase().replace(/[^a-z]/g,'');
+    const fechaCorta = _mpFormatearFecha(p.fecha);
+    const productosCount = p.productosCount || 0;
+    const itemsTotales = p.itemsTotales || 0;
+    const resumenLinea = productosCount + ' producto' + (productosCount === 1 ? '' : 's') +
+                        (itemsTotales > 0 ? ' · ' + itemsTotales + ' uds.' : '');
+    const totalFmt = fmt(p.total || 0);
+    const pidEsc = _escHtml(p.pedidoId).replace(/'/g, "\\'");
+
+    html += '<div class="mp-card" onclick="abrirDetallePedido(\'' + pidEsc + '\')">' +
+      '<div class="mp-card-head">' +
+        '<div class="mp-card-num">' + _escHtml(p.pedidoId) + '</div>' +
+        '<div class="mp-card-estado ' + estadoClass + '">' + _escHtml(estado) + '</div>' +
+      '</div>' +
+      '<div class="mp-card-body">' +
+        '<div>' +
+          '<div class="mp-card-fecha">' + _escHtml(fechaCorta) + '</div>' +
+          '<div class="mp-card-resumen">' + _escHtml(resumenLinea) + '</div>' +
+        '</div>' +
+        '<div class="mp-card-total">' + totalFmt + '</div>' +
+      '</div>' +
+    '</div>';
+  });
+  body.innerHTML = html;
+}
+
+// Helper: convierte "2026-05-21 16:30:00" a "Mié 21/05 · 16:30"
+function _mpFormatearFecha(fecha){
+  if (!fecha) return '';
+  // Aceptamos formato "YYYY-MM-DD HH:MM:SS" o ISO
+  const m = fecha.match(/^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})/);
+  if (!m) return fecha; // devolver tal cual si no matchea
+  const [_, y, mo, d, hh, mm] = m;
+  let diaSem = '';
+  try {
+    const dt = new Date(parseInt(y), parseInt(mo) - 1, parseInt(d));
+    const dias = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+    diaSem = dias[dt.getDay()] + ' ';
+  } catch(e){}
+  return diaSem + d + '/' + mo + ' · ' + hh + ':' + mm;
+}
+
+function actualizarBadgeMisPedidos(){
+  try {
+    const btn = document.getElementById('v4-btn-pedidos');
+    const badge = document.getElementById('v4-hdr-pedidos-badge');
+    if (!btn || !badge) return;
+
+    const pedidos = _tckLeerPedidosLS();
+    if (pedidos.length > 0){
+      btn.style.display = '';
+      badge.textContent = pedidos.length > 99 ? '99+' : String(pedidos.length);
+      badge.classList.add('show');
+    } else {
+      // Sin pedidos → ocultar el botón entero (no tiene sentido mostrar 📋 vacío)
+      btn.style.display = 'none';
+      badge.classList.remove('show');
+    }
+  } catch(e){ /* fail silent */ }
+}
+
+// Llamar al cargar la página + cada vez que se guarda un pedido nuevo
+if (document.readyState !== 'loading') {
+  setTimeout(actualizarBadgeMisPedidos, 100);
+} else {
+  document.addEventListener('DOMContentLoaded', function(){
+    setTimeout(actualizarBadgeMisPedidos, 100);
+  });
+}
+
+// Hook al guardar pedido (B4.2): wrap de guardarPedidoPersistente para
+// refrescar el badge después de cada nuevo pedido. Sin tocar la función
+// original; usamos un proxy.
+(function(){
+  const _origGuardar = window.guardarPedidoPersistente;
+  if (typeof _origGuardar === 'function'){
+    window.guardarPedidoPersistente = function(pedido){
+      const r = _origGuardar.apply(this, arguments);
+      setTimeout(actualizarBadgeMisPedidos, 30);
+      return r;
+    };
+  }
+})();
+
+console.log('%c[TCK v4.14.0 B4.3]%c pantalla Mis pedidos (historial localStorage)',
   'background:#8B0000;color:#FFD700;padding:2px 6px;border-radius:3px;font-weight:bold',
   'color:#5C3A1E');
 </script>
@@ -14527,8 +14878,24 @@ document.addEventListener('visibilitychange', function() {
       <span style="font-size:18px;margin-right:6px">💬</span>Hablar con vendedor
     </button>
 
-    <!-- Botón legacy para clientes registrados (se mantiene oculto si no hay sesión) -->
-    <button class="pedido-ok-btn pod-btn-ghost" onclick="cliVolverPortal()" id="pedido-ok-btn-portal" style="display:none;margin-top:6px">← Ver todos mis pedidos</button>
+    <!-- v4.14.0 B4.3: ahora todos pueden ver "Mis pedidos" (registrados o no) -->
+    <button class="pedido-ok-btn pod-btn-ghost" onclick="verMisPedidos()" id="pedido-ok-btn-portal" style="display:none;margin-top:6px">
+      <span style="font-size:16px;margin-right:6px">📋</span>Ver todos mis pedidos
+    </button>
+  </div>
+</div>
+
+<!-- v4.14.0 B4.3: Overlay "Mis pedidos" — historial completo del cliente -->
+<div class="mp-overlay" id="mp-overlay">
+  <div class="mp-hdr">
+    <button class="mp-hdr-back" onclick="cerrarMisPedidos()" aria-label="Volver">&larr;</button>
+    <div class="mp-hdr-title-wrap">
+      <div class="mp-hdr-title">Mis pedidos</div>
+      <div class="mp-hdr-sub" id="mp-hdr-sub">Historial completo</div>
+    </div>
+  </div>
+  <div class="mp-body" id="mp-body">
+    <!-- contenido inyectado dinámicamente por renderMisPedidos() -->
   </div>
 </div>
 
@@ -19743,7 +20110,7 @@ function confirmarCiudadNoAtendida() {
   function v4UpdatePreviewBanner(){
     const bar = document.getElementById('v4-preview-bar');
     if (!bar) return;
-    bar.innerHTML = '👀 PREVIEW · <b>v4.13.0</b> en desarrollo · Producci&oacute;n en <a href="https://tckcatalogo.com" style="color:#5C0000;text-decoration:underline;font-weight:900">tckcatalogo.com</a>';
+    bar.innerHTML = '👀 PREVIEW · <b>v4.14.0</b> en desarrollo · Producci&oacute;n en <a href="https://tckcatalogo.com" style="color:#5C0000;text-decoration:underline;font-weight:900">tckcatalogo.com</a>';
   }
   v4UpdatePreviewBanner();
 
