@@ -7787,6 +7787,17 @@ body.v4-mode .body .sec-grid{
    adentro ya no consume layout (parent display:none). Sin acción extra. */
 
 /* ═══════════════════════════════════════════════════════════════════════
+   v4.10.0 — Productos ocultos (V4_PRODUCTOS_OCULTOS)
+   ──────────────────────────────────────────────────────────────────────
+   Solo afecta v4-mode. En producción legacy (v3) las cards se siguen
+   viendo normalmente. Reversible: quitar el nombre del Set.
+   ════════════════════════════════════════════════════════════════════ */
+body.v4-mode .body .card.v4-oculta,
+body.v4-mode .body .sec.v4-oculta{
+  display:none !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
    v4.9.0 — ANIMACIÓN AL SUMAR (pulse + halo dorado)
    ──────────────────────────────────────────────────────────────────────
    Se aplica a .card en v4-mode cuando se incrementa qty (d > 0).
@@ -8185,7 +8196,7 @@ body.v4-sheet-open{overflow:hidden}
    Todos los productos muestran textarea de observaciones libre.
    ════════════════════════════════════════════════════════════════════ */
 
-/* Descripción enriquecida (solo Pollo A/B) */
+/* Descripción enriquecida (v4.10.0: aplicada a todos los productos con desc en V4_DESCRIPCIONES) */
 .v4-sheet-desc{
   margin:14px 16px 0;
   font-size:13.5px;
@@ -9166,7 +9177,7 @@ src="https://www.facebook.com/tr?id=2034313150514758&ev=PageView&noscript=1"
 <!-- ═══════════════ v4.0.0 PREVIEW BANNER ═══════════════ -->
 <!-- Solo visible cuando body tiene .v4-mode (set por JS si pathname /v4/) -->
 <div class="v4-preview-bar" id="v4-preview-bar">
-  👀 PREVIEW · <b>v4.9.0</b> en desarrollo · Producción en <a href="https://tckcatalogo.com" style="color:#5C0000;text-decoration:underline;font-weight:900">tckcatalogo.com</a>
+  👀 PREVIEW · <b>v4.10.0</b> en desarrollo · Producción en <a href="https://tckcatalogo.com" style="color:#5C0000;text-decoration:underline;font-weight:900">tckcatalogo.com</a>
 </div>
 
 <!-- ═══════════════ v4.0.0 HEADER LIMPIO ═══════════════ -->
@@ -9327,7 +9338,7 @@ src="https://www.facebook.com/tr?id=2034313150514758&ev=PageView&noscript=1"
       <a onclick="v4MenuClose()">Privacidad</a>
     </div>
     <div class="v4-menu-foot-version">
-      TCK Catálogo <b>v4.9.0</b> · The Chickens King S.R.L.
+      TCK Catálogo <b>v4.10.0</b> · The Chickens King S.R.L.
     </div>
   </div>
 </aside>
@@ -16926,6 +16937,13 @@ function confirmarCiudadNoAtendida() {
   if (typeof window._cardCoincide === 'function') {
     const origCardCoincide = window._cardCoincide;
     window._cardCoincide = function(card){
+      // v4.10.0: ocultar productos en V4_PRODUCTOS_OCULTOS
+      try {
+        const nombreEl = card.querySelector('.card-name');
+        const nombre = nombreEl ? (nombreEl.textContent || '').trim() : '';
+        if (nombre && V4_PRODUCTOS_OCULTOS.has(nombre)) return false;
+      } catch(e){}
+
       // Primero el filtro original (categoría, estado, búsqueda)
       const ok = origCardCoincide.call(this, card);
       if (!ok) return false;
@@ -16949,6 +16967,60 @@ function confirmarCiudadNoAtendida() {
     console.log('[v4] _cardCoincide wrapper instalado');
   } else {
     console.warn('[v4] _cardCoincide no existía — wrapper Fase 2 no instalado');
+  }
+
+  // v4.10.0: aplicar V4_PRODUCTOS_OCULTOS al DOM directamente después de cada renderBody
+  // Necesario porque _cardCoincide solo se ejecuta cuando hay filtros activos.
+  // Las cards ocultas reciben clase 'v4-oculta' (display:none via CSS).
+  function v4AplicarOcultos(){
+    const cards = document.querySelectorAll('#body .card');
+    cards.forEach(function(card){
+      const nombreEl = card.querySelector('.card-name');
+      const nombre = nombreEl ? (nombreEl.textContent || '').trim() : '';
+      if (nombre && V4_PRODUCTOS_OCULTOS.has(nombre)) {
+        card.classList.add('v4-oculta');
+      }
+    });
+    // Si una sección queda con todas las cards ocultas, ocultar la sección
+    const secs = document.querySelectorAll('#body .sec');
+    secs.forEach(function(sec){
+      const total = sec.querySelectorAll('.card').length;
+      const ocultas = sec.querySelectorAll('.card.v4-oculta').length;
+      if (total > 0 && total === ocultas) sec.classList.add('v4-oculta');
+    });
+  }
+  window.v4AplicarOcultos = v4AplicarOcultos;
+  // Hookear renderBody para aplicar ocultos después de cada render
+  if (typeof window.renderBody === 'function') {
+    const _origRBO = window.renderBody;
+    window.renderBody = function(){
+      const r = _origRBO.apply(this, arguments);
+      try { v4AplicarOcultos(); } catch(e){ console.warn('[v4] aplicarOcultos:', e); }
+      return r;
+    };
+  } else {
+    // Si renderBody aún no existe, esperar
+    let _waitRB = 0;
+    const _waitTimer = setInterval(function(){
+      _waitRB++;
+      if (typeof window.renderBody === 'function') {
+        clearInterval(_waitTimer);
+        const _origRBO2 = window.renderBody;
+        window.renderBody = function(){
+          const r = _origRBO2.apply(this, arguments);
+          try { v4AplicarOcultos(); } catch(e){ console.warn('[v4] aplicarOcultos:', e); }
+          return r;
+        };
+      } else if (_waitRB > 50) {
+        clearInterval(_waitTimer);
+      }
+    }, 100);
+  }
+  // Aplicar también ahora por si renderBody ya corrió
+  if (document.readyState !== 'loading') {
+    setTimeout(v4AplicarOcultos, 600);
+  } else {
+    document.addEventListener('DOMContentLoaded', function(){ setTimeout(v4AplicarOcultos, 600); });
   }
 
   // ─── HOOK: Wrappeamos aplicarFiltros para forzar visibilidad de combos/promos ───
@@ -17647,10 +17719,74 @@ function confirmarCiudadNoAtendida() {
     'x7': 'Pollos medianos (cajón con 7)'
   };
 
-  // Descripciones especiales (solo Pollo A/B por ahora)
+  // v4.10.0: Productos ocultos por decisión de Braian (reversibles)
+  // Para reactivar: quitar el nombre de este Set y deployar.
+  // Cards y bottom-sheet filtran por este Set; lo que se buscaba simplemente
+  // no aparece en el grid ni en relacionados.
+  const V4_PRODUCTOS_OCULTOS = new Set([
+    'Suprema B IQF',     // 21/5: no traerla por ahora
+    'Pulpa de Palta',    // 21/5: no la vendemos por ahora
+    'Brocoli'            // 21/5: sin stock + decisión de no traer
+  ]);
+
+  // v4.10.0: Descripciones para todos los productos del catálogo.
+  // Las que no estén acá no muestran descripción en el sheet.
+  // Key = it.n EXACTO del CAT (case sensitive, con tildes, sin ñ en algunas).
   const V4_DESCRIPCIONES = {
+    // ─── POLLOS CONGELADOS ─────────────────────────────────────────────
     'Pollo A': 'Cajón de Pollo PREMIUM congelado. El cajón pesa 20 kg y viene con 6 o 7 pollos según el calibre que elijas. Ideal para parrilleros, asaderos y carnicerías que buscan calidad superior.',
-    'Pollo B': 'Cajón de Pollo de calidad estándar. El cajón pesa 20 kg y viene con 6 o 7 pollos según el calibre que elijas. Pensado para negocios con consumo frecuente.'
+    'Pollo B': 'Cajón de Pollo de calidad estándar. El cajón pesa 20 kg y viene con 6 o 7 pollos según el calibre que elijas. Pensado para negocios con consumo frecuente.',
+    'Suprema': 'Bolsa de 5 kg con Supremas de Pollo deshuesadas y sin piel. Podés pedir por bolsa o por caja completa de 20 kg (4 bolsas) — consultá disponibilidad con tu vendedor. Ideales para milanesas, supremas a la napolitana o ensaladas.',
+    'Suprema IQF': 'Pechugas individuales congeladas por IQF (sin pegarse entre sí) en caja de 15 kg. Sacás solo lo que necesitás, el resto sigue congelado. Calidad superior, perfecto para alta rotación.',
+    // 'Suprema B IQF' → OCULTO via _oculto en CAT
+    // ─── TROZADOS ─────────────────────────────────────────────────────
+    'Fino de Ave Cocida': 'Carne de pollo cocida y desmenuzada lista para usar. Caja de 10 kg. Ideal para empanadas, tartas, vol-au-vents y rellenos. Te ahorra tiempo de cocción y desmenuzado en cocina.',
+    'Alita Congelada Granel': 'Alitas de pollo congeladas, presentación granel de 15 kg. Producto de buena salida, fácil de fraccionar y reponer en mostrador. Rinde a la parrilla, al horno o frituras.',
+    'Cuarto Trasero IQF': 'Pata-muslo entero de pollo congelado IQF. Caja de 15 kg con piezas individuales que no se pegan entre sí. Producto rendidor y de buen precio para el consumidor: ideal al horno con papas, a la parrilla, al disco o en guisos. Una opción accesible para llevar a casa.',
+    'MDM - Carne Molida de Pollo': 'Carne molida de pollo mecánicamente separada, en bloque congelado de 20 kg. El mejor costo por kg para rellenos de empanadas, hamburguesas caseras y embutidos. Producto técnico para alto volumen.',
+    // ─── REBOZADOS El Shaddai (línea económica) ───────────────────────
+    'Medallon de Pollo Clasico': 'Medallones de pollo rebozados y prefritos. Caja de 6 kg a granel, pensada para fraccionar y revender. Excelente precio por kilo y alta rotación: producto base de cualquier mostrador de congelados.',
+    'Medallon Pollo c/Cheddar': 'Medallones de pollo con cheddar, rebozados y prefritos. Caja de 6 kg a granel para fraccionar. La variante con queso suma valor agregado al cliente final, con un costo todavía muy accesible para tu negocio.',
+    'Medallon Pollo JyQ': 'Medallones de pollo con jamón y queso, rebozados y prefritos. Caja de 6 kg a granel para fraccionar. Una de las variantes más buscadas por el público. Combinación ideal de salida rápida y buen margen.',
+    'Medallon Pollo y Espinaca': 'Medallones de pollo con espinaca, rebozados y prefritos. Caja de 6 kg a granel para fraccionar. Opción más liviana que suma variedad en la oferta, manteniendo un precio competitivo.',
+    'Formita Clasica': 'Formitas de pollo rebozadas y prefritas, con figuras divertidas. Caja de 6 kg a granel para fraccionar. Producto económico y de alta salida entre el público familiar: las madres siempre las eligen para los chicos.',
+    'Formitas Pollo JyQ': 'Formitas de pollo con jamón y queso, rebozadas y prefritas. Caja de 6 kg a granel para fraccionar. La versión más vendida de formitas, a un precio que rinde muy bien al fraccionar.',
+    'Nuggets de Pollo Crocante': 'Nuggets de pollo crocantes, rebozados y prefritos. Caja de 6 kg a granel para fraccionar. Clásico de altísima rotación a excelente precio: todo almacén, granja o pollería los tiene.',
+    'Bocadito de Papa y Jamon': 'Bocaditos crocantes de papa rellenos con jamón, rebozados y prefritos. Vienen en caja de 6 kg a granel. Producto que sorprende al cliente: pocos lo tienen en góndola y los que lo prueban vuelven. Excelente margen al fraccionar de a 500g o 1 kg.',
+    'Pechuguitas al Verdeo': 'Pechuguitas de pollo al verdeo, listas para terminar de cocinar. Caja de 6 kg a granel para fraccionar. Diferenciá tu mostrador con una opción más elaborada, manteniendo precios competitivos.',
+    'Filet Merluza Finas Hierbas': 'Filetes de merluza saborizados con finas hierbas, listos para terminar de cocinar. Caja a granel de 6 kg. Pescado preparado con sabor diferenciado y precio accesible — una alternativa al pollo que vende todo el año, no solo en Cuaresma.',
+    'Filet de Merluza Rebozado': 'Filetes de merluza rebozados y prefritos, listos en pocos minutos. Caja a granel de 6 kg. El clásico que nunca falta: salida estable durante todo el año y muy buena aceptación entre clientes que no comen pollo o quieren variar el menú.',
+    'Milanesa de Soja a Granel': 'Milanesas de soja a granel, listas para freír o cocinar al horno. Caja de 6 kg. Opción vegetariana económica para sumar a tu mostrador de congelados — cada vez más buscada por el público que busca alternativas al pollo o a la carne.',
+    'Milanesa de Soja y Espinaca': 'Milanesas de soja con espinaca, listas para freír o cocinar al horno. Caja de 6 kg a granel. Variante con vegetal y un toque más nutritivo, a un precio muy accesible para incorporar a tu oferta.',
+    'Bocadito Clasico': 'Bocaditos de pollo rebozados, listos para freír. Caja de 5 kg a granel — formato más chico, ideal si querés probar la categoría con menor inversión. Precio competitivo y buena rotación para almacenes y pollerías que empiezan con congelados.',
+    // ─── MILANESAS Y HAMBURGUESAS ─────────────────────────────────────
+    'Milanesa de Nalga': 'Milanesas de carne vacuna corte nalga, rebozadas. Caja de 5 kg a granel. Carne de primera calidad para diferenciar tu mostrador: el cliente final paga sin dudar por una milanesa de nalga bien hecha. Producto con margen alto.',
+    'Milanesa de Pollo': 'Milanesas de pollo rebozadas elaboradas con pechuga de primera calidad, en caja de 5 kg a granel. Producto clásico de mostrador con muy buena salida: el cliente final nota la diferencia y vuelve. Calidad superior a precio competitivo.',
+    'Hamburguesa 100% Carne': 'Hamburguesas de carne vacuna pura, sin saborizantes ni rellenos. Caja de 4 kg con 40 unidades de 100 g, cada una envasada en bolsita transparente individual. Listas para vender sueltas o armar packs — el formato envasado simplifica la manipulación y conserva el producto en perfecto estado. Cada vez más pedida por el consumidor que busca producto natural.',
+    'Hamburguesa de Pollo': 'Hamburguesas de pollo en caja de 5 kg, envasadas en bolsitas transparentes individuales. Formato cómodo para venta fraccionada — el cliente se las lleva listas para freezer. Alternativa más liviana a la hamburguesa de carne, con muy buena salida en mostradores familiares.',
+    // ─── McCAIN & BALCARCE ────────────────────────────────────────────
+    // 'Pulpa de Palta' → OCULTO via _oculto en CAT
+    'Papa Baston Balcarce': 'Papas bastón congeladas marca Balcarce, en bolsa de 2,5 kg. Producto de altísima rentabilidad para fraccionar: el almacén, granja o pollería arma una bandeja y vende por peso de a 200 g, 300 g o lo que pida el cliente. El bastón más vendido del país — calidad de freidora profesional con corte parejo y cocción uniforme.',
+    // ─── HUEVOS (provisorias — Braian pidió revisar al final) ─────────
+    'Maple N° 2': 'Maple de 30 huevos blancos tamaño Nº 2 (mediano). El más vendido por relación precio-tamaño — el formato estándar que el cliente final espera encontrar en góndola. Para almacenes, panaderías, rotiserías o reventa fraccionada.',
+    'Maple N° 1': 'Maple de 30 huevos blancos tamaño Nº 1 (grande). Producto premium dentro de la línea — más caro al kilo pero muy buscado por panaderías, pastelerías y clientes finales que valoran el tamaño. Buen margen al revender.',
+    'Maple N° 3': 'Maple de 30 huevos blancos tamaño Nº 3 (chico). Opción más económica del maple — ideal para clientes con consumo alto pero presupuesto ajustado, o para preparaciones donde el tamaño importa menos (cocción, repostería en cantidad).',
+    'Cajita 1/2 Docena N° 2': 'Pack de 6 huevos blancos tamaño Nº 2 en cajita lista para venta directa al público. El formato más cómodo para clientes que no necesitan un maple completo. Súper práctico para revender en almacenes y kioscos — el cliente lo lleva listo.',
+    // ─── VERDURAS CONGELADAS ──────────────────────────────────────────
+    'Arándanos Solimeno': 'Arándanos congelados marca Solimeno, en bolsa de 500 g. Listos para usar en licuados, postres, repostería o yogures. Conservan todas sus propiedades y rinden más que el fresco — no se pasan, los usás de a poco.',
+    // 'Brocoli' → OCULTO via _oculto en CAT
+    'Espinacas': 'Espinacas congeladas en bolsa de 500 g. Listas para tartas, rellenos, salsas o saltear con ajo. Te ahorran el trabajo de lavar y blanquear — entran directo a la sartén o al relleno.',
+    'Morron': 'Morrón en cubos congelados, bolsa de 500 g. Mix de colores listo para guisos, salsas, rellenos o tortillas. Aporta color y sabor sin la merma del fresco.',
+    'Primavera': 'Mix primavera congelado (zanahoria, arvejas, choclo, chauchas) en bolsa de 500 g. Acompañamiento listo en minutos para guarniciones, arroces, ensaladas tibias o guisos.',
+    'Frutos Rojos': 'Mix de frutos rojos congelados (arándanos, frutillas, frambuesas, moras), bolsa de 500 g. Producto premium para repostería, mermeladas, licuados o postres gourmet. Margen alto y rotación creciente con el público que busca opciones saludables.',
+    'Cebolla': 'Cebolla en cubos congelada, bolsa de 500 g. Te ahorra picar, llorar y la merma del fresco. Listo para tirar a la sartén — sofrito en segundos, base ideal para guisos, salsas y rellenos.',
+    // ─── PASTAS LA CASERIANA ──────────────────────────────────────────
+    'Ravioles de Calabaza': 'Ravioles rellenos de calabaza marca La Caseriana, en paquete de 500 g. Pasta fresca congelada lista para hervir en pocos minutos. Opción casera a precio accesible — el cliente final paga sin dudar por una pasta artesanal lista.',
+    'Raviolones Espinaca y Mozz': 'Raviolones rellenos de espinaca y mozzarella, con masa integral, en paquete de 500 g. La Caseriana. Producto más completo que el ravioli común: masa integral + relleno premium. Excelente para el público que busca opciones gourmet o más nutritivas.',
+    'Gnoquis de Papa': 'Ñoquis de papa frescos congelados, paquete de 500 g. La Caseriana. Listos en 3 minutos de hervor. El clásico de los 29: salida fuerte fin de mes y consumo regular durante todo el año.',
+    'Gnoquis de Espinaca': 'Ñoquis de espinaca frescos congelados, paquete de 500 g. La Caseriana. Variante diferenciada del ñoqui clásico — más color en el plato y opción con vegetal. Suma variedad en tu sector pasta fresca.',
+    'Sorrentinos Jamon y Queso': 'Sorrentinos rellenos de jamón y queso, paquete de 500 g. La Caseriana. El relleno más vendido en pasta rellena — combinación clásica que el cliente final pide siempre. Producto base del freezer de cualquier negocio con pastas.',
+    'Sorrentinos Ricota 4 Quesos': 'Sorrentinos rellenos de ricota y cuatro quesos, paquete de 400 g. La Caseriana. Opción más sofisticada dentro de la línea — relleno cremoso y sabor intenso. Buen margen al revender por su perfil más gourmet.'
   };
 
   function v4EsPolloAB(it){
@@ -18189,11 +18325,13 @@ function confirmarCiudadNoAtendida() {
     if (!slot || !info || !info.sec || !info.sec.items) return;
     const items = info.sec.items;
     const nombreActual = info.it.n;
-    // Filtrar: distinto al actual + con stock + con precio
+    // Filtrar: distinto al actual + con stock + con precio + no oculto
     const candidatos = [];
     for (let i = 0; i < items.length; i++) {
       const it = items[i];
       if (!it || it.n === nombreActual) continue;
+      // v4.10.0: excluir ocultos
+      if (V4_PRODUCTOS_OCULTOS.has(it.n)) continue;
       // Excluir sin stock
       try {
         if (typeof SIN_STOCK !== 'undefined' && SIN_STOCK && SIN_STOCK.has(it.n)) continue;
@@ -18370,6 +18508,17 @@ function confirmarCiudadNoAtendida() {
       // (La calc legacy NO aporta porque precio es fijo por cajón, no hay /kg variable)
       slot.innerHTML = '';
       v4SheetRenderPresentaciones(it, slot);
+    } else {
+      // v4.10.0: Para el resto, inyectar descripción al inicio del slot (si existe)
+      // La calc legacy ya fue removida en v4.6.0, así que el slot está vacío.
+      const desc = V4_DESCRIPCIONES[it.n] || '';
+      if (desc) {
+        const descEl = document.createElement('div');
+        descEl.className = 'v4-sheet-desc';
+        // textContent para evitar inyección HTML accidental
+        descEl.textContent = desc;
+        slot.appendChild(descEl);
+      }
     }
     // Para el resto: respetamos el contenido legacy (calc de margen + posible calibre input)
     // y solo agregamos Observaciones al final.
@@ -18705,11 +18854,11 @@ function confirmarCiudadNoAtendida() {
   function v4UpdatePreviewBanner(){
     const bar = document.getElementById('v4-preview-bar');
     if (!bar) return;
-    bar.innerHTML = '👀 PREVIEW · <b>v4.9.0</b> en desarrollo · Producci&oacute;n en <a href="https://tckcatalogo.com" style="color:#5C0000;text-decoration:underline;font-weight:900">tckcatalogo.com</a>';
+    bar.innerHTML = '👀 PREVIEW · <b>v4.10.0</b> en desarrollo · Producci&oacute;n en <a href="https://tckcatalogo.com" style="color:#5C0000;text-decoration:underline;font-weight:900">tckcatalogo.com</a>';
   }
   v4UpdatePreviewBanner();
 
-  console.log('%c[TCK v4.9.0]%c Fase 5 · pulso al sumar · relacionados · compartir producto',
+  console.log('%c[TCK v4.10.0]%c Fase 5 · descripciones x53 productos · ocultos Suprema B IQF / Pulpa Palta / Brocoli · candidato a migración',
     'background:#8B0000;color:#FFD700;padding:2px 6px;border-radius:3px;font-weight:bold',
     'color:#5C3A1E');
 
