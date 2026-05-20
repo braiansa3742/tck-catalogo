@@ -8372,6 +8372,214 @@ body.v4-sheet-open{overflow:hidden}
   border-radius:6px;font-size:12px;outline:none;background:#fff;
 }
 
+/* ═══════════════════════════════════════════════════════════════════════
+   v4.5.0 — FASE 5 · BARRA INFERIOR ESTILO PEDIX + POLISH FINAL
+   ──────────────────────────────────────────────────────────────────────
+   Ocultamos el .orderbar legacy en v4-mode y mostramos una barra más
+   limpia estilo Pedix con info clara y CTA grande.
+   ════════════════════════════════════════════════════════════════════ */
+
+/* Ocultar orderbar legacy en v4-mode */
+body.v4-mode .orderbar{
+  display:none !important;
+}
+
+/* Nueva barra inferior v4 */
+.v4-bottombar{
+  position:fixed;
+  left:0;right:0;bottom:0;
+  z-index:60;
+  background:#fff;
+  border-top:1px solid var(--cream3);
+  box-shadow:0 -4px 14px rgba(0,0,0,.08);
+  display:none; /* solo se muestra en v4-mode */
+  align-items:stretch;
+  gap:8px;
+  padding:9px 11px calc(9px + env(safe-area-inset-bottom));
+  transform:translateY(110%);
+  transition:transform .25s cubic-bezier(.2,.7,.3,1);
+  pointer-events:none;
+}
+body.v4-mode .v4-bottombar{display:flex}
+body.v4-mode .v4-bottombar.show{
+  transform:translateY(0);
+  pointer-events:auto;
+}
+
+/* Botón principal: "Ver mi pedido" */
+.v4-bb-inner{
+  flex:1;
+  display:flex;align-items:center;gap:11px;
+  background:linear-gradient(135deg,var(--red),var(--red2));
+  border:none;
+  border-radius:13px;
+  padding:9px 12px 9px 11px;
+  cursor:pointer;
+  color:#fff;
+  text-align:left;
+  min-height:54px;
+  box-shadow:0 2px 6px rgba(139,0,0,.22);
+  transition:transform .12s, box-shadow .12s;
+}
+.v4-bb-inner:active{
+  transform:scale(.985);
+  box-shadow:0 1px 3px rgba(139,0,0,.18);
+}
+
+.v4-bb-icon{
+  position:relative;
+  width:36px;height:36px;
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;
+  background:rgba(255,255,255,.18);
+  border-radius:50%;
+}
+.v4-bb-icon svg{
+  width:20px;height:20px;
+  color:#fff;
+}
+.v4-bb-badge{
+  position:absolute;
+  top:-4px;right:-4px;
+  min-width:18px;height:18px;
+  padding:0 5px;
+  background:var(--gold);
+  color:#5C0000;
+  border-radius:9px;
+  font-family:'Barlow Condensed',sans-serif;
+  font-weight:900;
+  font-size:11px;
+  display:flex;align-items:center;justify-content:center;
+  border:1.5px solid var(--red);
+  box-sizing:border-box;
+  line-height:1;
+}
+
+.v4-bb-info{
+  flex:1;
+  min-width:0;
+  display:flex;flex-direction:column;justify-content:center;
+}
+.v4-bb-label{
+  font-family:'Barlow Condensed',sans-serif;
+  font-weight:900;
+  font-size:14.5px;
+  letter-spacing:.4px;
+  text-transform:uppercase;
+  line-height:1.1;
+}
+.v4-bb-sub{
+  font-size:10.5px;
+  opacity:.88;
+  margin-top:1px;
+  font-weight:500;
+  letter-spacing:.1px;
+}
+
+.v4-bb-total{
+  font-family:'Barlow Condensed',sans-serif;
+  font-weight:900;
+  font-size:19px;
+  letter-spacing:.3px;
+  flex-shrink:0;
+  padding:0 3px;
+  line-height:1;
+}
+
+.v4-bb-chevron{
+  width:18px;height:18px;
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;
+  opacity:.85;
+}
+.v4-bb-chevron svg{width:16px;height:16px}
+
+/* Botón WhatsApp circular al lado */
+.v4-bb-send{
+  width:54px;height:54px;
+  border-radius:50%;
+  background:#25D366;
+  border:none;
+  color:#fff;
+  flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;
+  box-shadow:0 2px 8px rgba(37,211,102,.35);
+  transition:transform .12s, box-shadow .12s;
+}
+.v4-bb-send:active{
+  transform:scale(.94);
+  box-shadow:0 1px 4px rgba(37,211,102,.3);
+}
+.v4-bb-send svg{width:24px;height:24px}
+.v4-bb-send:disabled{
+  background:#888;
+  cursor:not-allowed;
+  opacity:.55;
+  box-shadow:none;
+}
+.v4-bb-send:disabled:active{transform:none}
+
+/* En vista-home no mostramos barra (no hay nada que agregar todavía) */
+body.v4-mode.v4-vista-home .v4-bottombar{
+  transform:translateY(110%);
+  pointer-events:none;
+}
+
+/* Cuando bottombar es visible, dar padding al body para que el último producto
+   no quede tapado por la barra */
+body.v4-mode.v4-bb-visible .body{
+  padding-bottom:88px !important;
+}
+
+/* Mobile pequeño */
+@media (max-width:380px){
+  .v4-bb-inner{padding:8px 10px 8px 10px;gap:9px;min-height:50px}
+  .v4-bb-icon{width:32px;height:32px}
+  .v4-bb-icon svg{width:17px;height:17px}
+  .v4-bb-label{font-size:13.5px}
+  .v4-bb-sub{font-size:10px}
+  .v4-bb-total{font-size:17px}
+  .v4-bb-send{width:50px;height:50px}
+  .v4-bb-send svg{width:22px;height:22px}
+}
+
+/* ─── Fix v4.5.0: badge "Mi pedido (N)" del menú no se corta ─── */
+body.v4-mode .v4-menu-item-badge,
+body.v4-mode .v4-menu-item .v4-menu-item-count{
+  flex-shrink:0;
+  min-width:24px;
+  text-align:center;
+  padding:1px 9px;
+  font-family:'Barlow Condensed',sans-serif;
+  font-weight:900;
+  font-size:12px;
+  background:var(--red);
+  color:#fff;
+  border-radius:10px;
+  line-height:1.4;
+}
+
+/* ─── Fix v4.5.0: items en drawer con calibre (sin foto) → fallback ─── */
+.ci-img{
+  background:linear-gradient(135deg,#fff5e3 0%,#f0d8a8 40%,#e8c890 100%);
+  position:relative;
+}
+.ci-img[src=""],
+.ci-img:not([src]),
+.ci-img[data-broken="1"]{
+  background:linear-gradient(135deg,#fff5e3 0%,#f0d8a8 40%,#e8c890 100%);
+}
+.ci-img[data-broken="1"]::after{
+  content:'🐔';
+  position:absolute;
+  inset:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:22px;
+}
+
 </style>
 
 <!-- ═══════════════════════════════════════════════════════════════════════
@@ -9201,6 +9409,37 @@ src="https://www.facebook.com/tr?id=2034313150514758&ev=PageView&noscript=1"
 <!-- v3.2.0: Banner de info de resultados (oculto por default) -->
 <div class="results-info" id="results-info"></div>
 <div class="body" id="body"></div>
+<!-- ═══════════════ v4.5.0 BARRA INFERIOR ESTILO PEDIX ═══════════════ -->
+<!-- Reemplaza visualmente al .orderbar legacy en /v4/. Usa handlers existentes. -->
+<div class="v4-bottombar" id="v4-bottombar" role="region" aria-label="Tu pedido">
+  <button class="v4-bb-inner" onclick="openDrawer()" aria-label="Ver mi pedido">
+    <div class="v4-bb-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="9" cy="21" r="1.5"></circle>
+        <circle cx="19" cy="21" r="1.5"></circle>
+        <path d="M2 3h2l3.6 12.59a2 2 0 0 0 2 1.41h8.7a2 2 0 0 0 2-1.61L23 6H6"></path>
+      </svg>
+      <span class="v4-bb-badge" id="v4-bb-badge">0</span>
+    </div>
+    <div class="v4-bb-info">
+      <div class="v4-bb-label">Ver mi pedido</div>
+      <div class="v4-bb-sub" id="v4-bb-sub">0 productos</div>
+    </div>
+    <div class="v4-bb-total" id="v4-bb-total">$0</div>
+    <div class="v4-bb-chevron" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="9 18 15 12 9 6"></polyline>
+      </svg>
+    </div>
+  </button>
+  <button class="v4-bb-send" id="v4-bb-send" onclick="sendWA()" aria-label="Enviar pedido por WhatsApp">
+    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"></path>
+      <path d="M12 0C5.373 0 0 5.373 0 12c0 2.125.558 4.122 1.532 5.852L.057 23.737a.5.5 0 00.606.606l5.885-1.475A11.945 11.945 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22a9.944 9.944 0 01-5.073-1.386l-.363-.214-3.771.945.963-3.655-.236-.378A9.954 9.954 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"></path>
+    </svg>
+  </button>
+</div>
+
 <div class="orderbar">
 <div class="ob-empty" id="ob-empty"><div class="ob-empty-t">Arm&aacute; tu pedido</div><div class="ob-empty-s">Sum&aacute; productos y envi&aacute;lo por WhatsApp</div></div>
 <div class="ob-data" id="ob-data"><div class="ob-items" id="ob-items"></div><div class="ob-total" id="ob-total"></div></div>
@@ -17884,6 +18123,114 @@ function confirmarCiudadNoAtendida() {
   } catch(e){}
 
   console.log('%c[TCK v4.4.2]%c Fixes · base href v4 · pill compacto · calc visible · blur en close',
+    'background:#8B0000;color:#FFD700;padding:2px 6px;border-radius:3px;font-weight:bold',
+    'color:#5C3A1E');
+
+  // ═══════════════════════════════════════════════════════════════════════
+  // v4.5.0 — FASE 5 · BARRA INFERIOR PEDIX-STYLE + POLISH FINAL
+  // ─────────────────────────────────────────────────────────────────────
+  // Sincronizamos la nueva barra inferior con los totales del carrito
+  // legacy (T() + updateBar). El orderbar viejo queda oculto por CSS.
+  // ═══════════════════════════════════════════════════════════════════════
+
+  function v4SyncBottombar(){
+    const bar = document.getElementById('v4-bottombar');
+    if (!bar) return;
+    let t = 0, c = 0;
+    try {
+      if (typeof T === 'function') {
+        const r = T();
+        t = r.t || 0;
+        c = r.c || 0;
+      }
+    } catch(e){}
+    // No mostrar en home (no hay nada que pueda haber agregado todavía)
+    const enHome = document.body.classList.contains('v4-vista-home');
+    if (c > 0 && !enHome) {
+      bar.classList.add('show');
+      document.body.classList.add('v4-bb-visible');
+    } else {
+      bar.classList.remove('show');
+      document.body.classList.remove('v4-bb-visible');
+    }
+    // Badge cantidad
+    const badge = document.getElementById('v4-bb-badge');
+    if (badge) badge.textContent = String(c);
+    // Sub label
+    const sub = document.getElementById('v4-bb-sub');
+    if (sub) {
+      sub.textContent = c === 0
+        ? '0 productos'
+        : (c === 1 ? '1 producto' : (c + ' productos'));
+    }
+    // Total
+    const tot = document.getElementById('v4-bb-total');
+    if (tot) tot.textContent = (typeof fmt === 'function') ? fmt(t) : ('$' + t);
+    // Habilitar/deshabilitar botón WA
+    const sendBtn = document.getElementById('v4-bb-send');
+    if (sendBtn) sendBtn.disabled = (c === 0);
+  }
+  window.v4SyncBottombar = v4SyncBottombar;
+
+  // Hook a updateBar para sincronizar
+  if (typeof window.updateBar === 'function') {
+    const _origUB3 = window.updateBar;
+    window.updateBar = function(){
+      const r = _origUB3.apply(this, arguments);
+      try { v4SyncBottombar(); } catch(e){}
+      return r;
+    };
+  }
+
+  // Sync inicial
+  if (document.readyState !== 'loading') {
+    setTimeout(v4SyncBottombar, 100);
+  } else {
+    document.addEventListener('DOMContentLoaded', function(){
+      setTimeout(v4SyncBottombar, 100);
+    });
+  }
+  // Y otra vez tras 1s por si T() necesita el CSV cargado
+  setTimeout(v4SyncBottombar, 1000);
+
+  // ─── Fix v4.5.0: items en drawer con foto rota → fallback con gradiente ──
+  // Cuando un item del drawer tiene src con 404, marcamos data-broken="1"
+  // así el CSS del fallback muestra el placeholder 🐔.
+  function v4DrawerFixFotos(){
+    const imgs = document.querySelectorAll('#d-body .ci-img');
+    imgs.forEach(function(img){
+      if (img.dataset.brokenBound === '1') return;
+      img.dataset.brokenBound = '1';
+      img.addEventListener('error', function(){
+        img.setAttribute('data-broken', '1');
+        img.src = '';
+      }, { once: false });
+      // Si ya cargó como roto antes de bindear
+      if (img.complete && img.naturalWidth === 0) {
+        img.setAttribute('data-broken', '1');
+        img.src = '';
+      }
+    });
+  }
+  // Bindear tras cada renderDrawer
+  if (typeof window.renderDrawer === 'function') {
+    const _origRD2 = window.renderDrawer;
+    window.renderDrawer = function(){
+      const ret = _origRD2.apply(this, arguments);
+      try { v4DrawerFixFotos(); } catch(e){}
+      return ret;
+    };
+  }
+
+  // ─── Actualizar banner de versión ──────────────────────────────────────
+  function v4UpdatePreviewBanner(){
+    const bar = document.getElementById('v4-preview-bar');
+    if (!bar) return;
+    bar.innerHTML = '👀 PREVIEW · <b>v4.5.0</b> en desarrollo · Producci&oacute;n en <a href="https://tckcatalogo.com" style="color:#5C0000;text-decoration:underline;font-weight:900">tckcatalogo.com</a>';
+  }
+  v4UpdatePreviewBanner();
+
+  console.log('%c[TCK v4.5.0]%c Fase 5 · barra inferior pedix · polish final',
     'background:#8B0000;color:#FFD700;padding:2px 6px;border-radius:3px;font-weight:bold',
     'color:#5C3A1E');
 
