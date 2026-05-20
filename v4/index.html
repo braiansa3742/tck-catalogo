@@ -916,7 +916,7 @@
           Combate la "amnesia del cupón".
 
        2. WA FLOTANTE DINÁMICO
-          Antes: href hardcodeado a 5492392404745 aunque el cliente tenga
+          Antes: href hardcodeado a 5492392404745/449725 aunque el cliente tenga
                  vendedor real asignado (Miguel/Juan/Lisandro).
           Ahora: usa vActivo.wa si es vendedor real; fallback TCK Online.
           Función actualizarWaFlotante() llamada desde elegir(), bloque de
@@ -1104,7 +1104,7 @@
 
        4. WHATSAPP TCK ONLINE: 2392-404745
           - Botón verde con ícono SVG
-          - Link directo wa.me/5492392404745 con mensaje
+          - Link directo wa.me/<MIGUEL> con mensaje
             pre-armado: "Hola TCK! Tengo una consulta..."
           - Botón flotante (pelotita verde) visible en TODO el
             catálogo, abajo a la derecha
@@ -1214,7 +1214,7 @@
      Cambios v3.5.0 (sobre v3.4.0):
 
        1. NUEVO VENDEDOR INTERNO "TCK Online" (id: e46384bc-...)
-          - WhatsApp: 5492392404745 (Francisco - TCK Bussines)
+          - WhatsApp: 5492392449725 (Miguel - vendedor TCK · cambio 21/5/2026)
           - Es un canal centralizado para tráfico pagado (Meta, Google, etc.)
           - Los pedidos van directo al WA de Francisco, que distribuye después
             según zona desde tckadmin.lat
@@ -3413,6 +3413,66 @@ body.intro-tck-abierta .hdr-sobre{display:none;}
 .pod-prod-detalle{font-size:12px;color:var(--text2);}
 .pedido-ok-btn{background:var(--red);color:#fff;border:none;border-radius:14px;padding:15px 40px;font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:900;letter-spacing:.8px;text-transform:uppercase;cursor:pointer;box-shadow:0 4px 16px rgba(139,0,0,.22);transition:transform .12s,box-shadow .12s;width:100%;max-width:320px;}
 .pedido-ok-btn:active{transform:scale(.97);box-shadow:0 2px 8px rgba(139,0,0,.18);}
+
+/* ═══════════════════════════════════════════════════════════════
+   v4.13.0 B4.1 — N° de pedido destacado + 3 variantes de botones
+   ═══════════════════════════════════════════════════════════════ */
+.pod-numero-wrap{
+  width:100%;max-width:320px;
+  text-align:center;
+  padding:18px 16px;
+  background:linear-gradient(135deg,#fff8e7 0%,#FFE9B8 100%);
+  border:1.5px solid var(--gold3);
+  border-radius:16px;
+  margin-bottom:16px;
+  box-shadow:0 3px 14px rgba(139,0,0,.08);
+}
+.pod-numero-label{
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:11.5px;
+  font-weight:700;
+  color:var(--text3);
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+  margin-bottom:6px;
+}
+.pod-numero{
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:22px;
+  font-weight:900;
+  color:var(--red);
+  letter-spacing:.5px;
+  line-height:1.1;
+  word-break:break-all;
+}
+.pedido-ok-btn.pod-btn-primary{
+  background:linear-gradient(135deg,var(--red) 0%,#5C0000 100%);
+  color:#fff;
+  margin-bottom:10px;
+  display:inline-flex;align-items:center;justify-content:center;
+}
+.pedido-ok-btn.pod-btn-secondary{
+  background:#fff;
+  color:var(--red);
+  border:2px solid var(--red);
+  box-shadow:0 2px 8px rgba(139,0,0,.10);
+  margin-bottom:10px;
+  display:inline-flex;align-items:center;justify-content:center;
+}
+.pedido-ok-btn.pod-btn-ghost{
+  background:transparent;
+  color:var(--text2);
+  border:1.5px solid rgba(0,0,0,.15);
+  box-shadow:none;
+  font-size:15px;
+  padding:12px 24px;
+  margin-bottom:6px;
+  display:inline-flex;align-items:center;justify-content:center;
+}
+.pedido-ok-btn.pod-btn-ghost:active{
+  background:rgba(0,0,0,.04);
+  box-shadow:none;
+}
 
 
 /* ── CARD DUAL (2 imágenes) ── */
@@ -8063,6 +8123,78 @@ body.v4-mode .body .card .qrow *{cursor:pointer}
 .v4-sheet-hero-badge.red{background:var(--red);color:#fff}
 .v4-sheet-hero-badge.gray{background:#888;color:#fff}
 
+/* ═══════════════════════════════════════════════════════════════
+   v4.13.0 A4: Carrusel en cards del grid (Fino + MDM)
+   ───────────────────────────────────────────────────────────────
+   Reemplaza el layout card-dual (2 imgs lado a lado) por carrusel
+   con scroll-snap + auto-rotación 3s + swipe + dots chiquitos.
+   Mismo tamaño que cards normales (no card-dual).
+   ═══════════════════════════════════════════════════════════════ */
+.v4-card-carrusel{
+  width:100%;
+  display:flex;
+  overflow-x:auto;
+  scroll-snap-type:x mandatory;
+  scroll-behavior:smooth;
+  -webkit-overflow-scrolling:touch;
+  scrollbar-width:none;
+  position:relative;
+}
+.v4-card-carrusel::-webkit-scrollbar{display:none}
+.v4-card-carrusel .v4-card-slide{
+  flex:0 0 100%;
+  scroll-snap-align:center;
+  scroll-snap-stop:always;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  overflow:hidden;
+  position:relative;
+}
+.v4-card-carrusel .v4-card-slide img{
+  width:100%;
+  height:160px;
+  object-fit:contain;
+  padding:6px;
+  display:block;
+}
+/* Dots chiquitos abajo, dentro de la card */
+.v4-card-dots{
+  position:absolute;
+  bottom:6px;left:0;right:0;
+  display:flex;justify-content:center;gap:4px;
+  z-index:3;
+  pointer-events:none;
+}
+.v4-card-dot{
+  width:5px;height:5px;
+  border-radius:50%;
+  background:rgba(0,0,0,.32);
+  transition:all .2s;
+  box-shadow:0 0 0 0.5px rgba(255,255,255,.55);
+}
+.v4-card-dot.active{
+  background:#8B0000;
+  width:13px;
+  border-radius:3px;
+  box-shadow:0 0 0 0.5px rgba(255,255,255,.65);
+}
+/* Tamaño responsive de las imgs del carrusel: igual que cards normales */
+@media(max-width:580px){
+  .v4-card-carrusel .v4-card-slide img{
+    height:90px;
+    padding:4px;
+  }
+  .v4-card-dot{width:4px;height:4px}
+  .v4-card-dot.active{width:11px}
+}
+@media(min-width:580px){
+  .v4-card-carrusel .v4-card-slide img{height:170px}
+}
+@media(min-width:780px){
+  .v4-card-carrusel .v4-card-slide img{height:180px}
+}
+
 /* Info principal */
 .v4-sheet-info{padding:16px 16px 0}
 .v4-sheet-prod-name{
@@ -9229,7 +9361,7 @@ src="https://www.facebook.com/tr?id=2034313150514758&ev=PageView&noscript=1"
 <!-- ═══════════════ v4.0.0 PREVIEW BANNER ═══════════════ -->
 <!-- Solo visible cuando body tiene .v4-mode (set por JS si pathname /v4/) -->
 <div class="v4-preview-bar" id="v4-preview-bar">
-  👀 PREVIEW · <b>v4.11.0</b> en desarrollo · Producción en <a href="https://tckcatalogo.com" style="color:#5C0000;text-decoration:underline;font-weight:900">tckcatalogo.com</a>
+  👀 PREVIEW · <b>v4.13.0</b> en desarrollo · Producción en <a href="https://tckcatalogo.com" style="color:#5C0000;text-decoration:underline;font-weight:900">tckcatalogo.com</a>
 </div>
 
 <!-- ═══════════════ v4.0.0 HEADER LIMPIO ═══════════════ -->
@@ -9390,7 +9522,7 @@ src="https://www.facebook.com/tr?id=2034313150514758&ev=PageView&noscript=1"
       <a onclick="v4MenuClose()">Privacidad</a>
     </div>
     <div class="v4-menu-foot-version">
-      TCK Catálogo <b>v4.11.0</b> · The Chickens King S.R.L.
+      TCK Catálogo <b>v4.13.0</b> · The Chickens King S.R.L.
     </div>
   </div>
 </aside>
@@ -9909,7 +10041,7 @@ const _imgmap = {
 const VEND_ONLINE = {
   id:     'e46384bc-8081-44a8-a180-ebce2bc7fa2e',
   nombre: 'TCK Online',
-  wa:     '5492392404745'  // Francisco - TCK Bussines
+  wa:     '5492392449725'  // Miguel - vendedor TCK (cambio B2 v4.13.0 21/5/2026)
 };
 
 // Lista pública de vendedores (la que se muestra en UI).
@@ -10487,15 +10619,17 @@ function renderBody(){
         + '<div class="calc-hint">Compara precios por kg</div>'
         + '</div>'
       );
-      return '<div class="card'+(it.img2?' card-dual card-dual-'+(it.badge_tipo||'plain'):'')+( sec.shaddai?' shaddai':'')+(q>0?' has-qty':'')+(sinStock?' card-sinstock':'')+'" data-key="'+key+'">'
+      return '<div class="card'+(it.img2?' card-carousel':'')+( sec.shaddai?' shaddai':'')+(q>0?' has-qty':'')+(sinStock?' card-sinstock':'')+'" data-key="'+key+'">'
         +(it.img2
-        ? ('<div class="card-img-area" style="position:relative;display:flex;gap:2px;">'+bdgSinStock+bdg+bdgNoCupon
-          +'<img class="card-img card-img-left" src="'
+        ? ('<div class="card-img-area" style="position:relative;overflow:hidden;">'+bdgSinStock+bdg+bdgNoCupon
+          +'<div class="v4-card-carrusel" data-card-key="'+key+'">'
+          +'<div class="v4-card-slide"><img class="card-img" src="'
           +(_imgmap[it.n] ? 'img/'+_imgmap[it.n] : ('img/'+encodeURIComponent(it.n+'.jpg').replace(/%25/g,'%').replace(/%2F/g,'/')))
-          +'" alt="'+it.n+'" loading="lazy" decoding="async" style="flex:1;min-width:0;height:160px;object-fit:cover;padding:0;">'
-          +'<img class="card-img card-img-right" src="'+it.img2+'" alt="uso" loading="lazy" decoding="async" style="flex:1;min-width:0;height:160px;object-fit:cover;padding:0;">'
+          +'" alt="'+it.n+'" loading="lazy" decoding="async"></div>'
+          +'<div class="v4-card-slide"><img class="card-img" src="'+it.img2+'" alt="'+(it.label2||'Uso ideal')+'" loading="lazy" decoding="async"></div>'
           +'</div>'
-          +'<div style="display:flex;gap:2px;padding:2px 4px 0;"><div style="flex:1;font-size:9px;color:var(--text3);text-align:center;font-style:italic;">'+(it.label1||'Producto')+'</div><div style="flex:1;font-size:9px;color:var(--text3);text-align:center;font-style:italic;">'+(it.label2||'Uso ideal')+'</div></div>'
+          +'<div class="v4-card-dots"><span class="v4-card-dot active"></span><span class="v4-card-dot"></span></div>'
+          +'</div>'
           +'<div class="card-sep"></div>')
         : ('<div class="card-img-area">'+bdgSinStock+bdg+bdgNoCupon
           +'<img class="card-img" src="img/'+encodeURIComponent(_imgmap[it.n]||it.n+'.jpg').replace(/%25/g,'%').replace(/%2F/g,'/')+'" alt="'+it.n+'" loading="lazy" decoding="async">'
@@ -10539,6 +10673,10 @@ function renderBody(){
   }
   // v3.2.0: aplicar filtros activos después del re-render
   if (typeof aplicarFiltros === 'function') aplicarFiltros();
+  // v4.13.0 A4: inicializar carruseles de cards (Fino + MDM) después del re-render
+  if (typeof window.v4CardCarruselInit === 'function') {
+    setTimeout(window.v4CardCarruselInit, 50);
+  }
 }
 
 // ═══════════════════════════════════════════════════════════════════════
@@ -12694,8 +12832,43 @@ function confirmarYEnviarWA() {
     cuponMarcarUsado().catch(e => console.error('[cupon] Error al marcar como usado:', e));
   }
 
-  // ── Abrir WhatsApp ──────────────────────────────────────────
-  window.open('https://wa.me/' + vActivo.wa + '?text=' + encodeURIComponent(mensajeCompleto), '_blank');
+  // ── v4.13.0 B4.1+B4.2 — Persistir pedido + abrir pantalla éxito ──
+  // Antes: se abría WhatsApp automáticamente. Decisión 21/5: el cliente
+  // confirma en la web. WA solo si el cliente toca "Hablar con vendedor"
+  // o desde el botón flotante.
+  //
+  // El mensaje pre-armado de WhatsApp queda guardado en window._tckUltimoMensajeWA
+  // para que si el cliente toca "Hablar con vendedor" se pueda mandar igual,
+  // ya armado con todo el detalle del pedido recién hecho.
+  try { window._tckUltimoMensajeWA = mensajeCompleto; } catch(e){}
+
+  // Guardar pedido en localStorage (siempre) y Supabase (si registrado).
+  // El detalle visible en "Ver mi pedido" se reconstruye desde acá.
+  try {
+    if (typeof guardarPedidoPersistente === 'function') {
+      guardarPedidoPersistente({
+        pedidoId: pedidoId,
+        fecha: fechaAR,
+        cliente: nombre,
+        comercio: comercio || '',
+        localidad: localidad,
+        telefono: telefono || '',
+        vendedor: vActivo ? vActivo.nombre : '',
+        vendedorWA: vActivo ? vActivo.wa : '',
+        productosCount: productosCount,
+        itemsTotales: itemsTotales,
+        total: t,
+        subtotal: subtotal,
+        descuento: descuento || 0,
+        cuponAplicado: descuento > 0 ? 'CUPON-1RA-COMPRA-10PCT' : '',
+        detalle_estructurado: detalleEstructurado,
+        estado: 'Pendiente',
+        cliente_id: _cliIdPedido || '',
+        origen_marketing: ((utmLeer() || {}).origen_marketing) || null,
+        mensajeWA: mensajeCompleto
+      });
+    }
+  } catch(e){ console.warn('[B4.2] No se pudo persistir pedido:', e); }
 
   // Mostrar pantalla de confirmación
   const detalle = document.getElementById('pedido-ok-detalle');
@@ -12709,10 +12882,15 @@ function confirmarYEnviarWA() {
       '<div class="pod-row pod-total"><span class="pod-label">Total</span><span class="pod-val">' + fmt(t) + '</span></div>';
 
   // Mensaje personalizado por vendedor
+  // v4.13.0 B4.1: el pedido se confirma EN LA WEB. Ya no mandamos al cliente a WA.
   const subEl = document.getElementById('pedido-ok-sub');
-  if (subEl && vActivo) {
-    subEl.textContent = vActivo.nombre + ' va a confirmar tu pedido en breve. Revisá WhatsApp.';
+  if (subEl) {
+    subEl.textContent = (vActivo ? vActivo.nombre : 'Tu vendedor') + ' va a recibir el pedido y armar el presupuesto. Te avisamos cuando esté listo.';
   }
+
+  // Guardar el pedidoId actual para que los botones "Ver mi pedido" / "Hablar con vendedor"
+  // sepan a qué pedido referirse.
+  try { window._tckUltimoPedidoId = pedidoId; } catch(e){}
 
   // Snapshot del carrito ANTES de vaciarlo
   const qtySnapshot = Object.assign({}, qty);
@@ -12755,6 +12933,12 @@ function confirmarYEnviarWA() {
   }
   }
   document.getElementById('pedido-ok').classList.add('on');
+
+  // v4.13.0 B4.1: mostrar N° de pedido en el wrap destacado
+  try {
+    const numEl = document.getElementById('pod-numero');
+    if (numEl) numEl.textContent = pedidoId;
+  } catch(e){}
   // Si hay cliente logueado, mostrar botón "ver mis pedidos"
   const btnPortal = document.getElementById('pedido-ok-btn-portal');
   if (btnPortal) btnPortal.style.display = _cliActivo ? 'block' : 'none';
@@ -13468,7 +13652,413 @@ function cerrarPedidoOk(){
     cliVolverPortal();
   }
 }
+
+// ═══════════════════════════════════════════════════════════════════════
+// v4.13.0 B4.1 + B4.2 — Pantalla éxito + persistencia + detalle del pedido
+// ─────────────────────────────────────────────────────────────────────
+// Decisión 21/5/2026: el cliente confirma su pedido EN LA WEB. Ya NO se
+// abre WhatsApp automáticamente. La pantalla de éxito muestra el N° de
+// pedido y 3 botones:
+//   1) Ver mi pedido    → abre detalle persistido
+//   2) Ir a inicio      → vuelve al home limpio (carrito vacío)
+//   3) Hablar con vendedor → abre WA con mensaje pre-armado del pedido
+//
+// Persistencia:
+//   - localStorage SIEMPRE (clave 'tck_pedidos_v1', array de pedidos).
+//     Cap blando: últimos 50 pedidos. Cuando se llena, se descarta el
+//     más viejo (FIFO).
+//   - Supabase si _cliActivo: se persiste vinculado a cliente_auth_id.
+//     Tabla 'pedidos_cliente' (si no existe, falla silencioso, no rompe).
+// ═══════════════════════════════════════════════════════════════════════
+
+const TCK_PEDIDOS_LS_KEY = 'tck_pedidos_v1';
+const TCK_PEDIDOS_LS_MAX = 50;
+
+function _tckLeerPedidosLS(){
+  try {
+    const raw = localStorage.getItem(TCK_PEDIDOS_LS_KEY);
+    if (!raw) return [];
+    const arr = JSON.parse(raw);
+    if (!Array.isArray(arr)) return [];
+    return arr;
+  } catch(e){
+    return [];
+  }
+}
+
+function _tckEscribirPedidosLS(arr){
+  try {
+    // Cap blando: si supera el máximo, descartar los más viejos
+    let final = arr;
+    if (arr.length > TCK_PEDIDOS_LS_MAX) {
+      final = arr.slice(arr.length - TCK_PEDIDOS_LS_MAX);
+    }
+    localStorage.setItem(TCK_PEDIDOS_LS_KEY, JSON.stringify(final));
+    return true;
+  } catch(e){
+    // localStorage lleno o bloqueado → no fatal
+    console.warn('[B4.2] No se pudo escribir pedidos en localStorage:', e);
+    return false;
+  }
+}
+
+function guardarPedidoPersistente(pedido){
+  if (!pedido || !pedido.pedidoId) return;
+  // 1) localStorage SIEMPRE
+  const lista = _tckLeerPedidosLS();
+  // Si ya existe el mismo pedidoId, reemplazar (idempotente)
+  const idx = lista.findIndex(p => p && p.pedidoId === pedido.pedidoId);
+  if (idx >= 0) lista[idx] = pedido;
+  else lista.push(pedido);
+  _tckEscribirPedidosLS(lista);
+
+  // 2) Supabase (fire-and-forget) si hay cliente logueado
+  // Reusa SB_URL + SB_KEY ya definidos arriba.
+  if (_cliActivo && _cliActivo.id && typeof SB_URL === 'string' && typeof SB_KEY === 'string') {
+    try {
+      const payload = {
+        cliente_auth_id: _cliActivo.id,
+        pedido_id: pedido.pedidoId,
+        fecha: pedido.fecha,
+        total: pedido.total,
+        items_totales: pedido.itemsTotales,
+        productos_count: pedido.productosCount,
+        estado: pedido.estado || 'Pendiente',
+        vendedor: pedido.vendedor || '',
+        localidad: pedido.localidad || '',
+        origen_marketing: pedido.origen_marketing || null,
+        detalle_estructurado: pedido.detalle_estructurado || null
+      };
+      fetch(SB_URL + '/rest/v1/pedidos_cliente', {
+        method: 'POST',
+        headers: {
+          'apikey': SB_KEY,
+          'Authorization': 'Bearer ' + SB_KEY,
+          'Content-Type': 'application/json',
+          'Prefer': 'return=minimal'
+        },
+        body: JSON.stringify(payload)
+      }).catch(function(e){
+        // Tabla puede no existir todavía (se crea aparte en Supabase). No es fatal.
+        console.warn('[B4.2] Supabase pedidos_cliente falló (no fatal, localStorage OK):', e);
+      });
+    } catch(e){
+      console.warn('[B4.2] Error preparando payload Supabase:', e);
+    }
+  }
+}
+
+// ── Botón 1: Ver mi pedido ─────────────────────────────────────
+function verMiPedido(){
+  const pid = window._tckUltimoPedidoId;
+  if (!pid){
+    // Sin pedidoId: abrir el último guardado (fallback)
+    const arr = _tckLeerPedidosLS();
+    if (!arr.length){
+      alert('No encontramos tu pedido. Probá volver al inicio.');
+      return;
+    }
+    abrirDetallePedido(arr[arr.length-1].pedidoId);
+    return;
+  }
+  abrirDetallePedido(pid);
+}
+
+// ── Botón 2: Ir a inicio ───────────────────────────────────────
+function irAInicio(){
+  // Limpiar carrito + ocultar pantalla éxito + scroll al top
+  try {
+    Object.keys(qty).forEach(k => delete qty[k]);
+    if (typeof combosLimpiar === 'function') combosLimpiar();
+    if (typeof promosLimpiar === 'function') promosLimpiar();
+    if (typeof renderBody === 'function') renderBody();
+    if (typeof updateBar === 'function') updateBar();
+    if (typeof renderDrawer === 'function') renderDrawer();
+    if (typeof clearCartLS === 'function') clearCartLS();
+  } catch(e){}
+  document.getElementById('pedido-ok').classList.remove('on');
+  // Scroll al top
+  try {
+    const bodyEl = document.getElementById('body');
+    if (bodyEl) bodyEl.scrollTop = 0;
+    window.scrollTo(0, 0);
+  } catch(e){}
+}
+
+// ── Botón 3: Hablar con vendedor ────────────────────────────────
+function hablarConVendedor(){
+  // Si hay vendedor activo y mensaje pre-armado del último pedido → mandarlo
+  const msg = window._tckUltimoMensajeWA;
+  const waNum = (vActivo && vActivo.wa) ? vActivo.wa : '5492392449725'; // fallback Miguel
+  if (msg){
+    window.open('https://wa.me/' + waNum + '?text=' + encodeURIComponent(msg), '_blank');
+  } else {
+    // Fallback: mensaje genérico
+    const genericMsg = 'Hola! Te escribo por mi pedido' + (window._tckUltimoPedidoId ? ' ' + window._tckUltimoPedidoId : '') + '.';
+    window.open('https://wa.me/' + waNum + '?text=' + encodeURIComponent(genericMsg), '_blank');
+  }
+}
+
+// ── Pantalla detalle del pedido ────────────────────────────────
+function abrirDetallePedido(pedidoId){
+  const arr = _tckLeerPedidosLS();
+  const ped = arr.find(p => p && p.pedidoId === pedidoId);
+  if (!ped){
+    alert('No encontramos el pedido ' + pedidoId);
+    return;
+  }
+  // Construir HTML del detalle
+  const det = ped.detalle_estructurado || {};
+  let prodHtml = '';
+  // Combos
+  if (Array.isArray(det.combos)){
+    det.combos.forEach(function(c){
+      prodHtml += '<div class="pd-prod-item pd-prod-combo">' +
+        '<div class="pd-prod-nombre">🔥 ' + _escHtml(c.nombre || 'Combo') + ' × ' + (c.cantidad || 1) + '</div>' +
+        '<div class="pd-prod-detalle">' + fmt(c.precio_total || 0) + '</div>' +
+        '</div>';
+    });
+  }
+  // Productos
+  if (Array.isArray(det.items)){
+    det.items.forEach(function(it){
+      const subtotal = (it.precio_unit || 0) * (it.cantidad || 0);
+      prodHtml += '<div class="pd-prod-item">' +
+        '<div class="pd-prod-nombre">' + _escHtml(it.nombre || it.producto || '') + '</div>' +
+        '<div class="pd-prod-detalle">' + (it.cantidad || 1) + ' × ' + fmt(it.precio_unit || 0) + ' = ' + fmt(subtotal) + '</div>' +
+        ((it.observacion || it.obs) ? '<div class="pd-prod-obs">📝 ' + _escHtml(it.observacion || it.obs) + '</div>' : '') +
+        '</div>';
+    });
+  }
+  if (!prodHtml){
+    prodHtml = '<div class="pd-prod-item"><div class="pd-prod-detalle">' + (ped.productosCount || 0) + ' productos · ' + (ped.itemsTotales || 0) + ' unidades</div></div>';
+  }
+
+  const fechaCorta = (ped.fecha || '').substring(0,16).replace('T',' ');
+  const estado = ped.estado || 'Pendiente';
+  const estadoClass = 'pd-estado-' + estado.toLowerCase().replace(/[^a-z]/g,'');
+
+  const html =
+    '<div class="pd-overlay" id="pd-overlay" onclick="cerrarDetallePedido(event)">' +
+      '<div class="pd-modal" onclick="event.stopPropagation()">' +
+        '<div class="pd-hdr">' +
+          '<button class="pd-close" onclick="cerrarDetallePedido()" aria-label="Cerrar">&times;</button>' +
+          '<div class="pd-hdr-title">Pedido</div>' +
+          '<div class="pd-hdr-num">' + _escHtml(ped.pedidoId) + '</div>' +
+          '<div class="pd-hdr-fecha">' + _escHtml(fechaCorta) + '</div>' +
+          '<div class="pd-estado ' + estadoClass + '">' + _escHtml(estado) + '</div>' +
+        '</div>' +
+        '<div class="pd-body">' +
+          '<div class="pd-section">' +
+            '<div class="pd-section-title">Productos</div>' +
+            '<div class="pd-prods">' + prodHtml + '</div>' +
+          '</div>' +
+          '<div class="pd-section pd-total-section">' +
+            (ped.descuento > 0
+              ? '<div class="pd-row"><span>Subtotal</span><span>' + fmt(ped.subtotal || 0) + '</span></div>' +
+                '<div class="pd-row pd-row-desc"><span>Cupón aplicado</span><span>−' + fmt(ped.descuento) + '</span></div>'
+              : '') +
+            '<div class="pd-row pd-row-total"><span>Total</span><span>' + fmt(ped.total || 0) + '</span></div>' +
+          '</div>' +
+          '<div class="pd-section pd-info">' +
+            (ped.vendedor ? '<div class="pd-info-row"><span class="pd-info-lbl">Vendedor</span><span>' + _escHtml(ped.vendedor) + '</span></div>' : '') +
+            (ped.localidad ? '<div class="pd-info-row"><span class="pd-info-lbl">Localidad</span><span>' + _escHtml(ped.localidad) + '</span></div>' : '') +
+            (ped.cliente   ? '<div class="pd-info-row"><span class="pd-info-lbl">Cliente</span><span>' + _escHtml(ped.cliente) + '</span></div>' : '') +
+          '</div>' +
+        '</div>' +
+        '<div class="pd-footer">' +
+          '<button class="pedido-ok-btn pod-btn-secondary" onclick="hablarConVendedorDesdeDetalle(\'' + _escHtml(ped.pedidoId).replace(/'/g,'\\\'') + '\')">' +
+            '<span style="font-size:16px;margin-right:6px">💬</span>Hablar con vendedor' +
+          '</button>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+
+  // Quitar overlay previo si existe
+  const prev = document.getElementById('pd-overlay');
+  if (prev) prev.remove();
+  document.body.insertAdjacentHTML('beforeend', html);
+  // Bloquear scroll del fondo
+  document.body.classList.add('pd-open');
+}
+
+function cerrarDetallePedido(ev){
+  if (ev && ev.target && ev.target.id !== 'pd-overlay' && !ev.target.classList.contains('pd-close')) {
+    // Click adentro del modal: no cerrar (salvo que sea el botón ×)
+    if (typeof ev.stopPropagation === 'function') return;
+  }
+  const ov = document.getElementById('pd-overlay');
+  if (ov) ov.remove();
+  document.body.classList.remove('pd-open');
+}
+
+function hablarConVendedorDesdeDetalle(pedidoId){
+  const arr = _tckLeerPedidosLS();
+  const ped = arr.find(p => p && p.pedidoId === pedidoId);
+  const waNum = (ped && ped.vendedorWA) ? ped.vendedorWA : (vActivo && vActivo.wa ? vActivo.wa : '5492392449725');
+  const msg = (ped && ped.mensajeWA)
+    ? ped.mensajeWA
+    : 'Hola! Te escribo por mi pedido ' + pedidoId + '.';
+  window.open('https://wa.me/' + waNum + '?text=' + encodeURIComponent(msg), '_blank');
+}
+
+console.log('%c[TCK v4.13.0 B4.1+B4.2]%c pantalla \u00e9xito + persistencia pedido + detalle',
+  'background:#8B0000;color:#FFD700;padding:2px 6px;border-radius:3px;font-weight:bold',
+  'color:#5C3A1E');
 </script>
+
+<!-- v4.13.0 B4.1 — CSS de la pantalla detalle del pedido -->
+<style>
+body.pd-open{overflow:hidden}
+.pd-overlay{
+  position:fixed;inset:0;
+  background:rgba(0,0,0,.55);
+  z-index:1200;
+  display:flex;align-items:flex-end;justify-content:center;
+  animation:pdFadeIn .2s ease;
+  overflow-y:auto;
+  padding:20px 0 0;
+  -webkit-overflow-scrolling:touch;
+}
+@keyframes pdFadeIn{from{opacity:0}to{opacity:1}}
+.pd-modal{
+  background:var(--cream);
+  width:100%;
+  max-width:480px;
+  max-height:calc(100vh - 20px);
+  border-radius:18px 18px 0 0;
+  display:flex;flex-direction:column;
+  overflow:hidden;
+  box-shadow:0 -8px 32px rgba(0,0,0,.25);
+  animation:pdSlideUp .3s cubic-bezier(.16,1,.3,1);
+}
+@keyframes pdSlideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.pd-hdr{
+  position:relative;
+  background:linear-gradient(135deg,#8B0000 0%,#5C0000 100%);
+  color:#fff;
+  padding:18px 22px 22px;
+  text-align:center;
+  flex-shrink:0;
+}
+.pd-close{
+  position:absolute;top:10px;right:14px;
+  background:rgba(255,255,255,.18);color:#fff;
+  border:none;border-radius:50%;
+  width:34px;height:34px;
+  font-size:22px;line-height:1;font-weight:300;
+  cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+}
+.pd-close:active{background:rgba(255,255,255,.32)}
+.pd-hdr-title{
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:11px;font-weight:700;letter-spacing:2px;
+  text-transform:uppercase;color:rgba(255,215,0,.85);
+  margin-bottom:4px;
+}
+.pd-hdr-num{
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:18px;font-weight:900;
+  color:#fff;letter-spacing:.5px;
+  word-break:break-all;
+  line-height:1.1;
+  margin-bottom:6px;
+}
+.pd-hdr-fecha{
+  font-size:12px;color:rgba(255,255,255,.75);
+  margin-bottom:10px;
+}
+.pd-estado{
+  display:inline-block;
+  padding:5px 14px;
+  border-radius:20px;
+  font-family:'Barlow Condensed',sans-serif;
+  font-weight:900;font-size:11.5px;
+  letter-spacing:1.5px;text-transform:uppercase;
+  background:#FFD700;color:#5C0000;
+}
+.pd-estado.pd-estado-confirmado{background:#4CAF50;color:#fff}
+.pd-estado.pd-estado-entregado{background:#2E7D32;color:#fff}
+.pd-estado.pd-estado-cancelado{background:#888;color:#fff}
+.pd-body{
+  flex:1 1 auto;
+  overflow-y:auto;
+  -webkit-overflow-scrolling:touch;
+  padding:18px 18px 10px;
+}
+.pd-section{margin-bottom:18px}
+.pd-section-title{
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:12px;font-weight:700;letter-spacing:1.5px;
+  text-transform:uppercase;color:var(--text3);
+  margin-bottom:8px;
+}
+.pd-prods{
+  background:#fff;
+  border-radius:12px;
+  border:1.5px solid rgba(255,215,0,.4);
+  overflow:hidden;
+}
+.pd-prod-item{
+  padding:10px 14px;
+  border-bottom:1px solid rgba(0,0,0,.06);
+}
+.pd-prod-item:last-child{border-bottom:none}
+.pd-prod-combo{background:linear-gradient(135deg,#FFF8E1,#FFECB3)}
+.pd-prod-nombre{
+  font-family:'Barlow',sans-serif;
+  font-size:14px;font-weight:700;color:var(--text);
+  margin-bottom:2px;
+}
+.pd-prod-detalle{
+  font-size:12.5px;color:var(--text2);
+}
+.pd-prod-obs{
+  font-size:11.5px;color:var(--text3);
+  font-style:italic;margin-top:4px;
+  padding:4px 8px;background:#fffaeb;border-radius:6px;
+}
+.pd-total-section{
+  background:#fff;
+  border-radius:12px;
+  border:1.5px solid rgba(255,215,0,.4);
+  padding:12px 14px;
+}
+.pd-row{
+  display:flex;justify-content:space-between;
+  font-family:'Barlow',sans-serif;
+  font-size:13.5px;color:var(--text);
+  padding:4px 0;
+}
+.pd-row-desc{color:#2E7D32;font-weight:600}
+.pd-row-total{
+  border-top:1.5px solid rgba(0,0,0,.08);
+  padding-top:10px;margin-top:6px;
+}
+.pd-row-total span{
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:18px;font-weight:900;color:var(--red);
+}
+.pd-info{
+  background:transparent;
+}
+.pd-info-row{
+  display:flex;justify-content:space-between;
+  font-size:12.5px;color:var(--text2);
+  padding:4px 0;
+}
+.pd-info-lbl{
+  color:var(--text3);font-weight:600;
+}
+.pd-footer{
+  flex-shrink:0;
+  padding:12px 18px 18px;
+  background:rgba(255,255,255,.5);
+  border-top:1px solid rgba(0,0,0,.06);
+}
+.pd-footer .pedido-ok-btn{margin-bottom:0}
+</style>
 
 <script>
 (function () {
@@ -13684,7 +14274,7 @@ document.addEventListener('visibilitychange', function() {
     </div>
     <div class="intro-tck-zona-noseve">
       ¿Tu ciudad no aparece?
-      <a href="https://wa.me/5492392404745?text=Hola%20TCK!%20Mi%20ciudad%20es%20___%20%C2%BFllegan%20hasta%20ah%C3%AD%3F"
+      <a href="https://wa.me/5492392449725?text=Hola%20TCK!%20Mi%20ciudad%20es%20___%20%C2%BFllegan%20hasta%20ah%C3%AD%3F"
          target="_blank" rel="noopener">Consult&aacute; por WhatsApp →</a>
     </div>
 
@@ -13756,7 +14346,7 @@ document.addEventListener('visibilitychange', function() {
         <span class="arrow">→</span>
       </button>
       <a class="intro-tck-wa"
-         href="https://wa.me/5492392404745?text=Hola%20TCK!%20Tengo%20una%20consulta..."
+         href="https://wa.me/5492392449725?text=Hola%20TCK!%20Tengo%20una%20consulta..."
          target="_blank"
          rel="noopener"
          aria-label="Consultar por WhatsApp"
@@ -13807,7 +14397,7 @@ document.addEventListener('visibilitychange', function() {
      Si vActivo es vendedor real (Miguel/Juan/Lisandro) → WA del vendedor.
      Si vActivo es TCK Online o null → WA de TCK Online (Francisco). -->
 <a id="wa-float"
-   href="https://wa.me/5492392404745?text=Hola%20TCK!%20Tengo%20una%20consulta..."
+   href="https://wa.me/5492392449725?text=Hola%20TCK!%20Tengo%20una%20consulta..."
    target="_blank"
    rel="noopener"
    aria-label="Consultar por WhatsApp">
@@ -13898,6 +14488,7 @@ document.addEventListener('visibilitychange', function() {
 
 
 <!-- PANTALLA PEDIDO ENVIADO -->
+<!-- v4.13.0 B4.1: rediseño con N° pedido grande + 3 botones (Ver mi pedido / Ir a inicio / Hablar con vendedor) -->
 <div class="pedido-ok" id="pedido-ok">
   <div class="pedido-ok-inner">
     <img class="pedido-ok-logo" src="img/logo.png" alt="TCK"
@@ -13910,15 +14501,34 @@ document.addEventListener('visibilitychange', function() {
     </svg>
     <div class="pedido-ok-titulo">¡Pedido enviado!</div>
     <div class="pedido-ok-divider"></div>
-    <div class="pedido-ok-sub" id="pedido-ok-sub">Tu pedido fue enviado por WhatsApp a tu vendedor. En breve te van a confirmar.</div>
+    <div class="pedido-ok-sub" id="pedido-ok-sub">Tu vendedor va a recibir el pedido y armar el presupuesto. Te avisamos cuando esté listo.</div>
+
+    <!-- v4.13.0 B4.1: N° de pedido destacado -->
+    <div class="pod-numero-wrap">
+      <div class="pod-numero-label">Tu número de pedido</div>
+      <div class="pod-numero" id="pod-numero">#—</div>
+    </div>
+
     <div class="pedido-ok-card" id="pedido-ok-detalle"></div>
     <button class="pod-productos-toggle" id="pod-toggle" onclick="toggleProductosOk()">
       <span id="pod-toggle-label">Ver productos</span>
       <span class="pod-arrow">⌄</span>
     </button>
     <div class="pod-productos-lista" id="pod-productos-lista"></div>
-    <button class="pedido-ok-btn" onclick="cerrarPedidoOk()" id="pedido-ok-btn-cerrar">Hacer otro pedido</button>
-    <button class="pedido-ok-btn" onclick="cliVolverPortal()" id="pedido-ok-btn-portal" style="display:none;background:#fff;color:var(--red);border:2px solid var(--red);margin-top:10px">← Ver mis pedidos</button>
+
+    <!-- v4.13.0 B4.1: 3 botones nuevos (Ver mi pedido / Ir a inicio / Hablar con vendedor) -->
+    <button class="pedido-ok-btn pod-btn-primary" onclick="verMiPedido()">
+      <span style="font-size:18px;margin-right:6px">📋</span>Ver mi pedido
+    </button>
+    <button class="pedido-ok-btn pod-btn-secondary" onclick="irAInicio()">
+      <span style="font-size:18px;margin-right:6px">🏠</span>Ir a inicio
+    </button>
+    <button class="pedido-ok-btn pod-btn-ghost" onclick="hablarConVendedor()">
+      <span style="font-size:18px;margin-right:6px">💬</span>Hablar con vendedor
+    </button>
+
+    <!-- Botón legacy para clientes registrados (se mantiene oculto si no hay sesión) -->
+    <button class="pedido-ok-btn pod-btn-ghost" onclick="cliVolverPortal()" id="pedido-ok-btn-portal" style="display:none;margin-top:6px">← Ver todos mis pedidos</button>
   </div>
 </div>
 
@@ -17844,6 +18454,143 @@ function confirmarCiudadNoAtendida() {
     'color:#5C3A1E');
 
   // ═══════════════════════════════════════════════════════════════════════
+  // v4.13.0 A4 — CARRUSEL EN CARDS DEL GRID (Fino + MDM)
+  // ─────────────────────────────────────────────────────────────────────
+  // Las cards con `it.img2` se renderizan con .v4-card-carrusel:
+  //   - Scroll horizontal nativo + snap (swipe gratis)
+  //   - Auto-rotación cada 3.5s
+  //   - Touch pausa auto-rotación, resume 5s después de inactividad
+  //   - Dots chiquitos que se sincronizan con el slide visible
+  //
+  // Cada carrusel se identifica por data-card-key=key del producto.
+  // Estado independiente por carrusel: intervals + timeouts en Map.
+  // ═══════════════════════════════════════════════════════════════════════
+  const _v4CarrTimers = new Map(); // key → { intervalId, resumeId }
+
+  function v4CardCarruselSyncDots(carrusel){
+    const dots = carrusel.parentElement.querySelectorAll('.v4-card-dot');
+    if (!dots.length) return;
+    const slides = carrusel.querySelectorAll('.v4-card-slide');
+    if (!slides.length) return;
+    const slideW = carrusel.clientWidth || 1;
+    const idxRaw = carrusel.scrollLeft / slideW;
+    const idx = Math.round(idxRaw);
+    dots.forEach(function(d, i){
+      if (i === idx) d.classList.add('active');
+      else d.classList.remove('active');
+    });
+  }
+
+  function v4CardCarruselNext(carrusel){
+    const slides = carrusel.querySelectorAll('.v4-card-slide');
+    if (slides.length <= 1) return;
+    const slideW = carrusel.clientWidth || 1;
+    const idxRaw = carrusel.scrollLeft / slideW;
+    const idx = Math.round(idxRaw);
+    const next = (idx + 1) % slides.length;
+    carrusel.scrollTo({ left: next * slideW, behavior: 'smooth' });
+  }
+
+  function v4CardCarruselStart(carrusel){
+    const key = carrusel.getAttribute('data-card-key') || '';
+    v4CardCarruselStop(carrusel); // por las dudas
+    const intervalId = setInterval(function(){
+      // Pausar si la card NO está visible (fuera del viewport)
+      const r = carrusel.getBoundingClientRect();
+      const inView = r.bottom > 0 && r.top < (window.innerHeight || 9999);
+      if (!inView) return;
+      // Pausar si el sheet está abierto (foco completo en un producto)
+      if (document.body.classList.contains('v4-sheet-open')) return;
+      v4CardCarruselNext(carrusel);
+    }, 3500);
+    _v4CarrTimers.set(key, { intervalId: intervalId, resumeId: null });
+  }
+
+  function v4CardCarruselStop(carrusel){
+    const key = carrusel.getAttribute('data-card-key') || '';
+    const timers = _v4CarrTimers.get(key);
+    if (timers){
+      if (timers.intervalId) clearInterval(timers.intervalId);
+      if (timers.resumeId)   clearTimeout(timers.resumeId);
+      _v4CarrTimers.delete(key);
+    }
+  }
+
+  function v4CardCarruselPauseAndResume(carrusel){
+    v4CardCarruselStop(carrusel);
+    const key = carrusel.getAttribute('data-card-key') || '';
+    const resumeId = setTimeout(function(){
+      v4CardCarruselStart(carrusel);
+    }, 5000);
+    _v4CarrTimers.set(key, { intervalId: null, resumeId: resumeId });
+  }
+
+  function v4CardCarruselInit(){
+    if (!document.body.classList.contains('v4-mode')) return;
+    const carruseles = document.querySelectorAll('.v4-card-carrusel');
+    carruseles.forEach(function(carrusel){
+      // Evitar doble-init si re-render
+      if (carrusel._v4Inited) return;
+      carrusel._v4Inited = true;
+
+      // Sync dots en scroll (rAF para no spammear)
+      let tick = null;
+      carrusel.addEventListener('scroll', function(){
+        if (tick) cancelAnimationFrame(tick);
+        tick = requestAnimationFrame(function(){
+          v4CardCarruselSyncDots(carrusel);
+        });
+      }, { passive: true });
+
+      // Touch pausa auto-rotación
+      carrusel.addEventListener('touchstart', function(){
+        v4CardCarruselPauseAndResume(carrusel);
+      }, { passive: true });
+
+      // Mouse interaction también pausa (desktop)
+      carrusel.addEventListener('mousedown', function(){
+        v4CardCarruselPauseAndResume(carrusel);
+      }, { passive: true });
+
+      // Click en imagen → abrir sheet del producto (como cualquier otra card)
+      // El handler de click ya está en .card por delegación, no agrego nada acá.
+
+      // Sync dots inicial
+      v4CardCarruselSyncDots(carrusel);
+
+      // Si NO se respeta prefers-reduced-motion, iniciar auto-rotación
+      const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if (!reduce) v4CardCarruselStart(carrusel);
+    });
+  }
+
+  // Re-inicializar cuando se re-renderiza el catálogo
+  // (renderBody se llama varias veces durante la vida de la página)
+  window.v4CardCarruselInit = v4CardCarruselInit;
+
+  // Init después de DOMContentLoaded + tras cualquier re-render
+  if (document.readyState !== 'loading') {
+    setTimeout(v4CardCarruselInit, 200);
+  } else {
+    document.addEventListener('DOMContentLoaded', function(){
+      setTimeout(v4CardCarruselInit, 200);
+    });
+  }
+
+  // Limpieza al cerrar la página
+  window.addEventListener('beforeunload', function(){
+    _v4CarrTimers.forEach(function(t){
+      if (t.intervalId) clearInterval(t.intervalId);
+      if (t.resumeId)   clearTimeout(t.resumeId);
+    });
+    _v4CarrTimers.clear();
+  });
+
+  console.log('%c[TCK v4.13.0 A4]%c carrusel cards grid · auto 3.5s + swipe + dots',
+    'background:#8B0000;color:#FFD700;padding:2px 6px;border-radius:3px;font-weight:bold',
+    'color:#5C3A1E');
+
+  // ═══════════════════════════════════════════════════════════════════════
   // v4.4.0 — FASE 4.1 · PRESENTACIONES (CALIBRES POLLO A/B) + OBSERVACIONES
   // ─────────────────────────────────────────────────────────────────────
   // Pollo A y Pollo B son los únicos productos que tienen calibre (x6 / x7).
@@ -18996,11 +19743,11 @@ function confirmarCiudadNoAtendida() {
   function v4UpdatePreviewBanner(){
     const bar = document.getElementById('v4-preview-bar');
     if (!bar) return;
-    bar.innerHTML = '👀 PREVIEW · <b>v4.11.0</b> en desarrollo · Producci&oacute;n en <a href="https://tckcatalogo.com" style="color:#5C0000;text-decoration:underline;font-weight:900">tckcatalogo.com</a>';
+    bar.innerHTML = '👀 PREVIEW · <b>v4.13.0</b> en desarrollo · Producci&oacute;n en <a href="https://tckcatalogo.com" style="color:#5C0000;text-decoration:underline;font-weight:900">tckcatalogo.com</a>';
   }
   v4UpdatePreviewBanner();
 
-  console.log('%c[TCK v4.11.0]%c banner sticky · sin WA verde · carrusel hero',
+  console.log('%c[TCK v4.13.0]%c B2 receptor Miguel + A4 carrusel grid + B4.1 pantalla \u00e9xito + B4.2 persistencia',
     'background:#8B0000;color:#FFD700;padding:2px 6px;border-radius:3px;font-weight:bold',
     'color:#5C3A1E');
 
