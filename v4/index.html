@@ -7719,6 +7719,283 @@ body.v4-mode .body .sec-grid{
   }
 }
 
+/* Cursor: hover suave para indicar "tap me" en cards no sin-stock */
+body.v4-mode .body .card:not(.card-dual):not(.combo-card):not(.promo-card):not(.card-sinstock){
+  cursor:pointer;
+}
+body.v4-mode .body .card:not(.card-dual):not(.combo-card):not(.promo-card):not(.card-sinstock):hover{
+  background:var(--cream2) !important;
+}
+body.v4-mode .body .card:not(.card-dual):not(.combo-card):not(.promo-card):not(.card-sinstock):active{
+  background:var(--cream) !important;
+}
+/* El botón "+" no debe heredar el cursor pointer del padre cuando ya es interactivo */
+body.v4-mode .body .card .qrow,
+body.v4-mode .body .card .qrow *{cursor:pointer}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   v4.3.0 — FASE 4 · BOTTOM SHEET DETALLE DE PRODUCTO
+   ──────────────────────────────────────────────────────────────────────
+   Slide-up desde abajo cuando tap en card (no en el botón "+").
+   Foto hero + info + precio + descripción + calculadora colapsable.
+   Footer con qty +/- + botón Agregar.
+   ════════════════════════════════════════════════════════════════════ */
+
+.v4-sheet-backdrop{
+  position:fixed;inset:0;
+  background:rgba(0,0,0,.55);
+  z-index:350;
+  opacity:0;pointer-events:none;
+  transition:opacity .22s ease;
+}
+.v4-sheet-backdrop.on{opacity:1;pointer-events:auto}
+
+.v4-sheet{
+  position:fixed;left:0;right:0;bottom:0;
+  background:#fff;
+  border-radius:18px 18px 0 0;
+  max-height:88vh;
+  z-index:351;
+  display:flex;flex-direction:column;
+  box-shadow:0 -6px 24px rgba(0,0,0,.25);
+  overflow:hidden;
+  transform:translateY(100%);
+  transition:transform .28s cubic-bezier(.2,.7,.3,1);
+}
+.v4-sheet.on{transform:translateY(0)}
+
+.v4-sheet-handle{
+  display:flex;justify-content:center;
+  padding:9px 0 4px;
+  flex-shrink:0;
+  cursor:grab;
+}
+.v4-sheet-handle-bar{
+  width:38px;height:4px;
+  background:var(--cream3);
+  border-radius:2px;
+}
+.v4-sheet-close{
+  position:absolute;top:11px;right:12px;
+  width:32px;height:32px;
+  background:rgba(0,0,0,.08);
+  border:none;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  color:var(--text);cursor:pointer;font-size:16px;
+  z-index:5;
+  padding:0;
+}
+.v4-sheet-close:hover{background:rgba(0,0,0,.14)}
+
+.v4-sheet-body{
+  flex:1;overflow-y:auto;
+  padding:0 0 14px;
+  -webkit-overflow-scrolling:touch;
+}
+
+/* Foto hero */
+.v4-sheet-hero{
+  position:relative;
+  height:220px;
+  background:linear-gradient(135deg,#fff5e3 0%,#f0d8a8 40%,#e8c890 100%);
+  display:flex;align-items:center;justify-content:center;
+  overflow:hidden;
+  flex-shrink:0;
+}
+.v4-sheet-hero img{
+  max-width:88%;max-height:88%;
+  object-fit:contain;
+  display:block;
+}
+.v4-sheet-hero-badges{
+  position:absolute;top:12px;left:12px;
+  display:flex;gap:6px;flex-wrap:wrap;
+  z-index:2;
+}
+.v4-sheet-hero-badge{
+  background:var(--gold);color:#5C0000;
+  padding:4px 9px;border-radius:4px;
+  font-family:'Barlow Condensed',sans-serif;
+  font-weight:900;font-size:10px;
+  letter-spacing:.5px;text-transform:uppercase;
+  box-shadow:0 2px 4px rgba(0,0,0,.18);
+}
+.v4-sheet-hero-badge.red{background:var(--red);color:#fff}
+.v4-sheet-hero-badge.gray{background:#888;color:#fff}
+
+/* Info principal */
+.v4-sheet-info{padding:16px 16px 0}
+.v4-sheet-prod-name{
+  font-size:22px;
+  font-weight:700;
+  color:var(--text);
+  line-height:1.15;
+  margin:0;
+}
+.v4-sheet-prod-pres{
+  font-size:13px;
+  color:var(--text3);
+  margin-top:5px;
+  font-weight:500;
+}
+
+/* Precio destacado */
+.v4-sheet-price-stack{
+  margin:14px 16px 0;
+  padding:14px 16px;
+  background:linear-gradient(135deg,#fff8e7,#FFE9B8);
+  border:1.5px solid var(--gold3);
+  border-radius:12px;
+}
+.v4-sheet-price-label{
+  font-size:10.5px;color:var(--text3);font-weight:600;
+  text-transform:uppercase;letter-spacing:1px;
+}
+.v4-sheet-price-main{
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:34px;font-weight:900;color:var(--red);
+  line-height:1;margin-top:4px;
+}
+.v4-sheet-price-kg-sub{
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:14px;font-weight:700;color:#5C0000;
+  margin-top:6px;letter-spacing:.3px;
+}
+
+/* Sección descripción / info */
+.v4-sheet-section{
+  margin:16px 16px 0;
+  padding-bottom:6px;
+}
+.v4-sheet-section-title{
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:11px;color:var(--text3);font-weight:700;
+  text-transform:uppercase;letter-spacing:1.2px;
+  margin-bottom:7px;
+}
+.v4-sheet-section-text{
+  font-size:13px;color:var(--text2);
+  line-height:1.5;
+}
+.v4-sheet-section-text b{color:var(--text);font-weight:700}
+
+/* Slot para calculadora (clonada o construida adentro) */
+.v4-sheet-calc-slot{
+  margin:14px 16px 16px;
+}
+
+/* Mensaje sin stock dentro del sheet */
+.v4-sheet-sinstock{
+  margin:14px 16px 0;
+  padding:13px 14px;
+  background:#FAF6F0;
+  border:1px solid #D8C9B0;
+  border-radius:10px;
+  text-align:center;
+  color:var(--text2);
+  font-size:13px;
+  line-height:1.45;
+}
+.v4-sheet-sinstock b{color:var(--red);font-weight:800}
+.v4-sheet-sinstock-cta{
+  margin-top:9px;
+  display:inline-block;
+  background:#25D366;color:#fff;
+  padding:8px 16px;
+  border:none;border-radius:8px;
+  font-family:'Barlow Condensed',sans-serif;
+  font-weight:800;font-size:12px;
+  letter-spacing:.4px;text-transform:uppercase;
+  text-decoration:none;
+  cursor:pointer;
+}
+
+/* Footer fijo con qty + agregar */
+.v4-sheet-foot{
+  background:#fff;
+  border-top:1px solid var(--cream3);
+  padding:11px 14px;
+  flex-shrink:0;
+  padding-bottom:calc(11px + env(safe-area-inset-bottom));
+}
+.v4-sheet-foot-row{
+  display:flex;align-items:center;gap:10px;
+}
+.v4-sheet-foot-qty{
+  display:flex;align-items:center;
+  background:var(--cream);
+  border:1.5px solid var(--cream3);
+  border-radius:24px;
+  height:48px;
+  padding:0 3px;
+  flex-shrink:0;
+}
+.v4-sheet-foot-qty-btn{
+  width:40px;height:40px;
+  background:transparent;border:none;
+  color:var(--red);
+  font-family:'Barlow Condensed',sans-serif;
+  font-weight:900;font-size:24px;
+  cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  border-radius:50%;
+  padding:0;
+}
+.v4-sheet-foot-qty-btn:disabled{
+  color:var(--cream3);
+  cursor:not-allowed;
+}
+.v4-sheet-foot-qty-value{
+  min-width:36px;text-align:center;
+  font-family:'Barlow Condensed',sans-serif;
+  font-weight:900;font-size:19px;color:var(--text);
+}
+.v4-sheet-foot-add{
+  flex:1;
+  background:linear-gradient(135deg,var(--red),var(--red2));
+  color:#fff;border:none;
+  height:48px;border-radius:24px;
+  font-family:'Barlow Condensed',sans-serif;
+  font-weight:900;font-size:14px;letter-spacing:.7px;
+  text-transform:uppercase;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;gap:7px;
+  box-shadow:0 3px 10px rgba(139,0,0,.35);
+  padding:0 14px;
+}
+.v4-sheet-foot-add:active{transform:translateY(1px)}
+.v4-sheet-foot-add-subtotal{
+  font-family:'Barlow Condensed',sans-serif;
+  font-weight:900;font-size:14px;letter-spacing:.3px;
+  opacity:.95;
+}
+
+/* Cuando estoy en estado "sin stock", el footer es distinto */
+.v4-sheet-foot.sinstock .v4-sheet-foot-qty,
+.v4-sheet-foot.sinstock .v4-sheet-foot-add{display:none}
+.v4-sheet-foot.sinstock .v4-sheet-foot-wa{
+  display:flex;flex:1;
+  background:#25D366;color:#fff;border:none;
+  height:48px;border-radius:24px;
+  align-items:center;justify-content:center;gap:8px;
+  font-family:'Barlow Condensed',sans-serif;
+  font-weight:900;font-size:14px;letter-spacing:.5px;
+  text-transform:uppercase;cursor:pointer;
+  box-shadow:0 3px 10px rgba(37,211,102,.35);
+  text-decoration:none;
+}
+.v4-sheet-foot:not(.sinstock) .v4-sheet-foot-wa{display:none}
+
+/* Bloquear scroll del body cuando sheet abierto */
+body.v4-sheet-open{overflow:hidden}
+
+/* Mobile pequeño */
+@media (max-width:380px){
+  .v4-sheet-hero{height:180px}
+  .v4-sheet-prod-name{font-size:19px}
+  .v4-sheet-price-main{font-size:30px}
+  .v4-sheet-foot-add{font-size:13px;letter-spacing:.5px}
+}
+
 </style>
 
 <!-- ═══════════════════════════════════════════════════════════════════════
@@ -8421,6 +8698,64 @@ src="https://www.facebook.com/tr?id=2034313150514758&ev=PageView&noscript=1"
 <!-- Banner sutil "Estás viendo todo el catálogo" en vista-todo -->
 <div class="v4-todo-banner" id="v4-todo-banner" onclick="v4VolverHome()">
   📋 Estás viendo todo el catálogo · <b>← Volver a categorías</b>
+</div>
+
+<!-- ═══════════════ v4.3.0 BOTTOM SHEET DETALLE PRODUCTO ═══════════════ -->
+<div class="v4-sheet-backdrop" id="v4-sheet-backdrop" onclick="v4SheetClose()"></div>
+<div class="v4-sheet" id="v4-sheet" aria-hidden="true" role="dialog" aria-modal="true">
+  <div class="v4-sheet-handle" id="v4-sheet-handle"><div class="v4-sheet-handle-bar"></div></div>
+  <button class="v4-sheet-close" onclick="v4SheetClose()" aria-label="Cerrar">✕</button>
+  <div class="v4-sheet-body" id="v4-sheet-body">
+    <!-- Hero -->
+    <div class="v4-sheet-hero">
+      <div class="v4-sheet-hero-badges" id="v4-sheet-hero-badges"></div>
+      <img id="v4-sheet-hero-img" src="" alt="" loading="lazy">
+    </div>
+
+    <!-- Info -->
+    <div class="v4-sheet-info">
+      <h2 class="v4-sheet-prod-name" id="v4-sheet-prod-name"></h2>
+      <div class="v4-sheet-prod-pres" id="v4-sheet-prod-pres"></div>
+    </div>
+
+    <!-- Precio -->
+    <div class="v4-sheet-price-stack" id="v4-sheet-price-stack">
+      <div class="v4-sheet-price-label">Precio por cajón</div>
+      <div class="v4-sheet-price-main" id="v4-sheet-price-main"></div>
+      <div class="v4-sheet-price-kg-sub" id="v4-sheet-price-kg-sub"></div>
+    </div>
+
+    <!-- Sin stock (oculto por defecto) -->
+    <div class="v4-sheet-sinstock" id="v4-sheet-sinstock" style="display:none">
+      <b>Momentáneamente sin stock.</b><br>
+      Consultá con tu vendedor sobre disponibilidad y fecha estimada de reposición.
+      <br>
+      <a class="v4-sheet-sinstock-cta" id="v4-sheet-sinstock-wa" href="#" onclick="v4SheetClose();v4AbrirWhatsApp();return false;">
+        💬 Consultar por WhatsApp
+      </a>
+    </div>
+
+    <!-- Calculadora (slot que se llena al abrir) -->
+    <div class="v4-sheet-calc-slot" id="v4-sheet-calc-slot"></div>
+  </div>
+
+  <!-- Footer fijo -->
+  <div class="v4-sheet-foot" id="v4-sheet-foot">
+    <div class="v4-sheet-foot-row">
+      <div class="v4-sheet-foot-qty">
+        <button class="v4-sheet-foot-qty-btn" id="v4-sheet-qty-minus" onclick="v4SheetChg(-1)">−</button>
+        <span class="v4-sheet-foot-qty-value" id="v4-sheet-qty-value">0</span>
+        <button class="v4-sheet-foot-qty-btn" onclick="v4SheetChg(1)">+</button>
+      </div>
+      <button class="v4-sheet-foot-add" id="v4-sheet-foot-add" onclick="v4SheetAgregar()">
+        <span>Agregar</span>
+        <span class="v4-sheet-foot-add-subtotal" id="v4-sheet-foot-subtotal"></span>
+      </button>
+      <a class="v4-sheet-foot-wa" href="#" onclick="v4SheetClose();v4AbrirWhatsApp();return false;">
+        💬 Consultar
+      </a>
+    </div>
+  </div>
 </div>
 
 <div class="hdr"><div class="hdr-stripe"></div><div class="hdr-body">
@@ -15918,6 +16253,440 @@ function confirmarCiudadNoAtendida() {
     'color:#5C3A1E');
 
   console.log('%c[TCK v4.2.0]%c Fase 3 activa · cards horizontales Pedix · sin stock gris',
+    'background:#8B0000;color:#FFD700;padding:2px 6px;border-radius:3px;font-weight:bold',
+    'color:#5C3A1E');
+
+  // ═══════════════════════════════════════════════════════════════════════
+  // v4.3.0 — FASE 4 · BOTTOM SHEET DETALLE DE PRODUCTO
+  // ─────────────────────────────────────────────────────────────────────
+  // Tap en card (no en .qrow) → abre sheet con foto + info + precio +
+  // calculadora colapsable + footer qty + Agregar.
+  // ═══════════════════════════════════════════════════════════════════════
+
+  // Estado del sheet activo
+  const v4SheetState = {
+    open: false,
+    key: null,        // data-key de la card (ej. "0-0" o nombre del producto)
+    si: -1, ii: -1,   // índices CAT[si].items[ii] cuando aplica
+    isPolloAB: false, // si es Pollo A o B → habilita calibre
+    sinStock: false
+  };
+
+  // Listener delegado sobre el .body legacy
+  function v4SheetInitListener(){
+    const body = document.getElementById('body');
+    if (!body) return false;
+    if (body.dataset.v4SheetBound === '1') return true;
+    body.dataset.v4SheetBound = '1';
+    body.addEventListener('click', function(ev){
+      // Solo en v4-mode
+      if (!document.body.classList.contains('v4-mode')) return;
+      const card = ev.target.closest('.card');
+      if (!card) return;
+      // Excluir cards que no usan sheet
+      if (card.classList.contains('card-dual')) return;
+      if (card.classList.contains('combo-card')) return;
+      if (card.classList.contains('promo-card')) return;
+      // Si el target es el botón +/-/qty/+5 o un input dentro de la card, no abrimos
+      const inQrow = ev.target.closest('.qrow');
+      const inCalc = ev.target.closest('.calc-toggle, .calc-panel, .calibre-row');
+      const inSinStockMsg = ev.target.closest('.card-sinstock-msg');
+      if (inQrow || inCalc || inSinStockMsg) return;
+      // Abrir
+      v4SheetOpenFromCard(card);
+    }, true);
+    return true;
+  }
+
+  // Abrir sheet desde un nodo .card
+  function v4SheetOpenFromCard(card){
+    const key = card.getAttribute('data-key') || '';
+    if (!key) return;
+    // El key tiene formato "si-ii" en el catálogo legacy
+    const parts = key.split('-');
+    let si = -1, ii = -1;
+    if (parts.length === 2) {
+      si = parseInt(parts[0], 10);
+      ii = parseInt(parts[1], 10);
+    }
+    if (isNaN(si) || isNaN(ii) || si < 0 || ii < 0) {
+      console.warn('[v4] sheet: key inválida', key);
+      return;
+    }
+    if (typeof CAT === 'undefined' || !CAT[si] || !CAT[si].items[ii]) {
+      console.warn('[v4] sheet: producto no encontrado en CAT', si, ii);
+      return;
+    }
+    const it = CAT[si].items[ii];
+    const sec = CAT[si];
+    const sinStock = card.classList.contains('card-sinstock');
+    const isPolloAB = (it.n === 'Pollo A' || it.n === 'Pollo B');
+
+    v4SheetState.open = true;
+    v4SheetState.key = key;
+    v4SheetState.si = si;
+    v4SheetState.ii = ii;
+    v4SheetState.isPolloAB = isPolloAB;
+    v4SheetState.sinStock = sinStock;
+
+    // Poblar contenido
+    v4SheetRender(it, sec, sinStock);
+
+    // Mostrar
+    const sheet = document.getElementById('v4-sheet');
+    const backdrop = document.getElementById('v4-sheet-backdrop');
+    if (sheet && backdrop) {
+      backdrop.classList.add('on');
+      // Reset scroll del body del sheet
+      const body = document.getElementById('v4-sheet-body');
+      if (body) body.scrollTop = 0;
+      // Doble RAF para activar la transición desde translateY(100%)
+      requestAnimationFrame(function(){
+        requestAnimationFrame(function(){
+          sheet.classList.add('on');
+        });
+      });
+      sheet.setAttribute('aria-hidden', 'false');
+    }
+    document.body.classList.add('v4-sheet-open');
+
+    // Push state para que botón atrás cierre el sheet
+    try { history.pushState({ v4: 'sheet', key: key }, '', location.href); } catch(e){}
+  }
+
+  window.v4SheetClose = function(){
+    if (!v4SheetState.open) return;
+    v4SheetState.open = false;
+    const sheet = document.getElementById('v4-sheet');
+    const backdrop = document.getElementById('v4-sheet-backdrop');
+    if (sheet) {
+      sheet.classList.remove('on');
+      sheet.setAttribute('aria-hidden', 'true');
+    }
+    if (backdrop) backdrop.classList.remove('on');
+    document.body.classList.remove('v4-sheet-open');
+
+    // Limpiar slot de calculadora para no acumular handlers en re-aperturas
+    setTimeout(function(){
+      if (v4SheetState.open) return; // se abrió otra cosa entremedio
+      const slot = document.getElementById('v4-sheet-calc-slot');
+      if (slot) slot.innerHTML = '';
+    }, 320);
+  };
+
+  // Renderizar contenido del sheet con un producto
+  function v4SheetRender(it, sec, sinStock){
+    // Hero
+    const heroImg = document.getElementById('v4-sheet-hero-img');
+    const heroBadges = document.getElementById('v4-sheet-hero-badges');
+    if (heroImg) {
+      // Reusa el mapeo de imagen del legacy
+      let imgSrc = '';
+      try {
+        if (typeof _imgmap !== 'undefined' && _imgmap[it.n]) {
+          imgSrc = 'img/' + _imgmap[it.n];
+        } else {
+          imgSrc = 'img/' + encodeURIComponent(it.n + '.jpg').replace(/%25/g,'%').replace(/%2F/g,'/');
+        }
+      } catch(e){
+        imgSrc = 'img/' + encodeURIComponent(it.n + '.jpg');
+      }
+      heroImg.src = imgSrc;
+      heroImg.alt = it.n;
+      // Si la imagen falla, mantener el gradiente del contenedor (sin imagen visible)
+      heroImg.onerror = function(){ heroImg.style.display = 'none'; };
+      heroImg.onload = function(){ heroImg.style.display = ''; };
+      heroImg.style.display = '';
+    }
+    // Badges del hero
+    if (heroBadges) {
+      heroBadges.innerHTML = '';
+      if (sinStock) {
+        const b = document.createElement('div');
+        b.className = 'v4-sheet-hero-badge gray';
+        b.textContent = 'Sin stock';
+        heroBadges.appendChild(b);
+      } else if (it.badge) {
+        const b = document.createElement('div');
+        const tipo = it.badge_tipo || 'red';
+        b.className = 'v4-sheet-hero-badge' + (tipo === 'red' ? ' red' : (tipo === 'gold' ? '' : ''));
+        // Decodificar entidades HTML del badge (★, etc.)
+        const tmp = document.createElement('div');
+        tmp.innerHTML = it.badge;
+        b.textContent = tmp.textContent;
+        heroBadges.appendChild(b);
+      }
+    }
+
+    // Info
+    const nameEl = document.getElementById('v4-sheet-prod-name');
+    const presEl = document.getElementById('v4-sheet-prod-pres');
+    if (nameEl) nameEl.textContent = it.n;
+    if (presEl) {
+      // Decodificar entidades HTML de presentación (·, &middot;, &#x2248;, etc.)
+      const tmp = document.createElement('div');
+      tmp.innerHTML = it.p || '';
+      presEl.textContent = tmp.textContent;
+    }
+
+    // Precio
+    const priceMain = document.getElementById('v4-sheet-price-main');
+    const priceKg = document.getElementById('v4-sheet-price-kg-sub');
+    const priceLabel = document.querySelector('#v4-sheet-price-stack .v4-sheet-price-label');
+    if (priceMain) {
+      priceMain.textContent = (typeof fmt === 'function') ? fmt(it.pr) : ('$' + it.pr);
+    }
+    if (priceKg) {
+      // it.pu viene con entidades HTML (≈ = &#x2248;)
+      if (it.pu) {
+        const tmp = document.createElement('div');
+        tmp.innerHTML = it.pu;
+        priceKg.textContent = tmp.textContent;
+        priceKg.style.display = '';
+      } else {
+        priceKg.style.display = 'none';
+      }
+    }
+    if (priceLabel) {
+      // Si la presentación incluye "kg", decir "Precio por cajón", sino "Precio del producto"
+      const pres = (it.p || '').toLowerCase();
+      priceLabel.textContent = (/\bkg\b/i.test(pres) ? 'Precio por cajón' : 'Precio');
+    }
+
+    // Sin stock — mostrar bloque informativo y ocultar footer normal
+    const sinStockBlock = document.getElementById('v4-sheet-sinstock');
+    const foot = document.getElementById('v4-sheet-foot');
+    if (sinStock) {
+      if (sinStockBlock) sinStockBlock.style.display = 'block';
+      if (foot) foot.classList.add('sinstock');
+    } else {
+      if (sinStockBlock) sinStockBlock.style.display = 'none';
+      if (foot) foot.classList.remove('sinstock');
+    }
+
+    // Calculadora (slot)
+    v4SheetRenderCalc(it, sec, sinStock);
+
+    // Footer: qty actual + subtotal
+    v4SheetSyncFooter();
+  }
+
+  // Renderiza la calculadora margen + calibre dentro del sheet, reusando funciones existentes.
+  // No clonamos el DOM de la card original (eso duplicaría handlers).
+  // Generamos HTML nuevo con los mismos data-prod y handlers, así calcMargen() funciona igual.
+  function v4SheetRenderCalc(it, sec, sinStock){
+    const slot = document.getElementById('v4-sheet-calc-slot');
+    if (!slot) return;
+    slot.innerHTML = '';
+
+    if (sinStock) return; // sin calc en sin stock
+
+    const itnAttr = String(it.n).replace(/&/g,'&amp;').replace(/"/g,'&quot;');
+    const esPollo = (it.n === 'Pollo A' || it.n === 'Pollo B');
+
+    // Bloque calibre (solo Pollo A/B)
+    if (esPollo) {
+      let calibreSaved = '';
+      try {
+        const ss = (typeof _safeSS !== 'undefined') ? _safeSS : sessionStorage;
+        calibreSaved = ss.getItem('tck_cal_' + it.n) || '';
+      } catch(e){}
+      const calAttr = String(calibreSaved).replace(/&/g,'&amp;').replace(/"/g,'&quot;');
+      const calibreBlock = document.createElement('div');
+      calibreBlock.className = 'calibre-row';
+      calibreBlock.innerHTML =
+        '<div class="calibre-label">📌 Preferencia de calibre</div>'
+        + '<input class="calibre-input" placeholder="Ej: x7 Congelados" '
+        + 'data-prod="' + itnAttr + '" '
+        + 'oninput="calibreGuardar(this)" '
+        + 'value="' + calAttr + '" maxlength="40">';
+      slot.appendChild(calibreBlock);
+    }
+
+    // Bloque calculadora margen
+    let calcSaved = {};
+    try {
+      const ss = (typeof _safeSS !== 'undefined') ? _safeSS : sessionStorage;
+      calcSaved = JSON.parse(ss.getItem('tck_calc_' + it.n) || '{}');
+    } catch(e){ calcSaved = {}; }
+
+    // Costo precargado desde pu si es "/kg"
+    let costPrecargado = '';
+    if (it.pu && /\/\s*kg/i.test(it.pu)) {
+      const m = it.pu.match(/\$?([\d,.]+)\s*\/\s*kg/i);
+      if (m) {
+        const num = parseInt(m[1].replace(/[^\d]/g,''), 10);
+        if (num > 0) costPrecargado = String(num);
+      }
+    }
+    const costSavedFlag = (calcSaved && Object.prototype.hasOwnProperty.call(calcSaved, 'cost'));
+    const calcCost = costSavedFlag
+      ? (calcSaved.cost == null ? '' : String(calcSaved.cost))
+      : costPrecargado;
+    const calcVen = (calcSaved.ven == null) ? '' : String(calcSaved.ven);
+    const costEsPrecargado = !costSavedFlag && costPrecargado !== '';
+    const calcOpen = !!calcSaved._open;
+
+    const costAttr = calcCost.replace(/"/g,'&quot;');
+    const venAttr = calcVen.replace(/"/g,'&quot;');
+
+    const calcWrap = document.createElement('div');
+    calcWrap.innerHTML =
+      '<button type="button" class="calc-toggle' + (calcOpen ? ' open' : '') + '" '
+      + 'data-prod="' + itnAttr + '" '
+      + 'onclick="toggleCalcMargen(this)">'
+      + '<span class="calc-ico">📊</span>'
+      + '<span class="calc-label">Calculadora de margen</span>'
+      + '<span class="calc-arrow">▼</span>'
+      + '</button>'
+      + '<div class="calc-panel' + (calcOpen ? ' open' : '') + '" data-prod="' + itnAttr + '">'
+      + '<div class="calc-row"><label>Mi costo:</label>'
+      + '<input type="number" inputmode="numeric" placeholder="$/kg" '
+      + 'value="' + costAttr + '" data-campo="cost" '
+      + (costEsPrecargado ? 'data-precargado="1" ' : '')
+      + 'oninput="calcMargen(this)"></div>'
+      + (costEsPrecargado ? '<div class="calc-precargado">💡 Costo precargado del catálogo · podés modificarlo</div>' : '')
+      + '<div class="calc-row"><label>Vendo a:</label>'
+      + '<input type="number" inputmode="numeric" placeholder="$/kg" '
+      + 'value="' + venAttr + '" data-campo="ven" '
+      + 'oninput="calcMargen(this)"></div>'
+      + '<div class="calc-result empty">Ingresá tu precio de venta</div>'
+      + '<div class="calc-hint">Compara precios por kg</div>'
+      + '</div>';
+    slot.appendChild(calcWrap);
+
+    // Si tenía resultado guardado (porque el cliente ya tipeó algo), forzar recálculo inicial
+    if (calcCost && calcVen) {
+      const inp = calcWrap.querySelector('input[data-campo="cost"]');
+      if (inp && typeof calcMargen === 'function') {
+        try { calcMargen(inp); } catch(e){}
+      }
+    }
+  }
+
+  // Cambia cantidad desde el footer del sheet
+  window.v4SheetChg = function(delta){
+    if (!v4SheetState.open) return;
+    const si = v4SheetState.si, ii = v4SheetState.ii;
+    if (si < 0 || ii < 0) return;
+    // Reutilizar el sistema legacy: buscar la card actual y construir el key
+    const it = CAT[si].items[ii];
+    if (!it) return;
+    // En el catálogo legacy, key = `${si}-${ii}` (data-key de la card)
+    const key = si + '-' + ii;
+    // Si es Pollo A o B y delta > 0 (agregar), el flow de calibre se dispara desde chg().
+    // chg ya hace todo: actualiza qty, has-qty, qsub, updateBar, drawer, ls.
+    if (typeof chg === 'function') {
+      try {
+        chg(key, si, ii, delta);
+      } catch(e){
+        console.warn('[v4-sheet] chg falló', e);
+      }
+    }
+    // Sincronizar footer
+    setTimeout(v4SheetSyncFooter, 30);
+  };
+
+  window.v4SheetAgregar = function(){
+    if (!v4SheetState.open) return;
+    // "Agregar" suma 1 al carrito (si qty=0) o no hace nada extra (si qty>0)
+    const cur = v4SheetGetQty();
+    if (cur === 0) {
+      v4SheetChg(1);
+    }
+    // Feedback visual sutil: cerrar el sheet tras 280ms para que vea el footer reflejar
+    setTimeout(function(){
+      v4SheetClose();
+    }, 320);
+  };
+
+  function v4SheetGetQty(){
+    const si = v4SheetState.si, ii = v4SheetState.ii;
+    if (si < 0 || ii < 0) return 0;
+    const key = si + '-' + ii;
+    try {
+      if (typeof qty !== 'undefined' && qty && typeof qty[key] !== 'undefined') {
+        return qty[key] || 0;
+      }
+    } catch(e){}
+    // Fallback: leer del DOM de la card original
+    const card = document.querySelector('.card[data-key="' + key + '"]');
+    if (card) {
+      const qv = card.querySelector('.qv');
+      if (qv) return parseInt(qv.textContent || '0', 10) || 0;
+    }
+    return 0;
+  }
+
+  function v4SheetSyncFooter(){
+    if (!v4SheetState.open) return;
+    const qv = document.getElementById('v4-sheet-qty-value');
+    const minus = document.getElementById('v4-sheet-qty-minus');
+    const subtotalEl = document.getElementById('v4-sheet-foot-subtotal');
+    const addBtn = document.getElementById('v4-sheet-foot-add');
+    if (!qv) return;
+    const q = v4SheetGetQty();
+    qv.textContent = q;
+    if (minus) minus.disabled = (q === 0);
+    // Subtotal
+    if (subtotalEl) {
+      const it = CAT[v4SheetState.si] && CAT[v4SheetState.si].items[v4SheetState.ii];
+      if (it && q > 0) {
+        subtotalEl.textContent = '· ' + ((typeof fmt === 'function') ? fmt(it.pr * q) : ('$' + (it.pr * q)));
+      } else if (it) {
+        subtotalEl.textContent = '· ' + ((typeof fmt === 'function') ? fmt(it.pr) : ('$' + it.pr));
+      } else {
+        subtotalEl.textContent = '';
+      }
+    }
+    if (addBtn) {
+      addBtn.querySelector('span:first-child').textContent = (q === 0) ? 'Agregar' : 'En tu pedido';
+    }
+  }
+
+  // Hook adicional sobre updateBar (que el catálogo legacy llama tras chg)
+  // para que el footer del sheet refleje el qty en tiempo real
+  if (typeof window.updateBar === 'function') {
+    const _origUB = window.updateBar;
+    window.updateBar = function(){
+      _origUB.apply(this, arguments);
+      try { if (v4SheetState.open) v4SheetSyncFooter(); } catch(e){}
+    };
+  }
+
+  // Botón atrás del browser cierra el sheet
+  window.addEventListener('popstate', function(ev){
+    if (v4SheetState.open) {
+      // El popstate de Fase 2 ya maneja el resto (categorías/home).
+      // Acá solo cerramos el sheet.
+      v4SheetClose();
+    }
+  }, true);
+
+  // Tecla Esc
+  document.addEventListener('keydown', function(e){
+    if ((e.key === 'Escape' || e.keyCode === 27) && v4SheetState.open) {
+      v4SheetClose();
+    }
+  });
+
+  // Init listener cuando el body legacy esté disponible
+  function v4SheetBoot(){
+    if (v4SheetInitListener()) return;
+    // Reintentar
+    let tries = 0;
+    const t = setInterval(function(){
+      tries++;
+      if (v4SheetInitListener() || tries > 30) clearInterval(t);
+    }, 100);
+  }
+  if (document.readyState !== 'loading') {
+    setTimeout(v4SheetBoot, 60);
+  } else {
+    document.addEventListener('DOMContentLoaded', function(){ setTimeout(v4SheetBoot, 60); });
+  }
+
+  console.log('%c[TCK v4.3.0]%c Fase 4 activa · bottom sheet detalle producto',
     'background:#8B0000;color:#FFD700;padding:2px 6px;border-radius:3px;font-weight:bold',
     'color:#5C3A1E');
 
