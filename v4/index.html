@@ -7996,6 +7996,208 @@ body.v4-sheet-open{overflow:hidden}
   .v4-sheet-foot-add{font-size:13px;letter-spacing:.5px}
 }
 
+/* ═══════════════════════════════════════════════════════════════════════
+   v4.4.0 — FASE 4.1 · PRESENTACIONES (calibres Pollo A/B) + OBSERVACIONES
+   ──────────────────────────────────────────────────────────────────────
+   Pollo A y B muestran sección "Presentaciones" estilo Pedix con x6/x7.
+   Todos los productos muestran textarea de observaciones libre.
+   ════════════════════════════════════════════════════════════════════ */
+
+/* Descripción enriquecida (solo Pollo A/B) */
+.v4-sheet-desc{
+  margin:14px 16px 0;
+  font-size:13.5px;
+  color:var(--text2);
+  line-height:1.5;
+  padding:12px 14px;
+  background:var(--cream);
+  border-radius:10px;
+  border-left:3px solid var(--gold3);
+}
+
+/* Sección "Presentaciones" */
+.v4-presentaciones{
+  margin:16px 16px 0;
+}
+.v4-presentaciones-title{
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:13px;font-weight:900;color:var(--text);
+  text-transform:uppercase;letter-spacing:.7px;
+  margin-bottom:4px;
+  display:flex;align-items:center;gap:7px;
+}
+.v4-presentaciones-title:before{
+  content:'📏';
+  font-size:14px;
+}
+.v4-presentaciones-sub{
+  font-size:11.5px;color:var(--text3);
+  margin-bottom:11px;
+  line-height:1.35;
+}
+.v4-presentaciones-list{
+  display:flex;flex-direction:column;
+  gap:0;
+  border:1px solid var(--cream3);
+  border-radius:11px;
+  background:#fff;
+  overflow:hidden;
+}
+.v4-pres-row{
+  display:flex;align-items:center;
+  padding:11px 13px;
+  gap:11px;
+  border-bottom:1px solid var(--cream3);
+  background:#fff;
+  cursor:pointer;
+  transition:background .12s;
+}
+.v4-pres-row:last-child{border-bottom:none}
+.v4-pres-row:hover{background:var(--cream)}
+.v4-pres-row.active{background:#FFF9E8}
+
+.v4-pres-check{
+  width:22px;height:22px;
+  border:1.8px solid var(--cream3);
+  border-radius:5px;
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;
+  background:#fff;
+  transition:all .15s;
+}
+.v4-pres-row.active .v4-pres-check{
+  background:var(--red);
+  border-color:var(--red);
+}
+.v4-pres-check svg{
+  width:14px;height:14px;
+  color:#fff;
+  opacity:0;
+  transition:opacity .12s;
+}
+.v4-pres-row.active .v4-pres-check svg{opacity:1}
+
+.v4-pres-info{flex:1;min-width:0}
+.v4-pres-label{
+  font-size:14px;font-weight:600;color:var(--text);
+  line-height:1.2;
+}
+.v4-pres-sublabel{
+  font-size:11px;color:var(--text3);
+  margin-top:2px;font-weight:500;
+}
+.v4-pres-price{
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:13px;font-weight:700;color:var(--red);
+  letter-spacing:.2px;
+  flex-shrink:0;
+}
+
+/* Stepper inline al lado de cada presentación */
+.v4-pres-stepper{
+  display:flex;align-items:center;
+  background:#fff;
+  border:1.5px solid var(--cream3);
+  border-radius:18px;
+  height:34px;
+  padding:0 2px;
+  flex-shrink:0;
+  margin-left:8px;
+}
+.v4-pres-row.active .v4-pres-stepper{
+  border-color:var(--red);
+  background:#fff;
+}
+.v4-pres-stepper-btn{
+  width:30px;height:30px;
+  background:transparent;border:none;
+  color:var(--red);
+  font-family:'Barlow Condensed',sans-serif;
+  font-weight:900;font-size:18px;
+  cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  border-radius:50%;
+  padding:0;
+}
+.v4-pres-stepper-btn:disabled{
+  color:var(--cream3);
+  cursor:not-allowed;
+}
+.v4-pres-stepper-value{
+  min-width:22px;text-align:center;
+  font-family:'Barlow Condensed',sans-serif;
+  font-weight:900;font-size:15px;color:var(--text);
+}
+
+/* Sección "Observaciones" */
+.v4-observaciones{
+  margin:18px 16px 0;
+}
+.v4-observaciones-hdr{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:6px;
+}
+.v4-observaciones-title{
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:13px;font-weight:900;color:var(--text);
+  text-transform:uppercase;letter-spacing:.7px;
+}
+.v4-observaciones-title:before{
+  content:'📝';
+  margin-right:5px;
+}
+.v4-observaciones-count{
+  font-size:10.5px;
+  color:var(--text3);
+  font-weight:600;
+}
+.v4-observaciones-textarea{
+  width:100%;
+  min-height:62px;
+  max-height:120px;
+  padding:10px 12px;
+  border:1.5px solid var(--cream3);
+  border-radius:9px;
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+  font-size:13px;
+  color:var(--text);
+  background:var(--cream);
+  resize:vertical;
+  outline:none;
+  line-height:1.4;
+  transition:border-color .15s, background .15s;
+  -webkit-appearance:none;
+  appearance:none;
+}
+.v4-observaciones-textarea:focus{
+  border-color:var(--gold3);
+  background:#fff;
+}
+.v4-observaciones-textarea::placeholder{
+  color:var(--text3);
+  font-style:italic;
+}
+.v4-observaciones-saved{
+  font-size:10.5px;color:var(--accent-success);
+  margin-top:4px;
+  opacity:0;
+  transition:opacity .2s;
+}
+.v4-observaciones-saved.show{opacity:1}
+
+/* Cuando es Pollo A/B: esconder el precio destacado (el precio aparece por calibre)
+   y esconder el footer principal (el calibre tiene sus propios steppers) */
+.v4-sheet[data-pollo-ab="1"] .v4-sheet-price-stack{display:none}
+.v4-sheet[data-pollo-ab="1"] .v4-sheet-foot{
+  /* En vez de footer + qty, mostramos resumen del sheet */
+  padding:11px 14px;
+}
+.v4-sheet[data-pollo-ab="1"] .v4-sheet-foot .v4-sheet-foot-qty{display:none}
+.v4-sheet[data-pollo-ab="1"] .v4-sheet-foot .v4-sheet-foot-add{
+  /* El botón "Agregar" se convierte en "Cerrar" porque los calibres
+     ya se agregaron individualmente al carrito al usar sus steppers. */
+}
+
 </style>
 
 <!-- ═══════════════════════════════════════════════════════════════════════
@@ -16687,6 +16889,766 @@ function confirmarCiudadNoAtendida() {
   }
 
   console.log('%c[TCK v4.3.0]%c Fase 4 activa · bottom sheet detalle producto',
+    'background:#8B0000;color:#FFD700;padding:2px 6px;border-radius:3px;font-weight:bold',
+    'color:#5C3A1E');
+
+  // ═══════════════════════════════════════════════════════════════════════
+  // v4.4.0 — FASE 4.1 · PRESENTACIONES (CALIBRES POLLO A/B) + OBSERVACIONES
+  // ─────────────────────────────────────────────────────────────────────
+  // Pollo A y Pollo B son los únicos productos que tienen calibre (x6 / x7).
+  // Cada calibre es un SKU separado en el carrito con key "cal:Pollo A:x6".
+  // Todos los productos pueden tener observaciones libres (max 150 chars).
+  // ═══════════════════════════════════════════════════════════════════════
+
+  // Calibres configurados
+  const V4_CALIBRES = {
+    'Pollo A': ['x6', 'x7'],
+    'Pollo B': ['x6', 'x7']
+  };
+  const V4_CALIBRES_SUBLABEL = {
+    'x6': 'Pollos más grandes (cajón con 6)',
+    'x7': 'Pollos medianos (cajón con 7)'
+  };
+
+  // Descripciones especiales (solo Pollo A/B por ahora)
+  const V4_DESCRIPCIONES = {
+    'Pollo A': 'Cajón de Pollo PREMIUM congelado. El cajón pesa 20 kg y viene con 6 o 7 pollos según el calibre que elijas. Ideal para parrilleros, asaderos y carnicerías que buscan calidad superior.',
+    'Pollo B': 'Cajón de Pollo de calidad estándar. El cajón pesa 20 kg y viene con 6 o 7 pollos según el calibre que elijas. Pensado para negocios con consumo frecuente.'
+  };
+
+  function v4EsPolloAB(it){
+    return it && (it.n === 'Pollo A' || it.n === 'Pollo B');
+  }
+
+  // ─── KEYS de calibre en window.qty ─────────────────────────────────────
+  // Formato: "cal:<nombre>:<calibre>"  ej. "cal:Pollo A:x6"
+  // Coexisten con keys "si-ii" normales en el mismo objeto window.qty.
+  function v4CalKey(nombre, calibre){
+    return 'cal:' + nombre + ':' + calibre;
+  }
+  function v4CalKeyParse(key){
+    if (!key || key.indexOf('cal:') !== 0) return null;
+    const rest = key.slice(4);
+    const lastColon = rest.lastIndexOf(':');
+    if (lastColon === -1) return null;
+    return {
+      nombre: rest.slice(0, lastColon),
+      calibre: rest.slice(lastColon + 1)
+    };
+  }
+  function v4CalKeyEsCalibre(key){
+    return typeof key === 'string' && key.indexOf('cal:') === 0;
+  }
+
+  // Obtener producto desde CAT por nombre (busca Pollo A / Pollo B)
+  function v4CalGetProductoByNombre(nombre){
+    if (typeof CAT === 'undefined' || !Array.isArray(CAT)) return null;
+    for (let si = 0; si < CAT.length; si++) {
+      const sec = CAT[si];
+      if (!sec || !sec.items) continue;
+      for (let ii = 0; ii < sec.items.length; ii++) {
+        if (sec.items[ii].n === nombre) {
+          return { sec: sec, it: sec.items[ii], si: si, ii: ii };
+        }
+      }
+    }
+    return null;
+  }
+
+  // ─── SUMA / RESTA de calibre ───────────────────────────────────────────
+  window.v4ChgCal = function(nombre, calibre, delta){
+    const key = v4CalKey(nombre, calibre);
+    const prev = (typeof qty !== 'undefined' && qty[key]) ? qty[key] : 0;
+    const q = Math.max(0, prev + delta);
+    if (q === 0) {
+      try { delete qty[key]; } catch(e){ qty[key] = 0; }
+    } else {
+      qty[key] = q;
+    }
+    // Update sheet UI
+    v4SheetActualizarFilasPollo();
+    // Update barra inferior y drawer
+    if (typeof updateBar === 'function') updateBar();
+    if (document.getElementById('drawer') && document.getElementById('drawer').classList.contains('on')) {
+      if (typeof renderDrawer === 'function') renderDrawer();
+    }
+    if (typeof saveCartLS === 'function') saveCartLS();
+    // Pixel AddToCart (best-effort)
+    try {
+      if (delta > 0 && typeof fbqSafe === 'function') {
+        const info = v4CalGetProductoByNombre(nombre);
+        if (info) {
+          fbqSafe('AddToCart', {
+            content_ids: [key],
+            content_name: nombre + ' ' + calibre,
+            content_type: 'product',
+            value: (info.it.pr || 0) * q,
+            currency: 'ARS',
+            num_items: q
+          });
+        }
+      }
+    } catch(e){}
+    // Refrescar filtro "En carrito" si está activo
+    try {
+      if (typeof _filtrosEstado !== 'undefined' && _filtrosEstado.has && _filtrosEstado.has('encarrito')) {
+        if (typeof aplicarFiltros === 'function') aplicarFiltros();
+      }
+    } catch(e){}
+  };
+
+  // ─── HOOK: T() para sumar también las keys de calibre ──────────────────
+  if (typeof window.T === 'function') {
+    const _origT = window.T;
+    window.T = function(){
+      const r = _origT.apply(this, arguments);
+      try {
+        let tCal = 0, cCal = 0, tCalEleg = 0;
+        Object.keys(qty).forEach(function(k){
+          if (!v4CalKeyEsCalibre(k)) return;
+          const q = qty[k] || 0;
+          if (q <= 0) return;
+          const parsed = v4CalKeyParse(k);
+          if (!parsed) return;
+          const info = v4CalGetProductoByNombre(parsed.nombre);
+          if (!info) return;
+          const lineTotal = (info.it.pr || 0) * q;
+          tCal += lineTotal;
+          cCal += q;
+          // Pollo A/B no son elegibles para cupón (igual que en el legacy: cuponEsElegibleCat('pollos') = false)
+          try {
+            if (typeof cuponEsElegibleCat === 'function' && cuponEsElegibleCat(info.sec.id)) {
+              tCalEleg += lineTotal;
+            }
+          } catch(e){}
+        });
+        if (tCal > 0) {
+          // Recalcular total y descuento incluyendo calibres
+          const subtotalNuevo = (r.subtotal || 0) + tCal;
+          const subtotalElegibleNuevo = (r.subtotalElegible || 0) + tCalEleg;
+          let descuentoNuevo = r.descuento || 0;
+          try {
+            if (typeof cuponCalcularDescuento === 'function') {
+              descuentoNuevo = cuponCalcularDescuento(subtotalElegibleNuevo);
+            }
+          } catch(e){}
+          r.tProductos = (r.tProductos || 0) + tCal;
+          r.cProductos = (r.cProductos || 0) + cCal;
+          r.subtotal = subtotalNuevo;
+          r.subtotalElegible = subtotalElegibleNuevo;
+          r.descuento = descuentoNuevo;
+          r.t = subtotalNuevo - descuentoNuevo;
+          r.c = (r.c || 0) + cCal;
+        }
+      } catch(e){
+        console.warn('[v4-cal] T() hook error', e);
+      }
+      return r;
+    };
+  }
+
+  // ─── HOOK: renderDrawer para inyectar items de calibre ─────────────────
+  if (typeof window.renderDrawer === 'function') {
+    const _origRD = window.renderDrawer;
+    window.renderDrawer = function(){
+      const ret = _origRD.apply(this, arguments);
+      try { v4InyectarCalibresEnDrawer(); } catch(e){ console.warn('[v4-cal] drawer hook', e); }
+      return ret;
+    };
+  }
+
+  function v4InyectarCalibresEnDrawer(){
+    const dBody = document.getElementById('d-body');
+    if (!dBody) return;
+    // Si el carrito está vacío, el drawer muestra "Todavía no agregaste productos".
+    // Si tenemos calibres con qty > 0, sacamos ese mensaje y mostramos calibres.
+    let totalCal = 0;
+    Object.keys(qty).forEach(function(k){
+      if (!v4CalKeyEsCalibre(k)) return;
+      const q = qty[k] || 0;
+      if (q > 0) totalCal += q;
+    });
+    if (totalCal === 0) return; // nada que inyectar
+
+    // Si el body tiene el mensaje de vacío, lo limpiamos para empezar de cero
+    const empty = dBody.querySelector('.d-empty');
+    if (empty) {
+      dBody.innerHTML = '';
+      // También hay que asegurar que el d-foot sea visible
+      const dFoot = document.getElementById('d-foot');
+      if (dFoot) dFoot.style.display = 'block';
+    }
+
+    // Recorrer todas las keys de calibre y agregar al final del drawer body
+    Object.keys(qty).forEach(function(k){
+      if (!v4CalKeyEsCalibre(k)) return;
+      const q = qty[k] || 0;
+      if (q <= 0) return;
+      const parsed = v4CalKeyParse(k);
+      if (!parsed) return;
+      const info = v4CalGetProductoByNombre(parsed.nombre);
+      if (!info) return;
+      const it = info.it;
+      const titulo = parsed.nombre + ' ' + parsed.calibre;
+      const imgSrc = (function(){
+        try {
+          if (typeof _imgmap !== 'undefined' && _imgmap[it.n]) return 'img/' + _imgmap[it.n];
+        } catch(e){}
+        return 'img/' + encodeURIComponent(it.n + '.jpg').replace(/%25/g,'%').replace(/%2F/g,'/');
+      })();
+      const div = document.createElement('div');
+      div.className = 'ci';
+      div.innerHTML =
+        '<img class="ci-img" src="' + imgSrc + '" alt="" loading="lazy" decoding="async">'
+        + '<div class="ci-inf">'
+        + '<div class="ci-n">' + titulo + '</div>'
+        + '<div class="ci-q">' + q + ' caj\u00f3n' + (q > 1 ? 'es' : '') + ' x ' + ((typeof fmt === 'function') ? fmt(it.pr) : ('$' + it.pr)) + '</div>'
+        + '</div>'
+        + '<div class="ci-p">' + ((typeof fmt === 'function') ? fmt(it.pr * q) : ('$' + (it.pr * q))) + '</div>'
+        + '<button class="ci-rm" data-v4cal-key="' + k.replace(/"/g,'&quot;') + '" aria-label="Quitar">\u2715</button>';
+      const rmBtn = div.querySelector('.ci-rm');
+      if (rmBtn) {
+        rmBtn.addEventListener('click', function(){
+          const cur = qty[k] || 0;
+          if (cur > 0) v4ChgCal(parsed.nombre, parsed.calibre, -cur);
+        });
+      }
+      dBody.appendChild(div);
+    });
+  }
+
+  // ─── HOOK: saveCartLS / loadCartLS — ya funcionan, porque guardan qty completo ──
+  // qty["cal:..."] se persiste/carga sin esfuerzo en localStorage. ✅
+
+  // ─── HOOK: clearCart — limpia también keys de calibre ──────────────────
+  if (typeof window.clearCart === 'function') {
+    const _origClear = window.clearCart;
+    window.clearCart = function(){
+      try {
+        Object.keys(qty).forEach(function(k){
+          if (v4CalKeyEsCalibre(k)) delete qty[k];
+        });
+      } catch(e){}
+      _origClear.apply(this, arguments);
+    };
+  }
+
+  // ─── HOOK: mensaje WhatsApp — interceptamos vía wrap de sendWA ─────────
+  // El mensaje se arma dentro de un onclick del modal-cliente-id. La forma
+  // más limpia es interceptar enWaProductLine para que cuando se llame con
+  // Pollo A / Pollo B devuelva ARRAY VACÍO (porque qty["si-ii"] del Pollo
+  // genérico siempre será 0) y agregar nuestras líneas en otro lado.
+  // Pero el lugar más sencillo: hookear window.encodeURIComponent justo
+  // antes del window.open. Imposible sin tocar codigo.
+  // SOLUCIÓN: hookeamos `window.open` para detectar wa.me y reescribir el
+  // texto, insertando líneas de calibre + observaciones.
+  if (typeof window.open === 'function') {
+    const _origOpen = window.open;
+    window.open = function(url, target){
+      try {
+        if (typeof url === 'string' && url.indexOf('wa.me') !== -1 && url.indexOf('?text=') !== -1) {
+          url = v4ReescribirMensajeWA(url);
+        }
+      } catch(e){ console.warn('[v4-cal] wa hook', e); }
+      return _origOpen.call(this, url, target);
+    };
+  }
+
+  function v4ReescribirMensajeWA(url){
+    // Separar la URL del query
+    const m = url.match(/^(.*?\?text=)(.*)$/);
+    if (!m) return url;
+    const prefix = m[1];
+    let mensaje = decodeURIComponent(m[2]);
+
+    // Detección de pedido: el catálogo arma "🛒 *TCK - The Chicken Kings*"
+    // como primera línea. Si no aparece, es un WhatsApp directo (no pedido)
+    // y no reescribimos.
+    if (mensaje.indexOf('TCK - The Chicken Kings') === -1) return url;
+
+    // 1) Insertar líneas de calibre (Pollo A / Pollo B)
+    const lineasCal = v4ArmarLineasWACalibre();
+    if (lineasCal.length > 0) {
+      // Las inyectamos arriba del TOTAL FINAL. Marca: '💰 *TOTAL FINAL*'
+      const marca = '💰 *TOTAL FINAL*';
+      const idxTotal = mensaje.indexOf(marca);
+      if (idxTotal !== -1) {
+        // Buscar separador anterior al TOTAL (línea ━━━━ antes de TOTAL FINAL)
+        let antes = mensaje.slice(0, idxTotal);
+        let despues = mensaje.slice(idxTotal);
+        // Insertar las líneas justo antes del separador
+        // Las metemos antes del TOTAL pero después de los demás productos
+        // Buscar el último \n antes de idxTotal
+        const lineasArr = antes.split('\n');
+        // Quitar líneas vacías y separadores al final
+        while (lineasArr.length && (lineasArr[lineasArr.length-1].trim() === '' || /^[━─]+$/.test(lineasArr[lineasArr.length-1].trim()))) {
+          lineasArr.pop();
+        }
+        const nuevoAntes = lineasArr.join('\n') + '\n\n' + lineasCal.join('\n') + '\n\n━━━━━━━━━━━━━━\n\n';
+        mensaje = nuevoAntes + despues;
+      } else {
+        // Fallback: append al final
+        mensaje = mensaje + '\n\n' + lineasCal.join('\n');
+      }
+    }
+
+    // 2) Insertar observaciones por producto
+    const lineasObs = v4ArmarLineasObservacionesWA();
+    if (lineasObs.length > 0) {
+      mensaje = mensaje + '\n\n━━━━━━━━━━━━━━\n\n📝 *Observaciones por producto:*\n' + lineasObs.join('\n');
+    }
+
+    return prefix + encodeURIComponent(mensaje);
+  }
+
+  function v4ArmarLineasWACalibre(){
+    const lineas = [];
+    // Agrupar por nombre (Pollo A, Pollo B) para ordenar
+    ['Pollo A', 'Pollo B'].forEach(function(nombre){
+      const calibres = V4_CALIBRES[nombre] || [];
+      calibres.forEach(function(cal){
+        const key = v4CalKey(nombre, cal);
+        const q = qty[key] || 0;
+        if (q <= 0) return;
+        const info = v4CalGetProductoByNombre(nombre);
+        if (!info) return;
+        const it = info.it;
+        const sec = info.sec;
+        // Emoji
+        const emoji = '🐔';
+        // Línea estilo legacy
+        const presNuevo = it.p ? (' (' + it.p.replace(/&[^;]+;/g,'') + ')') : '';
+        const cajaLbl = q === 1 ? '1 cajón' : (q + ' cajones');
+        const txt = emoji + ' *' + nombre + ' ' + cal + '*\n' + cajaLbl + presNuevo + ' x ' + ((typeof fmt === 'function') ? fmt(it.pr) : ('$' + it.pr)) + ' → ' + ((typeof fmt === 'function') ? fmt(it.pr * q) : ('$' + (it.pr * q)));
+        lineas.push(txt);
+        lineas.push('');
+      });
+    });
+    return lineas;
+  }
+
+  function v4ArmarLineasObservacionesWA(){
+    const lineas = [];
+    let ss = null;
+    try { ss = (typeof _safeSS !== 'undefined') ? _safeSS : sessionStorage; } catch(e){}
+    if (!ss) return lineas;
+
+    // Productos normales con qty > 0 y observación
+    if (typeof CAT !== 'undefined') {
+      CAT.forEach(function(s, si){
+        s.items.forEach(function(it, ii){
+          const q = qty[si + '-' + ii] || 0;
+          if (q <= 0) return;
+          try {
+            const obs = ss.getItem('tck_obs_' + it.n);
+            if (obs && obs.trim()) {
+              lineas.push('• *' + it.n + '*: ' + obs.trim());
+            }
+          } catch(e){}
+        });
+      });
+    }
+    // Productos con calibre
+    Object.keys(qty).forEach(function(k){
+      if (!v4CalKeyEsCalibre(k)) return;
+      const q = qty[k] || 0;
+      if (q <= 0) return;
+      const parsed = v4CalKeyParse(k);
+      if (!parsed) return;
+      try {
+        const obs = ss.getItem('tck_obs_' + parsed.nombre + ' ' + parsed.calibre);
+        if (obs && obs.trim()) {
+          lineas.push('• *' + parsed.nombre + ' ' + parsed.calibre + '*: ' + obs.trim());
+        }
+      } catch(e){}
+    });
+    return lineas;
+  }
+
+  // ─── SHEET: render de presentaciones (calibres) ────────────────────────
+  // Llamada DESDE v4SheetRenderCalc cuando el producto es Pollo A/B (override)
+  function v4SheetRenderPresentaciones(it, slot){
+    const calibres = V4_CALIBRES[it.n] || [];
+    if (!calibres.length) return false;
+
+    const desc = V4_DESCRIPCIONES[it.n] || '';
+
+    let html = '';
+    // Descripción (si existe)
+    if (desc) {
+      html += '<div class="v4-sheet-desc">' + desc + '</div>';
+    }
+    // Sección presentaciones
+    html += '<div class="v4-presentaciones">';
+    html += '<div class="v4-presentaciones-title">Presentaciones</div>';
+    html += '<div class="v4-presentaciones-sub">Elegí cuántos cajones de cada calibre querés.</div>';
+    html += '<div class="v4-presentaciones-list">';
+    calibres.forEach(function(cal){
+      const key = v4CalKey(it.n, cal);
+      const q = qty[key] || 0;
+      const active = q > 0;
+      const sublabel = V4_CALIBRES_SUBLABEL[cal] || '';
+      const precio = (typeof fmt === 'function') ? fmt(it.pr) : ('$' + it.pr);
+      const calEsc = cal.replace(/'/g, "\\'");
+      const nomEsc = it.n.replace(/'/g, "\\'");
+      html += '<div class="v4-pres-row' + (active ? ' active' : '') + '" data-v4-cal="' + cal + '" data-v4-pres-row="1">'
+        + '<div class="v4-pres-check">'
+        + '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>'
+        + '</div>'
+        + '<div class="v4-pres-info">'
+        + '<div class="v4-pres-label">Calibre ' + cal + '</div>'
+        + (sublabel ? '<div class="v4-pres-sublabel">' + sublabel + '</div>' : '')
+        + '<div class="v4-pres-price" style="margin-top:3px">' + precio + ' por cajón</div>'
+        + '</div>'
+        + '<div class="v4-pres-stepper">'
+        + '<button class="v4-pres-stepper-btn" data-v4-cal-minus="' + cal + '"' + (q === 0 ? ' disabled' : '') + '>−</button>'
+        + '<span class="v4-pres-stepper-value" data-v4-cal-qty="' + cal + '">' + q + '</span>'
+        + '<button class="v4-pres-stepper-btn" data-v4-cal-plus="' + cal + '">+</button>'
+        + '</div>'
+        + '</div>';
+    });
+    html += '</div>'; // .v4-presentaciones-list
+    html += '</div>'; // .v4-presentaciones
+
+    slot.insertAdjacentHTML('afterbegin', html);
+
+    // Listeners para steppers (delegado por slot ya pegado)
+    slot.querySelectorAll('[data-v4-cal-plus]').forEach(function(btn){
+      btn.addEventListener('click', function(ev){
+        ev.stopPropagation();
+        const cal = btn.getAttribute('data-v4-cal-plus');
+        v4ChgCal(it.n, cal, 1);
+      });
+    });
+    slot.querySelectorAll('[data-v4-cal-minus]').forEach(function(btn){
+      btn.addEventListener('click', function(ev){
+        ev.stopPropagation();
+        const cal = btn.getAttribute('data-v4-cal-minus');
+        v4ChgCal(it.n, cal, -1);
+      });
+    });
+    // Click en toda la fila también suma 1 (sólo si qty=0) — comportamiento Pedix
+    slot.querySelectorAll('[data-v4-pres-row]').forEach(function(row){
+      row.addEventListener('click', function(ev){
+        // No disparar si el click fue en un stepper (ya se manejó arriba)
+        if (ev.target.closest('.v4-pres-stepper')) return;
+        const cal = row.getAttribute('data-v4-cal');
+        const key = v4CalKey(it.n, cal);
+        const cur = qty[key] || 0;
+        if (cur === 0) v4ChgCal(it.n, cal, 1);
+      });
+    });
+
+    return true;
+  }
+
+  // Actualizar visualmente las filas de presentaciones tras un chg
+  function v4SheetActualizarFilasPollo(){
+    const sheet = document.getElementById('v4-sheet');
+    if (!sheet || sheet.getAttribute('data-pollo-ab') !== '1') return;
+    const prodName = sheet.getAttribute('data-prod-nombre');
+    if (!prodName) return;
+    const calibres = V4_CALIBRES[prodName] || [];
+    calibres.forEach(function(cal){
+      const key = v4CalKey(prodName, cal);
+      const q = qty[key] || 0;
+      const row = sheet.querySelector('.v4-pres-row[data-v4-cal="' + cal + '"]');
+      if (!row) return;
+      row.classList.toggle('active', q > 0);
+      const qv = row.querySelector('[data-v4-cal-qty="' + cal + '"]');
+      if (qv) qv.textContent = q;
+      const minusBtn = row.querySelector('[data-v4-cal-minus="' + cal + '"]');
+      if (minusBtn) minusBtn.disabled = (q === 0);
+    });
+    // Actualizar el footer del sheet con el total de los calibres
+    v4SheetSyncFooterPollo();
+  }
+
+  function v4SheetSyncFooterPollo(){
+    const sheet = document.getElementById('v4-sheet');
+    if (!sheet || sheet.getAttribute('data-pollo-ab') !== '1') return;
+    const prodName = sheet.getAttribute('data-prod-nombre');
+    if (!prodName) return;
+    const calibres = V4_CALIBRES[prodName] || [];
+    let totalCajones = 0, totalPesos = 0;
+    const info = v4CalGetProductoByNombre(prodName);
+    if (!info) return;
+    calibres.forEach(function(cal){
+      const key = v4CalKey(prodName, cal);
+      const q = qty[key] || 0;
+      totalCajones += q;
+      totalPesos += q * (info.it.pr || 0);
+    });
+    const addBtn = document.getElementById('v4-sheet-foot-add');
+    if (!addBtn) return;
+    const lbl = addBtn.querySelector('span:first-child');
+    const sub = addBtn.querySelector('.v4-sheet-foot-add-subtotal');
+    if (totalCajones === 0) {
+      if (lbl) lbl.textContent = 'Cerrar';
+      if (sub) sub.textContent = '';
+      addBtn.style.background = 'linear-gradient(135deg,#888,#666)';
+    } else {
+      if (lbl) lbl.textContent = (totalCajones === 1 ? '1 cajón' : (totalCajones + ' cajones')) + ' agregados';
+      if (sub) sub.textContent = '· ' + ((typeof fmt === 'function') ? fmt(totalPesos) : ('$' + totalPesos));
+      addBtn.style.background = 'linear-gradient(135deg,var(--red),var(--red2))';
+    }
+  }
+
+  // ─── SHEET: render de observaciones (todos los productos) ──────────────
+  function v4SheetRenderObservaciones(it){
+    const slot = document.getElementById('v4-sheet-calc-slot');
+    if (!slot) return;
+
+    // Determinar la key de observaciones — si es Pollo A/B la guardamos por
+    // producto base (no por calibre) para que sea más simple. Si querés
+    // observación distinta por calibre, complicamos después.
+    const obsKey = 'tck_obs_' + it.n;
+
+    let saved = '';
+    try {
+      const ss = (typeof _safeSS !== 'undefined') ? _safeSS : sessionStorage;
+      saved = ss.getItem(obsKey) || '';
+    } catch(e){}
+
+    const wrap = document.createElement('div');
+    wrap.className = 'v4-observaciones';
+    wrap.innerHTML =
+      '<div class="v4-observaciones-hdr">'
+      + '<div class="v4-observaciones-title">Observaciones</div>'
+      + '<div class="v4-observaciones-count"><span id="v4-obs-count">' + saved.length + '</span> / 150</div>'
+      + '</div>'
+      + '<textarea class="v4-observaciones-textarea" id="v4-obs-textarea" maxlength="150" placeholder="Indicaciones para tu vendedor (opcional)…">' + saved.replace(/</g,'&lt;') + '</textarea>'
+      + '<div class="v4-observaciones-saved" id="v4-obs-saved">✓ Guardado</div>';
+    slot.appendChild(wrap);
+
+    const ta = wrap.querySelector('#v4-obs-textarea');
+    const counter = wrap.querySelector('#v4-obs-count');
+    const savedHint = wrap.querySelector('#v4-obs-saved');
+    let _obsTimer = null;
+    if (ta) {
+      ta.addEventListener('input', function(){
+        if (counter) counter.textContent = ta.value.length;
+        if (_obsTimer) clearTimeout(_obsTimer);
+        _obsTimer = setTimeout(function(){
+          try {
+            const ss = (typeof _safeSS !== 'undefined') ? _safeSS : sessionStorage;
+            if (ta.value.trim()) ss.setItem(obsKey, ta.value);
+            else ss.removeItem(obsKey);
+            if (savedHint) {
+              savedHint.classList.add('show');
+              setTimeout(function(){ savedHint.classList.remove('show'); }, 1400);
+            }
+          } catch(e){}
+        }, 320);
+      });
+    }
+  }
+
+  // ─── HOOK: v4SheetRenderCalc (que ya existe en Fase 4) ─────────────────
+  // Lo wrappeamos para que ANTES de renderizar la calc legacy:
+  // - Si es Pollo A/B → renderizar Presentaciones en lugar de la calc vieja
+  // Y SIEMPRE al final → renderizar Observaciones
+  // Como v4SheetRenderCalc no está expuesta a window (es función interna del
+  // IIFE de Fase 4), no podemos wrappearla directamente. En su lugar:
+  // wrappeamos v4SheetOpenFromCard / v4SheetRender para inyectar después de
+  // que la calc legacy se haya renderizado. Lo más simple: hook a la
+  // construcción inicial del sheet vía el atributo data-pollo-ab y el
+  // marcado del producto.
+  //
+  // Estrategia: parchamos el sheet render observando mutaciones del slot.
+  // Más limpio: monkey patch del MutationObserver.
+  //
+  // Pragmático: observamos cuando el sheet se abre (clase .on) y, en ese
+  // momento, leemos el producto activo desde v4SheetState (no está expuesto
+  // pero el DOM tiene #v4-sheet-prod-name con el nombre).
+  function v4InyectarEnSheet(){
+    const sheet = document.getElementById('v4-sheet');
+    const slot = document.getElementById('v4-sheet-calc-slot');
+    const nameEl = document.getElementById('v4-sheet-prod-name');
+    if (!sheet || !slot || !nameEl) return;
+    const nombre = nameEl.textContent || '';
+    if (!nombre) return;
+    const info = v4CalGetProductoByNombre(nombre);
+    if (!info) return;
+    const it = info.it;
+
+    // Marcar el sheet con atributos para CSS condicional
+    sheet.setAttribute('data-prod-nombre', it.n);
+    const esPollo = v4EsPolloAB(it);
+    sheet.setAttribute('data-pollo-ab', esPollo ? '1' : '0');
+
+    // Evitar doble inyección: si el slot ya tiene .v4-presentaciones o .v4-observaciones, saltamos
+    if (slot.querySelector('.v4-observaciones')) return;
+
+    // Si es Pollo A/B: quitar la calculadora legacy del slot y poner Presentaciones
+    if (esPollo) {
+      // Limpiar calc/calibre legacy si están dentro del slot
+      const legacyCalc = slot.querySelector('.calc-toggle, .calc-panel, .calibre-row');
+      if (legacyCalc) slot.innerHTML = '';
+      // Renderizar Presentaciones (descripción + calibres) al inicio del slot
+      v4SheetRenderPresentaciones(it, slot);
+    }
+
+    // Observaciones se renderizan en TODOS los productos (Pollo A/B también)
+    v4SheetRenderObservaciones(it);
+
+    // Sincronizar footer (en Pollo A/B muestra totales de cajones)
+    if (esPollo) v4SheetSyncFooterPollo();
+  }
+
+  // MutationObserver: detecta cuando .v4-sheet recibe clase .on
+  function v4SetupSheetObserver(){
+    const sheet = document.getElementById('v4-sheet');
+    if (!sheet) {
+      // Reintentar hasta 30 veces (3s)
+      let tries = 0;
+      const t = setInterval(function(){
+        tries++;
+        if (document.getElementById('v4-sheet')) {
+          clearInterval(t);
+          v4SetupSheetObserver();
+        } else if (tries > 30) {
+          clearInterval(t);
+          console.warn('[v4-cal] v4-sheet no apareció');
+        }
+      }, 100);
+      return;
+    }
+    let _lastWasOpen = false;
+    const obs = new MutationObserver(function(){
+      const isOpen = sheet.classList.contains('on');
+      if (isOpen && !_lastWasOpen) {
+        // Se acaba de abrir: inyectar contenido v4.4
+        setTimeout(v4InyectarEnSheet, 30);
+      } else if (!isOpen && _lastWasOpen) {
+        // Se cerró: limpiar atributos para próxima apertura
+        sheet.removeAttribute('data-pollo-ab');
+        sheet.removeAttribute('data-prod-nombre');
+      }
+      _lastWasOpen = isOpen;
+    });
+    obs.observe(sheet, { attributes: true, attributeFilter: ['class'] });
+  }
+  v4SetupSheetObserver();
+
+  // ─── HOOK: el botón "Agregar" del sheet hace cosas distintas si Pollo A/B
+  // En Pollo A/B no hay un único qty para sumar — los calibres ya se
+  // agregaron uno por uno. Entonces "Agregar" significa simplemente cerrar.
+  // Como el handler está expuesto como window.v4SheetAgregar, lo wrappeamos:
+  if (typeof window.v4SheetAgregar === 'function') {
+    const _origAgregar = window.v4SheetAgregar;
+    window.v4SheetAgregar = function(){
+      const sheet = document.getElementById('v4-sheet');
+      if (sheet && sheet.getAttribute('data-pollo-ab') === '1') {
+        // Solo cerrar (los calibres ya se sumaron individualmente)
+        if (typeof window.v4SheetClose === 'function') window.v4SheetClose();
+        return;
+      }
+      return _origAgregar.apply(this, arguments);
+    };
+  }
+
+  // ─── HOOK: ocultar el botón "+" de la card de Pollo A/B en la lista ────
+  // El "+" genérico no sirve (no sabe qué calibre). Forzamos al cliente a
+  // entrar al detalle del producto donde elige el calibre.
+  // CSS: ya esconderíamos .qrow para Pollo A/B pero el selector no sabe
+  // qué producto es cada card. Lo marcamos por JS leyendo data-key → CAT.
+  function v4OcultarBotonPolloABEnLista(){
+    if (typeof CAT === 'undefined') return;
+    const cards = document.querySelectorAll('.body .card[data-key]');
+    cards.forEach(function(card){
+      const key = card.getAttribute('data-key') || '';
+      const parts = key.split('-');
+      if (parts.length !== 2) return;
+      const si = parseInt(parts[0], 10);
+      const ii = parseInt(parts[1], 10);
+      if (!CAT[si] || !CAT[si].items[ii]) return;
+      const it = CAT[si].items[ii];
+      if (v4EsPolloAB(it)) {
+        const qrow = card.querySelector('.qrow');
+        if (qrow) qrow.style.display = 'none';
+        // Hint visual: agregar pequeña "Elegí calibre" debajo del precio
+        if (!card.querySelector('.v4-elegi-calibre-hint')) {
+          const hint = document.createElement('div');
+          hint.className = 'v4-elegi-calibre-hint';
+          hint.style.cssText = 'position:absolute;right:10px;bottom:11px;font-size:11px;color:var(--red);font-weight:700;font-family:Barlow Condensed,sans-serif;letter-spacing:.3px;text-transform:uppercase;background:#fff;padding:6px 10px;border-radius:14px;border:1px solid var(--red);';
+          hint.textContent = 'Elegir calibre →';
+          card.appendChild(hint);
+        }
+        // Si tiene calibres con qty>0, mostrar badge con la cantidad total
+        let totalCajones = 0;
+        (V4_CALIBRES[it.n] || []).forEach(function(cal){
+          totalCajones += qty[v4CalKey(it.n, cal)] || 0;
+        });
+        let badge = card.querySelector('.v4-cal-badge-total');
+        if (totalCajones > 0) {
+          if (!badge) {
+            badge = document.createElement('div');
+            badge.className = 'v4-cal-badge-total';
+            badge.style.cssText = 'position:absolute;right:10px;top:10px;background:var(--red);color:#fff;border-radius:11px;padding:3px 10px;font-family:Barlow Condensed,sans-serif;font-weight:900;font-size:11px;letter-spacing:.3px;z-index:3;box-shadow:0 2px 5px rgba(139,0,0,.3);';
+            card.appendChild(badge);
+          }
+          badge.textContent = '✓ ' + totalCajones + (totalCajones === 1 ? ' cajón' : ' cajones');
+          card.classList.add('has-qty');
+        } else {
+          if (badge) badge.remove();
+          card.classList.remove('has-qty');
+        }
+      }
+    });
+  }
+
+  // Llamar al render de la lista y tras cada chg para mantener el hint sincronizado
+  function v4InitOcultarBotonesPollo(){
+    v4OcultarBotonPolloABEnLista();
+    // Re-aplicar cuando el body cambie (cambio de categoría, scroll virtual, etc.)
+    // Con debounce para evitar loops innecesarios.
+    const body = document.getElementById('body');
+    if (body && !body.dataset.v4PolloOculto) {
+      body.dataset.v4PolloOculto = '1';
+      let _t = null;
+      const mo = new MutationObserver(function(mutations){
+        // Solo nos interesa cuando se agregan/quitan cards (no cambios internos)
+        const hayCardsNuevas = mutations.some(function(m){
+          if (m.type !== 'childList') return false;
+          for (let i = 0; i < m.addedNodes.length; i++) {
+            const n = m.addedNodes[i];
+            if (n.nodeType === 1 && (n.classList && (n.classList.contains('card') || n.querySelector && n.querySelector('.card')))) return true;
+          }
+          return false;
+        });
+        if (!hayCardsNuevas) return;
+        if (_t) clearTimeout(_t);
+        _t = setTimeout(v4OcultarBotonPolloABEnLista, 60);
+      });
+      mo.observe(body, { childList: true, subtree: true });
+    }
+  }
+  // Hookear updateBar para refrescar badges con totales actualizados
+  if (typeof window.updateBar === 'function') {
+    const _origUB2 = window.updateBar;
+    window.updateBar = function(){
+      _origUB2.apply(this, arguments);
+      try { v4OcultarBotonPolloABEnLista(); } catch(e){}
+    };
+  }
+
+  if (document.readyState !== 'loading') {
+    setTimeout(v4InitOcultarBotonesPollo, 800);
+  } else {
+    document.addEventListener('DOMContentLoaded', function(){ setTimeout(v4InitOcultarBotonesPollo, 800); });
+  }
+
+  // ─── Limpieza de keys legacy de "tck_cal_" en sessionStorage ───────────
+  // El input legacy de calibre (tck_cal_Pollo A = "x7") ya no aplica:
+  // ahora el calibre está en el carrito. Limpiamos por las dudas.
+  try {
+    const ss = (typeof _safeSS !== 'undefined') ? _safeSS : sessionStorage;
+    ss.removeItem('tck_cal_Pollo A');
+    ss.removeItem('tck_cal_Pollo B');
+  } catch(e){}
+
+  console.log('%c[TCK v4.4.0]%c Fase 4.1 activa · presentaciones calibre · observaciones',
     'background:#8B0000;color:#FFD700;padding:2px 6px;border-radius:3px;font-weight:bold',
     'color:#5C3A1E');
 
