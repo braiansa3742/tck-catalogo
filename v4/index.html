@@ -7702,6 +7702,57 @@ body.v4-mode .body .sec-grid{
   }
 }
 
+/* ═══════════════════════════════════════════════════════════════════════
+   v4.4.1 — Cards Pollo A/B (data-pollo-ab="1"): ocultar "+", mostrar pill
+   ──────────────────────────────────────────────────────────────────────
+   El "+" genérico no sirve para Pollo A/B (no sabe el calibre).
+   El cliente debe abrir el sheet para elegir x6 o x7.
+   Esto se aplica via CSS (sin esperar a JS) usando data-pollo-ab=1.
+   ════════════════════════════════════════════════════════════════════ */
+
+body.v4-mode .body .card[data-pollo-ab="1"] .qrow{display:none !important}
+
+/* Pill "Elegir calibre →" reemplaza al botón "+" */
+body.v4-mode .body .card[data-pollo-ab="1"] .card-body::after{
+  content:'Elegir calibre →';
+  position:absolute;
+  right:10px;
+  bottom:10px;
+  font-size:11px;
+  color:var(--red);
+  font-weight:800;
+  font-family:'Barlow Condensed',sans-serif;
+  letter-spacing:.4px;
+  text-transform:uppercase;
+  background:#fff;
+  padding:7px 11px;
+  border-radius:16px;
+  border:1.5px solid var(--red);
+  box-shadow:0 2px 5px rgba(139,0,0,.15);
+  cursor:pointer;
+  pointer-events:none; /* el click pasa al .card y abre el sheet */
+  white-space:nowrap;
+}
+
+/* Cuando la card de Pollo A/B tiene calibres con qty>0, badge arriba a la derecha */
+body.v4-mode .body .card[data-pollo-ab="1"][data-v4-cal-total]:not([data-v4-cal-total="0"])::before{
+  content:'\2713 ' attr(data-v4-cal-total) ' cajones';
+  position:absolute;
+  right:9px;
+  top:9px;
+  background:var(--red);
+  color:#fff;
+  border-radius:12px;
+  padding:3px 11px;
+  font-family:'Barlow Condensed',sans-serif;
+  font-weight:900;
+  font-size:11px;
+  letter-spacing:.3px;
+  z-index:3;
+  box-shadow:0 2px 5px rgba(139,0,0,.3);
+  pointer-events:none;
+}
+
 /* Mobile pequeño: foto un poco más chica */
 @media (max-width:380px){
   body.v4-mode .body .card:not(.card-dual):not(.combo-card):not(.promo-card) .card-img-area{
@@ -17565,35 +17616,19 @@ function confirmarCiudadNoAtendida() {
       if (!CAT[si] || !CAT[si].items[ii]) return;
       const it = CAT[si].items[ii];
       if (v4EsPolloAB(it)) {
-        const qrow = card.querySelector('.qrow');
-        if (qrow) qrow.style.display = 'none';
-        // Hint visual: agregar pequeña "Elegí calibre" debajo del precio
-        if (!card.querySelector('.v4-elegi-calibre-hint')) {
-          const hint = document.createElement('div');
-          hint.className = 'v4-elegi-calibre-hint';
-          hint.style.cssText = 'position:absolute;right:10px;bottom:11px;font-size:11px;color:var(--red);font-weight:700;font-family:Barlow Condensed,sans-serif;letter-spacing:.3px;text-transform:uppercase;background:#fff;padding:6px 10px;border-radius:14px;border:1px solid var(--red);';
-          hint.textContent = 'Elegir calibre →';
-          card.appendChild(hint);
+        // Marca: el CSS hace el resto (oculta qrow, muestra pill, etc.)
+        if (card.getAttribute('data-pollo-ab') !== '1') {
+          card.setAttribute('data-pollo-ab', '1');
         }
-        // Si tiene calibres con qty>0, mostrar badge con la cantidad total
+        // Total de cajones (suma de todos los calibres del producto)
         let totalCajones = 0;
         (V4_CALIBRES[it.n] || []).forEach(function(cal){
           totalCajones += qty[v4CalKey(it.n, cal)] || 0;
         });
-        let badge = card.querySelector('.v4-cal-badge-total');
-        if (totalCajones > 0) {
-          if (!badge) {
-            badge = document.createElement('div');
-            badge.className = 'v4-cal-badge-total';
-            badge.style.cssText = 'position:absolute;right:10px;top:10px;background:var(--red);color:#fff;border-radius:11px;padding:3px 10px;font-family:Barlow Condensed,sans-serif;font-weight:900;font-size:11px;letter-spacing:.3px;z-index:3;box-shadow:0 2px 5px rgba(139,0,0,.3);';
-            card.appendChild(badge);
-          }
-          badge.textContent = '✓ ' + totalCajones + (totalCajones === 1 ? ' cajón' : ' cajones');
-          card.classList.add('has-qty');
-        } else {
-          if (badge) badge.remove();
-          card.classList.remove('has-qty');
-        }
+        card.setAttribute('data-v4-cal-total', String(totalCajones));
+        // Toggle has-qty solo según calibres (no según qty["si-ii"] legacy)
+        if (totalCajones > 0) card.classList.add('has-qty');
+        else card.classList.remove('has-qty');
       }
     });
   }
@@ -17601,29 +17636,40 @@ function confirmarCiudadNoAtendida() {
   // Llamar al render de la lista y tras cada chg para mantener el hint sincronizado
   function v4InitOcultarBotonesPollo(){
     v4OcultarBotonPolloABEnLista();
-    // Re-aplicar cuando el body cambie (cambio de categoría, scroll virtual, etc.)
-    // Con debounce para evitar loops innecesarios.
-    const body = document.getElementById('body');
-    if (body && !body.dataset.v4PolloOculto) {
-      body.dataset.v4PolloOculto = '1';
-      let _t = null;
-      const mo = new MutationObserver(function(mutations){
-        // Solo nos interesa cuando se agregan/quitan cards (no cambios internos)
-        const hayCardsNuevas = mutations.some(function(m){
-          if (m.type !== 'childList') return false;
-          for (let i = 0; i < m.addedNodes.length; i++) {
-            const n = m.addedNodes[i];
-            if (n.nodeType === 1 && (n.classList && (n.classList.contains('card') || n.querySelector && n.querySelector('.card')))) return true;
-          }
-          return false;
-        });
-        if (!hayCardsNuevas) return;
-        if (_t) clearTimeout(_t);
-        _t = setTimeout(v4OcultarBotonPolloABEnLista, 60);
-      });
-      mo.observe(body, { childList: true, subtree: true });
-    }
   }
+
+  // HOOK CLAVE: renderBody es donde el catálogo legacy renderea las cards.
+  // Cualquier re-render llama a esto. Lo hookeamos para marcar Pollo A/B
+  // INMEDIATAMENTE después de que las cards aparezcan en el DOM.
+  if (typeof window.renderBody === 'function') {
+    const _origRB = window.renderBody;
+    window.renderBody = function(){
+      const ret = _origRB.apply(this, arguments);
+      try { v4OcultarBotonPolloABEnLista(); } catch(e){}
+      return ret;
+    };
+  } else {
+    // renderBody aún no está definida — la hookeamos cuando aparezca
+    let _rbTries = 0;
+    const _rbT = setInterval(function(){
+      _rbTries++;
+      if (typeof window.renderBody === 'function') {
+        clearInterval(_rbT);
+        const _origRB = window.renderBody;
+        window.renderBody = function(){
+          const ret = _origRB.apply(this, arguments);
+          try { v4OcultarBotonPolloABEnLista(); } catch(e){}
+          return ret;
+        };
+        // Una vez hookeada, también marcamos las cards actuales
+        v4OcultarBotonPolloABEnLista();
+      } else if (_rbTries > 60) {
+        clearInterval(_rbT);
+        console.warn('[v4-cal] renderBody nunca apareció en 6s');
+      }
+    }, 100);
+  }
+
   // Hookear updateBar para refrescar badges con totales actualizados
   if (typeof window.updateBar === 'function') {
     const _origUB2 = window.updateBar;
@@ -17633,13 +17679,73 @@ function confirmarCiudadNoAtendida() {
     };
   }
 
+  // Polling de respaldo durante los primeros 8 segundos
+  // (por si renderBody nunca dispara o se carga antes que nuestro hook)
+  let _pollTries = 0;
+  const _pollT = setInterval(function(){
+    _pollTries++;
+    v4OcultarBotonPolloABEnLista();
+    if (_pollTries > 16) clearInterval(_pollT); // 16 × 500ms = 8s
+  }, 500);
+
   if (document.readyState !== 'loading') {
-    setTimeout(v4InitOcultarBotonesPollo, 800);
+    setTimeout(v4InitOcultarBotonesPollo, 50);
   } else {
-    document.addEventListener('DOMContentLoaded', function(){ setTimeout(v4InitOcultarBotonesPollo, 800); });
+    document.addEventListener('DOMContentLoaded', function(){ setTimeout(v4InitOcultarBotonesPollo, 50); });
   }
 
-  // ─── Limpieza de keys legacy de "tck_cal_" en sessionStorage ───────────
+  // ─── FAILSAFE: bloquear chg() en Pollo A/B genérico ────────────────────
+  // Si por alguna razón el "+" de la card de Pollo A/B se quedó visible y
+  // el cliente lo toca, ANULAMOS la suma y abrimos el sheet para que
+  // elija el calibre. Esto previene el bug "Pollo A x N sin calibre en
+  // el carrito".
+  if (typeof window.chg === 'function') {
+    const _origChg = window.chg;
+    window.chg = function(key, si, ii, d){
+      try {
+        // Solo en v4-mode
+        if (document.body.classList.contains('v4-mode')) {
+          if (typeof CAT !== 'undefined' && CAT[si] && CAT[si].items[ii]) {
+            const it = CAT[si].items[ii];
+            if (v4EsPolloAB(it) && d > 0) {
+              // Anulamos la suma. Abrimos el sheet del producto.
+              const card = document.querySelector('.card[data-key="' + key + '"]');
+              if (card && typeof v4SheetOpenFromCard === 'function') {
+                v4SheetOpenFromCard(card);
+                return; // No sumamos qty["si-ii"]
+              }
+            }
+            // Si es Pollo A/B y d < 0 (resta), también lo bloqueamos porque
+            // qty["si-ii"] del genérico debería ser siempre 0
+            if (v4EsPolloAB(it) && d < 0) return;
+          }
+        }
+      } catch(e){ console.warn('[v4-cal] chg failsafe', e); }
+      return _origChg.call(this, key, si, ii, d);
+    };
+  }
+
+  // Exponer v4SheetOpenFromCard al global scope para que el failsafe la
+  // pueda llamar (no estaba expuesta en Fase 4)
+  if (typeof v4SheetOpenFromCard === 'function' && typeof window.v4SheetOpenFromCard === 'undefined') {
+    window.v4SheetOpenFromCard = v4SheetOpenFromCard;
+  }
+
+  // Limpieza de cualquier qty["si-ii"] de Pollo A/B genérico que haya quedado
+  // de una sesión previa (cuando el bug estaba activo)
+  try {
+    if (typeof CAT !== 'undefined') {
+      CAT.forEach(function(s, si){
+        s.items.forEach(function(it, ii){
+          if (v4EsPolloAB(it)) {
+            const k = si + '-' + ii;
+            if (qty[k]) delete qty[k];
+          }
+        });
+      });
+      if (typeof saveCartLS === 'function') saveCartLS();
+    }
+  } catch(e){}
   // El input legacy de calibre (tck_cal_Pollo A = "x7") ya no aplica:
   // ahora el calibre está en el carrito. Limpiamos por las dudas.
   try {
@@ -17648,7 +17754,7 @@ function confirmarCiudadNoAtendida() {
     ss.removeItem('tck_cal_Pollo B');
   } catch(e){}
 
-  console.log('%c[TCK v4.4.0]%c Fase 4.1 activa · presentaciones calibre · observaciones',
+  console.log('%c[TCK v4.4.1]%c Fase 4.1 patch · failsafe Pollo A/B + CSS-based hide',
     'background:#8B0000;color:#FFD700;padding:2px 6px;border-radius:3px;font-weight:bold',
     'color:#5C3A1E');
 
