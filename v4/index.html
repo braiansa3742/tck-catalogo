@@ -7061,6 +7061,301 @@ body.v4-search-open{overflow:hidden}
   .v4-hdr-logo-circle{width:30px;height:30px;font-size:11px}
 }
 
+/* ═══════════════════════════════════════════════════════════════════════
+   v4.1.0 — FASE 2 · HOME PEDIX + VISTA DE CATEGORÍA
+   ──────────────────────────────────────────────────────────────────────
+   Tres vistas posibles (controladas con class en <body>):
+   · .v4-vista-home       → ver 6 categorías (default al entrar)
+   · .v4-vista-categoria  → ver productos de UNA categoría visual
+   · .v4-vista-todo       → ver feed plano completo (legacy)
+   ════════════════════════════════════════════════════════════════════ */
+
+/* ═══════════════ HOME — Pantalla de categorías ═══════════════ */
+.v4-home{
+  display:none;
+  background:var(--cream);
+  flex:1;
+  overflow-y:auto;
+  -webkit-overflow-scrolling:touch;
+}
+body.v4-mode.v4-vista-home .v4-home{display:block}
+
+/* Título de página dorado */
+.v4-home-title{
+  background:linear-gradient(135deg,var(--gold3),var(--gold));
+  padding:14px 16px;
+}
+.v4-home-title h1{
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:22px;font-weight:900;color:#fff;
+  letter-spacing:1.2px;text-transform:uppercase;
+  text-shadow:0 1px 2px rgba(92,0,0,.25);
+  line-height:1;margin:0;
+}
+.v4-home-title-sub{
+  font-size:11px;color:rgba(255,255,255,.92);
+  margin-top:4px;
+  font-weight:500;
+  text-shadow:0 1px 1px rgba(92,0,0,.2);
+}
+
+/* Grid 1xN de categorías */
+.v4-cat-list{
+  padding:12px 12px 8px;
+  display:flex;flex-direction:column;gap:10px;
+}
+
+.v4-cat-card{
+  height:128px;
+  border-radius:13px;
+  overflow:hidden;
+  position:relative;
+  cursor:pointer;
+  box-shadow:0 2px 6px rgba(0,0,0,.08);
+  transition:transform .15s;
+  border:none;
+  background:#333;
+  padding:0;
+  width:100%;
+  text-align:left;
+  display:block;
+}
+.v4-cat-card:active{transform:scale(.97)}
+
+/* Capa de imagen real (si carga) o gradiente (fallback) */
+.v4-cat-img-real{
+  position:absolute;inset:0;
+  background-size:cover;background-position:center;
+  opacity:0;
+  transition:opacity .25s ease;
+}
+.v4-cat-img-real.loaded{opacity:1}
+
+/* Placeholder gradientes */
+.v4-cat-img-fallback{
+  position:absolute;inset:0;
+}
+.v4-cat-img-fallback.pollos{
+  background:
+    radial-gradient(circle at 70% 35%, #f5d09a 0%, transparent 45%),
+    radial-gradient(circle at 25% 60%, #e8b878 0%, transparent 50%),
+    linear-gradient(135deg,#c89460 0%,#6e3f1c 100%);
+}
+.v4-cat-img-fallback.huevos{
+  background:
+    radial-gradient(ellipse at 30% 40%, #fff5d8 0%, transparent 40%),
+    radial-gradient(ellipse at 70% 60%, #f8e0a8 0%, transparent 45%),
+    linear-gradient(135deg,#d4b078 0%,#6e4f1c 100%);
+}
+.v4-cat-img-fallback.rebozados{
+  background:
+    radial-gradient(circle at 60% 45%, #f0c878 0%, transparent 45%),
+    radial-gradient(circle at 30% 60%, #d8a040 0%, transparent 45%),
+    linear-gradient(135deg,#b87830 0%,#5c2e0c 100%);
+}
+.v4-cat-img-fallback.verduras{
+  background:
+    radial-gradient(circle at 70% 40%, #f4a83a 0%, transparent 40%),
+    radial-gradient(circle at 30% 55%, #8cb850 0%, transparent 50%),
+    linear-gradient(135deg,#6c8c30 0%,#2c4010 100%);
+}
+.v4-cat-img-fallback.pastas{
+  background:
+    radial-gradient(ellipse at 40% 45%, #f0d088 0%, transparent 45%),
+    radial-gradient(ellipse at 70% 60%, #d8a050 0%, transparent 45%),
+    linear-gradient(135deg,#a87038 0%,#4c2810 100%);
+}
+.v4-cat-img-fallback.combos{
+  background:
+    radial-gradient(circle at 30% 35%, #f8d878 0%, transparent 45%),
+    radial-gradient(circle at 70% 60%, #f08828 0%, transparent 45%),
+    linear-gradient(135deg,#c84020 0%,#5c0808 100%);
+}
+
+/* Overlay oscuro */
+.v4-cat-overlay{
+  position:absolute;inset:0;
+  background:linear-gradient(135deg,rgba(0,0,0,.15) 0%,rgba(0,0,0,.55) 100%);
+}
+
+/* Nombre + sub */
+.v4-cat-name{
+  position:absolute;
+  left:18px;bottom:14px;right:60px;
+  z-index:2;
+}
+.v4-cat-name-text{
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:26px;font-weight:900;color:#fff;
+  letter-spacing:1.5px;text-transform:uppercase;
+  text-shadow:0 2px 8px rgba(0,0,0,.7);
+  line-height:1;
+}
+.v4-cat-name-sub{
+  font-size:11.5px;color:rgba(255,255,255,.92);
+  margin-top:5px;
+  font-weight:500;
+  text-shadow:0 1px 4px rgba(0,0,0,.6);
+  line-height:1.2;
+}
+
+/* Flecha derecha */
+.v4-cat-arrow{
+  position:absolute;
+  right:14px;top:50%;transform:translateY(-50%);
+  z-index:2;
+  width:32px;height:32px;
+  background:rgba(255,255,255,.92);
+  border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  color:var(--red);
+  box-shadow:0 2px 6px rgba(0,0,0,.25);
+}
+.v4-cat-arrow svg{width:16px;height:16px}
+
+/* Badge (PROMO) */
+.v4-cat-badge{
+  position:absolute;top:10px;right:10px;
+  background:var(--red);color:#fff;
+  padding:3px 9px;border-radius:4px;
+  font-family:'Barlow Condensed',sans-serif;
+  font-weight:900;font-size:10px;letter-spacing:.5px;
+  text-transform:uppercase;
+  z-index:2;
+  box-shadow:0 2px 5px rgba(0,0,0,.3);
+  animation:v4-pulse 1.8s ease-in-out infinite;
+}
+@keyframes v4-pulse{
+  0%,100%{transform:scale(1)}
+  50%{transform:scale(1.06)}
+}
+
+/* Card combos: estilo especial */
+.v4-cat-card.combos-card{
+  border:2px solid var(--gold);
+  box-shadow:0 3px 10px rgba(255,215,0,.3);
+}
+
+/* Atajo "Ver todo el catálogo" */
+.v4-ver-todo{
+  margin:6px 12px 18px;
+  padding:14px 16px;
+  background:#fff;
+  border:1.5px dashed var(--cream3);
+  border-radius:11px;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  cursor:pointer;
+  color:var(--text2);
+  font-size:13px;font-weight:600;
+  width:calc(100% - 24px);
+}
+.v4-ver-todo:active{background:var(--cream2)}
+.v4-ver-todo svg{color:var(--red);width:18px;height:18px}
+
+/* Indicador de scroll-cue al final (opcional, sutil) */
+.v4-home-foot{
+  text-align:center;padding:6px 12px 24px;
+  font-size:10.5px;color:var(--text3);
+  font-family:'Barlow Condensed',sans-serif;
+  letter-spacing:1.5px;text-transform:uppercase;
+}
+
+/* ═══════════════ VISTA DE CATEGORÍA — sub-header ═══════════════ */
+.v4-cat-subhdr{
+  display:none;
+  background:linear-gradient(135deg,var(--gold3),var(--gold));
+  padding:10px 12px;
+  align-items:center;gap:10px;
+  border-bottom:1px solid rgba(0,0,0,.08);
+}
+body.v4-mode.v4-vista-categoria .v4-cat-subhdr{display:flex}
+
+.v4-cat-back{
+  background:rgba(255,255,255,.25);
+  border:1.5px solid rgba(255,255,255,.45);
+  color:#fff;
+  width:36px;height:36px;
+  border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;flex-shrink:0;
+  padding:0;
+  text-shadow:0 1px 2px rgba(0,0,0,.25);
+}
+.v4-cat-back:active{background:rgba(255,255,255,.4)}
+.v4-cat-back svg{width:18px;height:18px;color:#fff}
+
+.v4-cat-subhdr-info{flex:1;min-width:0}
+.v4-cat-subhdr-titulo{
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:19px;font-weight:900;color:#fff;
+  letter-spacing:1px;text-transform:uppercase;
+  line-height:1;
+  text-shadow:0 1px 2px rgba(92,0,0,.25);
+}
+.v4-cat-subhdr-sub{
+  font-size:11px;color:rgba(255,255,255,.92);
+  margin-top:3px;font-weight:500;line-height:1.2;
+  text-shadow:0 1px 1px rgba(92,0,0,.2);
+}
+
+/* Botón buscar dentro del sub-header */
+.v4-cat-search-btn{
+  width:36px;height:36px;
+  background:rgba(255,255,255,.25);
+  border:1.5px solid rgba(255,255,255,.45);
+  color:#fff;
+  border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;flex-shrink:0;
+  padding:0;
+}
+.v4-cat-search-btn svg{width:16px;height:16px}
+
+/* ═══════════════ CONTROL DE VISIBILIDAD POR VISTA ═══════════════ */
+/* En v4-vista-home: solo se ve la home (oculta body legacy, catnav, search-wrap, orderbar visibles)
+   La idea es que sea pantalla limpia con solo las 6 categorías */
+body.v4-mode.v4-vista-home .body,
+body.v4-mode.v4-vista-home .hdr,         /* catnav rojo viejo */
+body.v4-mode.v4-vista-home .search-wrap,
+body.v4-mode.v4-vista-home .orderbar,
+body.v4-mode.v4-vista-home .results-info,
+body.v4-mode.v4-vista-home .banner-cupon-activo,
+body.v4-mode.v4-vista-home .banner-pedido-armado,
+body.v4-mode.v4-vista-home .rep-fab,
+body.v4-mode.v4-vista-home #wa-float{display:none !important}
+
+/* En v4-vista-categoria: home oculta, body visible filtrado, sub-header arriba, sin catnav */
+body.v4-mode.v4-vista-categoria .v4-home{display:none}
+body.v4-mode.v4-vista-categoria .hdr{display:none} /* catnav rojo viejo escondido */
+body.v4-mode.v4-vista-categoria .search-wrap{display:none} /* buscador legacy escondido — la búsqueda va por 🔍 del header */
+
+/* En v4-vista-todo: catálogo completo legacy (como /v4/ Fase 1) */
+body.v4-mode.v4-vista-todo .v4-home{display:none}
+/* hdr (catnav rojo viejo) se muestra solo en vista-todo */
+/* search-wrap se muestra solo en vista-todo */
+
+/* Cuando estamos en home, el orderbar tampoco aparece porque no se puede agregar nada
+   desde la home. Bueno: SÍ aparece si hay items previos (de una sesión anterior).
+   Esto está cubierto: oculto explícito arriba. */
+
+/* Pequeño aviso "estás viendo todo el catálogo" en vista-todo */
+.v4-todo-banner{
+  display:none;
+  background:linear-gradient(135deg,#FFF3D6 0%,#FFE9B0 100%);
+  padding:8px 12px;
+  border-bottom:1px solid var(--gold3);
+  font-size:11.5px;color:#5C3A1E;font-weight:600;
+  text-align:center;
+  cursor:pointer;
+}
+.v4-todo-banner b{color:var(--red);font-weight:800}
+body.v4-mode.v4-vista-todo .v4-todo-banner{display:block}
+
+@media (max-width:380px){
+  .v4-cat-name-text{font-size:22px;letter-spacing:1.2px}
+  .v4-cat-name-sub{font-size:10.5px}
+}
+
 </style>
 
 <!-- ═══════════════════════════════════════════════════════════════════════
@@ -7652,6 +7947,117 @@ src="https://www.facebook.com/tr?id=2034313150514758&ev=PageView&noscript=1"
       <div style="margin-top:14px;font-size:11.5px;color:var(--text3)">Probá con <b>pollo</b>, <b>milanesa</b>, <b>huevos</b>…</div>
     </div>
   </div>
+</div>
+
+<!-- ═══════════════ v4.1.0 HOME — Pantalla de 6 categorías ═══════════════ -->
+<!-- Visible solo cuando body.v4-mode.v4-vista-home -->
+<main class="v4-home" id="v4-home" role="main">
+  <div class="v4-home-title">
+    <h1>Categorías</h1>
+    <div class="v4-home-title-sub">Distribución mayorista · Trenque Lauquen y zona</div>
+  </div>
+
+  <div class="v4-cat-list">
+    <!-- 🍗 Pollos -->
+    <button class="v4-cat-card" data-v4-grupo="pollos" onclick="v4AbrirGrupo('pollos')">
+      <img class="v4-cat-img-real" data-v4-grupo-img="pollos" alt="" aria-hidden="true">
+      <div class="v4-cat-img-fallback pollos"></div>
+      <div class="v4-cat-overlay"></div>
+      <div class="v4-cat-name">
+        <div class="v4-cat-name-text">Pollos</div>
+        <div class="v4-cat-name-sub">Pollo entero y trozados</div>
+      </div>
+      <div class="v4-cat-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></div>
+    </button>
+
+    <!-- 🥚 Huevos Mayorista -->
+    <button class="v4-cat-card" data-v4-grupo="huevos" onclick="v4AbrirGrupo('huevos')">
+      <img class="v4-cat-img-real" data-v4-grupo-img="huevos" alt="" aria-hidden="true">
+      <div class="v4-cat-img-fallback huevos"></div>
+      <div class="v4-cat-overlay"></div>
+      <div class="v4-cat-name">
+        <div class="v4-cat-name-text">Huevos<br>Mayorista</div>
+        <div class="v4-cat-name-sub">Maples y combos</div>
+      </div>
+      <div class="v4-cat-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></div>
+    </button>
+
+    <!-- 🍔 Rebozados -->
+    <button class="v4-cat-card" data-v4-grupo="rebozados" onclick="v4AbrirGrupo('rebozados')">
+      <img class="v4-cat-img-real" data-v4-grupo-img="rebozados" alt="" aria-hidden="true">
+      <div class="v4-cat-img-fallback rebozados"></div>
+      <div class="v4-cat-overlay"></div>
+      <div class="v4-cat-name">
+        <div class="v4-cat-name-text">Rebozados</div>
+        <div class="v4-cat-name-sub">Milanesas, hamburguesas y nuggets</div>
+      </div>
+      <div class="v4-cat-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></div>
+    </button>
+
+    <!-- 🥦 Verduras congeladas -->
+    <button class="v4-cat-card" data-v4-grupo="verduras" onclick="v4AbrirGrupo('verduras')">
+      <img class="v4-cat-img-real" data-v4-grupo-img="verduras" alt="" aria-hidden="true">
+      <div class="v4-cat-img-fallback verduras"></div>
+      <div class="v4-cat-overlay"></div>
+      <div class="v4-cat-name">
+        <div class="v4-cat-name-text">Verduras<br>Congeladas</div>
+        <div class="v4-cat-name-sub">Papas, brócoli, mix vegetal</div>
+      </div>
+      <div class="v4-cat-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></div>
+    </button>
+
+    <!-- 🍝 Pastas Congeladas -->
+    <button class="v4-cat-card" data-v4-grupo="pastas" onclick="v4AbrirGrupo('pastas')">
+      <img class="v4-cat-img-real" data-v4-grupo-img="pastas" alt="" aria-hidden="true">
+      <div class="v4-cat-img-fallback pastas"></div>
+      <div class="v4-cat-overlay"></div>
+      <div class="v4-cat-name">
+        <div class="v4-cat-name-text">Pastas<br>Congeladas</div>
+        <div class="v4-cat-name-sub">Sorrentinos, ravioles, ñoquis</div>
+      </div>
+      <div class="v4-cat-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></div>
+    </button>
+
+    <!-- 🔥 Combos y Promos -->
+    <button class="v4-cat-card combos-card" data-v4-grupo="combos" onclick="v4AbrirGrupo('combos')">
+      <img class="v4-cat-img-real" data-v4-grupo-img="combos" alt="" aria-hidden="true">
+      <div class="v4-cat-img-fallback combos"></div>
+      <div class="v4-cat-overlay"></div>
+      <div class="v4-cat-badge">🔥 Ofertas</div>
+      <div class="v4-cat-name">
+        <div class="v4-cat-name-text">Combos<br>y Promos</div>
+        <div class="v4-cat-name-sub">Ofertas del mes y combos mayoristas</div>
+      </div>
+      <div class="v4-cat-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></div>
+    </button>
+  </div>
+
+  <!-- Atajo "Ver todo el catálogo" -->
+  <button class="v4-ver-todo" onclick="v4VerTodo()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+    Ver todo el catálogo
+  </button>
+
+  <div class="v4-home-foot">TCK · The Chickens King</div>
+</main>
+
+<!-- Sub-header de vista categoría (visible solo en .v4-vista-categoria) -->
+<div class="v4-cat-subhdr" id="v4-cat-subhdr">
+  <button class="v4-cat-back" onclick="v4VolverHome()" aria-label="Volver a categorías">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+  </button>
+  <div class="v4-cat-subhdr-info">
+    <div class="v4-cat-subhdr-titulo" id="v4-cat-subhdr-titulo">Pollos</div>
+    <div class="v4-cat-subhdr-sub" id="v4-cat-subhdr-sub">0 productos</div>
+  </div>
+  <button class="v4-cat-search-btn" onclick="v4SearchOpen()" aria-label="Buscar dentro de la categoría">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+  </button>
+</div>
+
+<!-- Banner sutil "Estás viendo todo el catálogo" en vista-todo -->
+<div class="v4-todo-banner" id="v4-todo-banner" onclick="v4VolverHome()">
+  📋 Estás viendo todo el catálogo · <b>← Volver a categorías</b>
 </div>
 
 <div class="hdr"><div class="hdr-stripe"></div><div class="hdr-body">
@@ -14706,6 +15112,15 @@ function confirmarCiudadNoAtendida() {
       // Si el cliente tipea, escondemos el estado vacío y mostramos hint
       empty.style.display = 'none';
       count.innerHTML = 'Buscando "<b>' + (value.replace(/</g,'&lt;')) + '</b>"…';
+      // FASE 2 fix: si estoy en home (catálogo legacy oculto), pasar a vista-todo
+      // para que los resultados de búsqueda sean visibles al cerrar el overlay.
+      if (document.body.classList.contains('v4-vista-home')) {
+        // Limpiar grupo activo y pasar a "todo" sin pushState (mantenemos history simple)
+        window.__v4GrupoActivo = null;
+        try { sessionStorage.removeItem('tck_v4_grupo'); } catch(e){}
+        document.body.classList.remove('v4-vista-home','v4-vista-categoria');
+        document.body.classList.add('v4-vista-todo');
+      }
       // Cerramos el overlay tras un breve delay para que vea los resultados
       // detrás (la lista del catálogo). Comportamiento Pedix-like.
       if (window._v4SearchAutoCloseT) clearTimeout(window._v4SearchAutoCloseT);
@@ -14823,6 +15238,319 @@ function confirmarCiudadNoAtendida() {
 
   // ─── Log de arranque ────────────────────────────────────────────────────
   console.log('%c[TCK v4.0.0]%c Fase 1 activa · header limpio · menú lateral · búsqueda fullscreen',
+    'background:#8B0000;color:#FFD700;padding:2px 6px;border-radius:3px;font-weight:bold',
+    'color:#5C3A1E');
+
+  // ═══════════════════════════════════════════════════════════════════════
+  // v4.1.0 — FASE 2 · HOME PEDIX + VISTA DE CATEGORÍA
+  // ─────────────────────────────────────────────────────────────────────
+  // Vistas:
+  //   home       → 6 categorías visuales
+  //   categoria  → productos de UN grupo (ej. "pollos" = CAT.pollos + CAT.trozados)
+  //   todo       → catálogo plano completo (legacy con catnav rojo)
+  // ═══════════════════════════════════════════════════════════════════════
+
+  // Mapeo grupo visual → ids técnicos de CAT[]
+  const V4_GRUPOS = {
+    'pollos':    { titulo:'Pollos',              sub:'Pollo entero y trozados',           ids:['pollos','trozados'] },
+    'huevos':    { titulo:'Huevos Mayorista',    sub:'Maples y combos',                   ids:['huevos'] },
+    'rebozados': { titulo:'Rebozados',           sub:'Milanesas, hamburguesas y nuggets', ids:['shaddai','mila'] },
+    'verduras':  { titulo:'Verduras Congeladas', sub:'Papas, brócoli, mix vegetal',       ids:['papas_mccain','verd'] },
+    'pastas':    { titulo:'Pastas Congeladas',   sub:'Sorrentinos, ravioles, ñoquis',     ids:['pastas'] },
+    'combos':    { titulo:'Combos y Promos',     sub:'Ofertas del mes y combos mayoristas', ids:[], esCombos:true }
+  };
+
+  // Estado activo del grupo. null = home o vista-todo.
+  // window.__v4GrupoActivo para que sea accesible desde el wrapper de _cardCoincide.
+  window.__v4GrupoActivo = null;
+
+  function v4SetVista(vista){
+    document.body.classList.remove('v4-vista-home','v4-vista-categoria','v4-vista-todo');
+    document.body.classList.add('v4-vista-' + vista);
+    try { sessionStorage.setItem('tck_v4_vista', vista); } catch(e){}
+    // Scroll a top siempre que cambie de vista
+    window.scrollTo(0, 0);
+    const bodyEl = document.getElementById('body');
+    if (bodyEl) bodyEl.scrollTop = 0;
+    const homeEl = document.getElementById('v4-home');
+    if (homeEl) homeEl.scrollTop = 0;
+  }
+
+  // Abrir una categoría visual
+  window.v4AbrirGrupo = function(grupoKey){
+    const grupo = V4_GRUPOS[grupoKey];
+    if (!grupo) {
+      console.warn('[v4] grupo desconocido:', grupoKey);
+      return;
+    }
+    window.__v4GrupoActivo = grupoKey;
+    try { sessionStorage.setItem('tck_v4_grupo', grupoKey); } catch(e){}
+
+    // Actualizar sub-header de vista categoría
+    const tit = document.getElementById('v4-cat-subhdr-titulo');
+    const sub = document.getElementById('v4-cat-subhdr-sub');
+    if (tit) tit.textContent = grupo.titulo;
+    if (sub) sub.textContent = grupo.sub;
+
+    v4SetVista('categoria');
+
+    // Forzar re-render del catálogo aplicando el filtro
+    // (reset del filtro legacy primero para que no haya conflicto)
+    try {
+      if (typeof _filtroCategoria !== 'undefined') {
+        window._filtroCategoria = '__all__';
+      }
+      const todasBtn = document.querySelector('.catbtn[data-cat="__all__"]');
+      if (todasBtn) {
+        document.querySelectorAll('.catbtn').forEach(b => b.classList.remove('on'));
+        todasBtn.classList.add('on');
+      }
+    } catch(e){}
+
+    if (typeof aplicarFiltros === 'function') aplicarFiltros();
+
+    // Actualizar conteo en el sub-header
+    setTimeout(v4ActualizarConteoCategoria, 80);
+  };
+
+  window.v4VolverHome = function(){
+    window.__v4GrupoActivo = null;
+    try { sessionStorage.removeItem('tck_v4_grupo'); } catch(e){}
+    v4SetVista('home');
+    // Resetear filtro legacy y aplicar (para que cuando vuelva al body legacy todo sea visible)
+    try {
+      if (typeof _filtroCategoria !== 'undefined') window._filtroCategoria = '__all__';
+      if (typeof _searchQuery !== 'undefined') window._searchQuery = '';
+      const inp = document.getElementById('search-input');
+      if (inp) inp.value = '';
+    } catch(e){}
+    if (typeof aplicarFiltros === 'function') aplicarFiltros();
+  };
+
+  window.v4VerTodo = function(){
+    window.__v4GrupoActivo = null;
+    try { sessionStorage.setItem('tck_v4_vista', 'todo'); sessionStorage.removeItem('tck_v4_grupo'); } catch(e){}
+    v4SetVista('todo');
+    if (typeof aplicarFiltros === 'function') aplicarFiltros();
+  };
+
+  // Actualizar conteo de productos visibles en sub-header de categoría
+  function v4ActualizarConteoCategoria(){
+    if (window.__v4GrupoActivo === null) return;
+    const sub = document.getElementById('v4-cat-subhdr-sub');
+    if (!sub) return;
+    const grupo = V4_GRUPOS[window.__v4GrupoActivo];
+    if (!grupo) return;
+    let count = 0;
+    if (grupo.esCombos) {
+      // Combos + promos visibles
+      const combosGrid = document.getElementById('combos-grid');
+      const promosGrid = document.getElementById('promos-grid');
+      if (combosGrid) count += combosGrid.children.length;
+      if (promosGrid) count += promosGrid.children.length;
+      sub.textContent = grupo.sub + ' · ' + count + (count === 1 ? ' oferta' : ' ofertas');
+    } else {
+      const cards = document.querySelectorAll('.body .card:not(.filtered-out)');
+      sub.textContent = grupo.sub + ' · ' + cards.length + (cards.length === 1 ? ' producto' : ' productos');
+    }
+  }
+
+  // ─── HOOK: Wrappeamos _cardCoincide para que respete el grupo activo ───
+  if (typeof window._cardCoincide === 'function') {
+    const origCardCoincide = window._cardCoincide;
+    window._cardCoincide = function(card){
+      // Primero el filtro original (categoría, estado, búsqueda)
+      const ok = origCardCoincide.call(this, card);
+      if (!ok) return false;
+
+      // Sobre eso, si hay grupo v4 activo: ¿la card pertenece al grupo?
+      const grupoKey = window.__v4GrupoActivo;
+      if (!grupoKey) return true;
+
+      const grupo = V4_GRUPOS[grupoKey];
+      if (!grupo) return true;
+
+      // Si el grupo es "combos" (sin ids técnicos), ninguna card regular pasa
+      if (grupo.esCombos) return false;
+
+      // Obtener el id técnico de la sección de la card
+      const sec = card.closest('.sec');
+      if (!sec) return false;
+      const secId = (sec.id || '').replace(/^s-/, '');
+      return grupo.ids.indexOf(secId) !== -1;
+    };
+    console.log('[v4] _cardCoincide wrapper instalado');
+  } else {
+    console.warn('[v4] _cardCoincide no existía — wrapper Fase 2 no instalado');
+  }
+
+  // ─── HOOK: Wrappeamos aplicarFiltros para forzar visibilidad de combos/promos ───
+  // En la lógica legacy, combos/promos se ocultan si hay filtro de categoría activo.
+  // Pero en grupo "combos" queremos verlos. Y en grupo distinto a "combos" queremos esconderlos.
+  if (typeof window.aplicarFiltros === 'function') {
+    const origAplicarFiltros = window.aplicarFiltros;
+    window.aplicarFiltros = function(){
+      const ret = origAplicarFiltros.apply(this, arguments);
+      try { v4PostFiltros(); } catch(e){ console.warn('[v4] post-filtros', e); }
+      return ret;
+    };
+  }
+
+  function v4PostFiltros(){
+    const grupoKey = window.__v4GrupoActivo;
+    const combosSec = document.getElementById('combos-section');
+    const promosSec = document.getElementById('promos-section');
+
+    if (grupoKey === 'combos') {
+      // Mostrar combos y promos forzados
+      if (combosSec) combosSec.style.display = '';
+      if (promosSec) promosSec.style.display = '';
+      // Limpiar el "no resultados" del catálogo si apareció (porque cards regulares = 0)
+      const noRes = document.getElementById('no-results-block');
+      if (noRes) noRes.remove();
+    } else if (grupoKey) {
+      // En cualquier otro grupo: ocultar combos/promos
+      if (combosSec) combosSec.style.display = 'none';
+      if (promosSec) promosSec.style.display = 'none';
+    }
+    // Actualizar conteo del sub-header
+    v4ActualizarConteoCategoria();
+  }
+
+  // ─── Imágenes de categorías: probar img/categorias/<key>.jpg ───
+  // Si la imagen carga → fade-in. Si 404, queda el gradiente como fallback.
+  function v4CargarImagenesCategorias(){
+    document.querySelectorAll('.v4-cat-img-real').forEach(function(imgEl){
+      const key = imgEl.getAttribute('data-v4-grupo-img');
+      if (!key) return;
+      // Probar 2 extensiones comunes
+      const probarUrls = [
+        'img/categorias/' + key + '.jpg',
+        'img/categorias/' + key + '.webp',
+        'img/categorias/' + key + '.png'
+      ];
+      let idx = 0;
+      function probarSiguiente(){
+        if (idx >= probarUrls.length) return; // Sin foto → queda gradiente
+        const tmp = new Image();
+        tmp.onload = function(){
+          imgEl.src = probarUrls[idx];
+          imgEl.classList.add('loaded');
+        };
+        tmp.onerror = function(){ idx++; probarSiguiente(); };
+        tmp.src = probarUrls[idx];
+      }
+      probarSiguiente();
+    });
+  }
+
+  // ─── Tecla atrás / botón hardware (mobile) → volver a home si estoy en categoría ───
+  // Uso history.pushState para que el botón "atrás" del browser sea natural.
+  function v4InitHistory(){
+    // Estado inicial: home
+    try {
+      history.replaceState({ v4: 'home' }, '', location.href);
+    } catch(e){}
+    window.addEventListener('popstate', function(ev){
+      const st = (ev && ev.state) ? ev.state : null;
+      if (st && st.v4 === 'home') {
+        v4VolverHomeSinPush();
+      } else if (st && st.v4 === 'categoria' && st.grupo) {
+        v4AbrirGrupoSinPush(st.grupo);
+      } else {
+        // Por defecto, volver a home
+        v4VolverHomeSinPush();
+      }
+    });
+  }
+  function v4VolverHomeSinPush(){
+    window.__v4GrupoActivo = null;
+    v4SetVista('home');
+    try {
+      if (typeof _filtroCategoria !== 'undefined') window._filtroCategoria = '__all__';
+      if (typeof aplicarFiltros === 'function') aplicarFiltros();
+    } catch(e){}
+  }
+  function v4AbrirGrupoSinPush(grupoKey){
+    window.__v4GrupoActivo = grupoKey;
+    const grupo = V4_GRUPOS[grupoKey];
+    if (grupo) {
+      const tit = document.getElementById('v4-cat-subhdr-titulo');
+      const sub = document.getElementById('v4-cat-subhdr-sub');
+      if (tit) tit.textContent = grupo.titulo;
+      if (sub) sub.textContent = grupo.sub;
+    }
+    v4SetVista('categoria');
+    if (typeof aplicarFiltros === 'function') aplicarFiltros();
+  }
+
+  // Override de v4AbrirGrupo y v4VolverHome para que pushState
+  const _origAbrir = window.v4AbrirGrupo;
+  window.v4AbrirGrupo = function(grupoKey){
+    try { history.pushState({ v4: 'categoria', grupo: grupoKey }, '', location.href); } catch(e){}
+    _origAbrir(grupoKey);
+  };
+  const _origVolver = window.v4VolverHome;
+  window.v4VolverHome = function(){
+    try { history.pushState({ v4: 'home' }, '', location.href); } catch(e){}
+    _origVolver();
+  };
+  const _origVerTodo = window.v4VerTodo;
+  window.v4VerTodo = function(){
+    try { history.pushState({ v4: 'todo' }, '', location.href); } catch(e){}
+    _origVerTodo();
+  };
+
+  // ─── Vista inicial al cargar la página ───
+  function v4InitVistaInicial(){
+    let vista = 'home';
+    let grupo = null;
+    try {
+      const vS = sessionStorage.getItem('tck_v4_vista');
+      const gS = sessionStorage.getItem('tck_v4_grupo');
+      if (vS) vista = vS;
+      if (gS) grupo = gS;
+    } catch(e){}
+
+    if (vista === 'categoria' && grupo && V4_GRUPOS[grupo]) {
+      v4AbrirGrupoSinPush(grupo);
+    } else if (vista === 'todo') {
+      v4SetVista('todo');
+      if (typeof aplicarFiltros === 'function') aplicarFiltros();
+    } else {
+      v4SetVista('home');
+    }
+  }
+
+  // ─── Boot Fase 2 ───
+  function v4BootFase2(){
+    v4CargarImagenesCategorias();
+    v4InitHistory();
+    // Esperar a que el catálogo legacy haya renderizado el body antes de aplicar vista
+    // Si renderBody ya ejecutó, vamos directo; si no, esperamos un beat.
+    const bodyEl = document.getElementById('body');
+    if (bodyEl && bodyEl.children.length > 0) {
+      v4InitVistaInicial();
+    } else {
+      // Reintentar hasta 2 segundos
+      let tries = 0;
+      const t = setInterval(function(){
+        tries++;
+        if ((bodyEl && bodyEl.children.length > 0) || tries > 20) {
+          clearInterval(t);
+          v4InitVistaInicial();
+        }
+      }, 100);
+    }
+  }
+
+  if (document.readyState !== 'loading') {
+    setTimeout(v4BootFase2, 50);
+  } else {
+    document.addEventListener('DOMContentLoaded', function(){ setTimeout(v4BootFase2, 50); });
+  }
+
+  console.log('%c[TCK v4.1.0]%c Fase 2 activa · home pedix · vista categoría · ver todo',
     'background:#8B0000;color:#FFD700;padding:2px 6px;border-radius:3px;font-weight:bold',
     'color:#5C3A1E');
 
