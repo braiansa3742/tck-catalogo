@@ -8544,6 +8544,20 @@ body.v4-mode .v4-bottombar.show{
   font-weight:500;
   letter-spacing:.1px;
 }
+/* v4.7.0: Chip "🎁 -10% aplicado" en bottombar cuando hay cupón consumiéndose */
+.v4-bb-cupon-chip{
+  display:inline-block;
+  background:linear-gradient(135deg,#FFE27A 0%,#FFD700 100%);
+  color:#5C0000;
+  font-weight:900;
+  font-size:9.5px;
+  letter-spacing:.3px;
+  padding:1px 6px;
+  border-radius:8px;
+  text-transform:uppercase;
+  vertical-align:1px;
+  box-shadow:0 1px 2px rgba(0,0,0,.18);
+}
 
 .v4-bb-total{
   font-family:'Barlow Condensed',sans-serif;
@@ -9033,7 +9047,7 @@ src="https://www.facebook.com/tr?id=2034313150514758&ev=PageView&noscript=1"
 <!-- ═══════════════ v4.0.0 PREVIEW BANNER ═══════════════ -->
 <!-- Solo visible cuando body tiene .v4-mode (set por JS si pathname /v4/) -->
 <div class="v4-preview-bar" id="v4-preview-bar">
-  👀 PREVIEW · <b>v4.6.0</b> en desarrollo · Producción en <a href="https://tckcatalogo.com" style="color:#5C0000;text-decoration:underline;font-weight:900">tckcatalogo.com</a>
+  👀 PREVIEW · <b>v4.7.0</b> en desarrollo · Producción en <a href="https://tckcatalogo.com" style="color:#5C0000;text-decoration:underline;font-weight:900">tckcatalogo.com</a>
 </div>
 
 <!-- ═══════════════ v4.0.0 HEADER LIMPIO ═══════════════ -->
@@ -9194,7 +9208,7 @@ src="https://www.facebook.com/tr?id=2034313150514758&ev=PageView&noscript=1"
       <a onclick="v4MenuClose()">Privacidad</a>
     </div>
     <div class="v4-menu-foot-version">
-      TCK Catálogo <b>v4.6.0</b> · The Chickens King S.R.L.
+      TCK Catálogo <b>v4.7.0</b> · The Chickens King S.R.L.
     </div>
   </div>
 </aside>
@@ -9500,7 +9514,9 @@ src="https://www.facebook.com/tr?id=2034313150514758&ev=PageView&noscript=1"
     </div>
     <div class="v4-bb-info">
       <div class="v4-bb-label">Ver mi pedido</div>
-      <div class="v4-bb-sub" id="v4-bb-sub">0 productos</div>
+      <div class="v4-bb-sub">
+        <span id="v4-bb-sub">0 productos</span><span class="v4-bb-cupon" id="v4-bb-cupon" hidden> · <span class="v4-bb-cupon-chip">🎁 -10% aplicado</span></span>
+      </div>
     </div>
     <div class="v4-bb-total" id="v4-bb-total">$0</div>
     <div class="v4-bb-chevron" aria-hidden="true">
@@ -16557,14 +16573,23 @@ function confirmarCiudadNoAtendida() {
   }
 
   function v4SyncCartBadge(){
-    // El catálogo guarda items en window.qty (regulares) + qtyCombo (combos).
+    // v4.7.0: usar T() como fuente de verdad — la misma que usa la bottombar.
+    // Antes contábamos manualmente qty + qtyCombo, lo cual no coincidía con
+    // T() en casos con combos/promos/calibres. Ahora ambos badges (header,
+    // menú lateral, bottombar) muestran exactamente lo mismo.
     let n = 0;
     try {
-      if (typeof qty !== 'undefined' && qty) {
-        Object.keys(qty).forEach(function(k){ n += (qty[k] || 0); });
-      }
-      if (typeof qtyCombo !== 'undefined' && qtyCombo) {
-        Object.keys(qtyCombo).forEach(function(k){ n += (qtyCombo[k] || 0); });
+      if (typeof T === 'function') {
+        const r = T();
+        n = (r && typeof r.c === 'number') ? r.c : 0;
+      } else {
+        // Fallback al método legacy si T() no está disponible
+        if (typeof qty !== 'undefined' && qty) {
+          Object.keys(qty).forEach(function(k){ n += (qty[k] || 0); });
+        }
+        if (typeof qtyCombo !== 'undefined' && qtyCombo) {
+          Object.keys(qtyCombo).forEach(function(k){ n += (qtyCombo[k] || 0); });
+        }
       }
     } catch(e){}
     const badge = document.getElementById('v4-hdr-cart-badge');
@@ -18159,12 +18184,13 @@ function confirmarCiudadNoAtendida() {
   function v4SyncBottombar(){
     const bar = document.getElementById('v4-bottombar');
     if (!bar) return;
-    let t = 0, c = 0;
+    let t = 0, c = 0, descuento = 0;
     try {
       if (typeof T === 'function') {
         const r = T();
         t = r.t || 0;
         c = r.c || 0;
+        descuento = r.descuento || 0;
       }
     } catch(e){}
     // No mostrar en home (no hay nada que pueda haber agregado todavía)
@@ -18186,7 +18212,13 @@ function confirmarCiudadNoAtendida() {
         ? '0 productos'
         : (c === 1 ? '1 producto' : (c + ' productos'));
     }
-    // Total
+    // v4.7.0: Chip de cupón aplicado — visible solo si hay descuento > 0
+    const cuponEl = document.getElementById('v4-bb-cupon');
+    if (cuponEl) {
+      if (descuento > 0 && c > 0) cuponEl.removeAttribute('hidden');
+      else cuponEl.setAttribute('hidden', '');
+    }
+    // Total (ya incluye descuento aplicado, T() lo devuelve calculado)
     const tot = document.getElementById('v4-bb-total');
     if (tot) tot.textContent = (typeof fmt === 'function') ? fmt(t) : ('$' + t);
     // Habilitar/deshabilitar botón WA
@@ -18249,11 +18281,11 @@ function confirmarCiudadNoAtendida() {
   function v4UpdatePreviewBanner(){
     const bar = document.getElementById('v4-preview-bar');
     if (!bar) return;
-    bar.innerHTML = '👀 PREVIEW · <b>v4.6.0</b> en desarrollo · Producci&oacute;n en <a href="https://tckcatalogo.com" style="color:#5C0000;text-decoration:underline;font-weight:900">tckcatalogo.com</a>';
+    bar.innerHTML = '👀 PREVIEW · <b>v4.7.0</b> en desarrollo · Producci&oacute;n en <a href="https://tckcatalogo.com" style="color:#5C0000;text-decoration:underline;font-weight:900">tckcatalogo.com</a>';
   }
   v4UpdatePreviewBanner();
 
-  console.log('%c[TCK v4.6.0]%c Fase 5 · barra inferior pedix · polish final · skeleton load · calc removida',
+  console.log('%c[TCK v4.7.0]%c Fase 5 · barra inferior pedix · polish final · skeleton · calc removida · badge sync · cupón en bottombar',
     'background:#8B0000;color:#FFD700;padding:2px 6px;border-radius:3px;font-weight:bold',
     'color:#5C3A1E');
 
