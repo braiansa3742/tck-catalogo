@@ -7356,6 +7356,369 @@ body.v4-mode.v4-vista-todo .v4-todo-banner{display:block}
   .v4-cat-name-sub{font-size:10.5px}
 }
 
+/* Fix v4.1.1: brand text del menú no se corta detrás del logo */
+.v4-menu-hdr{padding-right:8px}
+.v4-menu-brand{padding-left:0}
+.v4-menu-brand-name{font-size:15px;letter-spacing:.8px}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   v4.2.0 — FASE 3 · CARDS HORIZONTALES ESTILO PEDIX
+   ──────────────────────────────────────────────────────────────────────
+   Transforma las cards regulares de verticales (legacy) a horizontales:
+   foto 108×108 izquierda + info centro + botón rojo redondo derecha.
+
+   SOLO se aplica en body.v4-mode. NO toca:
+   - Cards .card-dual (productos con 2 imágenes, ej. MDM+empanada)
+   - Cards .promo-card (sección Promos)
+   - Cards .combo-card (sección Combos)
+   - Sub-render legacy fuera de .v4-mode
+
+   Pre-condición: body.v4-mode + el contenedor .body como ancestro.
+   La grid de la sección pasa de 2 columnas a 1 columna (lista).
+   ════════════════════════════════════════════════════════════════════ */
+
+/* Grid: lista de 1 columna en cards regulares */
+body.v4-mode .body .sec-grid{
+  grid-template-columns: 1fr !important;
+  gap: 10px !important;
+}
+
+/* Excepción: si la sección tiene cards-dual (mezcladas con normales), volver a 2 cols
+   PARA esas duals para que sigan viéndose lindas. Las duals se quedan verticales. */
+body.v4-mode .body .sec-grid:has(.card-dual){
+  /* Las duals se quedan en su rama vertical. Las normales quedan en 1 col. */
+}
+
+/* Sección header — más compacta para que la lista sea protagonista */
+body.v4-mode .body .sec-hdr{padding:9px 12px !important}
+body.v4-mode .body .sec-title{font-size:14px !important}
+body.v4-mode .body .sec-count{font-size:10.5px !important;opacity:.85}
+body.v4-mode .body .sec-stripe{display:none}
+
+/* Card padding del contenedor (la "lista") */
+body.v4-mode .body{padding-top:6px}
+
+/* ─── CARD HORIZONTAL ─── */
+body.v4-mode .body .card:not(.card-dual):not(.combo-card):not(.promo-card){
+  display:flex !important;
+  flex-direction:row !important;
+  align-items:stretch !important;
+  background:#fff !important;
+  border-radius:11px !important;
+  overflow:hidden !important;
+  border:1px solid var(--cream3) !important;
+  box-shadow:0 1px 3px rgba(0,0,0,.04) !important;
+  min-height:118px !important;
+  position:relative;
+  transition:background .12s, border-color .15s;
+  padding:0 !important;
+}
+body.v4-mode .body .card.has-qty:not(.card-dual){
+  border-color:var(--red) !important;
+  box-shadow:0 0 0 1px var(--red), 0 1px 6px rgba(139,0,0,.12) !important;
+}
+body.v4-mode .body .card.shaddai:not(.card-dual){
+  /* Las shaddai mantienen un detalle dorado sutil */
+  border-color:var(--gold3) !important;
+}
+body.v4-mode .body .card.shaddai.has-qty:not(.card-dual){
+  border-color:var(--red) !important;
+}
+
+/* ─── FOTO IZQUIERDA — cuadrada 108×108 ─── */
+body.v4-mode .body .card:not(.card-dual):not(.combo-card):not(.promo-card) .card-img-area{
+  width:108px !important;
+  height:108px !important;
+  flex-shrink:0 !important;
+  background:linear-gradient(135deg,#fff5e3 0%,#f0d8a8 40%,#e8c890 100%) !important;
+  overflow:hidden;
+  position:relative;
+  display:flex;align-items:center;justify-content:center;
+  margin:5px 0 5px 5px;
+  border-radius:8px;
+}
+body.v4-mode .body .card:not(.card-dual):not(.combo-card):not(.promo-card) .card-img{
+  width:100% !important;
+  height:100% !important;
+  object-fit:contain !important;
+  padding:6px !important;
+  display:block;
+}
+
+/* Cuando la imagen no cargue (img roto), mostrar emoji genérico */
+body.v4-mode .body .card:not(.card-dual) .card-img[alt]:after{
+  /* Browser default ya muestra el alt + ícono roto. Lo dejamos sutil. */
+}
+
+/* Sin sep entre foto e info (ya no es vertical) */
+body.v4-mode .body .card:not(.card-dual):not(.combo-card):not(.promo-card) .card-sep{
+  display:none !important;
+}
+
+/* ─── BADGE en foto ─── */
+body.v4-mode .body .card:not(.card-dual):not(.combo-card):not(.promo-card) .card-badge-wrap{
+  position:absolute !important;
+  top:5px !important;
+  left:5px !important;
+  z-index:3 !important;
+  margin:0 !important;
+  filter:drop-shadow(0 1px 3px rgba(0,0,0,.3)) !important;
+}
+body.v4-mode .body .card:not(.card-dual):not(.combo-card):not(.promo-card) .card-badge-wrap > div{
+  padding:2px 7px !important;
+  font-size:9px !important;
+  border-radius:3px !important;
+  letter-spacing:.3px !important;
+}
+
+/* ─── INFO CENTRO ─── */
+body.v4-mode .body .card:not(.card-dual):not(.combo-card):not(.promo-card) .card-body{
+  flex:1 !important;
+  display:flex !important;
+  flex-direction:column !important;
+  justify-content:space-between !important;
+  padding:9px 12px 9px 11px !important;
+  min-width:0 !important;
+  text-align:left !important;
+  position:relative;
+}
+
+body.v4-mode .body .card:not(.card-dual):not(.combo-card):not(.promo-card) .card-name{
+  font-size:14.5px !important;
+  font-weight:700 !important;
+  color:var(--text) !important;
+  text-align:left !important;
+  line-height:1.2 !important;
+  margin:0 0 3px 0 !important;
+  /* clamp a 2 líneas */
+  display:-webkit-box;
+  -webkit-line-clamp:2;
+  -webkit-box-orient:vertical;
+  overflow:hidden;
+}
+
+body.v4-mode .body .card:not(.card-dual):not(.combo-card):not(.promo-card) .card-pres{
+  border:none !important;
+  background:transparent !important;
+  padding:0 !important;
+  margin:0 !important;
+  font-size:11px !important;
+  color:var(--text3) !important;
+  text-align:left !important;
+  font-weight:500 !important;
+  line-height:1.2 !important;
+  /* clamp a 1 línea */
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+
+/* card-pkg (precio/kg) lo movemos abajo del precio */
+body.v4-mode .body .card:not(.card-dual):not(.combo-card):not(.promo-card) .card-pkg{
+  background:transparent !important;
+  border:none !important;
+  padding:0 !important;
+  margin:3px 0 0 0 !important;
+  font-family:'Barlow Condensed',sans-serif !important;
+  font-size:11px !important;
+  font-weight:700 !important;
+  color:var(--gold3) !important;
+  text-align:left !important;
+  letter-spacing:.2px !important;
+  line-height:1 !important;
+}
+body.v4-mode .body .card:not(.card-dual):not(.combo-card):not(.promo-card) .card-pkg.hidden{
+  display:none !important;
+}
+
+/* Bloque precio: caja roja → texto rojo grande sin caja */
+body.v4-mode .body .card:not(.card-dual):not(.combo-card):not(.promo-card) .card-price-box{
+  background:transparent !important;
+  padding:0 !important;
+  margin:6px 0 0 0 !important;
+  text-align:left !important;
+  border-radius:0 !important;
+}
+body.v4-mode .body .card:not(.card-dual):not(.combo-card):not(.promo-card) .card-price{
+  color:var(--red) !important;
+  font-size:22px !important;
+  font-weight:900 !important;
+  line-height:1 !important;
+  letter-spacing:.2px !important;
+}
+
+/* ─── BOTÓN +/qty DERECHA (abajo) ─── */
+body.v4-mode .body .card:not(.card-dual):not(.combo-card):not(.promo-card) .qrow{
+  position:absolute !important;
+  right:10px !important;
+  bottom:10px !important;
+  background:transparent !important;
+  padding:0 !important;
+  margin:0 !important;
+  gap:0 !important;
+  display:flex !important;
+  align-items:center !important;
+  z-index:2;
+}
+
+/* Botón "+" redondo cuando qty=0 */
+body.v4-mode .body .card:not(.card-dual):not(.combo-card):not(.promo-card):not(.has-qty) .qrow .qb-m,
+body.v4-mode .body .card:not(.card-dual):not(.combo-card):not(.promo-card):not(.has-qty) .qrow .qv,
+body.v4-mode .body .card:not(.card-dual):not(.combo-card):not(.promo-card):not(.has-qty) .qrow .qb-5{
+  display:none !important;
+}
+body.v4-mode .body .card:not(.card-dual):not(.combo-card):not(.promo-card):not(.has-qty) .qrow .qb-p{
+  width:38px !important;
+  height:38px !important;
+  border-radius:50% !important;
+  background:var(--red) !important;
+  color:#fff !important;
+  border:none !important;
+  font-size:24px !important;
+  font-weight:900 !important;
+  font-family:'Barlow Condensed',sans-serif !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  cursor:pointer !important;
+  box-shadow:0 2px 6px rgba(139,0,0,.35) !important;
+  line-height:1 !important;
+  padding:0 !important;
+  margin:0 !important;
+}
+
+/* Pill -/qty/+ cuando qty>0 */
+body.v4-mode .body .card.has-qty:not(.card-dual):not(.combo-card):not(.promo-card) .qrow{
+  background:#fff !important;
+  border:1.5px solid var(--red) !important;
+  border-radius:22px !important;
+  height:38px !important;
+  padding:0 3px !important;
+  box-shadow:0 2px 5px rgba(139,0,0,.15) !important;
+}
+body.v4-mode .body .card.has-qty:not(.card-dual):not(.combo-card):not(.promo-card) .qrow .qb{
+  width:32px !important;
+  height:32px !important;
+  background:transparent !important;
+  color:var(--red) !important;
+  font-family:'Barlow Condensed',sans-serif !important;
+  font-weight:900 !important;
+  font-size:20px !important;
+  border:none !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  border-radius:50% !important;
+  padding:0 !important;
+}
+body.v4-mode .body .card.has-qty:not(.card-dual):not(.combo-card):not(.promo-card) .qrow .qv{
+  min-width:26px !important;
+  text-align:center !important;
+  font-family:'Barlow Condensed',sans-serif !important;
+  font-weight:900 !important;
+  font-size:17px !important;
+  color:var(--text) !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+}
+/* Botón +5 escondido (Pedix-puro: solo +/-) */
+body.v4-mode .body .card.has-qty:not(.card-dual):not(.combo-card):not(.promo-card) .qrow .qb-5{
+  display:none !important;
+}
+
+/* qsub (subtotal calculado bajo el qrow): lo escondemos en cards horizontales,
+   el subtotal aparece en el footer del drawer del pedido */
+body.v4-mode .body .card:not(.card-dual):not(.combo-card):not(.promo-card) .qsub,
+body.v4-mode .body .card:not(.card-dual):not(.combo-card):not(.promo-card) [class*="qsub"]{
+  display:none !important;
+}
+
+/* ─── SIN STOCK ─── */
+body.v4-mode .body .card.card-sinstock:not(.card-dual){
+  opacity:.6 !important;
+  cursor:default !important;
+  background:#FAF6F0 !important;
+  border-color:#D8C9B0 !important;
+}
+body.v4-mode .body .card.card-sinstock:not(.card-dual) .qrow{
+  display:none !important;
+}
+body.v4-mode .body .card.card-sinstock:not(.card-dual) .card-price{
+  color:var(--text3) !important;
+}
+body.v4-mode .body .card.card-sinstock:not(.card-dual) .card-img-area{
+  background:linear-gradient(135deg,#EDE5D5 0%,#D8C9B0 100%) !important;
+  filter:grayscale(.4);
+}
+body.v4-mode .body .card.card-sinstock:not(.card-dual) .card-sinstock-msg{
+  display:block !important;
+  position:absolute !important;
+  bottom:9px !important;
+  right:12px !important;
+  font-size:10px !important;
+  color:var(--text3) !important;
+  font-style:italic !important;
+  background:transparent !important;
+  padding:0 !important;
+  margin:0 !important;
+  text-align:right !important;
+  max-width:140px;
+  line-height:1.2 !important;
+}
+body.v4-mode .body .card.card-sinstock:not(.card-dual) .card-sinstock-msg strong{font-weight:700}
+body.v4-mode .body .card.card-sinstock:not(.card-dual) .card-sinstock-msg br{display:none}
+
+/* ─── CALCULADORA + CALIBRE — colapsan al fondo, no rompen layout ─── */
+/* Por ahora, las escondemos por simplicidad. Si querés mostrarlas inline en Fase
+   4 (bottom sheet) las traemos de vuelta. */
+body.v4-mode .body .card:not(.card-dual):not(.combo-card):not(.promo-card) .card-calc,
+body.v4-mode .body .card:not(.card-dual):not(.combo-card):not(.promo-card) .calc-block,
+body.v4-mode .body .card:not(.card-dual):not(.combo-card):not(.promo-card) .calibre-block,
+body.v4-mode .body .card:not(.card-dual):not(.combo-card):not(.promo-card) [class*="calc-"],
+body.v4-mode .body .card:not(.card-dual):not(.combo-card):not(.promo-card) [class*="calibre-"]{
+  display:none !important;
+}
+
+/* Card-dual conservan su estilo legacy pero ajustamos columnas para que se vean
+   bien en lista de 1 columna. Las hacemos full-width. */
+body.v4-mode .body .card-dual{
+  /* Mantienen su estructura interna, pero se centran a ancho completo */
+  max-width:100%;
+}
+
+/* Cuando hay solo 1 columna, las card-dual no quedan apretadas */
+body.v4-mode .body .sec-grid{
+  display:grid !important;
+}
+
+/* Ajuste para tablets (>580px) — vuelven a 2 cols incluso en v4 para no malgastar pantalla */
+@media (min-width:580px){
+  body.v4-mode .body .sec-grid{
+    grid-template-columns:repeat(2,1fr) !important;
+  }
+}
+@media (min-width:780px){
+  body.v4-mode .body .sec-grid{
+    grid-template-columns:repeat(3,1fr) !important;
+  }
+}
+
+/* Mobile pequeño: foto un poco más chica */
+@media (max-width:380px){
+  body.v4-mode .body .card:not(.card-dual):not(.combo-card):not(.promo-card) .card-img-area{
+    width:92px !important;
+    height:92px !important;
+  }
+  body.v4-mode .body .card:not(.card-dual):not(.combo-card):not(.promo-card){
+    min-height:104px !important;
+  }
+  body.v4-mode .body .card:not(.card-dual):not(.combo-card):not(.promo-card) .card-name{
+    font-size:13.5px !important;
+  }
+  body.v4-mode .body .card:not(.card-dual):not(.combo-card):not(.promo-card) .card-price{
+    font-size:20px !important;
+  }
+}
+
 </style>
 
 <!-- ═══════════════════════════════════════════════════════════════════════
@@ -15551,6 +15914,10 @@ function confirmarCiudadNoAtendida() {
   }
 
   console.log('%c[TCK v4.1.0]%c Fase 2 activa · home pedix · vista categoría · ver todo',
+    'background:#8B0000;color:#FFD700;padding:2px 6px;border-radius:3px;font-weight:bold',
+    'color:#5C3A1E');
+
+  console.log('%c[TCK v4.2.0]%c Fase 3 activa · cards horizontales Pedix · sin stock gris',
     'background:#8B0000;color:#FFD700;padding:2px 6px;border-radius:3px;font-weight:bold',
     'color:#5C3A1E');
 
