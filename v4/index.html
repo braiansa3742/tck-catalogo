@@ -7787,6 +7787,26 @@ body.v4-mode .body .sec-grid{
    adentro ya no consume layout (parent display:none). Sin acción extra. */
 
 /* ═══════════════════════════════════════════════════════════════════════
+   v4.9.0 — ANIMACIÓN AL SUMAR (pulse + halo dorado)
+   ──────────────────────────────────────────────────────────────────────
+   Se aplica a .card en v4-mode cuando se incrementa qty (d > 0).
+   La clase .v4-pulsing se agrega ~480ms desde chg() y se remueve sola.
+   Visual: scale leve + halo dorado que crece + se atenúa.
+   ════════════════════════════════════════════════════════════════════ */
+body.v4-mode .body .card.v4-pulsing{
+  animation:v4CardPulse 0.42s cubic-bezier(.34,1.56,.64,1);
+}
+@keyframes v4CardPulse{
+  0%   {transform:scale(1);   box-shadow:0 1px 3px rgba(139,0,0,.12),0 3px 10px rgba(139,0,0,.08),0 0 0 0    rgba(255,215,0,0)}
+  35%  {transform:scale(1.025);box-shadow:0 1px 3px rgba(139,0,0,.18),0 3px 10px rgba(139,0,0,.12),0 0 0 6px rgba(255,215,0,.32)}
+  100% {transform:scale(1);   box-shadow:0 1px 3px rgba(139,0,0,.12),0 3px 10px rgba(139,0,0,.08),0 0 0 0    rgba(255,215,0,0)}
+}
+/* Respeta prefers-reduced-motion: si el usuario lo tiene activado, no animar */
+@media (prefers-reduced-motion: reduce){
+  body.v4-mode .body .card.v4-pulsing{animation:none}
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
    v4.4.1 — Cards Pollo A/B (data-pollo-ab="1"): ocultar "+", mostrar pill
    ──────────────────────────────────────────────────────────────────────
    El "+" genérico no sirve para Pollo A/B (no sabe el calibre).
@@ -8346,6 +8366,98 @@ body.v4-sheet-open{overflow:hidden}
   transition:opacity .2s;
 }
 .v4-observaciones-saved.show{opacity:1}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   v4.9.0 — PRODUCTOS RELACIONADOS + COMPARTIR (dentro del sheet)
+   ════════════════════════════════════════════════════════════════════ */
+.v4-rel{
+  margin:20px 16px 14px;
+}
+.v4-rel-hdr{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:8px;
+}
+.v4-rel-title{
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:13px;font-weight:900;color:var(--text);
+  text-transform:uppercase;letter-spacing:.7px;
+}
+.v4-rel-title:before{content:'💡';margin-right:5px}
+.v4-rel-list{
+  display:flex;flex-direction:column;gap:8px;
+}
+.v4-rel-item{
+  display:flex;align-items:center;gap:10px;
+  background:#fff;
+  border:1px solid var(--cream3);
+  border-radius:10px;
+  padding:8px;
+  cursor:pointer;
+  text-align:left;
+  transition:transform .12s, border-color .15s;
+  width:100%;
+  font-family:inherit;
+}
+.v4-rel-item:active{transform:scale(.985);border-color:var(--gold3)}
+.v4-rel-item-img{
+  width:54px;height:54px;border-radius:8px;
+  background:var(--cream2);
+  object-fit:cover;
+  flex-shrink:0;
+}
+.v4-rel-item-info{
+  flex:1;min-width:0;
+  display:flex;flex-direction:column;justify-content:center;gap:2px;
+}
+.v4-rel-item-name{
+  font-family:'Barlow Condensed',sans-serif;
+  font-weight:900;font-size:14px;color:var(--text);
+  line-height:1.15;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.v4-rel-item-pres{
+  font-size:10.5px;color:var(--text2);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.v4-rel-item-price{
+  font-family:'Barlow Condensed',sans-serif;
+  font-weight:900;font-size:14px;color:var(--red);
+  flex-shrink:0;padding:0 4px;
+}
+.v4-rel-item-arrow{
+  color:var(--text3);flex-shrink:0;
+  width:14px;height:14px;
+  display:flex;align-items:center;justify-content:center;
+}
+.v4-rel-item-arrow svg{width:14px;height:14px}
+
+/* Botón compartir producto */
+.v4-share{
+  margin:14px 16px 6px;
+  display:flex;justify-content:center;
+}
+.v4-share-btn{
+  display:flex;align-items:center;gap:8px;
+  background:transparent;
+  border:1.5px dashed var(--cream3);
+  border-radius:8px;
+  padding:8px 14px;
+  cursor:pointer;
+  font-family:inherit;
+  font-size:12px;font-weight:700;
+  color:var(--text2);
+  letter-spacing:.3px;
+  transition:all .15s;
+}
+.v4-share-btn:active{
+  background:var(--cream);
+  border-color:#25D366;
+  color:#075E54;
+}
+.v4-share-btn svg{
+  width:16px;height:16px;
+  color:#25D366;
+}
 
 /* Cuando es Pollo A/B: esconder el precio destacado (el precio aparece por calibre)
    y esconder el footer principal (el calibre tiene sus propios steppers) */
@@ -9054,7 +9166,7 @@ src="https://www.facebook.com/tr?id=2034313150514758&ev=PageView&noscript=1"
 <!-- ═══════════════ v4.0.0 PREVIEW BANNER ═══════════════ -->
 <!-- Solo visible cuando body tiene .v4-mode (set por JS si pathname /v4/) -->
 <div class="v4-preview-bar" id="v4-preview-bar">
-  👀 PREVIEW · <b>v4.8.0</b> en desarrollo · Producción en <a href="https://tckcatalogo.com" style="color:#5C0000;text-decoration:underline;font-weight:900">tckcatalogo.com</a>
+  👀 PREVIEW · <b>v4.9.0</b> en desarrollo · Producción en <a href="https://tckcatalogo.com" style="color:#5C0000;text-decoration:underline;font-weight:900">tckcatalogo.com</a>
 </div>
 
 <!-- ═══════════════ v4.0.0 HEADER LIMPIO ═══════════════ -->
@@ -9215,7 +9327,7 @@ src="https://www.facebook.com/tr?id=2034313150514758&ev=PageView&noscript=1"
       <a onclick="v4MenuClose()">Privacidad</a>
     </div>
     <div class="v4-menu-foot-version">
-      TCK Catálogo <b>v4.8.0</b> · The Chickens King S.R.L.
+      TCK Catálogo <b>v4.9.0</b> · The Chickens King S.R.L.
     </div>
   </div>
 </aside>
@@ -10907,6 +11019,14 @@ function chg(key,si,ii,d){
     }
     const qb5=card.querySelector('.qb-5');
     if(qb5)qb5.classList.toggle('show',q>0);
+    // v4.9.0: animación al sumar (solo incrementos, solo en v4-mode)
+    if (d > 0 && document.body.classList.contains('v4-mode')) {
+      card.classList.remove('v4-pulsing');
+      // Forzar reflow para reiniciar la animación si se hizo doble tap rápido
+      void card.offsetWidth;
+      card.classList.add('v4-pulsing');
+      setTimeout(function(){ card.classList.remove('v4-pulsing'); }, 480);
+    }
   }
   updateBar();
   if(document.getElementById('drawer').classList.contains('on'))renderDrawer();
@@ -18061,6 +18181,154 @@ function confirmarCiudadNoAtendida() {
     }
   }
 
+  // ─── v4.9.0: PRODUCTOS RELACIONADOS dentro del sheet ───────────────────
+  // Toma hasta 3 productos de la misma sección (CAT[si]), excluyendo el actual
+  // y los sin stock. Tap en uno → cambia el sheet a ese producto sin cerrarlo.
+  function v4SheetRenderRelacionados(info){
+    const slot = document.getElementById('v4-sheet-calc-slot');
+    if (!slot || !info || !info.sec || !info.sec.items) return;
+    const items = info.sec.items;
+    const nombreActual = info.it.n;
+    // Filtrar: distinto al actual + con stock + con precio
+    const candidatos = [];
+    for (let i = 0; i < items.length; i++) {
+      const it = items[i];
+      if (!it || it.n === nombreActual) continue;
+      // Excluir sin stock
+      try {
+        if (typeof SIN_STOCK !== 'undefined' && SIN_STOCK && SIN_STOCK.has(it.n)) continue;
+      } catch(e){}
+      // Excluir si no tiene precio
+      if (!it.pr || it.pr <= 0) continue;
+      candidatos.push({ it: it, ii: i });
+    }
+    if (candidatos.length === 0) return;
+    // Random shuffle (Fisher-Yates simplificado)
+    for (let i = candidatos.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      const tmp = candidatos[i]; candidatos[i] = candidatos[j]; candidatos[j] = tmp;
+    }
+    const picks = candidatos.slice(0, 3);
+
+    const wrap = document.createElement('div');
+    wrap.className = 'v4-rel';
+    wrap.innerHTML =
+      '<div class="v4-rel-hdr">'
+      + '<div class="v4-rel-title">También te puede interesar</div>'
+      + '</div>'
+      + '<div class="v4-rel-list" id="v4-rel-list"></div>';
+    slot.appendChild(wrap);
+
+    const list = wrap.querySelector('#v4-rel-list');
+    const si = info.si;
+    picks.forEach(function(p){
+      const it = p.it;
+      const ii = p.ii;
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'v4-rel-item';
+      const imgSrc = it.img || ('img/' + (it.n || '').toLowerCase().replace(/\s+/g,'_').replace(/[^a-z0-9_]/g,'') + '.jpg');
+      const presTxt = (it.p || '').replace(/</g,'&lt;');
+      const priceTxt = (typeof fmt === 'function') ? fmt(it.pr) : ('$' + it.pr);
+      btn.innerHTML =
+        '<img class="v4-rel-item-img" src="' + imgSrc + '" alt="" onerror="this.style.background=\'linear-gradient(135deg,#FFE27A,#FFD700)\';this.removeAttribute(\'src\')">'
+        + '<div class="v4-rel-item-info">'
+        + '<div class="v4-rel-item-name">' + (it.n || '').replace(/</g,'&lt;') + '</div>'
+        + '<div class="v4-rel-item-pres">' + presTxt + '</div>'
+        + '</div>'
+        + '<div class="v4-rel-item-price">' + priceTxt + '</div>'
+        + '<div class="v4-rel-item-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></div>';
+      btn.addEventListener('click', function(){
+        v4SheetSwitchTo(si, ii);
+      });
+      list.appendChild(btn);
+    });
+  }
+
+  // Cambia el sheet a otro producto sin cerrarlo (re-render)
+  function v4SheetSwitchTo(si, ii){
+    if (typeof CAT === 'undefined' || !CAT[si] || !CAT[si].items || !CAT[si].items[ii]) return;
+    const it = CAT[si].items[ii];
+    const sec = CAT[si];
+    let sinStock = false;
+    try {
+      if (typeof SIN_STOCK !== 'undefined' && SIN_STOCK && SIN_STOCK.has(it.n)) sinStock = true;
+    } catch(e){}
+    const isPolloAB = (it.n === 'Pollo A' || it.n === 'Pollo B');
+    // Actualizar state
+    v4SheetState.key = si + '-' + ii;
+    v4SheetState.si = si;
+    v4SheetState.ii = ii;
+    v4SheetState.isPolloAB = isPolloAB;
+    v4SheetState.sinStock = sinStock;
+    // Re-renderizar contenido
+    if (typeof v4SheetRender === 'function') v4SheetRender(it, sec, sinStock);
+    // El slot del sheet queda con observaciones del producto anterior — limpiamos
+    const slot = document.getElementById('v4-sheet-calc-slot');
+    if (slot) slot.innerHTML = '';
+    // Reset atributos del sheet para que v4InyectarEnSheet vuelva a actuar
+    const sheet = document.getElementById('v4-sheet');
+    if (sheet) {
+      sheet.removeAttribute('data-pollo-ab');
+      sheet.removeAttribute('data-prod-nombre');
+    }
+    // Re-inyectar presentaciones/observaciones/relacionados
+    setTimeout(function(){
+      if (typeof v4InyectarEnSheet === 'function') v4InyectarEnSheet();
+    }, 30);
+    // Scroll body a top
+    const body = document.getElementById('v4-sheet-body');
+    if (body) body.scrollTop = 0;
+  }
+  window.v4SheetSwitchTo = v4SheetSwitchTo;
+
+  // ─── v4.9.0: COMPARTIR PRODUCTO por WhatsApp ───────────────────────────
+  // Botón al final del sheet (debajo de relacionados) que abre WhatsApp con
+  // un mensaje pre-armado con nombre + presentación + precio + link a TCK.
+  function v4SheetRenderShare(it){
+    const slot = document.getElementById('v4-sheet-calc-slot');
+    if (!slot || !it) return;
+    const wrap = document.createElement('div');
+    wrap.className = 'v4-share';
+    wrap.innerHTML =
+      '<button class="v4-share-btn" type="button" id="v4-share-btn">'
+      + '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.125.558 4.122 1.532 5.852L.057 23.737a.5.5 0 00.606.606l5.885-1.475A11.945 11.945 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0z"/></svg>'
+      + 'Compartir este producto'
+      + '</button>';
+    slot.appendChild(wrap);
+    const btn = wrap.querySelector('#v4-share-btn');
+    if (btn) {
+      btn.addEventListener('click', function(){
+        const nombre = it.n || '';
+        const pres = it.p || '';
+        const precio = (typeof fmt === 'function') ? fmt(it.pr) : ('$' + it.pr);
+        let mensaje = '🐔 *' + nombre + '*';
+        if (pres) mensaje += '\n' + pres;
+        if (it.pr) mensaje += '\n💰 ' + precio;
+        mensaje += '\n\nMirá el catálogo de TCK 👉 https://tckcatalogo.com';
+        // Intentar Web Share API primero
+        if (navigator.share) {
+          try {
+            navigator.share({
+              title: 'TCK · ' + nombre,
+              text: mensaje
+            }).catch(function(){ v4ShareFallback(mensaje); });
+          } catch(e){
+            v4ShareFallback(mensaje);
+          }
+        } else {
+          v4ShareFallback(mensaje);
+        }
+      });
+    }
+  }
+  function v4ShareFallback(mensaje){
+    // Sin Web Share API: abrir WhatsApp directamente sin destinatario
+    // (wa.me/?text=... abre el selector de contactos de WA)
+    const url = 'https://wa.me/?text=' + encodeURIComponent(mensaje);
+    window.open(url, '_blank');
+  }
+
   // ─── HOOK: v4SheetRenderCalc (que ya existe en Fase 4) ─────────────────
   // Lo wrappeamos para que ANTES de renderizar la calc legacy:
   // - Si es Pollo A/B → renderizar Presentaciones en lugar de la calc vieja
@@ -18108,6 +18376,12 @@ function confirmarCiudadNoAtendida() {
 
     // SIEMPRE: Observaciones al final del slot
     v4SheetRenderObservaciones(it);
+
+    // v4.9.0: Relacionados + compartir (no en sin stock — perder atención del CTA)
+    if (!v4SheetState.sinStock) {
+      try { v4SheetRenderRelacionados(info); } catch(e){ console.warn('[v4.9] relacionados:', e); }
+      try { v4SheetRenderShare(it); } catch(e){ console.warn('[v4.9] share:', e); }
+    }
 
     // Sincronizar footer (en Pollo A/B muestra totales de cajones)
     if (esPollo) v4SheetSyncFooterPollo();
@@ -18431,11 +18705,11 @@ function confirmarCiudadNoAtendida() {
   function v4UpdatePreviewBanner(){
     const bar = document.getElementById('v4-preview-bar');
     if (!bar) return;
-    bar.innerHTML = '👀 PREVIEW · <b>v4.8.0</b> en desarrollo · Producci&oacute;n en <a href="https://tckcatalogo.com" style="color:#5C0000;text-decoration:underline;font-weight:900">tckcatalogo.com</a>';
+    bar.innerHTML = '👀 PREVIEW · <b>v4.9.0</b> en desarrollo · Producci&oacute;n en <a href="https://tckcatalogo.com" style="color:#5C0000;text-decoration:underline;font-weight:900">tckcatalogo.com</a>';
   }
   v4UpdatePreviewBanner();
 
-  console.log('%c[TCK v4.8.0]%c Fase 5 · barra inferior pedix · polish final · skeleton · calc removida · badge sync · cupón en bottombar · sin stock WA contextual · swipe-to-close',
+  console.log('%c[TCK v4.9.0]%c Fase 5 · pulso al sumar · relacionados · compartir producto',
     'background:#8B0000;color:#FFD700;padding:2px 6px;border-radius:3px;font-weight:bold',
     'color:#5C3A1E');
 
