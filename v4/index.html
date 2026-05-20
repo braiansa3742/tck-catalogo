@@ -2300,8 +2300,23 @@ setInterval(function(){ _pxCarted = {}; }, 3000);
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#8B0000">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="TCK Catálogo">
+<!-- v4.4.2: si la URL contiene /v4/, agregar <base href="/"> para que las rutas
+     relativas (img/, manifest, etc.) resuelvan contra la raíz del dominio.
+     Sin esto: /v4/img/Pollo.jpg → 404. Con esto: /img/Pollo.jpg → 200. -->
+<script>
+  (function(){
+    try {
+      if (location.pathname.indexOf('/v4/') !== -1) {
+        var b = document.createElement('base');
+        b.href = '/';
+        document.head.insertBefore(b, document.head.firstChild);
+      }
+    } catch(e){}
+  })();
+</script>
 <link rel="apple-touch-icon" href="/img/logo.png">
 <link rel="manifest" href="/manifest_catalogo.json">
 <!-- v2.7.7 · Verificación de dominio Facebook/Meta (Business Portfolio TCK) -->
@@ -7712,26 +7727,46 @@ body.v4-mode .body .sec-grid{
 
 body.v4-mode .body .card[data-pollo-ab="1"] .qrow{display:none !important}
 
+/* También ocultar TODOS los buttons hijos directos por si algún CSS los re-muestra */
+body.v4-mode .body .card[data-pollo-ab="1"] .qrow,
+body.v4-mode .body .card[data-pollo-ab="1"] .qrow *,
+body.v4-mode .body .card[data-pollo-ab="1"] .qb,
+body.v4-mode .body .card[data-pollo-ab="1"] .qb-p,
+body.v4-mode .body .card[data-pollo-ab="1"] .qb-m,
+body.v4-mode .body .card[data-pollo-ab="1"] .qb-5,
+body.v4-mode .body .card[data-pollo-ab="1"] .qv,
+body.v4-mode .body .card[data-pollo-ab="1"] .qsub{
+  display:none !important;
+  visibility:hidden !important;
+  pointer-events:none !important;
+}
+
 /* Pill "Elegir calibre →" reemplaza al botón "+" */
 body.v4-mode .body .card[data-pollo-ab="1"] .card-body::after{
   content:'Elegir calibre →';
   position:absolute;
-  right:10px;
-  bottom:10px;
-  font-size:11px;
+  right:8px;
+  bottom:8px;
+  font-size:10.5px;
   color:var(--red);
   font-weight:800;
   font-family:'Barlow Condensed',sans-serif;
   letter-spacing:.4px;
   text-transform:uppercase;
   background:#fff;
-  padding:7px 11px;
-  border-radius:16px;
+  padding:6px 10px;
+  border-radius:14px;
   border:1.5px solid var(--red);
   box-shadow:0 2px 5px rgba(139,0,0,.15);
   cursor:pointer;
   pointer-events:none; /* el click pasa al .card y abre el sheet */
   white-space:nowrap;
+  z-index:2;
+  line-height:1;
+}
+/* Más espacio abajo para que el precio no quede contra el pill */
+body.v4-mode .body .card[data-pollo-ab="1"] .card-body{
+  padding-bottom:48px !important;
 }
 
 /* Cuando la card de Pollo A/B tiene calibres con qty>0, badge arriba a la derecha */
@@ -8247,6 +8282,94 @@ body.v4-sheet-open{overflow:hidden}
 .v4-sheet[data-pollo-ab="1"] .v4-sheet-foot .v4-sheet-foot-add{
   /* El botón "Agregar" se convierte en "Cerrar" porque los calibres
      ya se agregaron individualmente al carrito al usar sus steppers. */
+}
+
+/* v4.4.2: garantizar que la calculadora legacy se vea dentro del sheet
+   en TODOS los productos no-Pollo. Hay CSS de Fase 3 que la oculta dentro
+   de .card (legacy), pero el sheet está fuera de .card. Forzamos visible. */
+.v4-sheet .v4-sheet-calc-slot .calc-toggle{
+  display:flex !important;
+  align-items:center;
+  gap:8px;
+  width:100%;
+  background:var(--cream);
+  border:1px solid var(--cream3);
+  border-radius:10px;
+  padding:11px 14px;
+  font-size:13px;
+  color:var(--text);
+  cursor:pointer;
+  text-align:left;
+  font-weight:600;
+  margin-top:6px;
+}
+.v4-sheet .v4-sheet-calc-slot .calc-toggle:hover{background:var(--cream2)}
+.v4-sheet .v4-sheet-calc-slot .calc-toggle.open{
+  border-radius:10px 10px 0 0;
+  border-bottom:none;
+}
+.v4-sheet .v4-sheet-calc-slot .calc-toggle .calc-ico{font-size:15px}
+.v4-sheet .v4-sheet-calc-slot .calc-toggle .calc-label{flex:1;font-weight:700}
+.v4-sheet .v4-sheet-calc-slot .calc-toggle .calc-arrow{
+  font-size:11px;
+  color:var(--text3);
+  transition:transform .2s;
+}
+.v4-sheet .v4-sheet-calc-slot .calc-toggle.open .calc-arrow{transform:rotate(180deg)}
+.v4-sheet .v4-sheet-calc-slot .calc-panel{
+  display:none;
+  background:#FAFAFA;
+  border:1px solid var(--cream3);
+  border-radius:0 0 10px 10px;
+  padding:12px 14px;
+}
+.v4-sheet .v4-sheet-calc-slot .calc-panel.open{display:block}
+.v4-sheet .v4-sheet-calc-slot .calc-row{
+  display:flex;align-items:center;gap:10px;margin-bottom:8px;
+}
+.v4-sheet .v4-sheet-calc-slot .calc-row label{
+  font-size:12px;color:var(--text2);min-width:62px;font-weight:600;
+}
+.v4-sheet .v4-sheet-calc-slot .calc-row input{
+  flex:1;padding:7px 10px;border:1px solid var(--cream3);
+  border-radius:6px;font-size:13px;outline:none;background:#fff;
+}
+.v4-sheet .v4-sheet-calc-slot .calc-row input:focus{border-color:var(--gold3)}
+.v4-sheet .v4-sheet-calc-slot .calc-row input[data-precargado="1"]{
+  background:#FFF9E8;border-color:var(--gold3);
+}
+.v4-sheet .v4-sheet-calc-slot .calc-precargado{
+  font-size:10.5px;color:var(--gold3);margin:-4px 0 8px 4px;
+  font-style:italic;
+}
+.v4-sheet .v4-sheet-calc-slot .calc-result{
+  margin-top:8px;padding:8px 10px;border-radius:6px;
+  font-size:12px;font-weight:600;text-align:center;
+}
+.v4-sheet .v4-sheet-calc-slot .calc-result.empty{
+  background:#F0F0F0;color:var(--text3);font-style:italic;
+}
+.v4-sheet .v4-sheet-calc-slot .calc-result.green{background:#E8F5E9;color:#2E7D32;border:1px solid #C8E6C9}
+.v4-sheet .v4-sheet-calc-slot .calc-result.orange{background:#FFF3E0;color:#E65100;border:1px solid #FFE0B2}
+.v4-sheet .v4-sheet-calc-slot .calc-result.red{background:#FFEBEE;color:#C62828;border:1px solid #FFCDD2}
+.v4-sheet .v4-sheet-calc-slot .calc-result strong{font-size:14px;font-family:'Barlow Condensed',sans-serif}
+.v4-sheet .v4-sheet-calc-slot .calc-hint{
+  font-size:10.5px;color:var(--text3);text-align:center;margin-top:4px;
+}
+/* Input legacy de calibre (Pollo A/B antes; ya no se usa en v4.4 pero por las dudas) */
+.v4-sheet .v4-sheet-calc-slot .calibre-row{
+  display:flex;align-items:center;gap:9px;
+  background:var(--cream);
+  padding:9px 12px;
+  border-radius:9px;
+  margin-bottom:6px;
+}
+.v4-sheet .v4-sheet-calc-slot .calibre-row .calibre-label{
+  font-size:12px;font-weight:600;color:var(--text);flex-shrink:0;
+}
+.v4-sheet .v4-sheet-calc-slot .calibre-row .calibre-input{
+  flex:1;padding:6px 9px;border:1px solid var(--cream3);
+  border-radius:6px;font-size:12px;outline:none;background:#fff;
 }
 
 </style>
@@ -16613,6 +16736,12 @@ function confirmarCiudadNoAtendida() {
     const sheet = document.getElementById('v4-sheet');
     const backdrop = document.getElementById('v4-sheet-backdrop');
     if (sheet) {
+      // v4.4.2: blur al elemento con focus dentro del sheet ANTES de ocultarlo
+      // (sino conflicto aria-hidden con foco activo)
+      try {
+        const focused = sheet.contains(document.activeElement) ? document.activeElement : null;
+        if (focused && typeof focused.blur === 'function') focused.blur();
+      } catch(e){}
       sheet.classList.remove('on');
       sheet.setAttribute('aria-hidden', 'true');
     }
@@ -17528,19 +17657,19 @@ function confirmarCiudadNoAtendida() {
     const esPollo = v4EsPolloAB(it);
     sheet.setAttribute('data-pollo-ab', esPollo ? '1' : '0');
 
-    // Evitar doble inyección: si el slot ya tiene .v4-presentaciones o .v4-observaciones, saltamos
+    // Evitar doble inyección
     if (slot.querySelector('.v4-observaciones')) return;
 
-    // Si es Pollo A/B: quitar la calculadora legacy del slot y poner Presentaciones
     if (esPollo) {
-      // Limpiar calc/calibre legacy si están dentro del slot
-      const legacyCalc = slot.querySelector('.calc-toggle, .calc-panel, .calibre-row');
-      if (legacyCalc) slot.innerHTML = '';
-      // Renderizar Presentaciones (descripción + calibres) al inicio del slot
+      // Para Pollo A/B: borramos calc legacy del slot e insertamos Presentaciones.
+      // (La calc legacy NO aporta porque precio es fijo por cajón, no hay /kg variable)
+      slot.innerHTML = '';
       v4SheetRenderPresentaciones(it, slot);
     }
+    // Para el resto: respetamos el contenido legacy (calc de margen + posible calibre input)
+    // y solo agregamos Observaciones al final.
 
-    // Observaciones se renderizan en TODOS los productos (Pollo A/B también)
+    // SIEMPRE: Observaciones al final del slot
     v4SheetRenderObservaciones(it);
 
     // Sincronizar footer (en Pollo A/B muestra totales de cajones)
@@ -17754,7 +17883,7 @@ function confirmarCiudadNoAtendida() {
     ss.removeItem('tck_cal_Pollo B');
   } catch(e){}
 
-  console.log('%c[TCK v4.4.1]%c Fase 4.1 patch · failsafe Pollo A/B + CSS-based hide',
+  console.log('%c[TCK v4.4.2]%c Fixes · base href v4 · pill compacto · calc visible · blur en close',
     'background:#8B0000;color:#FFD700;padding:2px 6px;border-radius:3px;font-weight:bold',
     'color:#5C3A1E');
 
