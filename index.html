@@ -9777,7 +9777,7 @@ src="https://www.facebook.com/tr?id=2034313150514758&ev=PageView&noscript=1"
       <a onclick="v4MenuClose()">Privacidad</a>
     </div>
     <div class="v4-menu-foot-version">
-      TCK Catálogo <b>v4.14.11</b> · The Chickens King S.R.L.
+      TCK Catálogo · The Chickens King S.R.L.
     </div>
   </div>
 </aside>
@@ -13230,7 +13230,9 @@ function confirmarYEnviarWA() {
   // Snapshot del carrito ANTES de vaciarlo
   const qtySnapshot = Object.assign({}, qty);
   const qtyComboSnapshot = Object.assign({}, qtyCombo);
+  const qtyPromoSnapshot = Object.assign({}, qtyPromo);
   const combosSnapshot = (_combosData||[]).slice();
+  const promosSnapshot = (_promosData||[]).slice();
 
   // Vaciar carrito
   clearCart();
@@ -13239,7 +13241,19 @@ function confirmarYEnviarWA() {
   const prodLista = document.getElementById('pod-productos-lista');
   if (prodLista) {
     let prodHtml = '';
-    // v2: Combos primero
+    // v3.10.1: Promos 50% OFF primero (más destacadas)
+    promosSnapshot.forEach(promo => {
+      const q = qtyPromoSnapshot[promo.id] || 0;
+      if (q > 0) {
+        const precio = Number(promo.precio_unitario || 0);
+        const nombre = promo.producto_nombre || 'Promo';
+        prodHtml += '<div class="pod-prod-item" style="background:linear-gradient(135deg,#FFEBEE,#FFCDD2);border-left:3px solid #C62828;padding-left:8px">' +
+          '<div class="pod-prod-nombre">🎁 ' + nombre + ' × ' + q + '</div>' +
+          '<div class="pod-prod-detalle">' + fmt(precio * q) + ' (50% OFF)</div>' +
+          '</div>';
+      }
+    });
+    // v2: Combos después de promos
     combosSnapshot.forEach(combo => {
       const q = qtyComboSnapshot[combo.id] || 0;
       if (q > 0) {
