@@ -6789,13 +6789,15 @@ body.v4-mode .hdr{
   min-width:0;
 }
 .v4-hdr-logo-circle{
-  width:34px;height:34px;
+  /* v4.14.7: agrandado 34→42px + overflow hidden para que el logo IMG llene el círculo */
+  width:42px;height:42px;
   background:#fff;
   border:2px solid var(--gold);
   border-radius:50%;
   display:flex;align-items:center;justify-content:center;
-  font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:12px;color:var(--red);
+  font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:14px;color:var(--red);
   flex-shrink:0;
+  overflow:hidden;
 }
 .v4-hdr-logo-name{
   font-family:'Barlow Condensed',sans-serif;
@@ -7019,10 +7021,11 @@ body.mp-open{overflow:hidden}
   flex-shrink:0;
 }
 .v4-menu-logo{
-  width:50px;height:50px;border-radius:50%;
+  /* v4.14.7: agrandado 50→62 para que se vea más prominente */
+  width:62px;height:62px;border-radius:50%;
   background:#fff;
   display:flex;align-items:center;justify-content:center;
-  font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:16px;color:var(--red);
+  font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:18px;color:var(--red);
   border:2px solid var(--gold);
   flex-shrink:0;
   overflow:hidden;
@@ -8283,14 +8286,16 @@ body.v4-mode .body .card .qrow *{cursor:pointer}
 /* Foto hero */
 .v4-sheet-hero{
   position:relative;
-  height:220px;
+  /* v4.14.7: agrandado 220→280 para que las fotos se vean más grandes */
+  height:280px;
   background:linear-gradient(135deg,#fff5e3 0%,#f0d8a8 40%,#e8c890 100%);
   display:flex;align-items:center;justify-content:center;
   overflow:hidden;
   flex-shrink:0;
 }
 .v4-sheet-hero img{
-  max-width:88%;max-height:88%;
+  /* v4.14.7: 88%→96% para que la foto ocupe casi todo el contenedor */
+  max-width:96%;max-height:96%;
   object-fit:contain;
   display:block;
 }
@@ -8314,7 +8319,8 @@ body.v4-mode .body .card .qrow *{cursor:pointer}
 }
 .v4-sheet-hero-carrusel .v4-sheet-hero-slide img,
 .v4-sheet-hero-carrusel > img{
-  max-width:88%;max-height:88%;
+  /* v4.14.7: 88%→96% para que la foto del carrusel ocupe más */
+  max-width:96%;max-height:96%;
   object-fit:contain;
   display:block;
   pointer-events:none;
@@ -9594,7 +9600,7 @@ src="https://www.facebook.com/tr?id=2034313150514758&ev=PageView&noscript=1"
 <!-- ═══════════════ v4.0.0 PREVIEW BANNER ═══════════════ -->
 <!-- Solo visible cuando body tiene .v4-mode (set por JS si pathname /v4/) -->
 <div class="v4-preview-bar" id="v4-preview-bar">
-  👀 PREVIEW · <b>v4.14.6</b> en desarrollo · Producción en <a href="https://tckcatalogo.com" style="color:#5C0000;text-decoration:underline;font-weight:900">tckcatalogo.com</a>
+  👀 PREVIEW · <b>v4.14.7</b> en desarrollo · Producción en <a href="https://tckcatalogo.com" style="color:#5C0000;text-decoration:underline;font-weight:900">tckcatalogo.com</a>
 </div>
 
 <!-- ═══════════════ v4.0.0 HEADER LIMPIO ═══════════════ -->
@@ -9604,7 +9610,10 @@ src="https://www.facebook.com/tr?id=2034313150514758&ev=PageView&noscript=1"
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
   </button>
   <div class="v4-hdr-logo" onclick="window.scrollTo({top:0,behavior:'smooth'})">
-    <div class="v4-hdr-logo-circle">TCK</div>
+    <div class="v4-hdr-logo-circle">
+      <img src="img/logo.png" alt="TCK" style="width:100%;height:100%;object-fit:cover;border-radius:50%;"
+           onerror="this.outerHTML='TCK'">
+    </div>
     <div class="v4-hdr-logo-name">The Chickens<br>King</div>
   </div>
   <button class="v4-hdr-btn" id="v4-btn-search" aria-label="Buscar" onclick="v4SearchOpen()">
@@ -9688,21 +9697,26 @@ src="https://www.facebook.com/tr?id=2034313150514758&ev=PageView&noscript=1"
     <!-- v4.14.5: sacado "Buscar productos" (redundante con la lupa del header) -->
   </div>
 
-  <!-- NECESITO AYUDA -->
+  <!-- v4.14.7: renombrada "Necesito ayuda" → "Ayuda" + "Preguntas frecuentes" reemplazado por sus 3 items directos -->
   <div class="v4-menu-sec">
-    <div class="v4-menu-sec-title">Necesito ayuda</div>
+    <div class="v4-menu-sec-title">Ayuda</div>
     <button class="v4-menu-item" onclick="v4MenuClose();abrirModalPedirVendedor()">
       <span class="v4-menu-item-icon">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 11h-6M19 8v6"/></svg>
       </span>
       <span class="v4-menu-item-label">Hablar con un vendedor</span>
     </button>
-    <!-- v4.14.5: sacado "WhatsApp directo" verde (decisión 22/5: no desviar tráfico, solo "Hablar con vendedor") -->
-    <button class="v4-menu-item" onclick="v4MenuClose();toggleFAB()">
+    <button class="v4-menu-item" onclick="v4MenuClose();abrirModal('modal-reclamo')">
       <span class="v4-menu-item-icon">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
       </span>
-      <span class="v4-menu-item-label">Preguntas frecuentes</span>
+      <span class="v4-menu-item-label">Hacer un reclamo</span>
+    </button>
+    <button class="v4-menu-item" onclick="v4MenuClose();abrirModal('modal-visita')">
+      <span class="v4-menu-item-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M17 11l2 2 4-4"/></svg>
+      </span>
+      <span class="v4-menu-item-label">Solicitar visita / supervisor</span>
     </button>
   </div>
 
@@ -9740,12 +9754,7 @@ src="https://www.facebook.com/tr?id=2034313150514758&ev=PageView&noscript=1"
       </span>
       <span class="v4-menu-item-label">Instagram</span>
     </a>
-    <a class="v4-menu-item" href="https://facebook.com/tck.thechickenking" target="_blank" rel="noopener" style="text-decoration:none">
-      <span class="v4-menu-item-icon">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3V2Z"/></svg>
-      </span>
-      <span class="v4-menu-item-label">Facebook</span>
-    </a>
+    <!-- v4.14.7: sacado Facebook (TCK no tiene cuenta de Facebook activa) -->
   </div>
 
   <div class="v4-menu-foot">
@@ -9754,7 +9763,7 @@ src="https://www.facebook.com/tr?id=2034313150514758&ev=PageView&noscript=1"
       <a onclick="v4MenuClose()">Privacidad</a>
     </div>
     <div class="v4-menu-foot-version">
-      TCK Catálogo <b>v4.14.6</b> · The Chickens King S.R.L.
+      TCK Catálogo <b>v4.14.7</b> · The Chickens King S.R.L.
     </div>
   </div>
 </aside>
@@ -10202,12 +10211,12 @@ const _imgmap = {
   "Pollo B":                   "pollo optimo.jpg",
   "Pollo Ginosa":              "Pollo ginosa.jpg",
   "Pollo Optimo":              "pollo optimo.jpg",
-  "Suprema":                   "suprema.jpg",
-  "Suprema IQF":               "suprema iqf.jpg",
-  "Suprema B IQF":             "suprema iqf.jpg",
-  "Alita Congelada Granel":    "alita congelada granel.jpg",
+  "Suprema":                   "suprema_x_5kg.jpg",
+  "Suprema IQF":               "suprema_x15_IQF.jpg",
+  "Suprema B IQF":             "suprema_x15_IQF.jpg",
+  "Alita Congelada Granel":    "alitas_x_15.jpg",
   "MDM - Carne Molida de Pollo": "MDM.jpg",
-  "Cuarto Trasero IQF":        "cuarto trasero IQF.jpg",
+  "Cuarto Trasero IQF":        "cuarto_trasero_x_15_iqf.jpg",
   "Medallon de Pollo Clasico": "medallon de pollo clasico.jpg",
   "Medallon Pollo c/Cheddar":  "medallon de Pollo c cheddar.jpg",
   "Medallon Pollo JyQ":        "Medallon Pollo JyQ.jpg",
@@ -10402,7 +10411,7 @@ function _iniciarPollingSinStock() {
 // ─── Fin v3.7.0 N40b ──────────────────────────────────────────────
 
 
-const CAT=[{"id": "pollos", "sec": "POLLOS CONGELADOS", "col1": "#B71C1C", "col2": "#7B0000", "shaddai": false, "items": [{"n": "Pollo A", "p": "x 20 Kg", "pr": 86000, "img": "pollo_ginosa", "badge": "POLLO PREMIUM", "badge_tipo": "gold", "pu": "&#x2248;$4,300 / kg"}, {"n": "Pollo B", "p": "x 20 Kg", "pr": 72000, "img": "pollo_optimo", "badge": "&#x2605; MAS PEDIDO", "badge_tipo": "red", "pu": "&#x2248;$3,600 / kg"}, {"n": "Suprema", "p": "x 5 Kg", "pr": 33000, "img": "suprema_x_5kg", "badge": "&#x2605; MAS PEDIDO", "badge_tipo": "red", "pu": "&#x2248;$6,600 / kg"}, {"n": "Suprema IQF", "p": "x 15 Kg", "pr": 102000, "img": "suprema_x15_IQF", "pu": "&#x2248;$6,800 / kg"}]}, {"id": "trozados", "sec": "TROZADOS", "col1": "#6D2C00", "col2": "#3B1500", "shaddai": false, "items": [{"n": "Fino de Ave Cocida", "p": "Cocida y desmenuzada · x 10 Kg", "pr": 62400, "img2": "img/empanada mordida.png", "label1": "Producto", "label2": "Uso ideal", "pu": "&#x2248;$6,240 / kg", "badge": "&#x2605; NUEVO", "badge_tipo": "red"}, {"n": "Alita Congelada Granel", "p": "x 15 Kg", "pr": 44000, "img": "alitas_x_15", "pu": "&#x2248;$2,933 / kg"}, {"n": "Cuarto Trasero IQF", "p": "x 15 Kg", "pr": 53000, "img": "cuarto_trasero_x_15_iqf", "imgs": ["cuarto_trasero_x_15_iqf", "patamuslo"], "badge": "&#x2605; MAS PEDIDO", "badge_tipo": "red", "pu": "&#x2248;$3,533 / kg"}, {"n": "MDM - Carne Molida de Pollo", "p": "Ideal relleno empanadas · x 20 Kg", "pr": 34000, "img": "mdm", "img2": "img/empanada mordida.png", "label1": "Carne molida", "label2": "Listo en empanadas", "badge": "&#x25BC; OPORTUNIDAD", "badge_tipo": "oport", "pu": "&#x2248;$1,700 / kg"}]}, {"id": "shaddai", "sec": "REBOZADOS", "col1": "#922B21", "col2": "#5C1A14", "shaddai": true, "items": [{"n": "Medallon de Pollo Clasico", "p": "El Shaddai &middot; x 6 Kg", "pr": 28500, "img": "medallon_clasico_v2", "pu": "&#x2248;$4,750 / kg"}, {"n": "Medallon Pollo c/Cheddar", "p": "El Shaddai &middot; x 6 Kg", "pr": 47800, "img": "medallon_cheddar_v2", "pu": "&#x2248;$7,967 / kg"}, {"n": "Medallon Pollo JyQ", "p": "El Shaddai &middot; x 6 Kg", "pr": 33500, "img": "medallon_jyq_v2", "pu": "&#x2248;$5,583 / kg"}, {"n": "Medallon Pollo y Espinaca", "p": "El Shaddai &middot; x 6 Kg", "pr": 33000, "img": "medallon_espinaca_v2", "pu": "&#x2248;$5,500 / kg"}, {"n": "Formita Clasica", "p": "El Shaddai &middot; x 6 Kg", "pr": 28500, "img": "formita_clasica_v2", "pu": "&#x2248;$4,750 / kg"}, {"n": "Formitas Pollo JyQ", "p": "El Shaddai &middot; x 6 Kg", "pr": 33500, "img": "formita_jyq_v2", "pu": "&#x2248;$5,583 / kg"}, {"n": "Nuggets de Pollo Crocante", "p": "El Shaddai &middot; x 6 Kg", "pr": 34500, "img": "nuggets_v2", "pu": "&#x2248;$5,750 / kg"}, {"n": "Bocadito de Papa y Jamon", "p": "El Shaddai &middot; x 6 Kg", "pr": 29000, "img": "bocadito_v2", "pu": "&#x2248;$4,833 / kg"}, {"n": "Pechuguitas al Verdeo", "p": "El Shaddai &middot; x 6 Kg", "pr": 45500, "img": "pechuguitas_v2", "pu": "&#x2248;$7,583 / kg"}, {"n": "Filet Merluza Finas Hierbas", "p": "El Shaddai &middot; x 6 Kg", "pr": 45600, "img": "merluza_hierbas_v2", "pu": "&#x2248;$7,600 / kg"}, {"n": "Filet de Merluza Rebozado", "p": "El Shaddai &middot; x 6 Kg", "pr": 43700, "img": "merluza_rebozado", "pu": "&#x2248;$7,283 / kg"}, {"n": "Bocadito Clasico", "p": "GTA &middot; x 5 Kg", "pr": 27500, "img": "bocadito_clasico_gta", "badge": "&#x2605; NUEVO", "badge_tipo": "red", "pu": "&#x2248;$5,500 / kg"}]}, {"id": "mila", "sec": "MILANESAS Y HAMBURGUESAS", "col1": "#7B241C", "col2": "#4A1510", "shaddai": false, "items": [{"n": "Milanesa de Nalga", "p": "x 5 Kg", "pr": 68000, "img": "milanesa_nalga_v2", "pu": "&#x2248;$13,600 / kg"}, {"n": "Milanesa de Pollo", "p": "x 5 Kg", "pr": 40500, "img": "milanesa_pollo_v2", "pu": "&#x2248;$5,300 / kg"}, {"n": "Milanesa de Soja a Granel", "p": "Solimeno &middot; &#x26A0; ULTIMO STOCK Vence 05/26 &middot; x 6 Kg", "pr": 38600, "img": "milanesa_soja_granel", "badge": "&#x25BC; OFERTA", "badge_tipo": "oport", "pu": "&#x2248;$6,433 / kg"}, {"n": "Milanesa de Soja y Espinaca", "p": "Solimeno &middot; x 6 Kg", "pr": 38600, "img": "milanesa_soja_espinaca", "badge": "&#x2605; NUEVO", "badge_tipo": "red", "pu": "&#x2248;$6,433 / kg"}, {"n": "Hamburguesa 100% Carne", "p": "x 4 Kg (100g c/u)", "pr": 46600, "img": "hamburguesa_carne", "pu": "&#x2248;$1,165 / unidad"}, {"n": "Hamburguesa de Pollo", "p": "Lujo Pampeano &middot; x 5 Kg", "pr": 40500, "img": "hamburguesa_pollo", "badge": "&#x2605; NUEVO", "badge_tipo": "red", "pu": "&#x2248;$8,100 / kg"}]}, {"id": "papas_mccain", "sec": "McCAIN & BALCARCE", "col1": "#BA4A00", "col2": "#7A3000", "shaddai": false, "items": [{"n": "Papa Baston Balcarce", "p": "x 2,5 Kg", "pr": 8000, "img": "papa_baston", "badge": "&#x2605; MAS PEDIDO", "badge_tipo": "red", "pu": "&#x2248;$3,200 / kg"}]}, {"id": "huevos", "sec": "HUEVOS", "col1": "#D4A000", "col2": "#8B6500", "shaddai": false, "items": [{"n": "Maple N° 2", "p": "30 unidades &middot; 💡 6 maples (o m&uacute;ltiplos) se env&iacute;an en caja completa", "pr": 4800, "img": "huevos_maple", "imgs": ["huevos_caja_abierta_3q", "huevos_caja_maples", "huevos_caja_cerrada", "huevos_pallet"], "pu": ""}, {"n": "Maple N° 1", "p": "30 unidades &middot; 💡 6 maples (o m&uacute;ltiplos) se env&iacute;an en caja completa", "pr": 5500, "img": "huevos_maple", "imgs": ["huevos_caja_abierta_3q", "huevos_caja_maples", "huevos_caja_cerrada", "huevos_pallet"], "pu": ""}, {"n": "Maple N° 3", "p": "30 unidades &middot; 💡 6 maples (o m&uacute;ltiplos) se env&iacute;an en caja completa", "pr": 4500, "img": "huevos_maple", "imgs": ["huevos_caja_abierta_3q", "huevos_caja_maples", "huevos_caja_cerrada", "huevos_pallet"], "badge": "&#x2605; NUEVO", "badge_tipo": "red", "pu": ""}, {"n": "Cajita 1/2 Docena N° 2", "p": "6 unidades", "pr": 1350, "img": "huevos_cajita", "pu": ""}]}, {"id": "verd", "sec": "VERDURAS CONGELADAS", "col1": "#1E8449", "col2": "#0E4D29", "shaddai": false, "items": [{"n": "Arándanos Solimeno", "p": "500 Grs", "pr": 9000, "img": "arandanos", "pu": ""}, {"n": "Brocoli", "p": "500 Grs", "pr": 5800, "img": "brocoli", "pu": ""}, {"n": "Espinacas", "p": "500 Grs", "pr": 4000, "img": "espinaca", "pu": ""}, {"n": "Morron", "p": "500 Grs", "pr": 7000, "img": "morron", "pu": ""}, {"n": "Primavera", "p": "500 Grs", "pr": 5000, "img": "primavera", "pu": ""}, {"n": "Frutos Rojos", "p": "500 Grs", "pr": 11000, "img": "frutos_rojos", "pu": ""}, {"n": "Cebolla", "p": "500 Grs", "pr": 4000, "img": "cebolla", "pu": ""}]}, {"id": "pastas", "sec": "PASTAS LA CASERIANA", "col1": "#1A5276", "col2": "#0D2B3E", "shaddai": false, "items": [{"n": "Ravioles de Calabaza", "p": "500 Grs", "pr": 2700, "img": "ravioles", "pu": ""}, {"n": "Raviolones Espinaca y Mozz", "p": "Masa Integral · 500 Grs", "pr": 3900, "img": "ravioles", "pu": ""}, {"n": "Gnoquis de Papa", "p": "500 Grs", "pr": 2100, "img": "gnoquis", "pu": ""}, {"n": "Gnoquis de Espinaca", "p": "500 Grs", "pr": 2100, "img": "gnoquis_espinaca", "pu": ""}, {"n": "Sorrentinos Jamon y Queso", "p": "500 Grs", "pr": 4200, "img": "sorrentinos", "pu": ""}, {"n": "Sorrentinos Ricota 4 Quesos", "p": "400 Grs", "pr": 2600, "img": "sorrentinos", "pu": ""}]}];
+const CAT=[{"id": "pollos", "sec": "POLLOS CONGELADOS", "col1": "#B71C1C", "col2": "#7B0000", "shaddai": false, "items": [{"n": "Pollo A", "p": "x 20 Kg", "pr": 86000, "img": "pollo_ginosa", "badge": "POLLO PREMIUM", "badge_tipo": "gold", "pu": "&#x2248;$4,300 / kg"}, {"n": "Pollo B", "p": "x 20 Kg", "pr": 72000, "img": "pollo_optimo", "badge": "&#x2605; MAS PEDIDO", "badge_tipo": "red", "pu": "&#x2248;$3,600 / kg"}, {"n": "Suprema", "p": "x 5 Kg", "pr": 33000, "img": "suprema_x_5kg", "badge": "&#x2605; MAS PEDIDO", "badge_tipo": "red", "pu": "&#x2248;$6,600 / kg"}, {"n": "Suprema IQF", "p": "x 15 Kg", "pr": 102000, "img": "suprema_x15_IQF", "pu": "&#x2248;$6,800 / kg"}]}, {"id": "trozados", "sec": "TROZADOS", "col1": "#6D2C00", "col2": "#3B1500", "shaddai": false, "items": [{"n": "Fino de Ave Cocida", "p": "Cocida y desmenuzada · x 10 Kg", "pr": 62400, "img2": "img/empanada mordida.png", "label1": "Producto", "label2": "Uso ideal", "pu": "&#x2248;$6,240 / kg", "badge": "&#x2605; NUEVO", "badge_tipo": "red"}, {"n": "Alita Congelada Granel", "p": "x 15 Kg", "pr": 44000, "img": "alitas_x_15", "pu": "&#x2248;$2,933 / kg"}, {"n": "Cuarto Trasero IQF", "p": "x 15 Kg", "pr": 53000, "img": "cuarto_trasero_x_15_iqf", "imgs": ["cuarto_trasero_x_15_iqf", "cuarto trasero IQF"], "badge": "&#x2605; MAS PEDIDO", "badge_tipo": "red", "pu": "&#x2248;$3,533 / kg"}, {"n": "MDM - Carne Molida de Pollo", "p": "Ideal relleno empanadas · x 20 Kg", "pr": 34000, "img": "mdm", "img2": "img/empanada mordida.png", "label1": "Carne molida", "label2": "Listo en empanadas", "badge": "&#x25BC; OPORTUNIDAD", "badge_tipo": "oport", "pu": "&#x2248;$1,700 / kg"}]}, {"id": "shaddai", "sec": "REBOZADOS", "col1": "#922B21", "col2": "#5C1A14", "shaddai": true, "items": [{"n": "Medallon de Pollo Clasico", "p": "El Shaddai &middot; x 6 Kg", "pr": 28500, "img": "medallon_clasico_v2", "pu": "&#x2248;$4,750 / kg"}, {"n": "Medallon Pollo c/Cheddar", "p": "El Shaddai &middot; x 6 Kg", "pr": 47800, "img": "medallon_cheddar_v2", "pu": "&#x2248;$7,967 / kg"}, {"n": "Medallon Pollo JyQ", "p": "El Shaddai &middot; x 6 Kg", "pr": 33500, "img": "medallon_jyq_v2", "pu": "&#x2248;$5,583 / kg"}, {"n": "Medallon Pollo y Espinaca", "p": "El Shaddai &middot; x 6 Kg", "pr": 33000, "img": "medallon_espinaca_v2", "pu": "&#x2248;$5,500 / kg"}, {"n": "Formita Clasica", "p": "El Shaddai &middot; x 6 Kg", "pr": 28500, "img": "formita_clasica_v2", "pu": "&#x2248;$4,750 / kg"}, {"n": "Formitas Pollo JyQ", "p": "El Shaddai &middot; x 6 Kg", "pr": 33500, "img": "formita_jyq_v2", "pu": "&#x2248;$5,583 / kg"}, {"n": "Nuggets de Pollo Crocante", "p": "El Shaddai &middot; x 6 Kg", "pr": 34500, "img": "nuggets_v2", "pu": "&#x2248;$5,750 / kg"}, {"n": "Bocadito de Papa y Jamon", "p": "El Shaddai &middot; x 6 Kg", "pr": 29000, "img": "bocadito_v2", "pu": "&#x2248;$4,833 / kg"}, {"n": "Pechuguitas al Verdeo", "p": "El Shaddai &middot; x 6 Kg", "pr": 45500, "img": "pechuguitas_v2", "pu": "&#x2248;$7,583 / kg"}, {"n": "Filet Merluza Finas Hierbas", "p": "El Shaddai &middot; x 6 Kg", "pr": 45600, "img": "merluza_hierbas_v2", "pu": "&#x2248;$7,600 / kg"}, {"n": "Filet de Merluza Rebozado", "p": "El Shaddai &middot; x 6 Kg", "pr": 43700, "img": "merluza_rebozado", "pu": "&#x2248;$7,283 / kg"}, {"n": "Bocadito Clasico", "p": "GTA &middot; x 5 Kg", "pr": 27500, "img": "bocadito_clasico_gta", "badge": "&#x2605; NUEVO", "badge_tipo": "red", "pu": "&#x2248;$5,500 / kg"}]}, {"id": "mila", "sec": "MILANESAS Y HAMBURGUESAS", "col1": "#7B241C", "col2": "#4A1510", "shaddai": false, "items": [{"n": "Milanesa de Nalga", "p": "x 5 Kg", "pr": 68000, "img": "milanesa_nalga_v2", "pu": "&#x2248;$13,600 / kg"}, {"n": "Milanesa de Pollo", "p": "x 5 Kg", "pr": 40500, "img": "milanesa_pollo_v2", "pu": "&#x2248;$5,300 / kg"}, {"n": "Milanesa de Soja a Granel", "p": "Solimeno &middot; &#x26A0; ULTIMO STOCK Vence 05/26 &middot; x 6 Kg", "pr": 38600, "img": "milanesa_soja_granel", "badge": "&#x25BC; OFERTA", "badge_tipo": "oport", "pu": "&#x2248;$6,433 / kg"}, {"n": "Milanesa de Soja y Espinaca", "p": "Solimeno &middot; x 6 Kg", "pr": 38600, "img": "milanesa_soja_espinaca", "badge": "&#x2605; NUEVO", "badge_tipo": "red", "pu": "&#x2248;$6,433 / kg"}, {"n": "Hamburguesa 100% Carne", "p": "x 4 Kg (100g c/u)", "pr": 46600, "img": "hamburguesa_carne", "pu": "&#x2248;$1,165 / unidad"}, {"n": "Hamburguesa de Pollo", "p": "Lujo Pampeano &middot; x 5 Kg", "pr": 40500, "img": "hamburguesa_pollo", "badge": "&#x2605; NUEVO", "badge_tipo": "red", "pu": "&#x2248;$8,100 / kg"}]}, {"id": "papas_mccain", "sec": "McCAIN & BALCARCE", "col1": "#BA4A00", "col2": "#7A3000", "shaddai": false, "items": [{"n": "Papa Baston Balcarce", "p": "x 2,5 Kg", "pr": 8000, "img": "papa_baston", "badge": "&#x2605; MAS PEDIDO", "badge_tipo": "red", "pu": "&#x2248;$3,200 / kg"}]}, {"id": "huevos", "sec": "HUEVOS", "col1": "#D4A000", "col2": "#8B6500", "shaddai": false, "items": [{"n": "Maple N° 2", "p": "30 unidades &middot; 💡 6 maples (o m&uacute;ltiplos) se env&iacute;an en caja completa", "pr": 4800, "img": "huevos_maple", "imgs": ["huevos_caja_abierta_3q", "huevos_caja_maples", "huevos_caja_cerrada", "huevos_pallet"], "pu": ""}, {"n": "Maple N° 1", "p": "30 unidades &middot; 💡 6 maples (o m&uacute;ltiplos) se env&iacute;an en caja completa", "pr": 5500, "img": "huevos_maple", "imgs": ["huevos_caja_abierta_3q", "huevos_caja_maples", "huevos_caja_cerrada", "huevos_pallet"], "pu": ""}, {"n": "Maple N° 3", "p": "30 unidades &middot; 💡 6 maples (o m&uacute;ltiplos) se env&iacute;an en caja completa", "pr": 4500, "img": "huevos_maple", "imgs": ["huevos_caja_abierta_3q", "huevos_caja_maples", "huevos_caja_cerrada", "huevos_pallet"], "badge": "&#x2605; NUEVO", "badge_tipo": "red", "pu": ""}, {"n": "Cajita 1/2 Docena N° 2", "p": "6 unidades", "pr": 1350, "img": "huevos_cajita", "pu": ""}]}, {"id": "verd", "sec": "VERDURAS CONGELADAS", "col1": "#1E8449", "col2": "#0E4D29", "shaddai": false, "items": [{"n": "Arándanos Solimeno", "p": "500 Grs", "pr": 9000, "img": "arandanos", "pu": ""}, {"n": "Brocoli", "p": "500 Grs", "pr": 5800, "img": "brocoli", "pu": ""}, {"n": "Espinacas", "p": "500 Grs", "pr": 4000, "img": "espinaca", "pu": ""}, {"n": "Morron", "p": "500 Grs", "pr": 7000, "img": "morron", "pu": ""}, {"n": "Primavera", "p": "500 Grs", "pr": 5000, "img": "primavera", "pu": ""}, {"n": "Frutos Rojos", "p": "500 Grs", "pr": 11000, "img": "frutos_rojos", "pu": ""}, {"n": "Cebolla", "p": "500 Grs", "pr": 4000, "img": "cebolla", "pu": ""}]}, {"id": "pastas", "sec": "PASTAS LA CASERIANA", "col1": "#1A5276", "col2": "#0D2B3E", "shaddai": false, "items": [{"n": "Ravioles de Calabaza", "p": "500 Grs", "pr": 2700, "img": "ravioles", "pu": ""}, {"n": "Raviolones Espinaca y Mozz", "p": "Masa Integral · 500 Grs", "pr": 3900, "img": "ravioles", "pu": ""}, {"n": "Gnoquis de Papa", "p": "500 Grs", "pr": 2100, "img": "gnoquis", "pu": ""}, {"n": "Gnoquis de Espinaca", "p": "500 Grs", "pr": 2100, "img": "gnoquis_espinaca", "pu": ""}, {"n": "Sorrentinos Jamon y Queso", "p": "500 Grs", "pr": 4200, "img": "sorrentinos", "pu": ""}, {"n": "Sorrentinos Ricota 4 Quesos", "p": "400 Grs", "pr": 2600, "img": "sorrentinos", "pu": ""}]}];
 
 // qty, vActivo, fmt declarados en bloque de estado global (top del archivo)
 // v2: T() ahora incluye combos. Retorna {t, c, tCombos, cCombos, tProductos, cProductos}
@@ -18233,20 +18242,33 @@ function confirmarCiudadNoAtendida() {
   }
 
   // ─── Imágenes de categorías: probar img/categorias/<key>.jpg ───
-  // Si la imagen carga → fade-in. Si 404, queda el gradiente como fallback.
+  // v4.14.7: si no hay foto específica en /img/categorias/, fallback a producto representativo en /img/
+  // Si nada carga, queda el gradiente.
   function v4CargarImagenesCategorias(){
+    // Fallbacks por categoría: producto representativo que YA está en /img/
+    const fallbacksPorCategoria = {
+      'huevos':    'img/huevos_caja_abierta_3q.jpg',
+      'milanesas': 'img/Milanesa%20de%20Nalga.jpg',
+      'verduras':  'img/Papa%20Baston%20Balcarce.jpg',
+      'pastas':    'img/Gnoquis%20de%20Papa.jpg',
+      'rebozados': 'img/Nuggets%20de%20Pollo%20Crocante.jpg',
+      'pollos':    'img/suprema_x_5kg.jpg'
+    };
     document.querySelectorAll('.v4-cat-img-real').forEach(function(imgEl){
       const key = imgEl.getAttribute('data-v4-grupo-img');
       if (!key) return;
-      // Probar 2 extensiones comunes
       const probarUrls = [
         'img/categorias/' + key + '.jpg',
         'img/categorias/' + key + '.webp',
         'img/categorias/' + key + '.png'
       ];
+      // v4.14.7: fallback a producto representativo
+      if (fallbacksPorCategoria[key]) {
+        probarUrls.push(fallbacksPorCategoria[key]);
+      }
       let idx = 0;
       function probarSiguiente(){
-        if (idx >= probarUrls.length) return; // Sin foto → queda gradiente
+        if (idx >= probarUrls.length) return;
         const tmp = new Image();
         tmp.onload = function(){
           imgEl.src = probarUrls[idx];
@@ -20277,7 +20299,7 @@ function confirmarCiudadNoAtendida() {
   function v4UpdatePreviewBanner(){
     const bar = document.getElementById('v4-preview-bar');
     if (!bar) return;
-    bar.innerHTML = '👀 PREVIEW · <b>v4.14.6</b> en desarrollo · Producci&oacute;n en <a href="https://tckcatalogo.com" style="color:#5C0000;text-decoration:underline;font-weight:900">tckcatalogo.com</a>';
+    bar.innerHTML = '👀 PREVIEW · <b>v4.14.7</b> en desarrollo · Producci&oacute;n en <a href="https://tckcatalogo.com" style="color:#5C0000;text-decoration:underline;font-weight:900">tckcatalogo.com</a>';
   }
   v4UpdatePreviewBanner();
 
