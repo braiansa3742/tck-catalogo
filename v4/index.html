@@ -2722,6 +2722,58 @@ button,
 .ci-p{font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:800;color:var(--red);white-space:nowrap;flex-shrink:0}
 .ci-rm{background:none;border:none;color:var(--cream3);font-size:20px;cursor:pointer;padding:0 5px;flex-shrink:0;transition:color .15s}
 .ci-rm:hover{color:var(--red)}
+
+/* v4.14.3 FIX: botones +/- en el drawer */
+.ci-right{
+  display:flex;
+  flex-direction:column;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap:4px;
+  flex-shrink:0;
+}
+.ci-qty-row{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  margin-top:5px;
+  background:var(--cream2);
+  border-radius:8px;
+  padding:2px 4px;
+  width:fit-content;
+}
+.ci-qty-btn{
+  background:#fff;
+  border:1.5px solid var(--cream3);
+  color:var(--red);
+  width:28px;
+  height:28px;
+  border-radius:6px;
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:18px;
+  font-weight:900;
+  line-height:1;
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:0;
+  transition:background .15s, transform .1s;
+  touch-action:manipulation;
+}
+.ci-qty-btn:active{
+  transform:scale(0.92);
+  background:var(--cream);
+}
+.ci-qty-btn:hover{background:var(--cream)}
+.ci-qty-val{
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:16px;
+  font-weight:900;
+  color:var(--text);
+  min-width:24px;
+  text-align:center;
+}
 .d-empty{text-align:center;padding:32px;color:var(--text3);font-size:13px}
 .d-foot{padding:14px 16px 22px;border-top:1px solid var(--cream3);flex-shrink:0;background:var(--cream)}
 .d-tot-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
@@ -9537,7 +9589,7 @@ src="https://www.facebook.com/tr?id=2034313150514758&ev=PageView&noscript=1"
 <!-- ═══════════════ v4.0.0 PREVIEW BANNER ═══════════════ -->
 <!-- Solo visible cuando body tiene .v4-mode (set por JS si pathname /v4/) -->
 <div class="v4-preview-bar" id="v4-preview-bar">
-  👀 PREVIEW · <b>v4.14.2</b> en desarrollo · Producción en <a href="https://tckcatalogo.com" style="color:#5C0000;text-decoration:underline;font-weight:900">tckcatalogo.com</a>
+  👀 PREVIEW · <b>v4.14.3</b> en desarrollo · Producción en <a href="https://tckcatalogo.com" style="color:#5C0000;text-decoration:underline;font-weight:900">tckcatalogo.com</a>
 </div>
 
 <!-- ═══════════════ v4.0.0 HEADER LIMPIO ═══════════════ -->
@@ -9703,7 +9755,7 @@ src="https://www.facebook.com/tr?id=2034313150514758&ev=PageView&noscript=1"
       <a onclick="v4MenuClose()">Privacidad</a>
     </div>
     <div class="v4-menu-foot-version">
-      TCK Catálogo <b>v4.14.2</b> · The Chickens King S.R.L.
+      TCK Catálogo <b>v4.14.3</b> · The Chickens King S.R.L.
     </div>
   </div>
 </aside>
@@ -12087,13 +12139,29 @@ function renderDrawer(){
   });
 
   // Productos individuales del catálogo
+  // v4.14.3 FIX: agregar botones +/- (antes solo había ✕, no se podía subir/bajar cantidad)
   CAT.forEach((s,si)=>s.items.forEach((it,ii)=>{
     const q=qty[si+'-'+ii]||0;
-    if(q>0) html+='<div class="ci">'
-      +'<img class="ci-img" src="'+(it.img2 ? it.img2 : ('img/'+encodeURIComponent(_imgmap[it.n]||it.n+'.jpg').replace(/%25/g,'%').replace(/%2F/g,'/')))+'" alt="" loading="lazy" decoding="async">'
-      +'<div class="ci-inf"><div class="ci-n">'+it.n+'</div><div class="ci-q">'+qtyLabel(s,it,q)+' x '+fmt(it.pr)+(it.p?(' · '+presLabel(s,it,q)):'')+'</div></div>'
-      +'<div class="ci-p">'+fmt(it.pr*q)+'</div>'
-      +'<button class="ci-rm" onclick="chg(\''+(si+'-'+ii)+'\','+si+','+ii+',-'+q+')">&#x2715;</button></div>';
+    if(q>0) {
+      const key = si+'-'+ii;
+      const keyEsc = key.replace(/'/g, "\\'");
+      html+='<div class="ci">'
+        +'<img class="ci-img" src="'+(it.img2 ? it.img2 : ('img/'+encodeURIComponent(_imgmap[it.n]||it.n+'.jpg').replace(/%25/g,'%').replace(/%2F/g,'/')))+'" alt="" loading="lazy" decoding="async">'
+        +'<div class="ci-inf">'
+          +'<div class="ci-n">'+it.n+'</div>'
+          +'<div class="ci-q">'+qtyLabel(s,it,q)+' x '+fmt(it.pr)+(it.p?(' · '+presLabel(s,it,q)):'')+'</div>'
+          +'<div class="ci-qty-row">'
+            +'<button class="ci-qty-btn ci-minus" onclick="event.stopPropagation();chg(\''+keyEsc+'\','+si+','+ii+',-1)" aria-label="Restar uno">−</button>'
+            +'<span class="ci-qty-val">'+q+'</span>'
+            +'<button class="ci-qty-btn ci-plus" onclick="event.stopPropagation();chg(\''+keyEsc+'\','+si+','+ii+',1)" aria-label="Sumar uno">+</button>'
+          +'</div>'
+        +'</div>'
+        +'<div class="ci-right">'
+          +'<div class="ci-p">'+fmt(it.pr*q)+'</div>'
+          +'<button class="ci-rm" onclick="event.stopPropagation();chg(\''+keyEsc+'\','+si+','+ii+',-'+q+')" aria-label="Quitar del pedido">&#x2715;</button>'
+        +'</div>'
+      +'</div>';
+    }
   }));
   body.innerHTML=html;
   // v2.6.3: render del cupón si aplica
@@ -14463,12 +14531,29 @@ body.pd-open{overflow:hidden}
 
 <script>
 (function () {
+  // v4.14.3 FIX: el listener de doble-tap bloqueaba el segundo tap rápido en
+  // botones +/- (subir cantidad). Ahora EXCLUIMOS los botones de cantidad
+  // del preventDefault, porque queremos que se pueda tapear rápido para subir
+  // de a 1, 2, 3, etc sin pérdida.
+  //
+  // Mantenemos la prevención del zoom-double-tap solo en botones que NO son
+  // de cantidad (chips de vendedor, FAB, links de WhatsApp, etc).
   let lastTouchEnd = 0;
 
   document.addEventListener('touchend', function (event) {
     const now = Date.now();
     if (now - lastTouchEnd <= 300) {
-      const target = event.target.closest('button, .qb, .btn-det, .btn-wa, .vchip, .catbtn, .sv-card, .d-x, .ci-rm, .d-wa, .d-clear');
+      // Si el target es un botón de cantidad, NO bloquear (queremos tap rápido)
+      const isQtyBtn = event.target.closest(
+        '.qb, .qty-btn, .ci-qty-btn, .ci-plus, .ci-minus, ' +
+        '.v4-sheet-foot-qty-btn, .d-combo-qty-btn'
+      );
+      if (isQtyBtn) {
+        lastTouchEnd = now;
+        return; // dejar pasar el tap rápido
+      }
+      // Para el resto de botones, prevenir el zoom del doble-tap
+      const target = event.target.closest('button, .btn-det, .btn-wa, .vchip, .catbtn, .sv-card, .d-x, .ci-rm, .d-wa, .d-clear');
       if (target) {
         event.preventDefault();
       }
@@ -18641,25 +18726,35 @@ function confirmarCiudadNoAtendida() {
   }
 
   // Cambia cantidad desde el footer del sheet
+  // v4.14.3 FIX: agregado logging + manejo del caso si la card NO está en el DOM actual
+  // (puede pasar si el sheet quedó abierto sobre un producto y luego se navegó a otra categoría)
   window.v4SheetChg = function(delta){
-    if (!v4SheetState.open) return;
+    if (!v4SheetState.open) {
+      console.warn('[v4-sheet] chg ignorado: sheet cerrado');
+      return;
+    }
     const si = v4SheetState.si, ii = v4SheetState.ii;
-    if (si < 0 || ii < 0) return;
-    // Reutilizar el sistema legacy: buscar la card actual y construir el key
-    const it = CAT[si].items[ii];
-    if (!it) return;
-    // En el catálogo legacy, key = `${si}-${ii}` (data-key de la card)
+    if (si < 0 || ii < 0) {
+      console.warn('[v4-sheet] chg ignorado: sin producto activo', {si, ii});
+      return;
+    }
+    const it = CAT[si] && CAT[si].items && CAT[si].items[ii];
+    if (!it) {
+      console.warn('[v4-sheet] chg ignorado: producto no encontrado', {si, ii});
+      return;
+    }
     const key = si + '-' + ii;
-    // Si es Pollo A o B y delta > 0 (agregar), el flow de calibre se dispara desde chg().
-    // chg ya hace todo: actualiza qty, has-qty, qsub, updateBar, drawer, ls.
     if (typeof chg === 'function') {
       try {
         chg(key, si, ii, delta);
       } catch(e){
-        console.warn('[v4-sheet] chg falló', e);
+        console.error('[v4-sheet] chg falló', e);
       }
+    } else {
+      console.error('[v4-sheet] chg() no existe en window');
     }
-    // Sincronizar footer
+    // Sincronizar footer (chg ya invocó updateBar → trigger v4SheetSyncFooter via hook,
+    // pero por las dudas forzamos sync explícito acá también)
     setTimeout(v4SheetSyncFooter, 30);
   };
 
@@ -20174,7 +20269,7 @@ function confirmarCiudadNoAtendida() {
   function v4UpdatePreviewBanner(){
     const bar = document.getElementById('v4-preview-bar');
     if (!bar) return;
-    bar.innerHTML = '👀 PREVIEW · <b>v4.14.2</b> en desarrollo · Producci&oacute;n en <a href="https://tckcatalogo.com" style="color:#5C0000;text-decoration:underline;font-weight:900">tckcatalogo.com</a>';
+    bar.innerHTML = '👀 PREVIEW · <b>v4.14.3</b> en desarrollo · Producci&oacute;n en <a href="https://tckcatalogo.com" style="color:#5C0000;text-decoration:underline;font-weight:900">tckcatalogo.com</a>';
   }
   v4UpdatePreviewBanner();
 
