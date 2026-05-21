@@ -6789,7 +6789,7 @@ body.v4-mode .hdr{
   min-width:0;
 }
 .v4-hdr-logo-circle{
-  /* v4.14.10: óvalo horizontal (56×42) en lugar de círculo, decisión 22/5 */
+  /* v4.14.11: óvalo horizontal (56×42) en lugar de círculo, decisión 22/5 */
   width:56px;height:42px;
   background:#fff;
   border:2px solid var(--gold);
@@ -6800,7 +6800,7 @@ body.v4-mode .hdr{
   overflow:hidden;
 }
 .v4-hdr-logo-name{
-  /* v4.14.10: Playfair Display (serif premium, gastronómico) en lugar de Barlow Condensed.
+  /* v4.14.11: Playfair Display (serif premium, gastronómico) en lugar de Barlow Condensed.
      Mostrado en 1 sola línea, sin uppercase. */
   font-family:'Playfair Display','Barlow Condensed',serif;
   font-weight:700;font-size:18px;color:var(--gold);
@@ -7025,7 +7025,7 @@ body.mp-open{overflow:hidden}
   flex-shrink:0;
 }
 .v4-menu-logo{
-  /* v4.14.10: agrandado 50→62 para que se vea más prominente */
+  /* v4.14.11: agrandado 50→62 para que se vea más prominente */
   width:62px;height:62px;border-radius:50%;
   background:#fff;
   display:flex;align-items:center;justify-content:center;
@@ -7363,7 +7363,7 @@ body.v4-search-open{overflow:hidden}
 
 /* Ajustes mobile pequeños */
 @media (max-width:380px){
-  /* v4.14.10: mantener óvalo en pantallas chicas */
+  /* v4.14.11: mantener óvalo en pantallas chicas */
   .v4-hdr-logo-name{font-size:15px;letter-spacing:.3px}
   .v4-hdr-logo-circle{width:46px;height:34px;font-size:11px}
 }
@@ -7432,21 +7432,23 @@ body.v4-mode.v4-vista-home .v4-home{display:block}
 /* Capa de imagen real (si carga) o gradiente (fallback) */
 .v4-cat-img-real{
   position:absolute;inset:0;
-  /* v4.14.10 FIX CRÍTICO: el elemento es <img>, no <div> con background.
-     Antes tenía background-size/position que NO aplican a <img>.
-     Ahora tiene width/height 100% + object-fit:cover. */
+  /* v4.14.11 FIX: width/height 100% + object-fit:cover (el elemento es <img>, no <div>) */
+  /* v4.14.11 FIX: z-index:2 para que la imagen vaya ENCIMA del fallback gradiente
+     (en el DOM el fallback viene después del <img>, por defecto lo tapaba) */
   width:100%;
   height:100%;
   object-fit:cover;
   object-position:center;
   opacity:0;
+  z-index:2;
   transition:opacity .25s ease;
 }
 .v4-cat-img-real.loaded{opacity:1}
 
-/* Placeholder gradientes */
+/* Placeholder gradientes (van DETRÁS del <img> cuando la imagen carga) */
 .v4-cat-img-fallback{
   position:absolute;inset:0;
+  z-index:1;
 }
 .v4-cat-img-fallback.pollos{
   background:
@@ -7495,6 +7497,8 @@ body.v4-mode.v4-vista-home .v4-home{display:block}
 /* Overlay oscuro */
 .v4-cat-overlay{
   position:absolute;inset:0;
+  /* v4.14.11: z-index 3 para que vaya encima de la imagen (que tiene z-index 2) */
+  z-index:3;
   background:linear-gradient(135deg,rgba(0,0,0,.15) 0%,rgba(0,0,0,.55) 100%);
 }
 
@@ -7502,7 +7506,8 @@ body.v4-mode.v4-vista-home .v4-home{display:block}
 .v4-cat-name{
   position:absolute;
   left:18px;bottom:14px;right:60px;
-  z-index:2;
+  /* v4.14.11: z-index 4 para que vaya encima del overlay (3) y la imagen (2) */
+  z-index:4;
 }
 .v4-cat-name-text{
   font-family:'Barlow Condensed',sans-serif;
@@ -7523,7 +7528,8 @@ body.v4-mode.v4-vista-home .v4-home{display:block}
 .v4-cat-arrow{
   position:absolute;
   right:14px;top:50%;transform:translateY(-50%);
-  z-index:2;
+  /* v4.14.11: z-index 4 (encima de overlay 3 y imagen 2) */
+  z-index:4;
   width:32px;height:32px;
   background:rgba(255,255,255,.92);
   border-radius:50%;
@@ -7730,7 +7736,7 @@ body.v4-mode .body .card:not(.card-dual):not(.combo-card):not(.promo-card){
   overflow:hidden !important;
   border:1px solid var(--cream3) !important;
   box-shadow:0 1px 3px rgba(0,0,0,.04) !important;
-  /* v4.14.10: agrandado 118→155 para que las imágenes se vean más grandes y no sobre espacio */
+  /* v4.14.11: agrandado 118→155 para que las imágenes se vean más grandes y no sobre espacio */
   min-height:155px !important;
   position:relative;
   transition:background .12s, border-color .15s;
@@ -7750,7 +7756,7 @@ body.v4-mode .body .card.shaddai.has-qty:not(.card-dual){
 
 /* ─── FOTO IZQUIERDA — cuadrada 108×108 ─── */
 body.v4-mode .body .card:not(.card-dual):not(.combo-card):not(.promo-card) .card-img-area{
-  /* v4.14.10: agrandado más (145→145 cuadrado coherente con altura card 155, padding 1→0) */
+  /* v4.14.11: agrandado más (145→145 cuadrado coherente con altura card 155, padding 1→0) */
   width:145px !important;
   height:145px !important;
   flex-shrink:0 !important;
@@ -8298,7 +8304,7 @@ body.v4-mode .body .card .qrow *{cursor:pointer}
 /* Foto hero */
 .v4-sheet-hero{
   position:relative;
-  /* v4.14.10: agrandado 220→280 para que las fotos se vean más grandes */
+  /* v4.14.11: agrandado 220→280 para que las fotos se vean más grandes */
   height:280px;
   background:linear-gradient(135deg,#fff5e3 0%,#f0d8a8 40%,#e8c890 100%);
   display:flex;align-items:center;justify-content:center;
@@ -8306,7 +8312,7 @@ body.v4-mode .body .card .qrow *{cursor:pointer}
   flex-shrink:0;
 }
 .v4-sheet-hero img{
-  /* v4.14.10: 88%→96% para que la foto ocupe casi todo el contenedor */
+  /* v4.14.11: 88%→96% para que la foto ocupe casi todo el contenedor */
   max-width:96%;max-height:96%;
   object-fit:contain;
   display:block;
@@ -8331,7 +8337,7 @@ body.v4-mode .body .card .qrow *{cursor:pointer}
 }
 .v4-sheet-hero-carrusel .v4-sheet-hero-slide img,
 .v4-sheet-hero-carrusel > img{
-  /* v4.14.10: 88%→96% para que la foto del carrusel ocupe más */
+  /* v4.14.11: 88%→96% para que la foto del carrusel ocupe más */
   max-width:96%;max-height:96%;
   object-fit:contain;
   display:block;
@@ -9612,7 +9618,7 @@ src="https://www.facebook.com/tr?id=2034313150514758&ev=PageView&noscript=1"
 <!-- ═══════════════ v4.0.0 PREVIEW BANNER ═══════════════ -->
 <!-- Solo visible cuando body tiene .v4-mode (set por JS si pathname /v4/) -->
 <div class="v4-preview-bar" id="v4-preview-bar">
-  👀 PREVIEW · <b>v4.14.10</b> en desarrollo · Producción en <a href="https://tckcatalogo.com" style="color:#5C0000;text-decoration:underline;font-weight:900">tckcatalogo.com</a>
+  👀 PREVIEW · <b>v4.14.11</b> en desarrollo · Producción en <a href="https://tckcatalogo.com" style="color:#5C0000;text-decoration:underline;font-weight:900">tckcatalogo.com</a>
 </div>
 
 <!-- ═══════════════ v4.0.0 HEADER LIMPIO ═══════════════ -->
@@ -9709,7 +9715,7 @@ src="https://www.facebook.com/tr?id=2034313150514758&ev=PageView&noscript=1"
     <!-- v4.14.5: sacado "Buscar productos" (redundante con la lupa del header) -->
   </div>
 
-  <!-- v4.14.10: renombrada "Necesito ayuda" → "Ayuda" + "Preguntas frecuentes" reemplazado por sus 3 items directos -->
+  <!-- v4.14.11: renombrada "Necesito ayuda" → "Ayuda" + "Preguntas frecuentes" reemplazado por sus 3 items directos -->
   <div class="v4-menu-sec">
     <div class="v4-menu-sec-title">Ayuda</div>
     <button class="v4-menu-item" onclick="v4MenuClose();abrirModalPedirVendedor()">
@@ -9766,7 +9772,7 @@ src="https://www.facebook.com/tr?id=2034313150514758&ev=PageView&noscript=1"
       </span>
       <span class="v4-menu-item-label">Instagram</span>
     </a>
-    <!-- v4.14.10: sacado Facebook (TCK no tiene cuenta de Facebook activa) -->
+    <!-- v4.14.11: sacado Facebook (TCK no tiene cuenta de Facebook activa) -->
   </div>
 
   <div class="v4-menu-foot">
@@ -9775,7 +9781,7 @@ src="https://www.facebook.com/tr?id=2034313150514758&ev=PageView&noscript=1"
       <a onclick="v4MenuClose()">Privacidad</a>
     </div>
     <div class="v4-menu-foot-version">
-      TCK Catálogo <b>v4.14.10</b> · The Chickens King S.R.L.
+      TCK Catálogo <b>v4.14.11</b> · The Chickens King S.R.L.
     </div>
   </div>
 </aside>
@@ -18254,7 +18260,7 @@ function confirmarCiudadNoAtendida() {
   }
 
   // ─── Imágenes de categorías: probar img/categorias/<key>.jpg ───
-  // v4.14.10: agregado logging para debug del bug "no se ven las imágenes"
+  // v4.14.11: agregado logging para debug del bug "no se ven las imágenes"
   function v4CargarImagenesCategorias(){
     // Fallbacks por categoría: producto representativo que YA está en /img/
     const fallbacksPorCategoria = {
@@ -20323,7 +20329,7 @@ function confirmarCiudadNoAtendida() {
   function v4UpdatePreviewBanner(){
     const bar = document.getElementById('v4-preview-bar');
     if (!bar) return;
-    bar.innerHTML = '👀 PREVIEW · <b>v4.14.10</b> en desarrollo · Producci&oacute;n en <a href="https://tckcatalogo.com" style="color:#5C0000;text-decoration:underline;font-weight:900">tckcatalogo.com</a>';
+    bar.innerHTML = '👀 PREVIEW · <b>v4.14.11</b> en desarrollo · Producci&oacute;n en <a href="https://tckcatalogo.com" style="color:#5C0000;text-decoration:underline;font-weight:900">tckcatalogo.com</a>';
   }
   v4UpdatePreviewBanner();
 
