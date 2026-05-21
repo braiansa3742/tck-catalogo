@@ -2862,7 +2862,7 @@ button,
 .d-tot-row.subtotal .d-tot-lbl {
   font-size: 13px;
 }
-.d-wa{width:100%;background:linear-gradient(135deg,#25D366,#18a045);border:none;border-radius:12px;padding:14px;font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:800;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:9px;box-shadow:0 3px 12px rgba(37,211,102,.25)}
+.d-wa{width:100%;background:linear-gradient(135deg,#8B0000,#5C0000);border:none;border-radius:12px;padding:14px;font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:800;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:9px;box-shadow:0 3px 12px rgba(139,0,0,.3)}
 .d-wa:active{opacity:.9}
 .d-wa svg{width:20px;height:20px;fill:#fff}
 .d-clear{width:100%;background:none;border:none;color:var(--cream3);font-size:12px;margin-top:10px;cursor:pointer;padding:4px;letter-spacing:.8px;text-transform:uppercase;transition:color .15s}
@@ -6752,7 +6752,8 @@ body.v4-mode .hdr-body{display:none}
 /* ═══════════════ HEADER LIMPIO v4 ═══════════════ */
 .v4-hdr{
   display:none;
-  background:linear-gradient(180deg,#1A0800,#3B1800);
+  /* v4.14.5: header con rojo TCK auténtico (antes era marrón muy oscuro) */
+  background:linear-gradient(180deg,#8B0000 0%,#5C0000 100%);
   height:56px;
   align-items:center;
   padding:0 8px;gap:4px;
@@ -7012,23 +7013,24 @@ body.mp-open{overflow:hidden}
 
 .v4-menu-hdr{
   background:linear-gradient(180deg,#1A0800,#3B1800);
-  padding:14px 14px 12px;
-  display:flex;align-items:center;gap:11px;
+  padding:16px 14px 14px;
+  display:flex;align-items:center;gap:13px;
   border-bottom:2px solid var(--gold);
   flex-shrink:0;
 }
 .v4-menu-logo{
-  width:38px;height:38px;border-radius:50%;
+  width:50px;height:50px;border-radius:50%;
   background:#fff;
   display:flex;align-items:center;justify-content:center;
-  font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:14px;color:var(--red);
+  font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:16px;color:var(--red);
   border:2px solid var(--gold);
   flex-shrink:0;
+  overflow:hidden;
 }
 .v4-menu-brand{flex:1;min-width:0}
 .v4-menu-brand-name{
   font-family:'Barlow Condensed',sans-serif;
-  font-size:16px;font-weight:900;color:var(--gold);
+  font-size:18px;font-weight:900;color:var(--gold);
   letter-spacing:1px;line-height:1;text-transform:uppercase;
 }
 .v4-menu-brand-sub{
@@ -7627,6 +7629,8 @@ body.v4-mode.v4-vista-home .banner-cupon-activo,
 body.v4-mode.v4-vista-home .banner-pedido-armado,
 body.v4-mode.v4-vista-home .rep-fab,
 body.v4-mode.v4-vista-home #wa-float{display:none !important}
+/* v4.14.5: FAB de WhatsApp flotante SIEMPRE oculto en toda la app (decisión 22/5: no desviar tráfico) */
+#wa-float{display:none !important}
 
 /* En v4-vista-categoria: home oculta, body visible filtrado, sub-header arriba, sin catnav */
 body.v4-mode.v4-vista-categoria .v4-home{display:none}
@@ -7731,8 +7735,9 @@ body.v4-mode .body .card.shaddai.has-qty:not(.card-dual){
 
 /* ─── FOTO IZQUIERDA — cuadrada 108×108 ─── */
 body.v4-mode .body .card:not(.card-dual):not(.combo-card):not(.promo-card) .card-img-area{
-  width:108px !important;
-  height:108px !important;
+  /* v4.14.5: agrandado 108→130 + padding 6→3 para que la imagen llene más el contenedor */
+  width:130px !important;
+  height:130px !important;
   flex-shrink:0 !important;
   background:linear-gradient(135deg,#fff5e3 0%,#f0d8a8 40%,#e8c890 100%) !important;
   overflow:hidden;
@@ -7745,7 +7750,7 @@ body.v4-mode .body .card:not(.card-dual):not(.combo-card):not(.promo-card) .card
   width:100% !important;
   height:100% !important;
   object-fit:contain !important;
-  padding:6px !important;
+  padding:3px !important;
   display:block;
 }
 
@@ -7954,19 +7959,19 @@ body.v4-mode .body .card.card-sinstock:not(.card-dual) .card-img-area{
   filter:grayscale(.4);
 }
 body.v4-mode .body .card.card-sinstock:not(.card-dual) .card-sinstock-msg{
+  /* v4.14.5 FIX: el mensaje se solapaba con el botón +. Ahora va alineado a la izquierda,
+     después de la imagen, en una sola línea debajo del precio. */
   display:block !important;
-  position:absolute !important;
-  bottom:9px !important;
-  right:12px !important;
+  position:static !important;
   font-size:10px !important;
   color:var(--text3) !important;
   font-style:italic !important;
   background:transparent !important;
-  padding:0 !important;
+  padding:6px 0 0 0 !important;
   margin:0 !important;
-  text-align:right !important;
-  max-width:140px;
-  line-height:1.2 !important;
+  text-align:left !important;
+  max-width:none;
+  line-height:1.3 !important;
 }
 body.v4-mode .body .card.card-sinstock:not(.card-dual) .card-sinstock-msg strong{font-weight:700}
 body.v4-mode .body .card.card-sinstock:not(.card-dual) .card-sinstock-msg br{display:none}
@@ -9589,7 +9594,7 @@ src="https://www.facebook.com/tr?id=2034313150514758&ev=PageView&noscript=1"
 <!-- ═══════════════ v4.0.0 PREVIEW BANNER ═══════════════ -->
 <!-- Solo visible cuando body tiene .v4-mode (set por JS si pathname /v4/) -->
 <div class="v4-preview-bar" id="v4-preview-bar">
-  👀 PREVIEW · <b>v4.14.4</b> en desarrollo · Producción en <a href="https://tckcatalogo.com" style="color:#5C0000;text-decoration:underline;font-weight:900">tckcatalogo.com</a>
+  👀 PREVIEW · <b>v4.14.5</b> en desarrollo · Producción en <a href="https://tckcatalogo.com" style="color:#5C0000;text-decoration:underline;font-weight:900">tckcatalogo.com</a>
 </div>
 
 <!-- ═══════════════ v4.0.0 HEADER LIMPIO ═══════════════ -->
@@ -9620,7 +9625,11 @@ src="https://www.facebook.com/tr?id=2034313150514758&ev=PageView&noscript=1"
 <div class="v4-menu-backdrop" id="v4-menu-backdrop" onclick="v4MenuClose()"></div>
 <aside class="v4-menu" id="v4-menu" aria-hidden="true">
   <div class="v4-menu-hdr">
-    <div class="v4-menu-logo">TCK</div>
+    <!-- v4.14.5: logo TCK real (imagen) en lugar del placeholder "TCK" texto -->
+    <div class="v4-menu-logo">
+      <img src="img/logo.png" alt="TCK" style="width:100%;height:100%;object-fit:cover;border-radius:50%;"
+           onerror="this.outerHTML='TCK'">
+    </div>
     <div class="v4-menu-brand">
       <div class="v4-menu-brand-name">The Chickens King</div>
       <div class="v4-menu-brand-sub">Distribuidora avícola · Trenque Lauquen</div>
@@ -9676,12 +9685,7 @@ src="https://www.facebook.com/tr?id=2034313150514758&ev=PageView&noscript=1"
       <span class="v4-menu-item-label">Mi pedido</span>
       <span class="v4-menu-item-badge" id="v4-menu-cart-badge">0</span>
     </button>
-    <button class="v4-menu-item" onclick="v4MenuClose();v4SearchOpen()">
-      <span class="v4-menu-item-icon">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
-      </span>
-      <span class="v4-menu-item-label">Buscar productos</span>
-    </button>
+    <!-- v4.14.5: sacado "Buscar productos" (redundante con la lupa del header) -->
   </div>
 
   <!-- NECESITO AYUDA -->
@@ -9693,12 +9697,7 @@ src="https://www.facebook.com/tr?id=2034313150514758&ev=PageView&noscript=1"
       </span>
       <span class="v4-menu-item-label">Hablar con un vendedor</span>
     </button>
-    <button class="v4-menu-item wa" onclick="v4MenuClose();v4AbrirWhatsApp()">
-      <span class="v4-menu-item-icon">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M20.52 3.45A11.93 11.93 0 0 0 12.04 0C5.5 0 .2 5.3.2 11.84a11.78 11.78 0 0 0 1.6 5.95L0 24l6.36-1.66a11.83 11.83 0 0 0 5.68 1.44h.01c6.54 0 11.85-5.3 11.85-11.84a11.76 11.76 0 0 0-3.38-8.49Z"/></svg>
-      </span>
-      <span class="v4-menu-item-label">WhatsApp directo</span>
-    </button>
+    <!-- v4.14.5: sacado "WhatsApp directo" verde (decisión 22/5: no desviar tráfico, solo "Hablar con vendedor") -->
     <button class="v4-menu-item" onclick="v4MenuClose();toggleFAB()">
       <span class="v4-menu-item-icon">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>
@@ -9755,7 +9754,7 @@ src="https://www.facebook.com/tr?id=2034313150514758&ev=PageView&noscript=1"
       <a onclick="v4MenuClose()">Privacidad</a>
     </div>
     <div class="v4-menu-foot-version">
-      TCK Catálogo <b>v4.14.4</b> · The Chickens King S.R.L.
+      TCK Catálogo <b>v4.14.5</b> · The Chickens King S.R.L.
     </div>
   </div>
 </aside>
@@ -10137,7 +10136,7 @@ src="https://www.facebook.com/tr?id=2034313150514758&ev=PageView&noscript=1"
   </div>
 </div>
 <div class="d-tot-row"><div class="d-tot-lbl">Total Estimado</div><div class="d-tot-amt" id="d-tot"></div></div>
-<button class="d-wa" onclick="sendWA()"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.125.558 4.122 1.532 5.852L.057 23.737a.5.5 0 00.606.606l5.885-1.475A11.945 11.945 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22a9.944 9.944 0 01-5.073-1.386l-.363-.214-3.771.945.963-3.655-.236-.378A9.954 9.954 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg> Enviar a <span id="d-wa-nom" style="margin-left:4px"></span></button>
+<button class="d-wa" onclick="sendWA()"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17 4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg> Confirmar pedido</button>
 <button class="d-clear" onclick="clearCart()">Vaciar pedido</button>
 </div></div>
 </div>
@@ -10296,6 +10295,17 @@ const VEND=[{"nombre": "Miguel", "wa": "5492392449725"}, {"nombre": "Juan", "wa"
 // Helper: detecta si un vendedor (por nombre) es el canal interno.
 function _esVendedorOnline(nombre) {
   return (nombre || '').toLowerCase().trim() === 'tck online';
+}
+
+// v4.14.5: Helper que devuelve el nombre AMIGABLE para mostrar al cliente.
+// Si el vendedor es el canal interno "TCK Online", el cliente NO debe ver eso
+// (es un identificador de BD). Le mostramos "Tu vendedor" como genérico.
+// Para cualquier otro vendedor (Miguel, Juan, Lisandro) devuelve el nombre real.
+function _nombreVendedorVisible(v) {
+  if (!v) return 'Tu vendedor';
+  const nombre = (typeof v === 'string') ? v : (v.nombre || '');
+  if (_esVendedorOnline(nombre)) return 'Tu vendedor';
+  return nombre || 'Tu vendedor';
 }
 // ── STOCK ─────────────────────────────────────────────────────────
 // Para ocultar: agregar nombre exacto a OCULTOS (sigue siendo hardcoded
@@ -10606,16 +10616,17 @@ function elegir(i){
   // Actualizar UI del header
   const vchip = document.getElementById('vchip');
   if (vchip) {
-    var fotoVend = 'https://tckcatalogo.com/img/' + (vActivo.nombre||'').toLowerCase() + '.jpg';
-    vchip.innerHTML = '<img id="vchip-foto" src="' + fotoVend + '" style="width:20px;height:20px;border-radius:50%;object-fit:cover;margin-right:5px;vertical-align:middle;"> ' + vActivo.nombre;
+    var _nombreVisible = _nombreVendedorVisible(vActivo);
+    var fotoVend = 'https://tckcatalogo.com/img/' + _nombreVisible.toLowerCase() + '.jpg';
+    vchip.innerHTML = '<img id="vchip-foto" src="' + fotoVend + '" style="width:20px;height:20px;border-radius:50%;object-fit:cover;margin-right:5px;vertical-align:middle;"> ' + _nombreVisible;
     var vf = document.getElementById('vchip-foto'); if(vf) vf.onerror = function(){ this.style.display='none'; };
     vchip.style.display = '';
   }
   // Actualizar drawer
   const dsub = document.getElementById('d-sub');
-  if (dsub) dsub.textContent = 'Para: ' + vActivo.nombre;
+  if (dsub) dsub.textContent = 'Tu vendedor: ' + _nombreVendedorVisible(vActivo);
   const dwanom = document.getElementById('d-wa-nom');
-  if (dwanom) dwanom.textContent = vActivo.nombre;
+  if (dwanom) dwanom.textContent = _nombreVendedorVisible(vActivo);
   const hdrSup = document.getElementById('hdr-support');
   if (hdrSup) hdrSup.classList.add('visible');
   cerrarFAB();
@@ -13478,27 +13489,11 @@ function clearCartLS() {
 // ───────────────────────────────────────────────────────────────────────
 
 function debeIMostrarIntroTCK() {
-  // v3.5.4: Mostrar a TODOS (Meta + orgánicos), EXCEPTO clientes que
-  // entran con vendedor humano asignado (?v=miguel/juan/lisandro).
-  // Razón: los clientes con vendedor ya tuvieron contacto humano que
-  // generó confianza, no necesitan la pantalla. Los nuevos sí.
-
-  // Si entra con ?v=algo que no es canal pago → es vendedor humano, NO mostrar
-  try {
-    const params = new URLSearchParams(window.location.search);
-    const vParam = (params.get('v') || '').toLowerCase().trim();
-    if (vParam && !CANALES_SIN_VENDEDOR[vParam]) {
-      // Es un vendedor real (miguel/juan/lisandro/etc), saltarse la intro
-      return false;
-    }
-  } catch(e) { /* sin query, seguir */ }
-
-  // No mostrar si ya la vio
-  try {
-    if (localStorage.getItem('tck_intro_visto') === '1') return false;
-  } catch(e) { /* localStorage bloqueado, igual mostrar */ }
-
-  return true;
+  // v4.14.5: el intro de "Sobre TCK" NUNCA se abre automáticamente.
+  // El cliente lo abre manualmente desde el header (botón "Sobre TCK") o
+  // desde el menú lateral. Antes se mostraba auto a clientes nuevos pero
+  // generaba fricción.
+  return false;
 }
 
 function mostrarIntroTCK() {
@@ -13640,11 +13635,11 @@ cargarPrecios().finally(() => {
     try { localStorage.setItem('tck_vendedor_link', 'TCK_ONLINE'); } catch(e) {}
     // Actualizar UI mínima (sin pasar por elegir() que usa índice de VEND)
     const vchip = document.getElementById('vchip');
-    if (vchip) vchip.textContent = VEND_ONLINE.nombre;
+    if (vchip) vchip.textContent = _nombreVendedorVisible(VEND_ONLINE);
     const dsub = document.getElementById('d-sub');
-    if (dsub) dsub.textContent = 'Para: ' + VEND_ONLINE.nombre;
+    if (dsub) dsub.textContent = 'Tu vendedor: ' + _nombreVendedorVisible(VEND_ONLINE);
     const dwanom = document.getElementById('d-wa-nom');
-    if (dwanom) dwanom.textContent = VEND_ONLINE.nombre;
+    if (dwanom) dwanom.textContent = _nombreVendedorVisible(VEND_ONLINE);
     const hdrSup = document.getElementById('hdr-support');
     if (hdrSup) hdrSup.classList.add('visible');
     // v3.6.2: refrescar WA flotante hacia TCK Online
@@ -17067,12 +17062,13 @@ function cliNuevoPedido() {
       sv.classList.add('gone');
       sv.style.display = 'none';
       vActivo = VEND[idx];
-      var _fv = 'https://tckcatalogo.com/img/' + (vActivo.nombre||'').toLowerCase() + '.jpg';
-      document.getElementById('vchip').innerHTML = '<img id="vchip-foto2" src="' + _fv + '" style="width:20px;height:20px;border-radius:50%;object-fit:cover;margin-right:5px;vertical-align:middle;"> ' + vActivo.nombre;
+      var _nombreVis2 = _nombreVendedorVisible(vActivo);
+      var _fv = 'https://tckcatalogo.com/img/' + _nombreVis2.toLowerCase() + '.jpg';
+      document.getElementById('vchip').innerHTML = '<img id="vchip-foto2" src="' + _fv + '" style="width:20px;height:20px;border-radius:50%;object-fit:cover;margin-right:5px;vertical-align:middle;"> ' + _nombreVis2;
       var vf2 = document.getElementById('vchip-foto2'); if(vf2) vf2.onerror = function(){ this.style.display='none'; };
-      document.getElementById('d-sub').textContent = 'Para: ' + vActivo.nombre;
+      document.getElementById('d-sub').textContent = 'Tu vendedor: ' + _nombreVis2;
       document.getElementById('hdr-support').classList.add('visible');
-      document.getElementById('d-wa-nom').textContent = vActivo.nombre;
+      document.getElementById('d-wa-nom').textContent = _nombreVis2;
       saveCartLS();
       // Mostrar botón volver al portal en header
       const bv = document.getElementById('cli-btn-volver-portal');
@@ -20281,7 +20277,7 @@ function confirmarCiudadNoAtendida() {
   function v4UpdatePreviewBanner(){
     const bar = document.getElementById('v4-preview-bar');
     if (!bar) return;
-    bar.innerHTML = '👀 PREVIEW · <b>v4.14.4</b> en desarrollo · Producci&oacute;n en <a href="https://tckcatalogo.com" style="color:#5C0000;text-decoration:underline;font-weight:900">tckcatalogo.com</a>';
+    bar.innerHTML = '👀 PREVIEW · <b>v4.14.5</b> en desarrollo · Producci&oacute;n en <a href="https://tckcatalogo.com" style="color:#5C0000;text-decoration:underline;font-weight:900">tckcatalogo.com</a>';
   }
   v4UpdatePreviewBanner();
 
