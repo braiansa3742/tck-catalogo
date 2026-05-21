@@ -12752,6 +12752,12 @@ async function saveOrderToSheets(payload) {
     if (payload.cuponAplicado) params.set('cuponAplicado', payload.cuponAplicado);
     // v3.5.1: tracking de canal de marketing (fb / ig / google / tiktok / web_cliente / directo)
     if (payload.origen_marketing) params.set('origen_marketing', payload.origen_marketing);
+    // v3.10.2 FIX: el catálogo construía detalle_estructurado pero saveOrderToSheets
+    // no lo pasaba a params. Por eso la col 19 del Sheet siempre quedaba vacía.
+    // Apps Script v25.17.0+ lee este campo para evitar el parser legacy de emojis.
+    if (payload.telefono)            params.set('telefono', payload.telefono);
+    if (payload.cliente_id)          params.set('cliente_id', payload.cliente_id);
+    if (payload.detalle_estructurado) params.set('detalle_estructurado', payload.detalle_estructurado);
     const url = SHEETS_ENDPOINT + '?' + params.toString();
     await fetch(url, { method: 'GET', mode: 'no-cors' });
     console.log('[TCK Sheets] Pedido enviado via GET');
