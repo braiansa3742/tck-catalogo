@@ -12675,6 +12675,20 @@ function sendWA() {
   _setVendedorEnModalEnvio(vActivo.nombre);
   cargarDatosCliente();
   cliPreRellenarModal();
+  // v3.10.4: si las localidades no están cargadas todavía, forzar carga.
+  // Bug reportado: a veces el select #ci-localidad solo muestra "— Elegí localidad —"
+  // sin opciones reales. Causa: el modal se abre antes de que termine cargarLocalidadesCanonicas().
+  try {
+    if (typeof _localidadesCanonicas !== 'undefined' && _localidadesCanonicas.length === 0
+        && typeof cargarLocalidadesCanonicas === 'function') {
+      cargarLocalidadesCanonicas().then(function(){
+        if (typeof poblarLocalidadesSelects === 'function') poblarLocalidadesSelects();
+      });
+    } else if (typeof poblarLocalidadesSelects === 'function') {
+      // Re-poblar defensivamente por si el DOM del modal se re-creó
+      poblarLocalidadesSelects();
+    }
+  } catch(e) { console.warn('[v3.10.4] re-poblar localidades:', e); }
   abrirModal('modal-cliente-id');
 }
 
@@ -12928,6 +12942,47 @@ function confirmarYEnviarWA() {
     }
   }));
 
+  // ── v3.10.4 FIX: incluir claves de calibre (Pollo A/B con calibre x6/x7) ──
+  // Bug histórico: T() sumaba qty['cal:Pollo A:x6'] via hook, pero el armado
+  // del mensaje WA, el resumen "1 producto / 1 unidad" y detalle_estructurado
+  // ignoraban estas claves → total inflado, líneas faltantes.
+  // Causa de los $172.000 perdidos en pedido EZ4L y $257.500 en UA4W.
+  Object.keys(qty).forEach(function(k) {
+    if (typeof k !== 'string' || k.indexOf('cal:') !== 0) return;
+    const q = qty[k] || 0;
+    if (q <= 0) return;
+    // Parsear "cal:<nombre>:<calibre>"
+    const rest = k.slice(4);
+    const lastColon = rest.lastIndexOf(':');
+    if (lastColon === -1) return;
+    const nombre  = rest.slice(0, lastColon);
+    const calibre = rest.slice(lastColon + 1);
+    // Buscar producto en CAT por nombre exacto
+    let prodInfo = null;
+    for (let si = 0; si < CAT.length && !prodInfo; si++) {
+      const sec = CAT[si];
+      if (!sec || !sec.items) continue;
+      for (let ii = 0; ii < sec.items.length; ii++) {
+        if (sec.items[ii].n === nombre) {
+          prodInfo = { sec: sec, it: sec.items[ii], si: si, ii: ii };
+          break;
+        }
+      }
+    }
+    if (!prodInfo) return;
+    // Generar línea WA con etiqueta del calibre (formato Pedix style)
+    const meta = (typeof unitMeta === 'function') ? unitMeta(prodInfo.sec, prodInfo.it) : { emoji: '🐔', singular: 'caja', plural: 'cajas' };
+    const presTxt = (typeof presLabel === 'function') ? presLabel(prodInfo.sec, prodInfo.it, q) : '';
+    const presPart = presTxt ? ' (' + presTxt + ')' : '';
+    const qtyTxt = q + ' ' + (q === 1 ? meta.singular : meta.plural);
+    lineasProductos.push(meta.emoji + ' *' + nombre + ' · calibre ' + calibre + '*');
+    lineasProductos.push(qtyTxt + presPart + ' x ' + fmt(prodInfo.it.pr) + ' → ' + fmt(prodInfo.it.pr * q));
+    lineasProductos.push('');
+    itemsTotales += q;
+    productosCount++;
+    // Sumar también al detalle_estructurado más abajo (lo replicamos ahí también)
+  });
+
   // Totales finales (combos + promos + productos)
   itemsTotales += combosUnidades + promosUnidades;
   productosCount += combosCount + promosCount;
@@ -13041,6 +13096,41 @@ function confirmarYEnviarWA() {
       });
     }
   }));
+
+  // v3.10.4: Productos con calibre (Pollo A/B con x6/x7) — claves "cal:..."
+  // Antes se ignoraban en detalle_estructurado pese a sumar al total via T() hook.
+  Object.keys(qty).forEach(function(k) {
+    if (typeof k !== 'string' || k.indexOf('cal:') !== 0) return;
+    const qProd = qty[k] || 0;
+    if (qProd <= 0) return;
+    const rest = k.slice(4);
+    const lastColon = rest.lastIndexOf(':');
+    if (lastColon === -1) return;
+    const nombre  = rest.slice(0, lastColon);
+    const calibre = rest.slice(lastColon + 1);
+    let prodInfo = null;
+    for (let si = 0; si < CAT.length && !prodInfo; si++) {
+      const sec = CAT[si];
+      if (!sec || !sec.items) continue;
+      for (let ii = 0; ii < sec.items.length; ii++) {
+        if (sec.items[ii].n === nombre) {
+          prodInfo = { sec: sec, it: sec.items[ii] };
+          break;
+        }
+      }
+    }
+    if (!prodInfo) return;
+    itemsEstructurados.push({
+      tipo: 'producto_calibre',
+      nombre_canonico: nombre,
+      calibre: calibre,
+      seccion_id: prodInfo.sec.id,
+      cantidad: qProd,
+      precio_unitario: prodInfo.it.pr,
+      subtotal: prodInfo.it.pr * qProd,
+      elegible_cupon: cuponEsElegibleCat(prodInfo.sec.id)
+    });
+  });
 
   // Combos (NO elegibles para cupón por diseño — el catálogo los excluye en T())
   (_combosData || []).forEach(c => {
@@ -13319,6 +13409,36 @@ function confirmarYEnviarWA() {
           '</div>';
       }
     }));
+    // v3.10.4: Productos con calibre (Pollo A/B con x6/x7)
+    Object.keys(qtySnapshot).forEach(function(k) {
+      if (typeof k !== 'string' || k.indexOf('cal:') !== 0) return;
+      const q = qtySnapshot[k] || 0;
+      if (q <= 0) return;
+      const rest = k.slice(4);
+      const lastColon = rest.lastIndexOf(':');
+      if (lastColon === -1) return;
+      const nombre  = rest.slice(0, lastColon);
+      const calibre = rest.slice(lastColon + 1);
+      let prodInfo = null;
+      for (let si = 0; si < CAT.length && !prodInfo; si++) {
+        const sec = CAT[si];
+        if (!sec || !sec.items) continue;
+        for (let ii = 0; ii < sec.items.length; ii++) {
+          if (sec.items[ii].n === nombre) {
+            prodInfo = { sec: sec, it: sec.items[ii] };
+            break;
+          }
+        }
+      }
+      if (!prodInfo) return;
+      const meta = unitMeta(prodInfo.sec, prodInfo.it);
+      const qLabel = q + ' ' + (q === 1 ? meta.singular : meta.plural);
+      const pLabel = presLabel(prodInfo.sec, prodInfo.it, q);
+      prodHtml += '<div class="pod-prod-item">' +
+        '<div class="pod-prod-nombre">' + meta.emoji + ' ' + nombre + ' · calibre ' + calibre + '</div>' +
+        '<div class="pod-prod-detalle">' + qLabel + (pLabel ? ' · ' + pLabel : '') + ' · ' + fmt(prodInfo.it.pr * q) + '</div>' +
+        '</div>';
+    });
     prodLista.innerHTML = prodHtml;
     const toggleLabel = document.getElementById('pod-toggle-label');
     if (toggleLabel) toggleLabel.textContent = 'Ver ' + productosCount + ' producto' + (productosCount !== 1 ? 's' : '');
