@@ -12532,6 +12532,11 @@ function cargarDatosCliente(){
     if(d.comercio)  document.getElementById('ci-comercio').value  = d.comercio;
     if(d.localidad) document.getElementById('ci-localidad').value = d.localidad;
     if(d.telefono)  document.getElementById('ci-telefono').value  = d.telefono;
+    // v3.10.6: cuit y direccion persistidos
+    const cuitEl = document.getElementById('ci-cuit');
+    if (cuitEl && d.cuit) cuitEl.value = d.cuit;
+    const direccionEl = document.getElementById('ci-direccion');
+    if (direccionEl && d.direccion) direccionEl.value = d.direccion;
   }catch(e){}
   // v3.6.13: actualizar panel de entrega si quedó cargada localidad
   if (typeof ciActualizarEntregaEstimada === 'function') {
@@ -12539,9 +12544,19 @@ function cargarDatosCliente(){
   }
 }
 
-function guardarDatosCliente(nombre, comercio, localidad, telefono){
+function guardarDatosCliente(nombre, comercio, localidad, telefono, cuit, direccion){
   try{
-    localStorage.setItem(LS_KEY, JSON.stringify({nombre, comercio, localidad, telefono: telefono||''}));
+    // v3.10.6: persistir también cuit y direccion para no pedirlos en cada pedido
+    const prev = JSON.parse(localStorage.getItem(LS_KEY)||'{}');
+    const data = {
+      nombre: nombre,
+      comercio: comercio,
+      localidad: localidad,
+      telefono: telefono || '',
+      cuit: (typeof cuit !== 'undefined' && cuit) ? cuit : (prev.cuit || ''),
+      direccion: (typeof direccion !== 'undefined' && direccion) ? direccion : (prev.direccion || '')
+    };
+    localStorage.setItem(LS_KEY, JSON.stringify(data));
   }catch(e){}
 }
 
@@ -12771,6 +12786,8 @@ async function saveOrderToSheets(payload) {
     // Apps Script v25.17.0+ lee este campo para evitar el parser legacy de emojis.
     if (payload.telefono)            params.set('telefono', payload.telefono);
     if (payload.cliente_id)          params.set('cliente_id', payload.cliente_id);
+    if (payload.cuit)                params.set('cuit', payload.cuit);
+    if (payload.direccion)           params.set('direccion', payload.direccion);
     if (payload.detalle_estructurado) params.set('detalle_estructurado', payload.detalle_estructurado);
     const url = SHEETS_ENDPOINT + '?' + params.toString();
     await fetch(url, { method: 'GET', mode: 'no-cors' });
@@ -12813,6 +12830,12 @@ function confirmarYEnviarWA() {
   const comercio  = (document.getElementById('ci-comercio').value||'').trim();
   const localidad = (document.getElementById('ci-localidad').value||'').trim();
   const telefono  = (document.getElementById('ci-telefono').value||'').trim().replace(/\D/g,'');
+  // v3.10.6: CUIT/DNI y dirección obligatorios
+  const cuitEl       = document.getElementById('ci-cuit');
+  const direccionEl  = document.getElementById('ci-direccion');
+  const cuit         = cuitEl ? (cuitEl.value || '').trim() : '';
+  const cuitNumerico = cuit.replace(/\D/g,''); // solo dígitos para validar largo
+  const direccion    = direccionEl ? (direccionEl.value || '').trim() : '';
   // v3.6.2: comentario opcional al vendedor
   const comentEl  = document.getElementById('ci-comentario');
   const comentario = comentEl ? (comentEl.value || '').trim() : '';
@@ -12830,9 +12853,23 @@ function confirmarYEnviarWA() {
     _resetBtn();
     return;
   }
+  // v3.10.6: CUIT/DNI obligatorio. Aceptamos DNI (7-8 dígitos) o CUIT (11 dígitos con o sin guiones)
+  if (!cuit || cuitNumerico.length < 7) {
+    alert('Por favor ingresá tu CUIT o DNI. Lo necesitamos para facturarte.');
+    if (cuitEl) cuitEl.focus();
+    _resetBtn();
+    return;
+  }
   if(!localidad) {
     alert('Por favor ingresá tu localidad.');
     document.getElementById('ci-localidad').focus();
+    _resetBtn();
+    return;
+  }
+  // v3.10.6: Dirección obligatoria (al menos 4 caracteres)
+  if (!direccion || direccion.length < 4) {
+    alert('Por favor ingresá la dirección donde entregamos tu pedido.');
+    if (direccionEl) direccionEl.focus();
     _resetBtn();
     return;
   }
@@ -12861,7 +12898,7 @@ function confirmarYEnviarWA() {
   }
 
   // Guardar datos para próxima vez
-  guardarDatosCliente(nombre, comercio, localidad, telefono);
+  guardarDatosCliente(nombre, comercio, localidad, telefono, cuit, direccion);
 
   // Cerrar modal
   cerrarModal('modal-cliente-id');
@@ -13007,7 +13044,11 @@ function confirmarYEnviarWA() {
     '👤 *Cliente:* ' + nombre,
   ];
   if(comercio) L.push('🏪 *Comercio:* ' + comercio);
+  // v3.10.6: CUIT/DNI obligatorio — siempre se incluye
+  if (cuit) L.push('🆔 *CUIT/DNI:* ' + cuit);
   L.push('📍 *Localidad:* ' + localidad);
+  // v3.10.6: Dirección obligatoria — siempre se incluye
+  if (direccion) L.push('📮 *Dirección:* ' + direccion);
   // v3.6.13: agregar fecha estimada de entrega al mensaje WA
   // Ayuda a Francisco/vendedor a ver de un vistazo cuándo despachar
   // y al cliente a tener constancia escrita en su chat
@@ -13191,6 +13232,8 @@ function confirmarYEnviarWA() {
     comercio:       comercio || '',
     localidad:      localidad,
     telefono:       telefono || '',
+    cuit:           cuit || '',
+    direccion:      direccion || '',
     total:          t,
     itemsTotales:   itemsTotales,
     resumenPedido:  productosCount + ' producto' + (productosCount !== 1 ? 's' : '') + ' / ' + itemsTotales + ' unidad' + (itemsTotales !== 1 ? 'es' : ''),
@@ -13321,6 +13364,8 @@ function confirmarYEnviarWA() {
         comercio: comercio || '',
         localidad: localidad,
         telefono: telefono || '',
+        cuit: cuit || '',
+        direccion: direccion || '',
         vendedor: vActivo ? vActivo.nombre : '',
         vendedorWA: vActivo ? vActivo.wa : '',
         productosCount: productosCount,
@@ -13344,7 +13389,9 @@ function confirmarYEnviarWA() {
     detalle.innerHTML =
       '<div class="pod-row"><span class="pod-label">Cliente</span><span class="pod-val">' + nombre + '</span></div>' +
       (comercio ? '<div class="pod-row"><span class="pod-label">Comercio</span><span class="pod-val">' + comercio + '</span></div>' : '') +
+      (cuit ? '<div class="pod-row"><span class="pod-label">CUIT/DNI</span><span class="pod-val">' + cuit + '</span></div>' : '') +
       '<div class="pod-row"><span class="pod-label">Localidad</span><span class="pod-val">' + localidad + '</span></div>' +
+      (direccion ? '<div class="pod-row"><span class="pod-label">Dirección</span><span class="pod-val">' + direccion + '</span></div>' : '') +
       '<div class="pod-row"><span class="pod-label">Vendedor</span><span class="pod-val">' + (vActivo ? vActivo.nombre : '') + '</span></div>' +
       '<div class="pod-row"><span class="pod-label">Productos</span><span class="pod-val">' + productosCount + ' (' + itemsTotales + ' uds.)</span></div>' +
       '<div class="pod-row pod-total"><span class="pod-label">Total</span><span class="pod-val">' + fmt(t) + '</span></div>';
@@ -15167,6 +15214,10 @@ document.addEventListener('visibilitychange', function() {
       <input class="tck-input" id="ci-nombre" type="text" placeholder="Ej: Juan García o Rotisería El Rancho" autocomplete="name">
     </div>
     <div class="tck-field">
+      <label class="tck-label">CUIT o DNI <span style="color:var(--red2)">*</span></label>
+      <input class="tck-input" id="ci-cuit" type="text" inputmode="numeric" placeholder="Ej: 20-12345678-9 o 30123456" autocomplete="off" maxlength="20">
+    </div>
+    <div class="tck-field">
       <label class="tck-label">Nombre del local / comercio <span class="tck-campo-opcional">(opcional)</span></label>
       <input class="tck-input" id="ci-comercio" type="text" placeholder="Ej: Rotisería El Rancho" autocomplete="organization">
     </div>
@@ -15182,6 +15233,10 @@ document.addEventListener('visibilitychange', function() {
         <div style="font-size:12px;font-weight:700;color:#1B5E20;line-height:1.4;" id="ci-entrega-estimada-txt">—</div>
         <div style="font-size:11px;color:#5a3838;margin-top:3px;line-height:1.3;" id="ci-entrega-estimada-zona">—</div>
       </div>
+    </div>
+    <div class="tck-field">
+      <label class="tck-label">Direcci&oacute;n <span style="color:var(--red2)">*</span> <span class="tck-campo-opcional">(d&oacute;nde entregamos)</span></label>
+      <input class="tck-input" id="ci-direccion" type="text" placeholder="Ej: Av. San Mart&iacute;n 450" autocomplete="street-address">
     </div>
     <div class="tck-field">
       <label class="tck-label">Tel&eacute;fono / WhatsApp <span style="color:var(--red2)">*</span> <span class="tck-campo-opcional">(para avisarte cuando confirmemos)</span></label>
@@ -17398,6 +17453,9 @@ function cliPreRellenarModal() {
     'ci-comercio':  _cliActivo.comercio,
     'ci-localidad': _cliActivo.ciudad,
     'ci-telefono':  _cliActivo.telefono,
+    // v3.10.6: pre-rellenar cuit y direccion si el cliente está registrado
+    'ci-cuit':      _cliActivo.cuit || _cliActivo.dni,
+    'ci-direccion': _cliActivo.direccion,
   };
   Object.entries(campos).forEach(([id, val]) => {
     const el = document.getElementById(id);
