@@ -12853,6 +12853,30 @@ function confirmarYEnviarWA() {
   let itemsTotales = 0;
   let productosCount = 0;
 
+  // ── v3.10.2: DIAGNÓSTICO TEMPORAL del bug "total no coincide con líneas"
+  // Activar con ?debug=1 en la URL. Imprime estado completo del carrito ANTES
+  // de armar el mensaje WA. Si el cliente reporta el bug, podemos pedirle un
+  // screenshot de DevTools console.
+  try {
+    const _isDebug = (location.search.indexOf('debug=1') !== -1) ||
+                     (localStorage.getItem('tck_debug') === '1');
+    if (_isDebug || true) {  // forzado true: dejamos logs en prod por una vuelta
+      console.group('%c[TCK PEDIDO DIAG] confirmarYEnviarWA snapshot',
+        'background:#8B0000;color:#FFD700;padding:2px 6px;border-radius:3px;font-weight:bold');
+      console.log('T() devuelve:', { t, c, subtotal, descuento });
+      console.log('qty (productos catálogo):',
+        Object.keys(qty).filter(k => qty[k] > 0).reduce((a,k) => (a[k]=qty[k], a), {}));
+      console.log('qtyCombo:',
+        Object.keys(qtyCombo).filter(k => qtyCombo[k] > 0).reduce((a,k) => (a[k]=qtyCombo[k], a), {}));
+      console.log('qtyPromo:',
+        Object.keys(qtyPromo).filter(k => qtyPromo[k] > 0).reduce((a,k) => (a[k]=qtyPromo[k], a), {}));
+      console.log('_combosData IDs:', (_combosData||[]).map(c => c.id));
+      console.log('_promosData IDs:', (_promosData||[]).map(p => p.id));
+      console.log('Zona:', (typeof getZonaCliente === 'function') ? getZonaCliente() : '?');
+      console.groupEnd();
+    }
+  } catch(e) { console.warn('[diag] error logging:', e); }
+
   // v2: Combos primero en el mensaje WA (destacados)
   const lineasCombosWA = combosLineasWA();
   let combosCount = 0;
@@ -12901,6 +12925,19 @@ function confirmarYEnviarWA() {
   // Totales finales (combos + promos + productos)
   itemsTotales += combosUnidades + promosUnidades;
   productosCount += combosCount + promosCount;
+
+  // ── v3.10.2 DIAG: log final del armado ───────────────────────
+  try {
+    console.log('%c[TCK PEDIDO DIAG] Armado final',
+      'background:#5C0000;color:#FFD700;padding:2px 6px;border-radius:3px;font-weight:bold',
+      {
+        productosCount, itemsTotales, combosCount, promosCount,
+        combosUnidades, promosUnidades,
+        totalT: t, subtotal, descuento,
+        lineasGeneradas: lineasProductos.length,
+        diferenciaSospechosa: (t - subtotal + descuento) // debería ser 0
+      });
+  } catch(e){}
 
   // ── Mensaje WhatsApp ────────────────────────────────────────
   let L = [
@@ -16587,16 +16624,43 @@ function _cliRepetirPedido(pedidoId, detalleEnc) {
       if (!matchQty) return;
       const qtyVal   = parseInt(matchQty[1]);
       const nombre   = matchQty[2].trim();
+      const nombreLc = nombre.toLowerCase();
 
-      // Buscar en CAT por nombre exacto o parcial
+      // v3.10.2: Match con prioridad — primero EXACTO, después parcial UNA SOLA VEZ.
+      // Bug anterior: "Suprema" matcheaba tanto "Suprema" como "Suprema IQF" (substring
+      // bidireccional), duplicando productos y total. Ahora buscamos un único match
+      // priorizando: 1) igualdad exacta · 2) un solo match parcial bidireccional.
+      let mejorMatch = null;
+      let coincidenciasParciales = [];
+
       CAT.forEach(function(sec, si) {
         sec.items.forEach(function(it, ii) {
-          if (it.n === nombre || it.n.toLowerCase().includes(nombre.toLowerCase()) || nombre.toLowerCase().includes(it.n.toLowerCase())) {
-            qty[si + '-' + ii] = (qty[si + '-' + ii] || 0) + qtyVal;
-            cargados++;
+          const itLc = it.n.toLowerCase();
+          if (it.n === nombre) {
+            mejorMatch = { si: si, ii: ii };
+          } else if (itLc.includes(nombreLc) || nombreLc.includes(itLc)) {
+            coincidenciasParciales.push({ si: si, ii: ii, nombre: it.n });
           }
         });
       });
+
+      // Si no hubo exacto, usar el parcial SOLO si hay uno único (evita ambigüedad)
+      if (!mejorMatch && coincidenciasParciales.length === 1) {
+        mejorMatch = coincidenciasParciales[0];
+      } else if (!mejorMatch && coincidenciasParciales.length > 1) {
+        // Múltiples matches parciales — no podemos elegir uno con seguridad.
+        // Loggear y descartar la línea para evitar duplicación silenciosa.
+        console.warn('[repetir-pedido] "' + nombre + '" matchea múltiples productos:',
+          coincidenciasParciales.map(c => c.nombre).join(', '),
+          '· línea descartada');
+        return;
+      }
+
+      if (mejorMatch) {
+        const key = mejorMatch.si + '-' + mejorMatch.ii;
+        qty[key] = (qty[key] || 0) + qtyVal;
+        cargados++;
+      }
     });
 
     if (cargados === 0) {
