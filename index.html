@@ -14318,23 +14318,45 @@ function abrirDetallePedido(pedidoId){
   // Construir HTML del detalle
   const det = ped.detalle_estructurado || {};
   let prodHtml = '';
-  // Combos
+  // v3.10.5 FIX: los items combos/promos viven dentro de det.items[] con
+  // tipo='combo' o tipo='promo', NO en det.combos. Antes se buscaban en
+  // det.combos (que no existe) → combos invisibles en "Mis pedidos".
+  // Además los campos eran precio_unit/nombre cuando el JSON tiene
+  // precio_unitario/nombre_canonico → líneas "1 × $0 = $0".
+  if (Array.isArray(det.items)){
+    det.items.forEach(function(it){
+      const cantidad   = it.cantidad || 0;
+      const precioUnit = it.precio_unitario || it.precio_unit || 0;
+      const subtotal   = it.subtotal || (precioUnit * cantidad);
+      const nombre     = it.nombre_canonico || it.nombre || it.producto || '';
+      const sufCal     = it.calibre ? (' · calibre ' + it.calibre) : '';
+
+      if (it.tipo === 'combo') {
+        prodHtml += '<div class="pd-prod-item pd-prod-combo">' +
+          '<div class="pd-prod-nombre">🔥 ' + _escHtml(nombre) + ' × ' + cantidad + '</div>' +
+          '<div class="pd-prod-detalle">' + fmt(subtotal) + '</div>' +
+          '</div>';
+      } else if (it.tipo === 'promo') {
+        prodHtml += '<div class="pd-prod-item">' +
+          '<div class="pd-prod-nombre">🎁 ' + _escHtml(nombre) + ' × ' + cantidad + '</div>' +
+          '<div class="pd-prod-detalle">' + fmt(subtotal) + ' (50% OFF)</div>' +
+          '</div>';
+      } else {
+        // producto o producto_calibre
+        prodHtml += '<div class="pd-prod-item">' +
+          '<div class="pd-prod-nombre">' + _escHtml(nombre + sufCal) + '</div>' +
+          '<div class="pd-prod-detalle">' + cantidad + ' × ' + fmt(precioUnit) + ' = ' + fmt(subtotal) + '</div>' +
+          ((it.observacion || it.obs) ? '<div class="pd-prod-obs">📝 ' + _escHtml(it.observacion || it.obs) + '</div>' : '') +
+          '</div>';
+      }
+    });
+  }
+  // Fallback: combos legacy guardados en det.combos (formato pre-v3.8.0)
   if (Array.isArray(det.combos)){
     det.combos.forEach(function(c){
       prodHtml += '<div class="pd-prod-item pd-prod-combo">' +
         '<div class="pd-prod-nombre">🔥 ' + _escHtml(c.nombre || 'Combo') + ' × ' + (c.cantidad || 1) + '</div>' +
         '<div class="pd-prod-detalle">' + fmt(c.precio_total || 0) + '</div>' +
-        '</div>';
-    });
-  }
-  // Productos
-  if (Array.isArray(det.items)){
-    det.items.forEach(function(it){
-      const subtotal = (it.precio_unit || 0) * (it.cantidad || 0);
-      prodHtml += '<div class="pd-prod-item">' +
-        '<div class="pd-prod-nombre">' + _escHtml(it.nombre || it.producto || '') + '</div>' +
-        '<div class="pd-prod-detalle">' + (it.cantidad || 1) + ' × ' + fmt(it.precio_unit || 0) + ' = ' + fmt(subtotal) + '</div>' +
-        ((it.observacion || it.obs) ? '<div class="pd-prod-obs">📝 ' + _escHtml(it.observacion || it.obs) + '</div>' : '') +
         '</div>';
     });
   }
