@@ -2,7 +2,20 @@
 <html lang="es">
 <head>
 <!-- ═══════════════════════════════════════════════════════════════════════
-     TCK CATÁLOGO — v3.11.1 — 26/05/2026
+     TCK CATÁLOGO — v3.11.2 — 26/05/2026
+     ──────────────────────────────────────────────────────────────────────
+     CAMBIOS v3.11.2 sobre v3.11.1 — FIX CRÍTICO ENCODING detalle_estructurado
+
+       BUG: saveOrderToSheets usaba URLSearchParams.toString(), que codifica
+       los espacios como '+'. Apps Script (e.parameter) NO revierte '+' → espacio
+       (solo decodifica %20). Resultado: "Pollo C" llegaba como "Pollo+C", el JSON
+       de detalle_estructurado se malformaba, la col T del Sheet quedaba vacía, y
+       crearPresupuestoXubio caía al parser de texto legacy → "Faltan productos
+       en Xubio" para Pollo C con calibre (y premium con espacios en el nombre).
+       FIX: armar la query string a mano con encodeURIComponent (usa %20).
+       Afecta a TODOS los params con espacios, no solo detalle_estructurado.
+       appsScriptOTP/appsScriptCall NO se tocaron (sus params no tienen espacios).
+
      ──────────────────────────────────────────────────────────────────────
      CAMBIOS v3.11.1 sobre v3.11 — LIMPIEZA DE COMENTARIOS
 
@@ -12854,37 +12867,46 @@ function _setVendedorEnModalEnvio(nombre) {
 async function saveOrderToSheets(payload) {
   try {
     // GET con parámetros en URL — evita CORS preflight 100%
-    const params = new URLSearchParams({
-      pedidoId:       payload.pedidoId,
-      fechaHora:      payload.fechaHora,
-      vendedor:       payload.vendedor,
-      cliente:        payload.cliente,
-      comercio:       payload.comercio || '',
-      localidad:      payload.localidad,
-      total:          String(payload.total),
-      itemsTotales:   String(payload.itemsTotales),
-      resumenPedido:  payload.resumenPedido,
-      detallePedido:  payload.detallePedido,
-      estado:         payload.estado,
-      origen:         payload.origen
-    });
+    // v3.11.2 FIX CRÍTICO: NO usar URLSearchParams.toString() porque codifica
+    // los espacios como '+', y Apps Script e.parameter NO revierte '+' → espacio
+    // (solo decodifica %20). Eso hacía que "Pollo C" llegara como "Pollo+C" al .gs,
+    // rompiendo el JSON de detalle_estructurado (no matcheaba el mapping, col T vacía,
+    // y caía al parser de texto legacy → "Faltan productos en Xubio").
+    // Solución: armar la query manualmente con encodeURIComponent (usa %20).
+    const _kv = [];
+    function _add(clave, valor) {
+      if (valor === undefined || valor === null) return;
+      _kv.push(encodeURIComponent(clave) + '=' + encodeURIComponent(valor));
+    }
+    _add('pedidoId',      payload.pedidoId);
+    _add('fechaHora',     payload.fechaHora);
+    _add('vendedor',      payload.vendedor);
+    _add('cliente',       payload.cliente);
+    _add('comercio',      payload.comercio || '');
+    _add('localidad',     payload.localidad);
+    _add('total',         String(payload.total));
+    _add('itemsTotales',  String(payload.itemsTotales));
+    _add('resumenPedido', payload.resumenPedido);
+    _add('detallePedido', payload.detallePedido);
+    _add('estado',        payload.estado);
+    _add('origen',        payload.origen);
     // v2.6.3: solo agregar campos del cupón si están presentes
-    if (payload.descuento)     params.set('descuento',     String(payload.descuento));
-    if (payload.subtotal)      params.set('subtotal',      String(payload.subtotal));
-    if (payload.cuponAplicado) params.set('cuponAplicado', payload.cuponAplicado);
+    if (payload.descuento)     _add('descuento',     String(payload.descuento));
+    if (payload.subtotal)      _add('subtotal',      String(payload.subtotal));
+    if (payload.cuponAplicado) _add('cuponAplicado', payload.cuponAplicado);
     // v3.5.1: tracking de canal de marketing (fb / ig / google / tiktok / web_cliente / directo)
-    if (payload.origen_marketing) params.set('origen_marketing', payload.origen_marketing);
+    if (payload.origen_marketing) _add('origen_marketing', payload.origen_marketing);
     // v3.10.2 FIX: el catálogo construía detalle_estructurado pero saveOrderToSheets
-    // no lo pasaba a params. Por eso la col 19 del Sheet siempre quedaba vacía.
+    // no lo pasaba a params. Por eso la col T del Sheet siempre quedaba vacía.
     // Apps Script v25.17.0+ lee este campo para evitar el parser legacy de emojis.
-    if (payload.telefono)            params.set('telefono', payload.telefono);
-    if (payload.cliente_id)          params.set('cliente_id', payload.cliente_id);
-    if (payload.cuit)                params.set('cuit', payload.cuit);
-    if (payload.direccion)           params.set('direccion', payload.direccion);
-    if (payload.detalle_estructurado) params.set('detalle_estructurado', payload.detalle_estructurado);
-    const url = SHEETS_ENDPOINT + '?' + params.toString();
+    if (payload.telefono)             _add('telefono', payload.telefono);
+    if (payload.cliente_id)           _add('cliente_id', payload.cliente_id);
+    if (payload.cuit)                 _add('cuit', payload.cuit);
+    if (payload.direccion)            _add('direccion', payload.direccion);
+    if (payload.detalle_estructurado) _add('detalle_estructurado', payload.detalle_estructurado);
+    const url = SHEETS_ENDPOINT + '?' + _kv.join('&');
     await fetch(url, { method: 'GET', mode: 'no-cors' });
-    console.log('[TCK Sheets] Pedido enviado via GET');
+    console.log('[TCK Sheets] Pedido enviado via GET (v3.11.2, encoding %20)');
   } catch(e) {
     console.error('[TCK Sheets] Error al guardar pedido:', e);
   }
