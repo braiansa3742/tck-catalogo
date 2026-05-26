@@ -18,12 +18,19 @@
        Fresnova Abril 2026. kg/caja: pollos 6kg, pescados/mariscos 5kg,
        rabas 4,5kg. Sin badge "PREMIUM" (decisión Braian 26/5: solo nombre).
 
+       HOME: tarjeta propia "Rebozados Premium" (grupo premium en
+       V4_GRUPOS → id "premium"). Foto de categoría en
+       img/categorias/premium.jpg (tríptico langostinos/rabas/bocaditos).
+       Los 3 productos de pollo (Medallon Pollo, Formitas, JyQ) reusan
+       fotos Shaddai en _imgmap hasta tener foto propia (reversible).
+
        PENDIENTE DEPLOY:
-         · Cargar los 7 productos en el Sheet de precios (gid=1658103892).
-         · Subir 7 fotos a /img/: medallon_pollo_premium.jpg, formitas_premium.jpg,
-           medallon_jyq_premium.jpg, filet_merluza_fh_premium.jpg,
+         · Sheet de precios (gid=1658103892): YA cargado por Braian.
+         · Subir 4 fotos de mar a /img/: filet_merluza_fh_premium.jpg,
            langostinos_rebozados.jpg, rabas.jpg, bocaditos_de_mar.jpg
-         · Agregar Fresnova a PROVEEDORES_MAP/LIST del admin (archivo no tocado aún).
+         · Subir foto de categoría a /img/categorias/premium.jpg
+         · Admin v12.26: YA tiene Fresnova en PROVEEDORES_MAP/LIST.
+         · Falta foto propia de los 3 de pollo (hoy usan Shaddai).
 
      ──────────────────────────────────────────────────────────────────────
      CAMBIOS v3.9 sobre v3.8.1 — PAQUETE B: CALIBRES EN POLLO A/B
@@ -7490,6 +7497,12 @@ body.v4-mode.v4-vista-home .v4-home{display:block}
     radial-gradient(circle at 30% 60%, #d8a040 0%, transparent 45%),
     linear-gradient(135deg,#b87830 0%,#5c2e0c 100%);
 }
+.v4-cat-img-fallback.premium{
+  background:
+    radial-gradient(circle at 60% 40%, #c89858 0%, transparent 45%),
+    radial-gradient(circle at 30% 60%, #e0b860 0%, transparent 45%),
+    linear-gradient(135deg,#7a3a8c 0%,#3e0f5c 100%);
+}
 /* v4.14.1: fallback para Milanesas y Hamburguesas (tonos rojizos cárnicos) */
 .v4-cat-img-fallback.milanesas{
   background:
@@ -9892,6 +9905,18 @@ src="https://www.facebook.com/tr?id=2034313150514758&ev=PageView&noscript=1"
       <div class="v4-cat-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></div>
     </button>
 
+    <!-- 🦐 Rebozados Premium (Fresnova) -->
+    <button class="v4-cat-card" data-v4-grupo="premium" onclick="v4AbrirGrupo('premium')">
+      <img class="v4-cat-img-real" data-v4-grupo-img="premium" alt="" aria-hidden="true">
+      <div class="v4-cat-img-fallback premium"></div>
+      <div class="v4-cat-overlay"></div>
+      <div class="v4-cat-name">
+        <div class="v4-cat-name-text">Rebozados<br>Premium</div>
+        <div class="v4-cat-name-sub">Pescados y mariscos · línea premium</div>
+      </div>
+      <div class="v4-cat-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></div>
+    </button>
+
     <!-- 🥩 v4.14.1: Milanesas y Hamburguesas (separadas de Rebozados) -->
     <button class="v4-cat-card" data-v4-grupo="milanesas" onclick="v4AbrirGrupo('milanesas')">
       <img class="v4-cat-img-real" data-v4-grupo-img="milanesas" alt="" aria-hidden="true">
@@ -10315,9 +10340,10 @@ const _imgmap = {
   "Bocadito Clasico":            "bocadito_clasico_gta.jpg",
   "Hamburguesa de Pollo":        "hamburguesa_pollo.jpg",
   // Linea Premium Fresnova (26/5/2026)
-  "Medallon de Pollo Premium":         "medallon_pollo_premium.jpg",
-  "Formitas Premium":                  "formitas_premium.jpg",
-  "Medallon Pollo JyQ Premium":        "medallon_jyq_premium.jpg",
+  // Los 3 de pollo reusan fotos Shaddai existentes hasta tener foto propia (reversible).
+  "Medallon de Pollo Premium":         "medallon de pollo clasico.jpg",
+  "Formitas Premium":                  "Formitas Pollo JyQ.jpg",
+  "Medallon Pollo JyQ Premium":        "Medallon Pollo JyQ.jpg",
   "Filet Merluza Finas Hierbas Premium": "filet_merluza_fh_premium.jpg",
   "Langostinos Rebozados":             "langostinos_rebozados.jpg",
   "Rabas":                             "rabas.jpg",
@@ -18344,6 +18370,7 @@ function confirmarCiudadNoAtendida() {
     'pollos':    { titulo:'Pollos',              sub:'Pollo entero y trozados',           ids:['pollos','trozados'] },
     'huevos':    { titulo:'Huevos Mayorista',    sub:'Maples y combos',                   ids:['huevos'] },
     'rebozados': { titulo:'Rebozados',           sub:'Medallones, nuggets y filets',      ids:['shaddai'] },
+    'premium':   { titulo:'Rebozados Premium',   sub:'Línea Fresnova · pescados y mariscos', ids:['premium'] },
     'milanesas': { titulo:'Milanesas y Hamburguesas', sub:'Nalga, pollo, soja y hamburguesas', ids:['mila'] },
     'verduras':  { titulo:'Verduras Congeladas', sub:'Papas, brócoli, mix vegetal',       ids:['papas_mccain','verd'] },
     'pastas':    { titulo:'Pastas Congeladas',   sub:'Sorrentinos, ravioles, ñoquis',     ids:['pastas'] },
@@ -18578,6 +18605,7 @@ function confirmarCiudadNoAtendida() {
       'verduras':  'img/Papa%20Baston%20Balcarce.jpg',
       'pastas':    'img/Gnoquis%20de%20Papa.jpg',
       'rebozados': 'img/Nuggets%20de%20Pollo%20Crocante.jpg',
+      'premium':   'img/langostinos_rebozados.jpg',
       'pollos':    'img/suprema_x_5kg.jpg'
     };
     const elementos = document.querySelectorAll('.v4-cat-img-real');
