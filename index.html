@@ -2,7 +2,16 @@
 <html lang="es">
 <head>
 <!-- ═══════════════════════════════════════════════════════════════════════
-     TCK CATÁLOGO — v3.10 — 26/05/2026
+     TCK CATÁLOGO — v3.11 — 26/05/2026
+     ──────────────────────────────────────────────────────────────────────
+     CAMBIOS v3.11 sobre v3.10 — CALIBRES EN POLLO C
+       Pollo C ahora ofrece selector de calibre x6/x7 igual que Pollo A/B.
+       Ediciones: V4_CALIBRES['Pollo C']=['x6','x7']; +'Pollo C' en las 3
+       condiciones isPolloAB/esPollo/v4EsPolloAB y en el forEach de armado
+       de líneas WA. El catálogo manda tipo:'producto_calibre' nombre_canonico
+       'Pollo C' + calibre 'x6'/'x7' (sin estado, como Pollo A).
+       REQUIERE: Apps Script con rama Pollo C en crearPresupuestoXubio +
+       detectarCalibresPendientes, y SQL de variantes en Supabase.
      ──────────────────────────────────────────────────────────────────────
      CAMBIOS v3.10 sobre v3.9 — LÍNEA PREMIUM FRESNOVA
 
@@ -18839,7 +18848,7 @@ function confirmarCiudadNoAtendida() {
     const it = CAT[si].items[ii];
     const sec = CAT[si];
     const sinStock = card.classList.contains('card-sinstock');
-    const isPolloAB = (it.n === 'Pollo A' || it.n === 'Pollo B');
+    const isPolloAB = (it.n === 'Pollo A' || it.n === 'Pollo B' || it.n === 'Pollo C');
 
     v4SheetState.open = true;
     v4SheetState.key = key;
@@ -19107,7 +19116,7 @@ function confirmarCiudadNoAtendida() {
     if (sinStock) return; // sin calc en sin stock
 
     const itnAttr = String(it.n).replace(/&/g,'&amp;').replace(/"/g,'&quot;');
-    const esPollo = (it.n === 'Pollo A' || it.n === 'Pollo B');
+    const esPollo = (it.n === 'Pollo A' || it.n === 'Pollo B' || it.n === 'Pollo C');
 
     // Bloque calibre (solo Pollo A/B)
     if (esPollo) {
@@ -19537,7 +19546,8 @@ function confirmarCiudadNoAtendida() {
   // Calibres configurados
   const V4_CALIBRES = {
     'Pollo A': ['x6', 'x7'],
-    'Pollo B': ['x6', 'x7']
+    'Pollo B': ['x6', 'x7'],
+    'Pollo C': ['x6', 'x7']
   };
   const V4_CALIBRES_SUBLABEL = {
     'x6': 'Pollos más grandes (cajón con 6)',
@@ -19615,7 +19625,7 @@ function confirmarCiudadNoAtendida() {
   };
 
   function v4EsPolloAB(it){
-    return it && (it.n === 'Pollo A' || it.n === 'Pollo B');
+    return it && (it.n === 'Pollo A' || it.n === 'Pollo B' || it.n === 'Pollo C');
   }
 
   // ─── KEYS de calibre en window.qty ─────────────────────────────────────
@@ -19901,8 +19911,8 @@ function confirmarCiudadNoAtendida() {
 
   function v4ArmarLineasWACalibre(){
     const lineas = [];
-    // Agrupar por nombre (Pollo A, Pollo B) para ordenar
-    ['Pollo A', 'Pollo B'].forEach(function(nombre){
+    // Agrupar por nombre (Pollo A, Pollo B, Pollo C) para ordenar
+    ['Pollo A', 'Pollo B', 'Pollo C'].forEach(function(nombre){
       const calibres = V4_CALIBRES[nombre] || [];
       calibres.forEach(function(cal){
         const key = v4CalKey(nombre, cal);
@@ -20217,7 +20227,7 @@ function confirmarCiudadNoAtendida() {
     try {
       if (typeof SIN_STOCK !== 'undefined' && SIN_STOCK && SIN_STOCK.has(it.n)) sinStock = true;
     } catch(e){}
-    const isPolloAB = (it.n === 'Pollo A' || it.n === 'Pollo B');
+    const isPolloAB = (it.n === 'Pollo A' || it.n === 'Pollo B' || it.n === 'Pollo C');
     // Actualizar state
     v4SheetState.key = si + '-' + ii;
     v4SheetState.si = si;
