@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <!-- ═══════════════════════════════════════════════════════════════════════
-     TCK CATÁLOGO — v3.10 — 26/05/2026
+     TCK CATÁLOGO — v3.11 — 26/05/2026
      ──────────────────────────────────────────────────────────────────────
      CAMBIOS v3.10 sobre v3.9 — LÍNEA PREMIUM FRESNOVA
 
@@ -7441,8 +7441,11 @@ body.v4-mode.v4-vista-home .v4-home{display:block}
   display:flex;flex-direction:column;gap:10px;
 }
 
+/* v3.10 (26/5): formato foto-arriba + barra-abajo (opción C).
+   La foto queda 100% limpia (sin overlay encima). El nombre va en
+   una barra de color debajo. Foto protagonista, barra fina. */
 .v4-cat-card{
-  height:128px;
+  height:178px;            /* 142 foto + 36 barra */
   border-radius:13px;
   overflow:hidden;
   position:relative;
@@ -7460,12 +7463,10 @@ body.v4-mode.v4-vista-home .v4-home{display:block}
 
 /* Capa de imagen real (si carga) o gradiente (fallback) */
 .v4-cat-img-real{
-  position:absolute;inset:0;
-  /* v4.14.11 FIX: width/height 100% + object-fit:cover (el elemento es <img>, no <div>) */
-  /* v4.14.11 FIX: z-index:2 para que la imagen vaya ENCIMA del fallback gradiente
-     (en el DOM el fallback viene después del <img>, por defecto lo tapaba) */
+  position:absolute;
+  top:0;left:0;right:0;
+  height:142px;          /* solo la franja superior; la barra va abajo */
   width:100%;
-  height:100%;
   object-fit:cover;
   object-position:center;
   opacity:0;
@@ -7476,7 +7477,9 @@ body.v4-mode.v4-vista-home .v4-home{display:block}
 
 /* Placeholder gradientes (van DETRÁS del <img> cuando la imagen carga) */
 .v4-cat-img-fallback{
-  position:absolute;inset:0;
+  position:absolute;
+  top:0;left:0;right:0;
+  height:142px;
   z-index:1;
 }
 .v4-cat-img-fallback.pollos{
@@ -7530,49 +7533,59 @@ body.v4-mode.v4-vista-home .v4-home{display:block}
 }
 
 /* Overlay oscuro */
+/* v3.10: el "overlay" ahora es la BARRA DE COLOR inferior (no va sobre la foto).
+   Color por defecto rojo TCK; cada categoría puede override con su gradiente. */
 .v4-cat-overlay{
-  position:absolute;inset:0;
-  /* v4.14.11: z-index 3 para que vaya encima de la imagen (que tiene z-index 2) */
+  position:absolute;
+  left:0;right:0;bottom:0;
+  height:36px;
   z-index:3;
-  background:linear-gradient(135deg,rgba(0,0,0,.15) 0%,rgba(0,0,0,.55) 100%);
+  background:linear-gradient(135deg,#922B21 0%,#5C1A14 100%);
 }
+/* Color de barra por categoría (data-v4-grupo en el botón padre) */
+.v4-cat-card[data-v4-grupo="pollos"]    .v4-cat-overlay{background:linear-gradient(135deg,#B71C1C,#7B0000)}
+.v4-cat-card[data-v4-grupo="huevos"]    .v4-cat-overlay{background:linear-gradient(135deg,#D4A000,#8B6500)}
+.v4-cat-card[data-v4-grupo="rebozados"] .v4-cat-overlay{background:linear-gradient(135deg,#922B21,#5C1A14)}
+.v4-cat-card[data-v4-grupo="premium"]   .v4-cat-overlay{background:linear-gradient(135deg,#7a3a8c,#3e0f5c)}
+.v4-cat-card[data-v4-grupo="milanesas"] .v4-cat-overlay{background:linear-gradient(135deg,#9c4828,#4a1810)}
+.v4-cat-card[data-v4-grupo="verduras"]  .v4-cat-overlay{background:linear-gradient(135deg,#6c8c30,#2c4010)}
+.v4-cat-card[data-v4-grupo="pastas"]    .v4-cat-overlay{background:linear-gradient(135deg,#1A5276,#0D2B3E)}
+.v4-cat-card[data-v4-grupo="combos"]    .v4-cat-overlay{background:linear-gradient(135deg,#c84020,#5c0808)}
 
-/* Nombre + sub */
+/* Nombre + sub: dentro de la barra inferior */
 .v4-cat-name{
   position:absolute;
-  left:18px;bottom:14px;right:60px;
-  /* v4.14.11: z-index 4 para que vaya encima del overlay (3) y la imagen (2) */
+  left:14px;bottom:8px;right:52px;
   z-index:4;
 }
 .v4-cat-name-text{
   font-family:'Barlow Condensed',sans-serif;
-  font-size:26px;font-weight:900;color:#fff;
-  letter-spacing:1.5px;text-transform:uppercase;
-  text-shadow:0 2px 8px rgba(0,0,0,.7);
+  font-size:19px;font-weight:900;color:#fff;
+  letter-spacing:.8px;text-transform:uppercase;
   line-height:1;
+  display:inline;
 }
 .v4-cat-name-sub{
-  font-size:11.5px;color:rgba(255,255,255,.92);
-  margin-top:5px;
-  font-weight:500;
-  text-shadow:0 1px 4px rgba(0,0,0,.6);
-  line-height:1.2;
+  display:none; /* el sub no entra en la barra fina; el título alcanza */
 }
 
-/* Flecha derecha */
+/* Flecha derecha: dentro de la barra inferior */
 .v4-cat-arrow{
   position:absolute;
-  right:14px;top:50%;transform:translateY(-50%);
-  /* v4.14.11: z-index 4 (encima de overlay 3 y imagen 2) */
+  right:10px;bottom:5px;
   z-index:4;
-  width:32px;height:32px;
-  background:rgba(255,255,255,.92);
+  width:26px;height:26px;
+  background:rgba(255,255,255,.95);
   border-radius:50%;
   display:flex;align-items:center;justify-content:center;
   color:var(--red);
-  box-shadow:0 2px 6px rgba(0,0,0,.25);
+  box-shadow:0 1px 4px rgba(0,0,0,.25);
 }
-.v4-cat-arrow svg{width:16px;height:16px}
+.v4-cat-arrow svg{width:14px;height:14px}
+/* v3.10: los <br> de los títulos no parten línea en la barra fina;
+   se vuelven inline y aportan un espacio para no pegar las palabras */
+.v4-cat-name-text br{content:" ";display:inline;font-size:0}
+.v4-cat-name-text br::before{content:" ";font-size:19px}
 
 /* Badge (PROMO) */
 .v4-cat-badge{
