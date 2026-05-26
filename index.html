@@ -2,7 +2,29 @@
 <html lang="es">
 <head>
 <!-- ═══════════════════════════════════════════════════════════════════════
-     TCK CATÁLOGO — v3.11.2 — 26/05/2026
+     TCK CATÁLOGO — v3.11.3 — 26/05/2026
+     ──────────────────────────────────────────────────────────────────────
+     CAMBIOS v3.11.3 sobre v3.11.2 — FIX CRÍTICO PIXEL GOOGLE ADS NO DISPARABA
+
+       BUG: la campaña de Google Ads marcaba 0 conversiones pese a ventas
+       reales cerradas en la web. Diagnóstico (Network + tests manuales en
+       consola): el loader gtag.js se cargaba SOLO con id=G-5B3G4JZZS3
+       (Analytics). El contenedor de Google Ads (AW-16651738476) nunca se
+       descargaba al navegador, así que gtag('config','AW-...') quedaba
+       encolado en dataLayer sin contenedor que lo procese. Síntoma exacto:
+       Analytics mandaba 'collect' a google-analytics.com, pero NINGÚN evento
+       de conversión salía a googleads/doubleclick (ni el del flujo de pedido
+       ni disparado a mano en consola). El ID y label del send_to
+       (AW-16651738476/uO-hCKWT3qgcEOy6lYQ-) SIEMPRE fueron correctos —
+       coinciden con el snippet oficial de Google Ads.
+       FIX: cargar el loader gtag.js con id=AW-16651738476. Un solo loader
+       sirve para ambos contenedores: con los dos gtag('config',...) abajo,
+       Analytics (G-) y Ads (AW-) quedan activos. Cero cambios en el flujo de
+       pedido ni en confirmarYEnviarWA() — el evento de conversión ya estaba
+       bien escrito, solo le faltaba que el contenedor de Ads existiera.
+       REQUIERE (lado Google Ads): confirmar la etiqueta como "instalada
+       manualmente" en Conversiones → Pedido enviado por WhatsApp.
+
      ──────────────────────────────────────────────────────────────────────
      CAMBIOS v3.11.2 sobre v3.11.1 — FIX CRÍTICO ENCODING detalle_estructurado
 
@@ -2339,17 +2361,29 @@ setInterval(function(){ _pxCarted = {}; }, 3000);
 <!-- v3.6.14: el tag de Google Ads se carga junto con Analytics para evitar
      redeclarar la función gtag en otro <script> (causaría SyntaxError:
      Identifier 'gtag' has already been declared y rompe el resto del JS). -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-5B3G4JZZS3"></script>
+<!-- v3.11.3: el loader de gtag.js DEBE cargar el contenedor de Google Ads
+     (id=AW-...). Antes cargaba solo id=G-5B3G4JZZS3 (Analytics), por lo que
+     el contenedor de Ads NUNCA se descargaba al navegador → gtag('config',
+     'AW-...') quedaba encolado en dataLayer pero el contenedor de Ads no
+     existía → ninguna conversión salía a googleads/doubleclick (confirmado
+     en Network: Analytics mandaba 'collect' pero Ads no mandaba nada).
+     FIX: cargar el loader con id=AW-16651738476. Un solo loader gtag.js sirve
+     para múltiples contenedores: con ambos gtag('config', ...) abajo, tanto
+     Analytics (G-) como Ads (AW-) quedan activos. Es lo que indica el propio
+     snippet "Instalar manualmente" de Google Ads. -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=AW-16651738476"></script>
 <script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
   gtag('js', new Date());
+  // Config de Google Ads (AW-) — necesario para que el contenedor de Ads
+  // procese gtag('event','conversion', {send_to:'AW-16651738476/...'}).
+  gtag('config', 'AW-16651738476');
+  // Config de Google Analytics (G-) — el mismo loader gtag.js sirve para
+  // ambos contenedores; con este config Analytics sigue midiendo igual.
   gtag('config', 'G-5B3G4JZZS3');
-  // v3.6.14: Conversion ID de Google Ads — pixel para tracking de
-  // conversiones de la campaña Search-1TCK - Tier 1 - Búsqueda.
   // El evento gtag('event', 'conversion', {...}) se dispara desde
   // confirmarYEnviarWA() al enviar el pedido por WhatsApp.
-  gtag('config', 'AW-16651738476');
 </script>
 <!-- Sentry -->
 <script
