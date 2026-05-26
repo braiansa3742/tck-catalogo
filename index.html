@@ -7441,11 +7441,11 @@ body.v4-mode.v4-vista-home .v4-home{display:block}
   display:flex;flex-direction:column;gap:10px;
 }
 
-/* v3.10 (26/5): formato foto-arriba + barra-abajo (opción C).
-   La foto queda 100% limpia (sin overlay encima). El nombre va en
-   una barra de color debajo. Foto protagonista, barra fina. */
+/* v3.11 (26/5): formato foto-arriba + barra-abajo (opción C).
+   La foto queda limpia arriba. El nombre va DENTRO de una barra de
+   color abajo (flex, texto siempre contenido, 1 o 2 líneas). */
 .v4-cat-card{
-  height:178px;            /* 142 foto + 36 barra */
+  height:178px;
   border-radius:13px;
   overflow:hidden;
   position:relative;
@@ -7465,7 +7465,7 @@ body.v4-mode.v4-vista-home .v4-home{display:block}
 .v4-cat-img-real{
   position:absolute;
   top:0;left:0;right:0;
-  height:142px;          /* solo la franja superior; la barra va abajo */
+  height:134px;          /* foto arriba; barra de 44px abajo */
   width:100%;
   object-fit:cover;
   object-position:center;
@@ -7479,7 +7479,7 @@ body.v4-mode.v4-vista-home .v4-home{display:block}
 .v4-cat-img-fallback{
   position:absolute;
   top:0;left:0;right:0;
-  height:142px;
+  height:134px;
   z-index:1;
 }
 .v4-cat-img-fallback.pollos{
@@ -7533,46 +7533,55 @@ body.v4-mode.v4-vista-home .v4-home{display:block}
 }
 
 /* Overlay oscuro */
-/* v3.10: el "overlay" ahora es la BARRA DE COLOR inferior (no va sobre la foto).
-   Color por defecto rojo TCK; cada categoría puede override con su gradiente. */
+/* v3.11: la barra inferior es de altura fija (44px). El texto y la flecha
+   son hermanos (no hijos), así que se posicionan absolute DENTRO de la franja
+   de la barra, centrados verticalmente en esos 44px. No tocamos el HTML. */
 .v4-cat-overlay{
   position:absolute;
   left:0;right:0;bottom:0;
-  height:36px;
+  height:44px;
   z-index:3;
-  background:linear-gradient(135deg,#922B21 0%,#5C1A14 100%);
+  background:#922B21;
 }
 /* Color de barra por categoría (data-v4-grupo en el botón padre) */
-.v4-cat-card[data-v4-grupo="pollos"]    .v4-cat-overlay{background:linear-gradient(135deg,#B71C1C,#7B0000)}
-.v4-cat-card[data-v4-grupo="huevos"]    .v4-cat-overlay{background:linear-gradient(135deg,#D4A000,#8B6500)}
-.v4-cat-card[data-v4-grupo="rebozados"] .v4-cat-overlay{background:linear-gradient(135deg,#922B21,#5C1A14)}
-.v4-cat-card[data-v4-grupo="premium"]   .v4-cat-overlay{background:linear-gradient(135deg,#7a3a8c,#3e0f5c)}
-.v4-cat-card[data-v4-grupo="milanesas"] .v4-cat-overlay{background:linear-gradient(135deg,#9c4828,#4a1810)}
-.v4-cat-card[data-v4-grupo="verduras"]  .v4-cat-overlay{background:linear-gradient(135deg,#6c8c30,#2c4010)}
-.v4-cat-card[data-v4-grupo="pastas"]    .v4-cat-overlay{background:linear-gradient(135deg,#1A5276,#0D2B3E)}
-.v4-cat-card[data-v4-grupo="combos"]    .v4-cat-overlay{background:linear-gradient(135deg,#c84020,#5c0808)}
+.v4-cat-card[data-v4-grupo="pollos"]    .v4-cat-overlay{background:#B71C1C}
+.v4-cat-card[data-v4-grupo="huevos"]    .v4-cat-overlay{background:#C99700}
+.v4-cat-card[data-v4-grupo="rebozados"] .v4-cat-overlay{background:#922B21}
+.v4-cat-card[data-v4-grupo="premium"]   .v4-cat-overlay{background:#6A1B9A}
+.v4-cat-card[data-v4-grupo="milanesas"] .v4-cat-overlay{background:#7B241C}
+.v4-cat-card[data-v4-grupo="verduras"]  .v4-cat-overlay{background:#1E8449}
+.v4-cat-card[data-v4-grupo="pastas"]    .v4-cat-overlay{background:#1A5276}
+.v4-cat-card[data-v4-grupo="combos"]    .v4-cat-overlay{background:#C0392B}
 
-/* Nombre + sub: dentro de la barra inferior */
+/* Nombre: centrado vertical dentro de la franja de 44px de la barra */
 .v4-cat-name{
   position:absolute;
-  left:14px;bottom:8px;right:52px;
+  left:14px;right:50px;
+  bottom:0;
+  height:44px;
   z-index:4;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  overflow:hidden;
 }
 .v4-cat-name-text{
   font-family:'Barlow Condensed',sans-serif;
-  font-size:19px;font-weight:900;color:#fff;
-  letter-spacing:.8px;text-transform:uppercase;
+  font-size:17px;font-weight:900;color:#fff;
+  letter-spacing:.6px;text-transform:uppercase;
   line-height:1;
-  display:inline;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
 }
-.v4-cat-name-sub{
-  display:none; /* el sub no entra en la barra fina; el título alcanza */
-}
+.v4-cat-name-text br{display:none}
+.v4-cat-name-sub{display:none}
 
-/* Flecha derecha: dentro de la barra inferior */
+/* Flecha derecha: centrada vertical en la franja de 44px de la barra */
 .v4-cat-arrow{
   position:absolute;
-  right:10px;bottom:5px;
+  right:12px;
+  bottom:9px;            /* (44-26)/2 = 9px desde abajo */
   z-index:4;
   width:26px;height:26px;
   background:rgba(255,255,255,.95);
@@ -7582,10 +7591,6 @@ body.v4-mode.v4-vista-home .v4-home{display:block}
   box-shadow:0 1px 4px rgba(0,0,0,.25);
 }
 .v4-cat-arrow svg{width:14px;height:14px}
-/* v3.10: los <br> de los títulos no parten línea en la barra fina;
-   se vuelven inline y aportan un espacio para no pegar las palabras */
-.v4-cat-name-text br{content:" ";display:inline;font-size:0}
-.v4-cat-name-text br::before{content:" ";font-size:19px}
 
 /* Badge (PROMO) */
 .v4-cat-badge{
@@ -9900,7 +9905,7 @@ src="https://www.facebook.com/tr?id=2034313150514758&ev=PageView&noscript=1"
       <div class="v4-cat-img-fallback huevos"></div>
       <div class="v4-cat-overlay"></div>
       <div class="v4-cat-name">
-        <div class="v4-cat-name-text">Huevos<br>Mayorista</div>
+        <div class="v4-cat-name-text">Huevos Mayorista</div>
         <div class="v4-cat-name-sub">Maples y combos</div>
       </div>
       <div class="v4-cat-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></div>
@@ -9924,7 +9929,7 @@ src="https://www.facebook.com/tr?id=2034313150514758&ev=PageView&noscript=1"
       <div class="v4-cat-img-fallback premium"></div>
       <div class="v4-cat-overlay"></div>
       <div class="v4-cat-name">
-        <div class="v4-cat-name-text">Rebozados<br>Premium</div>
+        <div class="v4-cat-name-text">Rebozados Premium</div>
         <div class="v4-cat-name-sub">Pescados y mariscos · línea premium</div>
       </div>
       <div class="v4-cat-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></div>
@@ -9936,7 +9941,7 @@ src="https://www.facebook.com/tr?id=2034313150514758&ev=PageView&noscript=1"
       <div class="v4-cat-img-fallback milanesas"></div>
       <div class="v4-cat-overlay"></div>
       <div class="v4-cat-name">
-        <div class="v4-cat-name-text">Milanesas y<br>Hamburguesas</div>
+        <div class="v4-cat-name-text">Milanesas y Hamburguesas</div>
         <div class="v4-cat-name-sub">Nalga, pollo, soja y hamburguesas</div>
       </div>
       <div class="v4-cat-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></div>
@@ -9948,7 +9953,7 @@ src="https://www.facebook.com/tr?id=2034313150514758&ev=PageView&noscript=1"
       <div class="v4-cat-img-fallback verduras"></div>
       <div class="v4-cat-overlay"></div>
       <div class="v4-cat-name">
-        <div class="v4-cat-name-text">Verduras<br>Congeladas</div>
+        <div class="v4-cat-name-text">Verduras Congeladas</div>
         <div class="v4-cat-name-sub">Papas, brócoli, mix vegetal</div>
       </div>
       <div class="v4-cat-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></div>
@@ -9960,7 +9965,7 @@ src="https://www.facebook.com/tr?id=2034313150514758&ev=PageView&noscript=1"
       <div class="v4-cat-img-fallback pastas"></div>
       <div class="v4-cat-overlay"></div>
       <div class="v4-cat-name">
-        <div class="v4-cat-name-text">Pastas<br>Congeladas</div>
+        <div class="v4-cat-name-text">Pastas Congeladas</div>
         <div class="v4-cat-name-sub">Sorrentinos, ravioles, ñoquis</div>
       </div>
       <div class="v4-cat-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></div>
@@ -9973,7 +9978,7 @@ src="https://www.facebook.com/tr?id=2034313150514758&ev=PageView&noscript=1"
       <div class="v4-cat-overlay"></div>
       <div class="v4-cat-badge">🔥 Ofertas</div>
       <div class="v4-cat-name">
-        <div class="v4-cat-name-text">Combos<br>y Promos</div>
+        <div class="v4-cat-name-text">Combos y Promos</div>
         <div class="v4-cat-name-sub">Ofertas del mes y combos mayoristas</div>
       </div>
       <div class="v4-cat-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></div>
