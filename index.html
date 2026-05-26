@@ -2,7 +2,16 @@
 <html lang="es">
 <head>
 <!-- ═══════════════════════════════════════════════════════════════════════
-     TCK CATÁLOGO — v3.11 — 26/05/2026
+     TCK CATÁLOGO — v3.11.1 — 26/05/2026
+     ──────────────────────────────────────────────────────────────────────
+     CAMBIOS v3.11.1 sobre v3.11 — LIMPIEZA DE COMENTARIOS
+
+       Comentarios funcionales que decían "Francisco" actualizados a "Miguel":
+       el WhatsApp de TCK Online apunta a Miguel desde el 21/5/2026 (VEND_ONLINE.wa
+       = 5492392449725). Los comentarios viejos confundían pero no afectaban el
+       funcionamiento. Cero cambios de código/lógica. El changelog histórico que
+       menciona Francisco se preserva (es registro de versiones pasadas).
+
      ──────────────────────────────────────────────────────────────────────
      CAMBIOS v3.11 sobre v3.10 — CALIBRES EN POLLO C
        Pollo C ahora ofrece selector de calibre x6/x7 igual que Pollo A/B.
@@ -10384,8 +10393,8 @@ const _imgmap = {
 // v3.5.0 — VENDEDOR INTERNO "TCK Online" (canal Meta Ads / pagado)
 // ═══════════════════════════════════════════════════════════════════════
 // Vendedor centralizado que recibe TODOS los pedidos de tráfico pagado
-// (Meta, Google, TikTok, etc.). El WhatsApp es el de Francisco (Admin),
-// que después distribuye los pedidos según zona desde tckadmin.lat.
+// (Meta, Google, TikTok, etc.). El WhatsApp es el de Miguel (vendedor TCK),
+// que atiende los pedidos del canal online como clientes propios.
 //
 // IMPORTANTE: este vendedor NUNCA aparece en la UI pública. Solo se
 // autoasigna cuando el cliente entra con ?v=fb / ?v=ig / ?v=google.
@@ -10754,7 +10763,7 @@ function elegir(i){
 
 // v3.6.2: WA FLOTANTE DINÁMICO ─────────────────────────────────
 // Si vActivo es vendedor real → href apunta al WA del vendedor.
-// Si vActivo es TCK Online o null → href apunta a TCK Online (Francisco).
+// Si vActivo es TCK Online o null → href apunta a TCK Online (Miguel).
 // Se llama desde elegir(), del bloque de auto-asignación TCK Online,
 // y desde el init después de cargar localStorage.
 function actualizarWaFlotante() {
@@ -10766,7 +10775,7 @@ function actualizarWaFlotante() {
     waNumero = vActivo.wa;
     nombreVend = vActivo.nombre;
   } else {
-    // TCK Online o sin vendedor → Francisco
+    // TCK Online o sin vendedor → Miguel
     waNumero = VEND_ONLINE.wa;
     nombreVend = 'TCK';
   }
@@ -10776,7 +10785,7 @@ function actualizarWaFlotante() {
 
 // v3.6.2 — MODAL "NECESITO UN VENDEDOR / VISITA / LLAMADA" ─────
 // Convierte la pregunta forzada del sistema en una opción del cliente.
-// Las 3 opciones disparan WA a TCK Online (Francisco) con texto pre-armado.
+// Las 3 opciones disparan WA a TCK Online (Miguel) con texto pre-armado.
 function abrirModalPedirVendedor() {
   const ov = document.getElementById('pv-overlay');
   const sh = document.getElementById('pv-sheet');
@@ -13952,7 +13961,7 @@ cargarPrecios().finally(() => {
     // v3.6.2: REGISTRO ORGÁNICO → TCK ONLINE
     // Si después de todo no hay vendedor (ni por URL ni por LS), el cliente
     // es orgánico y NO conoce a un vendedor en particular. Lo asignamos a
-    // TCK Online (Francisco) para evitar la fricción del modal al checkout.
+    // TCK Online (Miguel) para evitar la fricción del modal al checkout.
     // Si el cliente quiere un vendedor real, toca el botón "Necesito un
     // vendedor" del header (v3.6.2).
     if (!asignarTckOnline && (vendedorAutoIdx < 0 || isNaN(vendedorAutoIdx))) {
@@ -15204,8 +15213,8 @@ document.addEventListener('visibilitychange', function() {
 </div>
 
 <!-- v3.6.2 — Modal "Necesito un vendedor / visita / llamada" -->
-<!-- 3 opciones que abren WA a TCK Online (Francisco) con mensaje pre-armado.
-     Francisco deriva manualmente al vendedor de la zona del cliente. -->
+<!-- 3 opciones que abren WA a TCK Online (Miguel) con mensaje pre-armado.
+     Miguel atiende los pedidos del canal online. -->
 <div id="pv-overlay" style="display:none;position:fixed;inset:0;z-index:550;background:rgba(0,0,0,.6);backdrop-filter:blur(3px);align-items:flex-end;justify-content:center;">
   <div id="pv-sheet" style="background:#fff;border-radius:24px 24px 0 0;width:100%;max-width:480px;padding:22px 20px 36px;box-shadow:0 -8px 40px rgba(0,0,0,.25);transform:translateY(100%);transition:transform .35s cubic-bezier(.34,1.56,.64,1);">
     <div style="width:48px;height:5px;background:#ddd;border-radius:3px;margin:0 auto 16px;"></div>
@@ -15239,7 +15248,7 @@ document.addEventListener('visibilitychange', function() {
 <!-- v3.5.3: Botón flotante de WhatsApp visible en TODO el catálogo -->
 <!-- v3.6.2: el href se setea dinámicamente vía actualizarWaFlotante().
      Si vActivo es vendedor real (Miguel/Juan/Lisandro) → WA del vendedor.
-     Si vActivo es TCK Online o null → WA de TCK Online (Francisco). -->
+     Si vActivo es TCK Online o null → WA de TCK Online (Miguel). -->
 <a id="wa-float"
    href="https://wa.me/5492392449725?text=Hola%20TCK!%20Tengo%20una%20consulta..."
    target="_blank"
