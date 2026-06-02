@@ -2,6 +2,11 @@
 <html lang="es">
 <head>
 <!-- ═══════════════════════════════════════════════════════════════════════
+     TCK CATÁLOGO — v3.12.1 — 02/06/2026
+     v3.12.1: FIX visual — el botón "+" flotante (abs, esquina inf-der) tapaba el
+       precio del tramo SUELTO en las cards con presentación de tramos (suprema, maples).
+       Solo CSS: padding-right en .cpt-suelto + ajuste del bottom del +. Sin tocar JS.
+     ──────────────────────────────────────────────────────────────────────
      TCK CATÁLOGO — v3.12.0 — 02/06/2026
      v3.12.0: PRECIO ESCALONADO POR CANTIDAD (tramos).
        · Suprema 4x5: 1 a 3 bolsas $36.000 · caja x4+ $34.000 c/u.
@@ -9559,6 +9564,12 @@ src="https://www.facebook.com/tr?id=2034313150514758&ev=PageView&noscript=1"
 .cpt-suelto-l{font-size:11px;color:#777}
 .cpt-suelto-p{font-size:13px;font-weight:600;color:#555}
 body.v4-mode .body .card:has(.card-price-tramos){height:auto !important;min-height:0}
+/* v3.12.1: el botón + flotante (abs, right:10 bottom:10) tapaba el precio del suelto.
+   Reservamos espacio a la derecha de la fila suelta para que no se solape. */
+body.v4-mode .body .card:has(.card-price-tramos):not(.has-qty) .cpt-suelto{padding-right:46px}
+/* el + queda alineado a la fila suelta (abajo), separado del bloque verde */
+body.v4-mode .body .card:has(.card-price-tramos):not(.has-qty) .qrow{bottom:8px !important}
+body.v4-mode .body .card:has(.card-price-tramos) .card-body{padding-bottom:6px}
 </style>
 </head>
 <body>
