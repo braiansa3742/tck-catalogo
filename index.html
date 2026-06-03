@@ -2,7 +2,11 @@
 <html lang="es">
 <head>
 <!-- ═══════════════════════════════════════════════════════════════════════
-     TCK CATÁLOGO — v3.12.1 — 02/06/2026
+     TCK CATÁLOGO — v3.12.2 — 03/06/2026
+     v3.12.2: CATEGORIAS - Papa Baston reubicada de Verduras a "Rebozados y Papas"
+       (V4_GRUPOS: papas_mccain pasa a rebozados). Ocultas del home las tarjetas
+       Verduras, Pastas y Combos via CSS reversible. Productos intactos en CAT[].
+     v3.12.1 — 02/06/2026
      v3.12.1: FIX visual — el botón "+" flotante (abs, esquina inf-der) tapaba el
        precio del tramo SUELTO en las cards con presentación de tramos (suprema, maples).
        Solo CSS: padding-right en .cpt-suelto + ajuste del bottom del +. Sin tocar JS.
@@ -7793,6 +7797,11 @@ body.v4-mode.v4-vista-home .v4-home{display:block}
 .v4-cat-card[data-v4-grupo="pastas"]    .v4-cat-overlay{background:#1A5276}
 .v4-cat-card[data-v4-grupo="combos"]    .v4-cat-overlay{background:#C0392B}
 
+/* v3.12.2 - Categorias ocultas del home (sin stock / reubicadas). Reversible: borrar este bloque. */
+.v4-cat-card[data-v4-grupo="verduras"],
+.v4-cat-card[data-v4-grupo="pastas"],
+.v4-cat-card[data-v4-grupo="combos"]{display:none !important}
+
 /* Nombre: centrado vertical dentro de la franja de 44px de la barra */
 .v4-cat-name{
   position:absolute;
@@ -10177,8 +10186,8 @@ body.v4-mode .body .card:has(.card-price-tramos) .card-body{padding-bottom:6px}
       <div class="v4-cat-img-fallback rebozados"></div>
       <div class="v4-cat-overlay"></div>
       <div class="v4-cat-name">
-        <div class="v4-cat-name-text">Rebozados</div>
-        <div class="v4-cat-name-sub">Medallones, nuggets y filets</div>
+        <div class="v4-cat-name-text">Rebozados y Papas</div>
+        <div class="v4-cat-name-sub">Medallones, nuggets, filets y papas</div>
       </div>
       <div class="v4-cat-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></div>
     </button>
@@ -18746,10 +18755,10 @@ function confirmarCiudadNoAtendida() {
   const V4_GRUPOS = {
     'pollos':    { titulo:'Pollos',              sub:'Pollo entero y trozados',           ids:['pollos','trozados'] },
     'huevos':    { titulo:'Huevos Mayorista',    sub:'Maples y combos',                   ids:['huevos'] },
-    'rebozados': { titulo:'Rebozados',           sub:'Medallones, nuggets y filets',      ids:['shaddai'] },
+    'rebozados': { titulo:'Rebozados y Papas',           sub:'Medallones, nuggets, filets y papas',      ids:['shaddai','papas_mccain'] },
     'premium':   { titulo:'Rebozados Premium',   sub:'Línea Fresnova · pescados y mariscos', ids:['premium'] },
     'milanesas': { titulo:'Milanesas y Hamburguesas', sub:'Nalga, peceto, pollo, soja y hamburguesas', ids:['mila'] },
-    'verduras':  { titulo:'Verduras Congeladas', sub:'Papas, brócoli, mix vegetal',       ids:['papas_mccain','verd'] },
+    'verduras':  { titulo:'Verduras Congeladas', sub:'Papas, brócoli, mix vegetal',       ids:['verd'] },
     'pastas':    { titulo:'Pastas Congeladas',   sub:'Sorrentinos, ravioles, ñoquis',     ids:['pastas'] },
     'combos':    { titulo:'Combos y Promos',     sub:'Ofertas del mes y combos mayoristas', ids:[], esCombos:true }
   };
