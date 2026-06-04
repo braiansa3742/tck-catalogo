@@ -2,6 +2,20 @@
 <html lang="es">
 <head>
 <!-- ═══════════════════════════════════════════════════════════════════════
+     TCK CATÁLOGO — v3.12.3 — 04/06/2026
+     v3.12.3: FIX CRÍTICO — T() ignoraba tramos. Bug de regresión introducido en
+       v3.12.0 con la llegada de los tramos de precio. precioUnit(it,q) se aplicó
+       correctamente en drawer/grilla/mensaje WA/items, pero T() siguió usando
+       it.pr*q directo. Eso producía total visible y total enviado al Sheet con
+       precio plano, mientras el detalle/items iban con tramo → la alerta del
+       Apps Script saltaba como falso positivo en cada pedido del catálogo con
+       producto con tramos (Suprema, Maple N° 2).
+       Caso testigo: Cecilia Bassani TCK-20260603-1239 (ig). Sheet $38.920 (T sin
+       tramos: 34000+4920), items $41.200 (con tramos: 36000+5200). Otros 4 pedidos
+       del catálogo afectados desde el 20/5 (Nereo Haedo, Claudia Casadey, Fontana
+       Daniela, Agustina Pereyra) con diferencias entre $600 y $5.852.
+       Fix: 1 línea en function T() (~10957). Sin otros cambios.
+     ──────────────────────────────────────────────────────────────────────
      TCK CATÁLOGO — v3.12.2 — 03/06/2026
      v3.12.2: CATEGORIAS - Papa Baston reubicada de Verduras a "Rebozados y Papas"
        (V4_GRUPOS: papas_mccain pasa a rebozados). Ocultas del home las tarjetas
@@ -10955,7 +10969,14 @@ function T(){
   let tProdElegible = 0;
   CAT.forEach((s,si)=>s.items.forEach((it,ii)=>{
     const q = qty[si+'-'+ii]||0;
-    const lineTotal = it.pr*q;
+    // v3.12.3 FIX: usar precioUnit(it,q) en vez de it.pr — respeta tramos por
+    // cantidad (Suprema 1-3 suelto, Maple N°2 1-5 suelto, etc.). Bug de regresión
+    // introducido en v3.12.0 (llegada de tramos) que afectó al total visible y
+    // al total enviado al Sheet, mientras el detalle/drawer/items ya usaban
+    // precioUnit correctamente. Caso testigo: Cecilia Bassani TCK-20260603-1239
+    // — total Sheet $38.920 (sin tramos) vs suma items $41.200 (con tramos).
+    // Diferencia $2.280 explicada por el bug.
+    const lineTotal = precioUnit(it, q) * q;
     tProd += lineTotal;
     cProd += q;
     if (cuponEsElegibleCat(s.id)) tProdElegible += lineTotal;
