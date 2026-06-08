@@ -2225,8 +2225,46 @@ function _localidadNormalizar(s) {
     .trim();
 }
 
+// v3.12.4 — RESPALDO LOCAL de localidades (anti-bloqueo).
+// Si el fetch a Supabase falla (señal débil del cliente en el celu), el desplegable
+// quedaba VACÍO y el texto libre rechazaba ciudades reales (caso América/Rivadavia),
+// dejando al cliente sin poder confirmar. Estas 28 ciudades baked-in se usan SOLO
+// como fallback cuando el fetch falla, para que el cliente SIEMPRE pueda elegir su
+// ciudad y confirmar. La próxima llamada reintenta el fetch real (ver _localidadesEsFallback).
+var _localidadesEsFallback = false;
+const _LOCALIDADES_FALLBACK = [
+  { ciudad: "30 de Agosto", zona: "Zona 2", aliases: ["30 DE AGOSTO","treinta de agosto","30_DE_AGOSTO","Treinta de Agosto","30 De Agosto","TREINTA DE AGOSTO","Treinta De Agosto"] },
+  { ciudad: "América", zona: "Solo América y Fortín", aliases: ["AMERICA_RIVADAVIA","AMERICA","america","Rivadavia","AMÉRICA","América Rivadavia","America Rivadavia","GRAL_VILLEGAS","General Villegas"] },
+  { ciudad: "Berutti", zona: "Zona 1", aliases: ["BERUTI","berutti","BERUTTI","Beruti"] },
+  { ciudad: "Bolívar", zona: "Zona 1", aliases: ["SAN_CARLOS_DE_BOLIVAR","Bolivar","San Carlos de Bolívar","BOLIVAR","BOLÍVAR","bolivar","OLAVARRIA","Olavarría"] },
+  { ciudad: "Bonifacio", zona: "Zona 1", aliases: ["laguna alsina","LAGUNA_ALSINA","Laguna Alsina","BONIFACIO","bonifacio","LAGUNA ALSINA"] },
+  { ciudad: "Casbas", zona: "Zona 2", aliases: ["CASBAS","casbas"] },
+  { ciudad: "Cochicó", zona: "Zona 2", aliases: ["cochico","COCHICÓ","COCHICO","Cochico"] },
+  { ciudad: "Daireaux", zona: "Zona 1", aliases: ["daireaux","DAIREAUX"] },
+  { ciudad: "De Bary", zona: "Zona 2", aliases: ["DE BARY","DE_BARY","Debary","de bary"] },
+  { ciudad: "Fortín Olavarría", zona: "Solo América y Fortín", aliases: ["Fortín","FORTIN_OLAVARRIA","Fortin Olavarria","FORTÍN OLAVARRÍA","fortin olavarria","FORTIN OLAVARRIA"] },
+  { ciudad: "Garré", zona: "Zona 2", aliases: ["GARRE","garre","GARRÉ","Garre"] },
+  { ciudad: "Gonzalez Moreno", zona: "Solo América y Fortín", aliases: ["gonzalez moreno","GONZALEZ_MORENO","GONZÁLEZ MORENO","Gonzales Moreno","gonzález moreno","González Moreno","GONZALEZ MORENO"] },
+  { ciudad: "Guaminí", zona: "Zona 2", aliases: ["GUAMINÍ","GUAMINI","guamini","Guamini","Guaminin","PIGUE","Pigüé"] },
+  { ciudad: "Henderson", zona: "Zona 1", aliases: ["Hendersom","HENDERSON","henderson"] },
+  { ciudad: "Madero", zona: "Zona 1", aliases: ["francisco madero","madero","Francisco Madero","FRANCISCO_MADERO","Francisco madero","MADERO","FRANCISCO MADERO"] },
+  { ciudad: "Mones Cazón", zona: "Zona 1", aliases: ["MONES CAZON","mones cazon","MONES_CAZON","Mones Cazon","MONES CAZÓN"] },
+  { ciudad: "Paso", zona: "Zona 1", aliases: ["JUAN JOSE PASO","JUAN JOSÉ PASO","JUAN_JOSE_PASO","Juan José Paso","paso","Juan José paso","Juan Jose Paso","juan josé paso","J.J. Paso","PASO"] },
+  { ciudad: "Pehuajó", zona: "Zona 1", aliases: ["Pehuajo","PEHUAJO","PEHUAJÓ","pehuajo","pehuajó"] },
+  { ciudad: "Pellegrini", zona: "Zona 2", aliases: ["Pellwgeini","PELLEGRINI","Pellegrinii","pellegrini","Peregrini"] },
+  { ciudad: "Pirovano", zona: "Zona 1", aliases: ["pirovano","PIROVANO"] },
+  { ciudad: "Quenumá", zona: "Zona 2", aliases: ["QUENUMÁ","quenuma","QUENUMA","Quenuma"] },
+  { ciudad: "Salazar", zona: "Zona 1", aliases: ["SALAZAR","salazar"] },
+  { ciudad: "Salliqueló", zona: "Zona 2", aliases: ["Saliqueló","SALLIQUELO","Saliquelo","Salliqelo","salliqueló","SALLIQUELÓ","Salliquelo","Salliquello","salliquelo"] },
+  { ciudad: "Thompson", zona: "Zona 2", aliases: ["thompson","INGENIERO THOMPSON","Ing. Thompson","THOMPSON","INGENIERO_THOMPSON","Ingeniero Thompson"] },
+  { ciudad: "Trenque Lauquen", zona: "Venta local", aliases: ["tr","TRENQUE_LAUQUEN","tl","trenque lauquen","TL","Trenque","TRENQUE LAUQUEN","T. Lauquen","Tte Lauquen","Tte. Lauquen"] },
+  { ciudad: "Tres Lomas", zona: "Zona 2", aliases: ["3 Lomas","TRES_LOMAS","TRES LOMAS","tres lomas","3 LOMAS","3 lomas"] },
+  { ciudad: "Urdampilleta", zona: "Zona 1", aliases: ["Urdanpilleta","URDAMPILLETA","urdampilleta"] },
+  { ciudad: "Villa Maza", zona: "Zona 2", aliases: ["Maza","maza","villa maza","VILLA_MAZA","MAZA","VILLA MAZA"] }
+];
+
 async function cargarLocalidadesCanonicas(forzar) {
-  if (!forzar && _localidadesCanonicas.length > 0) return _localidadesCanonicas;
+  if (!forzar && _localidadesCanonicas.length > 0 && !_localidadesEsFallback) return _localidadesCanonicas;
   if (_localidadesCargando) return _localidadesCargando;
 
   _localidadesCargando = (async function() {
@@ -2256,11 +2294,28 @@ async function cargarLocalidadesCanonicas(forzar) {
         }
       }
 
+      _localidadesEsFallback = false;
       console.log('[localidades] Cargadas ' + _localidadesCanonicas.length + ' ciudades canónicas');
       return _localidadesCanonicas;
     } catch (err) {
-      console.error('[localidades] Error cargando:', err);
-      return [];
+      console.error('[localidades] Error cargando, uso respaldo local:', err);
+      // Fallback: el desplegable NUNCA queda vacío → el cliente puede elegir y confirmar.
+      _localidadesCanonicas = _LOCALIDADES_FALLBACK.map(r => ({
+        ciudad: r.ciudad,
+        zona: r.zona,
+        etiqueta_zona: ZONA_ETIQUETAS_CATALOGO[r.zona] || r.zona,
+        aliases: r.aliases || [],
+        dias_carga: []
+      })).sort((a, b) => a.ciudad.localeCompare(b.ciudad, 'es'));
+      _localidadesCanonicasMap = {};
+      for (const loc of _localidadesCanonicas) {
+        _localidadesCanonicasMap[_localidadNormalizar(loc.ciudad)] = loc;
+        for (const alias of (loc.aliases || [])) {
+          _localidadesCanonicasMap[_localidadNormalizar(alias)] = loc;
+        }
+      }
+      _localidadesEsFallback = true;
+      return _localidadesCanonicas;
     } finally {
       _localidadesCargando = null;
     }
