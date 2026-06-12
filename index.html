@@ -2,6 +2,16 @@
 <html lang="es">
 <head>
 <!-- ═══════════════════════════════════════════════════════════════════════
+     TCK CATÁLOGO — v3.14.0 — 12/06/2026
+     v3.14.0: SEGURIDAD AUTH — clientes_auth deja de tocarse desde el
+       navegador. Login/sesión/existencia/cupón/vendedor/perfil van por
+       RPC (cli_login, cli_sesion, cli_existe, cli_marcar_cupon,
+       cli_set_vendedor, cli_update_perfil). Alta y cambio de clave van
+       por Apps Script (cliRegistro / cliCambiarClave) con auth_token
+       emitido por verificarOTP. clave_hash nunca más viaja al front;
+       migración progresiva a bcrypt en el primer login.
+       REQUIERE: Apps Script v25.55.0 + BLOQUE A de tck_cerrar_pin_v1.sql.
+     ──────────────────────────────────────────────────────────────────
      TCK CATÁLOGO — v3.13.0 — 11/06/2026
      v3.13.0: PRODUCTO NUEVO — "Barritas de Mozzarella" (El Shaddai · x 6 Kg ·
        $66.000 · ≈$11.000/kg) en categoría REBOZADOS. Agregado a CAT, _imgmap
@@ -10910,14 +10920,7 @@ async function cuponMarcarUsado() {
   if (typeof cuponBannerOcultar === 'function') cuponBannerOcultar();
   // PATCH en Supabase (silencioso si las columnas no existen)
   try {
-    await fetch(SB_URL + '/rest/v1/clientes_auth?id=eq.' + _cliActivo.id, {
-      method: 'PATCH',
-      headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY, 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        cupon_1ra_compra_disponible: false,
-        cupon_1ra_compra_usado_en: new Date().toISOString()
-      })
-    });
+    await cliRpc('cli_marcar_cupon', { p_id: _cliActivo.id }); // v3.14.0
   } catch(e) {
     console.warn('[cupon] No se pudo marcar como usado en DB (puede que las columnas no existan):', e);
   }
@@ -11098,11 +11101,7 @@ function elegir(i){
   if (_cliActivo && !_cliActivo.vendedor) {
     _cliActivo.vendedor = vActivo.nombre;
     cliGuardar(_cliActivo);
-    fetch(SB_URL + '/rest/v1/clientes_auth?id=eq.' + _cliActivo.id, {
-      method: 'PATCH',
-      headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ vendedor: vActivo.nombre })
-    }).catch(() => {});
+    cliRpc('cli_set_vendedor', { p_id: _cliActivo.id, p_vendedor: vActivo.nombre }).catch(() => {}); // v3.14.0
   }
 }
 
@@ -14475,6 +14474,31 @@ async function appsScriptCall(params) {
   return r.json();
 }
 
+// ── v3.14.0: auth de clientes sin tocar clientes_auth ──────────
+// RPC a Supabase con la key anon (las funciones son SECURITY DEFINER
+// y exponen solo lo necesario — el hash nunca llega al navegador).
+async function cliRpc(fn, body) {
+  const r = await fetch(SB_URL + '/rest/v1/rpc/' + fn, {
+    method: 'POST',
+    headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY, 'Content-Type': 'application/json' },
+    body: JSON.stringify(body || {})
+  });
+  if (!r.ok) throw new Error('RPC ' + fn + ' HTTP ' + r.status);
+  const txt = await r.text();
+  return txt ? JSON.parse(txt) : null;
+}
+
+// Arma params para appsScriptCall salteando null/undefined
+// (URLSearchParams convertiría null en el string "null").
+function cliParamsLimpios(obj) {
+  const out = {};
+  for (const k in obj) { const v = obj[k]; if (v !== null && v !== undefined) out[k] = v; }
+  return out;
+}
+
+// Token emitido por verificarOTP — lo exigen cliRegistro/cliCambiarClave
+var _otpAuthToken = null;
+
 // ── FLUJO REGISTRO CON OTP ────────────────────────────────────
 // Modificar cliRegistrar para pedir OTP antes de crear la cuenta
 // cliRegistrar reemplazada por versión OTP
@@ -14587,8 +14611,9 @@ async function otpVerificar() {
   for (let i = 0; i < OTP_LEN; i++) document.getElementById('otp' + i).disabled = true;
 
   try {
-    const data = await appsScriptCall({ accion: 'verificarOTP', request_id: _otpRequestId, code });
+    const data = await appsScriptCall({ accion: 'verificarOTP', request_id: _otpRequestId, code, telefono: _otpTel });
     if (data.status === 'ok') {
+      _otpAuthToken = data.auth_token || null; // v3.14.0
       clearInterval(_otpTimer);
       if (_otpModo === 'registro') {
         await otpCompletarRegistro();
@@ -14614,25 +14639,21 @@ async function otpVerificar() {
 async function otpCompletarRegistro() {
   try {
     const d = _otpDatosReg;
-    const hash = await hashStr(d.tel + ':' + d.clave);
+    // v3.14.0: el alta va por Apps Script (cliRegistro) con auth_token del
+    // OTP — el front ya no inserta en clientes_auth ni maneja clave_hash.
     // v2.7.5: si viene de canal sin vendedor (IG/FB/etc), vendedor=null
     const vendedorFinal = _canalSinVendedor
       ? null
       : (d.vendedor === 'Sin vendedor' ? '' : d.vendedor);
-    const payload = {
-      usuario:    d.tel,
-      clave_hash: hash,
-      nombre:     d.nombre,
-      comercio:   d.comercio || null,
-      ciudad:     d.ciudad   || null,
-      telefono:   d.tel,
-      vendedor:   vendedorFinal,
-      activo:     true
-    };
-    // v2.7.5: adjuntar UTMs + origen_marketing si están en LS
-    Object.assign(payload, utmPayloadRegistro());
-    const nuevo = await sbPost('clientes_auth', payload);
-    const cli = Array.isArray(nuevo) ? nuevo[0] : nuevo;
+    const paramsReg = cliParamsLimpios(Object.assign({
+      accion: 'cliRegistro', auth_token: _otpAuthToken,
+      telefono: d.tel, clave: d.clave, usuario: d.tel,
+      nombre: d.nombre, comercio: d.comercio || '', ciudad: d.ciudad || '',
+      vendedor: vendedorFinal
+    }, utmPayloadRegistro()));
+    const dataReg = await appsScriptCall(paramsReg);
+    if (dataReg.status !== 'ok' || !dataReg.cliente) throw new Error(dataReg.message || 'Error al crear la cuenta');
+    const cli = dataReg.cliente;
     cliGuardar(cli);
     // v3.7.3 N42-C: cliVincularMaster() removida. Era no-op desde v3.7.2.
     // Marcar que es primer pedido — al segundo pedido mostramos paso 2
@@ -14690,21 +14711,13 @@ async function cliGuardarNuevaPass() {
   if (p1 !== p2) { cliSetErr('cli-err-newpass', 'Las contraseñas no coinciden'); return; }
   btn.disabled = true; btn.textContent = 'Guardando...';
   try {
-    const tel  = _otpDatosReg.tel;
-    const hash = await hashStr(tel + ':' + p1);
-    // Actualizar en Supabase
-    const r = await fetch(SB_URL + '/rest/v1/clientes_auth?telefono=eq.' + encodeURIComponent(tel), {
-      method: 'PATCH',
-      headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ clave_hash: hash })
-    });
-    if (!r.ok) throw new Error('Error al actualizar');
-    // Login automático
-    const datos = await sbGet('clientes_auth?telefono=eq.' + encodeURIComponent(tel) + '&select=*');
-    if (datos && datos.length) {
-      cliGuardar(datos[0]);
-      cliEntrarPortal(datos[0]);
-    }
+    const tel = _otpDatosReg.tel;
+    // v3.14.0: cambio de clave vía Apps Script (cliCambiarClave) con
+    // auth_token del OTP — bcrypt server-side, sin tocar clientes_auth.
+    const dataCC = await appsScriptCall({ accion: 'cliCambiarClave', telefono: tel, clave: p1, auth_token: _otpAuthToken });
+    if (dataCC.status !== 'ok' || !dataCC.cliente) throw new Error(dataCC.message || 'Error al actualizar');
+    cliGuardar(dataCC.cliente);
+    cliEntrarPortal(dataCC.cliente);
   } catch(e) {
     cliSetErr('cli-err-newpass', 'Error al guardar. Intentá de nuevo.');
     btn.disabled = false; btn.textContent = 'Guardar contraseña →';
@@ -16193,11 +16206,9 @@ async function cliLogin() {
   if (!tel || !clave) { cliSetErr('cli-err-login', 'Completá teléfono y contraseña'); return; }
   btn.disabled = true; btn.textContent = 'Verificando...';
   try {
-    const hash = await hashStr(tel + ':' + clave);
-    const data = await sbGet('clientes_auth?telefono=eq.' + encodeURIComponent(tel) + '&activo=eq.true&select=*');
-    if (!data.length) { cliSetErr('cli-err-login', 'Número no encontrado o cuenta inactiva'); btn.disabled = false; btn.textContent = 'Ingresar →'; return; }
-    const cli = data[0];
-    if (cli.clave_hash !== hash) { cliSetErr('cli-err-login', 'Contraseña incorrecta'); btn.disabled = false; btn.textContent = 'Ingresar →'; return; }
+    // v3.14.0: login vía RPC cli_login — el hash nunca llega al navegador.
+    const cli = await cliRpc('cli_login', { p_telefono: tel, p_clave: clave });
+    if (!cli) { cliSetErr('cli-err-login', 'Teléfono o contraseña incorrectos'); btn.disabled = false; btn.textContent = 'Ingresar →'; return; }
     cliGuardar(cli);
     // v3.7.3 N42-C: cliVincularMaster() removida. Era no-op desde v3.7.2.
     cliEntrarPortal(cli);
@@ -16237,8 +16248,8 @@ async function cliRegistrar() {
   btn.disabled = true; btn.textContent = 'Verificando...';
   try {
     // Verificar que el teléfono no exista ya
-    const exist = await sbGet('clientes_auth?telefono=eq.' + encodeURIComponent(tel) + '&select=id');
-    if (exist.length) {
+    const exist = await cliRpc('cli_existe', { p_telefono: tel }); // v3.14.0
+    if (exist && exist.existe) {
       cliSetErr('cli-err-reg', 'Ese teléfono ya tiene una cuenta. Usá "Ingresar".');
       btn.disabled = false; btn.textContent = 'Crear cuenta →'; return;
     }
@@ -16349,11 +16360,7 @@ function cliEntrarPortal(cli) {
   if (!cli.vendedor && vActivo) {
     _cliActivo.vendedor = vActivo.nombre;
     cliGuardar(_cliActivo);
-    fetch(SB_URL + '/rest/v1/clientes_auth?id=eq.' + cli.id, {
-      method: 'PATCH',
-      headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ vendedor: vActivo.nombre })
-    }).catch(() => {});
+    cliRpc('cli_set_vendedor', { p_id: cli.id, p_vendedor: vActivo.nombre }).catch(() => {}); // v3.14.0
   }
 
   // Mostrar portal de mi cuenta
@@ -16659,9 +16666,9 @@ async function cliFlowTelSiguiente() {
   btn.textContent = 'Verificando...';
 
   try {
-    // Verificar si existe en DB
-    const data = await sbGet('clientes_auth?telefono=eq.' + encodeURIComponent(tel) + '&activo=eq.true&select=*');
-    const existe = data && data.length > 0;
+    // v3.14.0: existencia vía RPC cli_existe (sin leer la tabla)
+    const chk = await cliRpc('cli_existe', { p_telefono: tel });
+    const existe = !!(chk && chk.existe);
 
     _flowTel = tel;
 
@@ -16672,8 +16679,8 @@ async function cliFlowTelSiguiente() {
         btn.textContent = cliFlowTelBtnTextoPorModo();
         return;
       }
-      // Cliente existe → pedir PIN
-      _flowClienteData = data[0];
+      // Cliente existe → pedir PIN (v3.14.0: solo el nombre, sin datos sensibles)
+      _flowClienteData = { nombre: (chk && chk.nombre) || '' };
       const nombreEl = document.getElementById('cli-flow-login-pin-nombre');
       if (nombreEl) {
         const nom = (_flowClienteData.nombre || 'cliente').split(/\s+/)[0];
@@ -16694,7 +16701,7 @@ async function cliFlowTelSiguiente() {
         btn.textContent = cliFlowTelBtnTextoPorModo();
         return;
       }
-      _flowClienteData = data[0];
+      _flowClienteData = { nombre: (chk && chk.nombre) || '' }; // v3.14.0
       await cliFlowEnviarOtp();
       btn.disabled = false;
       btn.textContent = cliFlowTelBtnTextoPorModo();
@@ -16873,8 +16880,9 @@ async function cliFlowOtpVerificar() {
   if (btn) { btn.disabled = true; btn.textContent = 'Verificando...'; }
 
   try {
-    const data = await appsScriptCall({ accion: 'verificarOTP', request_id: _otpRequestId, code });
+    const data = await appsScriptCall({ accion: 'verificarOTP', request_id: _otpRequestId, code, telefono: _flowTel });
     if (data.status === 'ok') {
+      _otpAuthToken = data.auth_token || null; // v3.14.0
       clearInterval(_flowOtpTimer);
       clearInterval(_flowReenvioTimer);
       _flowOtpOK = true;
@@ -16984,43 +16992,30 @@ async function cliFlowPinGuardar() {
   if (btn) { btn.disabled = true; btn.textContent = 'Guardando...'; }
 
   try {
-    const hash = await hashStr(_flowTel + ':' + pin);
-
     if (_flowModo === 'recupero') {
-      // Actualizar PIN del cliente existente
-      const r = await fetch(SB_URL + '/rest/v1/clientes_auth?telefono=eq.' + encodeURIComponent(_flowTel), {
-        method: 'PATCH',
-        headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ clave_hash: hash })
-      });
-      if (!r.ok) throw new Error('Error al actualizar');
-      // Login automático
-      const datos = await sbGet('clientes_auth?telefono=eq.' + encodeURIComponent(_flowTel) + '&select=*');
-      if (datos && datos.length) {
-        cliGuardar(datos[0]);
-        // v3.7.3 N42-C: cliVincularMaster() removida. Era no-op desde v3.7.2.
-        cliEntrarPortal(datos[0]);
-        // v2.6.5: notificar cupón si tiene
-        if (typeof cliPostLoginNotificarCupon === 'function') cliPostLoginNotificarCupon();
-      }
+      // v3.14.0: cambio de PIN vía Apps Script (cliCambiarClave) con
+      // auth_token del OTP — bcrypt server-side, sin tocar clientes_auth.
+      const dataCC = await appsScriptCall({ accion: 'cliCambiarClave', telefono: _flowTel, clave: pin, auth_token: _otpAuthToken });
+      if (dataCC.status !== 'ok' || !dataCC.cliente) throw new Error(dataCC.message || 'Error al actualizar');
+      cliGuardar(dataCC.cliente);
+      cliEntrarPortal(dataCC.cliente);
+      // v2.6.5: notificar cupón si tiene
+      if (typeof cliPostLoginNotificarCupon === 'function') cliPostLoginNotificarCupon();
     } else {
       // Crear nuevo cliente (registro)
       // v2.7.5: si viene de canal sin vendedor (IG/FB/etc), vendedor=null
       const vendedorLink = _canalSinVendedor
         ? null
         : (vActivo ? vActivo.nombre : '');
-      const payload = {
-        usuario:    _flowTel,
-        clave_hash: hash,
-        nombre:     '',        // se completa después
-        telefono:   _flowTel,
-        vendedor:   vendedorLink,
-        activo:     true
-      };
-      // v2.7.5: adjuntar UTMs + origen_marketing si están en LS
-      Object.assign(payload, utmPayloadRegistro());
-      const nuevo = await sbPost('clientes_auth', payload);
-      const cli = Array.isArray(nuevo) ? nuevo[0] : nuevo;
+      // v3.14.0: alta vía Apps Script (cliRegistro) con auth_token del OTP.
+      const paramsReg = cliParamsLimpios(Object.assign({
+        accion: 'cliRegistro', auth_token: _otpAuthToken,
+        telefono: _flowTel, clave: pin, usuario: _flowTel,
+        nombre: '', vendedor: vendedorLink
+      }, utmPayloadRegistro()));
+      const dataReg = await appsScriptCall(paramsReg);
+      if (dataReg.status !== 'ok' || !dataReg.cliente) throw new Error(dataReg.message || 'Error al crear la cuenta');
+      const cli = dataReg.cliente;
       cliGuardar(cli);
       // v3.7.3 N42-C: cliVincularMaster() removida. Era no-op desde v3.7.2.
       // Marcar cupón de primera compra disponible
@@ -17130,23 +17125,14 @@ async function cliFlowLoginPinVerificar() {
 
   if (btn) { btn.disabled = true; btn.textContent = 'Verificando...'; }
   try {
-    const hash = await hashStr(_flowTel + ':' + pin);
-    if (!_flowClienteData) {
-      // No debería pasar, pero por si acaso recargamos
-      const data = await sbGet('clientes_auth?telefono=eq.' + encodeURIComponent(_flowTel) + '&activo=eq.true&select=*');
-      if (!data.length) {
-        if (err) err.textContent = 'Error al verificar. Volvé al inicio.';
-        if (btn) { btn.disabled = false; btn.textContent = 'Ingresar'; }
-        return;
-      }
-      _flowClienteData = data[0];
-    }
+    // v3.14.0: login vía RPC cli_login — el hash nunca llega al navegador.
+    const cliLog = await cliRpc('cli_login', { p_telefono: _flowTel, p_clave: pin });
 
-    if (_flowClienteData.clave_hash === hash) {
+    if (cliLog) {
       // Login OK
-      cliGuardar(_flowClienteData);
-      // v3.7.3 N42-C: cliVincularMaster() removida. Era no-op desde v3.7.2.
-      cliEntrarPortal(_flowClienteData);
+      _flowClienteData = cliLog;
+      cliGuardar(cliLog);
+      cliEntrarPortal(cliLog);
       // v2.6.5: notificar cupón si tiene
       if (typeof cliPostLoginNotificarCupon === 'function') cliPostLoginNotificarCupon();
     } else {
@@ -17428,8 +17414,8 @@ async function cliOlvideContrasena() {
   const btnLogin = document.getElementById('cli-btn-login');
   if (btnLogin) btnLogin.disabled = true;
   try {
-    const exist = await sbGet('clientes_auth?telefono=eq.' + encodeURIComponent(tel) + '&select=id');
-    if (!exist.length) {
+    const exist = await cliRpc('cli_existe', { p_telefono: tel }); // v3.14.0
+    if (!exist || !exist.existe) {
       cliSetErr('cli-err-login', 'No encontramos ese número. ¿Ya tenés cuenta?');
       if (btnLogin) btnLogin.disabled = false;
       return;
@@ -17995,11 +17981,11 @@ function cliPreRellenarModal() {
   const sesion = cliLeerSesion();
   if (!sesion) return;
   // Verificar en Supabase que sigue activa
-  sbGet('clientes_auth?id=eq.' + sesion.id + '&activo=eq.true&select=*')
-    .then(data => {
-      if (data && data.length) {
-        cliGuardar(data[0]);
-        cliEntrarPortal(data[0]);
+  cliRpc('cli_sesion', { p_id: sesion.id })  // v3.14.0
+    .then(cli => {
+      if (cli) {
+        cliGuardar(cli);
+        cliEntrarPortal(cli);
       } else {
         cliLimpiar();
       }
@@ -18155,8 +18141,8 @@ async function regPaso1Confirmar() {
 
   try {
     // Verificar que el teléfono no exista ya
-    const exist = await sbGet('clientes_auth?telefono=eq.' + encodeURIComponent(_regTelPendiente) + '&select=id');
-    if (exist.length) {
+    const exist = await cliRpc('cli_existe', { p_telefono: _regTelPendiente }); // v3.14.0
+    if (exist && exist.existe) {
       err.textContent = 'Ese teléfono ya tiene cuenta. Usá "Mi cuenta" para ingresar.';
       btn.disabled = false; btn.textContent = 'Crear mi cuenta →'; return;
     }
@@ -18219,11 +18205,7 @@ async function regPaso2Confirmar() {
 
   btn.disabled = true; btn.textContent = 'Guardando...';
   try {
-    await fetch(SB_URL + '/rest/v1/clientes_auth?id=eq.' + _cliActivo.id, {
-      method: 'PATCH',
-      headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ comercio: comercio || null, ciudad: ciudad })
-    });
+    await cliRpc('cli_update_perfil', { p_id: _cliActivo.id, p_comercio: comercio || '', p_ciudad: ciudad }); // v3.14.0
     // Actualizar sesión local
     _cliActivo.comercio = comercio;
     _cliActivo.ciudad   = ciudad;
