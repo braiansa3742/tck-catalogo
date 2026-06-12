@@ -2,6 +2,22 @@
 <html lang="es">
 <head>
 <!-- ═══════════════════════════════════════════════════════════════════════
+     TCK CATÁLOGO — v3.15.0 — 12/06/2026
+     v3.15.0: PRECIOS DINÁMICOS DESDE SUPABASE.
+       · Al cargar, fetchea productos_canonicos (nombre, aliases,
+         precio_actual, precio_kg) y pisa los precios hardcodeados del
+         CAT matcheando por nombre exacto (lower) y aliases — la misma
+         convención que los tramos (v3.12.0).
+       · Es la MISMA fuente que actualiza el editor de precios del admin:
+         cambiás un precio ahí y el catálogo lo refleja al recargar.
+         Se acabó el doble mantenimiento HTML + Sheet.
+       · it.pu ("≈$/kg" o "/ unidad") se recalcula solo si la card ya lo
+         mostraba; respeta el formato existente.
+       · Fallback seguro: sin red / sin match / precio null → queda el
+         precio hardcodeado del HTML. Nunca rompe el render.
+       · Los precios hardcodeados pasan a ser solo el fallback offline;
+         la verdad vive en productos_canonicos.
+     ──────────────────────────────────────────────────────────────────
      TCK CATÁLOGO — v3.14.1 — 12/06/2026
      v3.14.1: FIX PRECIO — Pollo A $86.000 → $84.000 (≈$4,200/kg). La baja
        se había hecho directo en el repo después del export y el deploy
@@ -13998,6 +14014,74 @@ function confirmarYEnviarWA() {
 // declarados en bloque de estado global
 
 // ═══════════════════════════════════════════════════════════════
+//  v3.15.0 — PRECIOS DINÁMICOS DESDE SUPABASE
+//  Fuente: productos_canonicos (la misma que actualiza el editor de
+//  precios del admin). Match por nombre exacto (lower) y aliases,
+//  igual que los tramos. Pisa it.pr y recalcula it.pu. Sin match o
+//  sin precio → queda el hardcodeado (fallback seguro).
+// ═══════════════════════════════════════════════════════════════
+function _pdFmtMiles(n) {
+  try { return Number(n).toLocaleString('en-US'); } catch (e) { return String(n); }
+}
+
+async function cargarPreciosDinamicos() {
+  try {
+    const url = SB_URL + '/rest/v1/productos_canonicos'
+      + '?select=nombre,aliases,precio_actual,precio_kg&activo=eq.true';
+    const r = await fetch(url, { headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY } });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const rows = await r.json();
+
+    // mapa: nombre/alias (lower) → { pr, kg }
+    const map = {};
+    rows.forEach(function(row) {
+      const precio = Number(row.precio_actual);
+      if (!precio || precio <= 0) return;  // sin precio cargado → no pisa nada
+      const entry = { pr: precio, kg: Number(row.precio_kg) || 0 };
+      if (row.nombre) map[String(row.nombre).toLowerCase().trim()] = entry;
+      const al = Array.isArray(row.aliases) ? row.aliases : [];
+      al.forEach(function(a) {
+        const k = String(a || '').toLowerCase().trim();
+        if (k && !map[k]) map[k] = entry;
+      });
+    });
+
+    let cambios = 0;
+    CAT.forEach(function(s) {
+      (s.items || []).forEach(function(it) {
+        const hit = map[String(it.n || '').toLowerCase().trim()];
+        if (!hit) return;
+        if (hit.pr !== it.pr) { it.pr = hit.pr; cambios++; }
+        // pu: recalcular respetando el formato que ya tenía la card
+        if (it.pu && it.pu.indexOf('kg') !== -1) {
+          if (hit.kg > 0) {
+            it.pu = '&#x2248;$' + _pdFmtMiles(hit.kg) + ' / kg';
+          } else {
+            const m = /x\s*([\d.,]+)\s*Kg/i.exec(it.p || '');
+            if (m) {
+              const kgs = parseFloat(m[1].replace(',', '.'));
+              if (kgs > 0) it.pu = '&#x2248;$' + _pdFmtMiles(Math.round(hit.pr / kgs)) + ' / kg';
+            }
+          }
+        } else if (it.pu && it.pu.indexOf('unidad') !== -1) {
+          const mu = /\((\d+)\s*un/i.exec(it.p || '');
+          if (mu) {
+            const un = parseInt(mu[1], 10);
+            if (un > 0) it.pu = '&#x2248;$' + _pdFmtMiles(Math.round(hit.pr / un)) + ' / unidad';
+          }
+        }
+      });
+    });
+
+    if (cambios) console.log('[precios] ' + cambios + ' precio(s) actualizados desde Supabase');
+    return cambios;
+  } catch (e) {
+    console.error('[precios] cargar:', e);
+    return 0;  // fallback seguro: quedan los precios hardcodeados del HTML
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
 //  v3.12.0 — PRECIO ESCALONADO POR CANTIDAD (tramos)
 //  Fuente: Supabase tabla producto_tramos. Match por nombre (CAT.n
 //  === productos_canonicos.nombre). Producto con tramos → manda la
@@ -14338,6 +14422,8 @@ cargarPrecios().finally(() => {
   combosCargar();
   // v3.4.0: Cargar promos 50% off de Supabase
   promosCargar();
+  // v3.15.0: precios dinámicos desde productos_canonicos + re-render si cambió algo
+  cargarPreciosDinamicos().then(function(n){ if (n > 0 && typeof renderBody === 'function') renderBody(); });
   // v3.12.0: tramos de precio escalonado desde Supabase + re-render al llegar
   cargarTramos().then(function(){ if (typeof renderBody === 'function') renderBody(); });
   // v3.7.0 N40b: Cargar stock dinámico desde Supabase + iniciar polling 30s
