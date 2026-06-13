@@ -2,7 +2,11 @@
 <html lang="es">
 <head>
 <!-- ═══════════════════════════════════════════════════════════════════════
-     TCK CATÁLOGO — v3.15.0 — 12/06/2026
+     TCK CATÁLOGO — v3.16.0 — 12/06/2026
+     v3.16.0: UPDATE CHECK. Banner flotante "Actualizar" cuando hay
+        version nueva (lee version.json del repo, cache-bust). Al tocar:
+        limpia caches + desregistra SW + reload. Bump TCK_UPD_LOCAL +
+        version.json en cada deploy.
      v3.15.0: PRECIOS DINÁMICOS DESDE SUPABASE.
        · Al cargar, fetchea productos_canonicos (nombre, aliases,
          precio_actual, precio_kg) y pisa los precios hardcodeados del
@@ -21223,6 +21227,74 @@ function confirmarCiudadNoAtendida() {
     'background:#8B0000;color:#FFD700;padding:2px 6px;border-radius:3px;font-weight:bold',
     'color:#5C3A1E');
 
+})();
+</script>
+
+<script>
+/* ============================================================
+   TCK UPDATE CHECK v1.0 — banner flotante "Actualizar"
+   Lee version.json del mismo repo (cache-bust ?t=). Si la version
+   del servidor es MAYOR que TCK_UPD_LOCAL, muestra banner abajo.
+   Al tocar "Actualizar": borra caches + desregistra SW + reload.
+   DEPLOY: en cada subida de index.html nuevo, actualizar
+   TCK_UPD_LOCAL aca Y el archivo version.json del repo.
+   ============================================================ */
+(function(){
+  var TCK_UPD_LOCAL = '3.16.0';        /* <-- bump en cada deploy */
+  var TCK_UPD_INTERVALO = 10 * 60 * 1000;   /* chequeo de fondo: 10 min */
+  var _updUltChequeo = 0;
+
+  function _updParse(v){
+    return String(v || '').trim().replace(/^v/i, '').split('.').map(function(n){ return parseInt(n, 10) || 0; });
+  }
+  function _updEsMayor(remota, local){
+    var r = _updParse(remota), l = _updParse(local);
+    for (var i = 0; i < 3; i++){
+      if ((r[i] || 0) > (l[i] || 0)) return true;
+      if ((r[i] || 0) < (l[i] || 0)) return false;
+    }
+    return false;
+  }
+  function _updMostrarBanner(vNueva){
+    if (document.getElementById('tck-upd-banner')) return;
+    /* anti-loop: si ya intentamos esta version en esta sesion, no insistir */
+    try { if (sessionStorage.getItem('tck_upd_intentada') === vNueva) return; } catch(e) {}
+    var b = document.createElement('div');
+    b.id = 'tck-upd-banner';
+    b.style.cssText = 'position:fixed;left:50%;bottom:16px;transform:translateX(-50%);z-index:2147483000;display:flex;align-items:center;gap:12px;background:#1a1a1a;color:#fff;padding:12px 16px;border-radius:14px;box-shadow:0 8px 24px rgba(0,0,0,.35);font-family:system-ui,-apple-system,sans-serif;font-size:14px;max-width:calc(100vw - 24px);';
+    b.innerHTML = '<span style="white-space:nowrap;">\uD83D\uDD04 Nueva versi\u00F3n disponible</span>' +
+      '<button id="tck-upd-btn" style="background:#FFD700;color:#1a1a1a;border:none;border-radius:10px;padding:9px 18px;font-size:14px;font-weight:800;cursor:pointer;white-space:nowrap;">Actualizar</button>';
+    document.body.appendChild(b);
+    document.getElementById('tck-upd-btn').addEventListener('click', function(){
+      this.disabled = true;
+      this.textContent = 'Actualizando\u2026';
+      try { sessionStorage.setItem('tck_upd_intentada', vNueva); } catch(e) {}
+      var tareas = [];
+      if (window.caches && caches.keys) {
+        tareas.push(caches.keys().then(function(ks){
+          return Promise.all(ks.map(function(k){ return caches.delete(k); }));
+        }).catch(function(){}));
+      }
+      if (navigator.serviceWorker && navigator.serviceWorker.getRegistrations) {
+        tareas.push(navigator.serviceWorker.getRegistrations().then(function(rs){
+          return Promise.all(rs.map(function(r){ return r.unregister(); }));
+        }).catch(function(){}));
+      }
+      Promise.all(tareas).then(function(){ location.reload(); }).catch(function(){ location.reload(); });
+    });
+  }
+  function _updChequear(){
+    var ahora = Date.now();
+    if (ahora - _updUltChequeo < 60000) return; /* throttle 60s */
+    _updUltChequeo = ahora;
+    fetch('version.json?t=' + ahora, { cache: 'no-store' })
+      .then(function(r){ if (!r.ok) throw 0; return r.json(); })
+      .then(function(j){ if (j && j.version && _updEsMayor(j.version, TCK_UPD_LOCAL)) _updMostrarBanner(String(j.version)); })
+      .catch(function(){ /* sin version.json todavia o sin red: silencio total */ });
+  }
+  setTimeout(_updChequear, 4000);
+  setInterval(_updChequear, TCK_UPD_INTERVALO);
+  document.addEventListener('visibilitychange', function(){ if (!document.hidden) _updChequear(); });
 })();
 </script>
 </body>
