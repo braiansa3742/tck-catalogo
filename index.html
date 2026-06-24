@@ -2,7 +2,8 @@
 <html lang="es">
 <head>
 <!-- ═══════════════════════════════════════════════════════════════════════
-     TCK CATÁLOGO — v3.21.3 — 23/06/2026
+     TCK CATÁLOGO — v3.21.4 — 23/06/2026
+     v3.21.4: 4 fotos definitivas TAPA MANÍA + cards del home más bajas (178→152px).
      v3.21.3: card TAPA MANÍA movida al 2º lugar del home (debajo de Pollos).
      v3.21.2: TAPA MANÍA en el HOME (V4_GRUPOS + card + CSS). Fallback img producto.
      v3.21.1: línea TAPA MANÍA — extensiones .png + fix nombre Ricotta_y_Verdura.
@@ -7800,7 +7801,7 @@ body.v4-mode.v4-vista-home .v4-home{display:block}
    La foto queda limpia arriba. El nombre va DENTRO de una barra de
    color abajo (flex, texto siempre contenido, 1 o 2 líneas). */
 .v4-cat-card{
-  height:178px;
+  height:152px;
   border-radius:13px;
   overflow:hidden;
   position:relative;
@@ -7820,7 +7821,7 @@ body.v4-mode.v4-vista-home .v4-home{display:block}
 .v4-cat-img-real{
   position:absolute;
   top:0;left:0;right:0;
-  height:134px;          /* foto arriba; barra de 44px abajo */
+  height:108px;          /* foto arriba; barra de 44px abajo */
   width:100%;
   object-fit:cover;
   object-position:center;
@@ -7834,7 +7835,7 @@ body.v4-mode.v4-vista-home .v4-home{display:block}
 .v4-cat-img-fallback{
   position:absolute;
   top:0;left:0;right:0;
-  height:134px;
+  height:108px;
   z-index:1;
 }
 .v4-cat-img-fallback.pollos{
@@ -10685,7 +10686,7 @@ body.v4-mode .body .card:has(.card-price-tramos) .card-body{padding-bottom:6px}
 const _imgmap = {
   // v3.21.0 — línea TAPA MANÍA (13 imágenes reales + 6 PLACEHOLDER hasta recibir definitivas)
   "Tapa Manía Empanada Horno 330g": "Empanadas_Tradicionales_para_Horno.png",
-  "Tapa Manía Empanada Criolla 330g": "Empanadas_Tradicionales_para_Horno.png",   // PLACEHOLDER
+  "Tapa Manía Empanada Criolla 330g": "Empanadas_Tradicionales_tipo_Criollas.png",
   "Tapa Manía Empanada Freír 330g": "Empanadas_Tradicionales_para_Freir.png",
   "Tapa Manía Pascualina Horno 400g": "Pascualinas_para_Horno.png",
   "Tapa Manía Pascualina Criolla 400g": "Pascualinas_tipo_Criollas.png",
@@ -10698,11 +10699,11 @@ const _imgmap = {
   "Tapa Manía Ravioles Ricota y Jamón 500g": "Ravioles_Ricotta_y_Jamon_500g.png",
   "Tapa Manía Ravioles Ricota y Verdura 500g": "Ravioles_Ricotta_y_Verdura_500g.png",
   "Tapa Manía Ñoquis 500g": "Noquis_de_Semolin_500g.png",
-  "Tapa Manía Pan Super Pancho 350g": "Pan_Panchos.png",   // PLACEHOLDER
+  "Tapa Manía Pan Super Pancho 350g": "Super_Panchos.png",
   "Tapa Manía Pan Pancho 210g": "Pan_Panchos.png",
   "Tapa Manía Pan Hamburguesa 210g": "Pan_Hamburguesas.png",
-  "Tapa Manía Pan Pebete 210g": "Pan_Hamburguesas.png",   // PLACEHOLDER
-  "Tapa Manía Pan de Papa 250g": "Pan_Hamburguesas.png",   // PLACEHOLDER
+  "Tapa Manía Pan Pebete 210g": "Pebetes.png",
+  "Tapa Manía Pan de Papa 250g": "Pan_de_Papa.png",
   // v3.9: nombres unificados Pollo A/B con retrocompat de Ginosa/Optimo
   "Pollo A":                   "pollo_entero.jpg",
   "Pollo B":                   "pollo_entero.jpg",
@@ -21288,7 +21289,7 @@ function confirmarCiudadNoAtendida() {
    TCK_UPD_LOCAL aca Y el archivo version.json del repo.
    ============================================================ */
 (function(){
-  var TCK_UPD_LOCAL = '3.21.3';        /* <-- bump en cada deploy */
+  var TCK_UPD_LOCAL = '3.21.4';        /* <-- bump en cada deploy */
   var TCK_UPD_INTERVALO = 10 * 60 * 1000;   /* chequeo de fondo: 10 min */
   var _updUltChequeo = 0;
 
