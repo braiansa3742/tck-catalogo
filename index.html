@@ -2,8 +2,8 @@
 <html lang="es">
 <head>
 <!-- ═══════════════════════════════════════════════════════════════════════
-     TCK CATÁLOGO — v3.21.4 — 23/06/2026
-     v3.21.4: 4 fotos definitivas TAPA MANÍA + cards del home más bajas (178→152px).
+     TCK CATÁLOGO — v3.21.5 — 23/06/2026
+     v3.21.5: 4 fotos definitivas TAPA MANÍA + portada categoria con object-fit:contain (menos zoom, se ve la imagen completa). Altura de cards SIN cambios (revertido el 3.21.4).
      v3.21.3: card TAPA MANÍA movida al 2º lugar del home (debajo de Pollos).
      v3.21.2: TAPA MANÍA en el HOME (V4_GRUPOS + card + CSS). Fallback img producto.
      v3.21.1: línea TAPA MANÍA — extensiones .png + fix nombre Ricotta_y_Verdura.
@@ -7801,7 +7801,7 @@ body.v4-mode.v4-vista-home .v4-home{display:block}
    La foto queda limpia arriba. El nombre va DENTRO de una barra de
    color abajo (flex, texto siempre contenido, 1 o 2 líneas). */
 .v4-cat-card{
-  height:152px;
+  height:178px;
   border-radius:13px;
   overflow:hidden;
   position:relative;
@@ -7821,7 +7821,7 @@ body.v4-mode.v4-vista-home .v4-home{display:block}
 .v4-cat-img-real{
   position:absolute;
   top:0;left:0;right:0;
-  height:108px;          /* foto arriba; barra de 44px abajo */
+  height:134px;          /* foto arriba; barra de 44px abajo */
   width:100%;
   object-fit:cover;
   object-position:center;
@@ -7835,7 +7835,7 @@ body.v4-mode.v4-vista-home .v4-home{display:block}
 .v4-cat-img-fallback{
   position:absolute;
   top:0;left:0;right:0;
-  height:108px;
+  height:134px;
   z-index:1;
 }
 .v4-cat-img-fallback.pollos{
@@ -7914,6 +7914,7 @@ body.v4-mode.v4-vista-home .v4-home{display:block}
 .v4-cat-card[data-v4-grupo="verduras"]  .v4-cat-overlay{background:#1E8449}
 .v4-cat-card[data-v4-grupo="pastas"]    .v4-cat-overlay{background:#1A5276}
 .v4-cat-card[data-v4-grupo="tapamania"] .v4-cat-overlay{background:#C0392B}
+.v4-cat-card[data-v4-grupo="tapamania"] .v4-cat-img-real{object-fit:contain;background:#F4C81E;}
 .v4-cat-card[data-v4-grupo="combos"]    .v4-cat-overlay{background:#C0392B}
 
 /* v3.12.2 - Categorias ocultas del home (sin stock / reubicadas). Reversible: borrar este bloque. */
@@ -21289,7 +21290,7 @@ function confirmarCiudadNoAtendida() {
    TCK_UPD_LOCAL aca Y el archivo version.json del repo.
    ============================================================ */
 (function(){
-  var TCK_UPD_LOCAL = '3.21.4';        /* <-- bump en cada deploy */
+  var TCK_UPD_LOCAL = '3.21.5';        /* <-- bump en cada deploy */
   var TCK_UPD_INTERVALO = 10 * 60 * 1000;   /* chequeo de fondo: 10 min */
   var _updUltChequeo = 0;
 
