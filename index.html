@@ -2,8 +2,11 @@
 <html lang="es">
 <head>
 <!-- ═══════════════════════════════════════════════════════════════════════
-     TCK CATÁLOGO — v3.21.0 — 23/06/2026
-     v3.21.0: ALTA LÍNEA TAPA MANÍA (19 SKUs) en CAT + _imgmap. Categoria nueva.
+     TCK CATÁLOGO — v3.21.3 — 23/06/2026
+     v3.21.3: card TAPA MANÍA movida al 2º lugar del home (debajo de Pollos).
+     v3.21.2: TAPA MANÍA en el HOME (V4_GRUPOS + card + CSS). Fallback img producto.
+     v3.21.1: línea TAPA MANÍA — extensiones .png + fix nombre Ricotta_y_Verdura.
+     v3.21.0: ALTA LÍNEA TAPA MANÍA (19 SKUs) en CAT + _imgmap.
      v3.16.0: UPDATE CHECK. Banner flotante "Actualizar" cuando hay
         version nueva (lee version.json del repo, cache-bust). Al tocar:
         limpia caches + desregistra SW + reload. Bump TCK_UPD_LOCAL +
@@ -7877,6 +7880,12 @@ body.v4-mode.v4-vista-home .v4-home{display:block}
     radial-gradient(ellipse at 70% 60%, #d8a050 0%, transparent 45%),
     linear-gradient(135deg,#a87038 0%,#4c2810 100%);
 }
+.v4-cat-img-fallback.tapamania{
+  background:
+    radial-gradient(ellipse at 38% 42%, #f3b0a0 0%, transparent 45%),
+    radial-gradient(ellipse at 72% 62%, #d85040 0%, transparent 45%),
+    linear-gradient(135deg,#C0392B 0%,#5c1410 100%);
+}
 .v4-cat-img-fallback.combos{
   background:
     radial-gradient(circle at 30% 35%, #f8d878 0%, transparent 45%),
@@ -7903,6 +7912,7 @@ body.v4-mode.v4-vista-home .v4-home{display:block}
 .v4-cat-card[data-v4-grupo="milanesas"] .v4-cat-overlay{background:#7B241C}
 .v4-cat-card[data-v4-grupo="verduras"]  .v4-cat-overlay{background:#1E8449}
 .v4-cat-card[data-v4-grupo="pastas"]    .v4-cat-overlay{background:#1A5276}
+.v4-cat-card[data-v4-grupo="tapamania"] .v4-cat-overlay{background:#C0392B}
 .v4-cat-card[data-v4-grupo="combos"]    .v4-cat-overlay{background:#C0392B}
 
 /* v3.12.2 - Categorias ocultas del home (sin stock / reubicadas). Reversible: borrar este bloque. */
@@ -10275,6 +10285,18 @@ body.v4-mode .body .card:has(.card-price-tramos) .card-body{padding-bottom:6px}
       <div class="v4-cat-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></div>
     </button>
 
+    <!-- 🥟 Tapa Manía -->
+    <button class="v4-cat-card" data-v4-grupo="tapamania" onclick="v4AbrirGrupo('tapamania')">
+      <img class="v4-cat-img-real" data-v4-grupo-img="tapamania" alt="" aria-hidden="true">
+      <div class="v4-cat-img-fallback tapamania"></div>
+      <div class="v4-cat-overlay"></div>
+      <div class="v4-cat-name">
+        <div class="v4-cat-name-text">Tapa Manía</div>
+        <div class="v4-cat-name-sub">Empanadas, pastas y panificados</div>
+      </div>
+      <div class="v4-cat-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></div>
+    </button>
+
     <!-- 🥚 Huevos Mayorista -->
     <button class="v4-cat-card" data-v4-grupo="huevos" onclick="v4AbrirGrupo('huevos')">
       <img class="v4-cat-img-real" data-v4-grupo-img="huevos" alt="" aria-hidden="true">
@@ -10662,25 +10684,25 @@ body.v4-mode .body .card:has(.card-price-tramos) .card-body{padding-bottom:6px}
 <script>
 const _imgmap = {
   // v3.21.0 — línea TAPA MANÍA (13 imágenes reales + 6 PLACEHOLDER hasta recibir definitivas)
-  "Tapa Manía Empanada Horno 330g": "Empanadas_Tradicionales_para_Horno.jpg",
-  "Tapa Manía Empanada Criolla 330g": "Empanadas_Tradicionales_para_Horno.jpg",   // PLACEHOLDER
-  "Tapa Manía Empanada Freír 330g": "Empanadas_Tradicionales_para_Freir.jpg",
-  "Tapa Manía Pascualina Horno 400g": "Pascualinas_para_Horno.jpg",
-  "Tapa Manía Pascualina Criolla 400g": "Pascualinas_tipo_Criollas.jpg",
-  "Tapa Manía Rotisera Horno 500g": "Empanadas_Rotiseras_para_Horno.jpg",
-  "Tapa Manía Rotisera Criolla 500g": "Empanadas_Rotiseras_Criollas.jpg",
-  "Tapa Manía Tubo Empanada Horno 2kg": "Empanadas_Rotiseras_para_Horno.jpg",   // PLACEHOLDER
-  "Tapa Manía Tubo Empanada Criolla 2kg": "Empanadas_Rotiseras_Criollas.jpg",   // PLACEHOLDER
-  "Tapa Manía Sorrentinos Ric-Muzza-Jamón 500g": "Sorrentinos_Ricotta_Mozzarella_Jamon_Nuez_500g.jpg",
-  "Tapa Manía Ravioles Pollo y Verdura 500g": "Ravioles_Pollo_y_Verdura_500g.jpg",
-  "Tapa Manía Ravioles Ricota y Jamón 500g": "Ravioles_Ricotta_y_Jamon_500g.jpg",
-  "Tapa Manía Ravioles Ricota y Verdura 500g": "Ravioles_Ricota_y_Verdura_500g.jpg",
-  "Tapa Manía Ñoquis 500g": "Noquis_de_Semolin_500g.jpg",
-  "Tapa Manía Pan Super Pancho 350g": "Pan_Panchos.jpg",   // PLACEHOLDER
-  "Tapa Manía Pan Pancho 210g": "Pan_Panchos.jpg",
-  "Tapa Manía Pan Hamburguesa 210g": "Pan_Hamburguesas.jpg",
-  "Tapa Manía Pan Pebete 210g": "Pan_Hamburguesas.jpg",   // PLACEHOLDER
-  "Tapa Manía Pan de Papa 250g": "Pan_Hamburguesas.jpg",   // PLACEHOLDER
+  "Tapa Manía Empanada Horno 330g": "Empanadas_Tradicionales_para_Horno.png",
+  "Tapa Manía Empanada Criolla 330g": "Empanadas_Tradicionales_para_Horno.png",   // PLACEHOLDER
+  "Tapa Manía Empanada Freír 330g": "Empanadas_Tradicionales_para_Freir.png",
+  "Tapa Manía Pascualina Horno 400g": "Pascualinas_para_Horno.png",
+  "Tapa Manía Pascualina Criolla 400g": "Pascualinas_tipo_Criollas.png",
+  "Tapa Manía Rotisera Horno 500g": "Empanadas_Rotiseras_para_Horno.png",
+  "Tapa Manía Rotisera Criolla 500g": "Empanadas_Rotiseras_Criollas.png",
+  "Tapa Manía Tubo Empanada Horno 2kg": "Empanadas_Rotiseras_para_Horno.png",   // PLACEHOLDER
+  "Tapa Manía Tubo Empanada Criolla 2kg": "Empanadas_Rotiseras_Criollas.png",   // PLACEHOLDER
+  "Tapa Manía Sorrentinos Ric-Muzza-Jamón 500g": "Sorrentinos_Ricotta_Mozzarella_Jamon_Nuez_500g.png",
+  "Tapa Manía Ravioles Pollo y Verdura 500g": "Ravioles_Pollo_y_Verdura_500g.png",
+  "Tapa Manía Ravioles Ricota y Jamón 500g": "Ravioles_Ricotta_y_Jamon_500g.png",
+  "Tapa Manía Ravioles Ricota y Verdura 500g": "Ravioles_Ricotta_y_Verdura_500g.png",
+  "Tapa Manía Ñoquis 500g": "Noquis_de_Semolin_500g.png",
+  "Tapa Manía Pan Super Pancho 350g": "Pan_Panchos.png",   // PLACEHOLDER
+  "Tapa Manía Pan Pancho 210g": "Pan_Panchos.png",
+  "Tapa Manía Pan Hamburguesa 210g": "Pan_Hamburguesas.png",
+  "Tapa Manía Pan Pebete 210g": "Pan_Hamburguesas.png",   // PLACEHOLDER
+  "Tapa Manía Pan de Papa 250g": "Pan_Hamburguesas.png",   // PLACEHOLDER
   // v3.9: nombres unificados Pollo A/B con retrocompat de Ginosa/Optimo
   "Pollo A":                   "pollo_entero.jpg",
   "Pollo B":                   "pollo_entero.jpg",
@@ -18942,6 +18964,7 @@ function confirmarCiudadNoAtendida() {
     'milanesas': { titulo:'Milanesas y Hamburguesas', sub:'Nalga, peceto, pollo, soja y hamburguesas', ids:['mila'] },
     'verduras':  { titulo:'Verduras Congeladas', sub:'Papas, brócoli, mix vegetal',       ids:['verd'] },
     'pastas':    { titulo:'Pastas Congeladas',   sub:'Sorrentinos, ravioles, ñoquis',     ids:['pastas'] },
+    'tapamania': { titulo:'Tapa Manía',          sub:'Empanadas, pastas y panificados',  ids:['tapamania'] },
     'combos':    { titulo:'Combos y Promos',     sub:'Ofertas del mes y combos mayoristas', ids:[], esCombos:true }
   };
 
@@ -19172,6 +19195,7 @@ function confirmarCiudadNoAtendida() {
       'milanesas': 'img/Milanesa%20de%20Nalga.jpg',
       'verduras':  'img/Papa%20Baston%20Balcarce.jpg',
       'pastas':    'img/Gnoquis%20de%20Papa.jpg',
+      'tapamania': 'img/Empanadas_Tradicionales_para_Horno.png',
       'rebozados': 'img/Nuggets%20de%20Pollo%20Crocante.jpg',
       'premium':   'img/langostinos_rebozados.jpg',
       'pollos':    'img/suprema_x_5kg.jpg'
@@ -21264,7 +21288,7 @@ function confirmarCiudadNoAtendida() {
    TCK_UPD_LOCAL aca Y el archivo version.json del repo.
    ============================================================ */
 (function(){
-  var TCK_UPD_LOCAL = '3.21.0';        /* <-- bump en cada deploy */
+  var TCK_UPD_LOCAL = '3.21.3';        /* <-- bump en cada deploy */
   var TCK_UPD_INTERVALO = 10 * 60 * 1000;   /* chequeo de fondo: 10 min */
   var _updUltChequeo = 0;
 
