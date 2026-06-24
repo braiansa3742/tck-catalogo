@@ -3,6 +3,10 @@
 <head>
 <!-- ═══════════════════════════════════════════════════════════════════════
      TCK CATÁLOGO — v3.21.5 — 23/06/2026
+     TCK CATÁLOGO — v3.22.0 — 24/06/2026
+     v3.22.0: STOCK CONECTADO A XUBIO. El catálogo lee vw_cat_stock
+        (sin_stock_efectivo) derivado del stock real de Xubio, en vez del
+        flag manual. Alta/baja de productos automática. Cache key v1→v2.
      v3.21.5: 4 fotos definitivas TAPA MANÍA + portada categoria con object-fit:contain (menos zoom, se ve la imagen completa). Altura de cards SIN cambios (revertido el 3.21.4).
      v3.21.3: card TAPA MANÍA movida al 2º lugar del home (debajo de Pollos).
      v3.21.2: TAPA MANÍA en el HOME (V4_GRUPOS + card + CSS). Fallback img producto.
@@ -2215,7 +2219,7 @@ const CLI_KEY             = 'tck_cli_v2';
 const PRECIOS_CACHE_KEY   = 'tck_precios_cache';
 
 // ── v3.7.0 N40b · Cache de stock dinámico desde Supabase ───────────
-const SIN_STOCK_CACHE_KEY = 'tck_cat_sin_stock_v1';
+const SIN_STOCK_CACHE_KEY = 'tck_cat_sin_stock_v2';
 const SIN_STOCK_CACHE_TTL = 60 * 60 * 1000;   // 1h
 const SIN_STOCK_POLL_MS   = 30 * 1000;        // 30s (polling foreground)
 
@@ -10851,9 +10855,9 @@ const OCULTOS = new Set([
   'Papas Noisette'
 ]);
 
-// v3.7.0 N40b: SIN_STOCK arranca VACÍO y se llena dinámicamente desde
-// productos_canonicos.sin_stock=true en Supabase. Polling cada 30s
-// detecta cambios automáticamente.
+// v3.22.0: SIN_STOCK se llena dinámicamente desde vw_cat_stock
+// (sin_stock_efectivo) en Supabase, derivado del stock real de Xubio.
+// Polling cada 30s detecta cambios automáticamente.
 //
 // Historia (preservada como referencia):
 //   v3.2.1 (28/4/2026) — agregados según reporte de Joan: Filet Merluza
@@ -10890,7 +10894,7 @@ async function cargarSinStockDesdeSupabase() {
 async function _refrescarSinStockBg() {
   try {
     const resp = await fetch(
-      SB_URL + '/rest/v1/productos_canonicos?select=nombre&sin_stock=eq.true&activo=eq.true',
+      SB_URL + '/rest/v1/vw_cat_stock?select=nombre&sin_stock_efectivo=eq.true',
       { headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY } }
     );
     if (!resp.ok) return;
@@ -21290,7 +21294,7 @@ function confirmarCiudadNoAtendida() {
    TCK_UPD_LOCAL aca Y el archivo version.json del repo.
    ============================================================ */
 (function(){
-  var TCK_UPD_LOCAL = '3.21.5';        /* <-- bump en cada deploy */
+  var TCK_UPD_LOCAL = '3.22.0';        /* <-- bump en cada deploy */
   var TCK_UPD_INTERVALO = 10 * 60 * 1000;   /* chequeo de fondo: 10 min */
   var _updUltChequeo = 0;
 
