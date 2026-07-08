@@ -2,6 +2,19 @@
 <html lang="es">
 <head>
 <!-- ═══════════════════════════════════════════════════════════════════════
+     TCK CATÁLOGO — v3.24.0 — 06/07/2026
+     v3.24.0: BAJAS DE CATALOGO (pedido del equipo 06/07). Ocultos via
+        V4_PRODUCTOS_OCULTOS (reversible: quitar del Set y deployar):
+        · Bocadito Clasico (GTA x5kg) — no hay mas.
+        · Fino de Ave Cocida — se vencio.
+        · VERDURAS CONGELADAS completas (Arandanos Solimeno, Espinacas,
+          Morron, Primavera, Frutos Rojos, Cebolla; Brocoli ya estaba) —
+          se vencieron. La seccion queda vacia y se oculta sola.
+        Ademas (fuera de este archivo): Pechuguitas al Verdeo sin_stock=true
+        en productos_canonicos (id 18) y precio Raviolones corregido en el
+        Sheet via actualizarPrecioVenta ($69.000 → $6.000; el fix v3.23.0
+        habia quedado solo en HTML/canonicos y el sync diario Sheet→canonicos
+        lo repuso a $69.000 — esta vez se corrigio la FUENTE).
      TCK CATÁLOGO — v3.21.5 — 23/06/2026
      TCK CATÁLOGO — v3.23.0 — 26/06/2026
      v3.23.0: Raviolones Espinaca y Mozz - presentacion corregida a 500 Grs (caja de 12u) y precio POR PAQUETE $6.000. Antes figuraba 'Granel 8 Kg' a $69.000, que era precio de CAJA y cobraba 1 paquete x12 de mas. Espejo en productos_canonicos id 45.
@@ -20144,7 +20157,19 @@ function confirmarCiudadNoAtendida() {
   const V4_PRODUCTOS_OCULTOS = new Set([
     'Suprema B IQF',     // 21/5: no traerla por ahora
     'Pulpa de Palta',    // 21/5: no la vendemos por ahora
-    'Brocoli'            // 21/5: sin stock + decisión de no traer
+    'Brocoli',           // 21/5: sin stock + decisión de no traer
+    'Bocadito Clasico',  // 6/7: GTA x5kg — no hay más (pedido del equipo)
+    'Fino de Ave Cocida',// 6/7: se venció (pedido del equipo)
+    // 6/7: VERDURAS CONGELADAS completas — se vencieron (pedido del equipo).
+    // La card del home ya estaba oculta por CSS (v3.12.2); esto las saca
+    // también de "Ver todo", buscador y relacionados. La sección queda
+    // vacía y v4AplicarOcultos la oculta sola.
+    'Arándanos Solimeno',
+    'Espinacas',
+    'Morron',
+    'Primavera',
+    'Frutos Rojos',
+    'Cebolla'
   ]);
 
   // v4.10.0: Descripciones para todos los productos del catálogo.
@@ -21296,7 +21321,7 @@ function confirmarCiudadNoAtendida() {
    TCK_UPD_LOCAL aca Y el archivo version.json del repo.
    ============================================================ */
 (function(){
-  var TCK_UPD_LOCAL = '3.23.0';        /* <-- bump en cada deploy */
+  var TCK_UPD_LOCAL = '3.24.0';        /* <-- bump en cada deploy */
   var TCK_UPD_INTERVALO = 10 * 60 * 1000;   /* chequeo de fondo: 10 min */
   var _updUltChequeo = 0;
 
