@@ -2,7 +2,25 @@
 <html lang="es">
 <head>
 <!-- ═══════════════════════════════════════════════════════════════════════
-     TCK CATÁLOGO — v3.26.2 — 21/07/2026 (HOTFIX P0, reemplaza a 3.26.1
+     TCK CATÁLOGO — v3.27.0 — 22/07/2026 (AUDITORÍA E5 · FASE 1)
+     Tres fixes de persistencia/datos, ver docs/auditoria-catalogo/04:
+     · P0-A "Repetir último pedido": guardarUltimoPedido ahora incluye los
+       productos con calibre (keys "cal:") — antes el FAB mostraba el último
+       pedido SIN los pollos y con total menor. cargarUltimoPedido resuelve
+       por NOMBRE contra el CAT vigente (helper _catBuscarPorNombre), omite
+       inexistentes/sin-stock y avisa con combosToast.
+     · P1-A carrito persistido: TTL 7 días (CART_TTL_MS) + saveCartLS guarda
+       el nombre de cada key legacy y loadCartLS la valida — si el índice
+       posicional se corrió por un deploy, re-resuelve por nombre o descarta
+       (antes revivían carritos apuntando a OTRO producto).
+     · P1-C observaciones: viajan en detalle_estructurado (campo obs por
+       item, helper _obsDe) y en detallePedido del Sheet ("📝 Obs ...").
+       Antes SOLO iban en el mensaje de WA: si el cliente no lo enviaba se
+       perdían, y el circuito Sheet→admin→carga nunca las veía. El WA no se
+       toca (v4 ya las inyecta ahí; se agregan solo al detalle del Sheet).
+     Sin cambios de UI ni de flujo de compra. version.json → 3.27.0.
+     ═══════════════════════════════════════════════════════════════════════
+     v3.26.2 — 21/07/2026 (HOTFIX P0, reemplaza a 3.26.1
      que NO llegó a deployarse)
      v3.26.2: el cierre del gate #sv se mueve al TOPE de elegir() — primera
         instrucción, envuelta en try/catch. En 3.26.1 estaba al final: si
@@ -2292,6 +2310,7 @@ const PRICES_CSV_URL  = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQDZk6Z
 // ── Claves de localStorage ────────────────────────────────────────
 const LS_KEY              = 'tck_cliente_id';
 const LS_ULTIMO           = 'tck_ultimo_pedido';
+const CART_TTL_MS         = 7 * 24 * 3600 * 1000;  // v3.27.0 (P1-A): TTL carrito persistido
 const CLI_KEY             = 'tck_cli_v2';
 const PRECIOS_CACHE_KEY   = 'tck_precios_cache';
 
@@ -13734,7 +13753,33 @@ async function confirmarYEnviarWA() { // v3.26.0: async para esperar el ACK del 
   const mensajeCompleto = L.join('\n');
 
   // ── Guardar en Google Sheets (no bloquea el flujo) ──────────
-  const detalleSinHeader = lineasProductos.filter(l => l !== '').join(' | ');
+  // v3.27.0 (P1-C): sumar las observaciones por producto al detalle que
+  // va al Sheet (col detallePedido). Antes SOLO viajaban en el mensaje de
+  // WhatsApp: si el cliente no lo enviaba se perdían, y aun enviándolo el
+  // circuito operativo (Sheet → admin → planilla de carga) nunca las veía.
+  // Se agregan acá y NO en lineasProductos para no duplicarlas en el WA
+  // (el bloque v4 ya las inyecta al final del mensaje).
+  const _lineasObsDetalle = [];
+  try {
+    Object.keys(qty).forEach(function(k) {
+      if (!(qty[k] > 0)) return;
+      var _nomObs = null;
+      if (typeof k === 'string' && k.indexOf('cal:') === 0) {
+        var _rO = k.slice(4);
+        var _lcO = _rO.lastIndexOf(':');
+        if (_lcO !== -1) _nomObs = _rO.slice(0, _lcO) + ' ' + _rO.slice(_lcO + 1);
+      } else {
+        var _pO = String(k).split('-');
+        if (_pO.length === 2 && CAT[_pO[0]] && CAT[_pO[0]].items[_pO[1]]) {
+          _nomObs = CAT[_pO[0]].items[_pO[1]].n;
+        }
+      }
+      if (!_nomObs) return;
+      var _oTxt = _obsDe(_nomObs);
+      if (_oTxt) _lineasObsDetalle.push('📝 Obs ' + _nomObs + ': ' + _oTxt);
+    });
+  } catch (eObs) {}
+  const detalleSinHeader = lineasProductos.filter(l => l !== '').concat(_lineasObsDetalle).join(' | ');
   // Si hay cliente logueado, asociar el pedido
   const _cliIdPedido = _cliActivo ? _cliActivo.id : null;
   const arNow = new Date().toLocaleString('en-US', {timeZone:'America/Argentina/Buenos_Aires'});
@@ -13772,7 +13817,9 @@ async function confirmarYEnviarWA() { // v3.26.0: async para esperar el ACK del 
   CAT.forEach((s, si) => s.items.forEach((it, ii) => {
     const qProd = qty[si+'-'+ii] || 0;
     if (qProd > 0) {
-      itemsEstructurados.push({
+      // v3.27.0 (P1-C): incluir la observación del producto en el
+      // estructurado. Antes solo viajaba en el mensaje de WhatsApp.
+      const _itemP = {
         tipo: 'producto',
         nombre_canonico: it.n,
         seccion_id: s.id,
@@ -13780,7 +13827,10 @@ async function confirmarYEnviarWA() { // v3.26.0: async para esperar el ACK del 
         precio_unitario: precioUnit(it, qProd),
         subtotal: precioUnit(it, qProd) * qProd,
         elegible_cupon: cuponEsElegibleCat(s.id)
-      });
+      };
+      const _obsP = _obsDe(it.n);
+      if (_obsP) _itemP.obs = _obsP;
+      itemsEstructurados.push(_itemP);
     }
   }));
 
@@ -13807,7 +13857,9 @@ async function confirmarYEnviarWA() { // v3.26.0: async para esperar el ACK del 
       }
     }
     if (!prodInfo) return;
-    itemsEstructurados.push({
+    // v3.27.0 (P1-C): incluir la observación del calibre en el
+    // estructurado (key de obs: '<nombre> <calibre>', igual que el WA).
+    const _itemC = {
       tipo: 'producto_calibre',
       nombre_canonico: nombre,
       calibre: calibre,
@@ -13816,7 +13868,10 @@ async function confirmarYEnviarWA() { // v3.26.0: async para esperar el ACK del 
       precio_unitario: precioUnit(prodInfo.it, qProd),
       subtotal: precioUnit(prodInfo.it, qProd) * qProd,
       elegible_cupon: cuponEsElegibleCat(prodInfo.sec.id)
-    });
+    };
+    const _obsC = _obsDe(nombre + ' ' + calibre);
+    if (_obsC) _itemC.obs = _obsC;
+    itemsEstructurados.push(_itemC);
   });
 
   // Combos (NO elegibles para cupón por diseño — el catálogo los excluye en T())
@@ -14481,12 +14536,26 @@ function parseCsvLine(line) {
 // ── LOCALSTORAGE ─────────────────────────────────────────────────
 function saveCartLS() {
   try {
+    // v3.27.0 (P1-A): guardar el nombre de cada key legacy (si-ii) para
+    // poder validarla al restaurar — las keys posicionales se corren si
+    // el CAT cambia de orden entre versiones. Las keys "cal:" ya llevan
+    // el nombre adentro y no lo necesitan.
+    var _nombres = {};
+    Object.keys(qty).forEach(function(k) {
+      if ((qty[k] || 0) <= 0) return;
+      if (typeof k === 'string' && k.indexOf('cal:') === 0) return;
+      var p = String(k).split('-');
+      if (p.length === 2 && CAT[p[0]] && CAT[p[0]].items[p[1]]) {
+        _nombres[k] = CAT[p[0]].items[p[1]].n;
+      }
+    });
     // v3.6.2: timestamp de última modificación para el banner "pedido armado"
     localStorage.setItem('tck_cart', JSON.stringify({
       qty: qty,
       qtyCombo: qtyCombo,
       qtyPromo: qtyPromo,
       vActivo: vActivo ? VEND.indexOf(vActivo) : -1,
+      nombres: _nombres,
       ts: Date.now()
     }));
   } catch(e) {}
@@ -14497,9 +14566,30 @@ function loadCartLS() {
     const raw = localStorage.getItem('tck_cart');
     if (!raw) return;
     const data = JSON.parse(raw);
+    // v3.27.0 (P1-A): TTL de 7 días. Un carrito más viejo tiene alta
+    // probabilidad de índices corridos por deploys intermedios.
+    if (data.ts && (Date.now() - data.ts) > CART_TTL_MS) {
+      localStorage.removeItem('tck_cart');
+      return;
+    }
     if (data.vActivo !== undefined && data.vActivo >= 0 && VEND[data.vActivo]) elegir(data.vActivo);
     if (data.qty) {
-      Object.keys(data.qty).forEach(function(k) { if (data.qty[k] > 0) qty[k] = data.qty[k]; });
+      Object.keys(data.qty).forEach(function(k) {
+        if (!(data.qty[k] > 0)) return;
+        // v3.27.0 (P1-A): validar keys legacy contra el nombre guardado.
+        // Si el índice apunta hoy a OTRO producto, re-resolver por nombre;
+        // si el producto ya no existe, descartar la key (no cargar basura).
+        if (typeof k === 'string' && k.indexOf('cal:') !== 0 && data.nombres && data.nombres[k]) {
+          var p = k.split('-');
+          var itAct = (p.length === 2 && CAT[p[0]]) ? CAT[p[0]].items[p[1]] : null;
+          if (!itAct || itAct.n !== data.nombres[k]) {
+            var pos = _catBuscarPorNombre(data.nombres[k]);
+            if (pos) qty[pos.si + '-' + pos.ii] = data.qty[k];
+            return;
+          }
+        }
+        qty[k] = data.qty[k];
+      });
       renderBody(); updateBar(); renderDrawer();
     }
     // v2: Restaurar combos del carrito
@@ -16283,6 +16373,33 @@ document.addEventListener('visibilitychange', function() {
 // ── HISTORIAL: ÚLTIMO PEDIDO ─────────────────────────────────────
 // LS_ULTIMO declarado en bloque de estado global
 
+// ── v3.27.0 (auditoría E5, P0-A/P1-A) ──────────────────────────
+// Helper global: buscar un producto en el CAT vigente POR NOMBRE.
+// Reemplaza la identidad posicional (si-ii) en persistencia: los
+// índices se corren cada vez que el CAT cambia de orden entre
+// versiones y cargaban productos EQUIVOCADOS en silencio.
+function _catBuscarPorNombre(nombre) {
+  if (!nombre || typeof CAT === 'undefined') return null;
+  for (var si = 0; si < CAT.length; si++) {
+    var sec = CAT[si];
+    if (!sec || !sec.items) continue;
+    for (var ii = 0; ii < sec.items.length; ii++) {
+      if (sec.items[ii].n === nombre) return { si: si, ii: ii, it: sec.items[ii] };
+    }
+  }
+  return null;
+}
+
+// v3.27.0 (P1-C): leer la observación de un producto (sessionStorage,
+// misma key que usa el flujo WA: 'tck_obs_<nombre>' o
+// 'tck_obs_<nombre> <calibre>'). Devuelve '' si no hay.
+function _obsDe(nombreKey) {
+  try {
+    var v = _safeSS.getItem('tck_obs_' + nombreKey);
+    return (v && v.trim()) ? v.trim().substring(0, 150) : '';
+  } catch (e) { return ''; }
+}
+
 function guardarUltimoPedido() {
   try {
     // Capturar productos actuales del carrito
@@ -16297,6 +16414,24 @@ function guardarUltimoPedido() {
         }
       });
     });
+    // v3.27.0 (P0-A): incluir productos con calibre (keys "cal:Nombre:Calibre").
+    // Antes se omitían: el FAB "Tu último pedido" mostraba el pedido SIN los
+    // pollos y con un total menor al real. Se guardan por nombre + calibre,
+    // sin índices posicionales.
+    Object.keys(qty).forEach(function(k) {
+      if (typeof k !== 'string' || k.indexOf('cal:') !== 0) return;
+      var q = qty[k] || 0;
+      if (q <= 0) return;
+      var rest = k.slice(4);
+      var lastColon = rest.lastIndexOf(':');
+      if (lastColon === -1) return;
+      var nombre = rest.slice(0, lastColon);
+      var calibre = rest.slice(lastColon + 1);
+      var pos = _catBuscarPorNombre(nombre);
+      var pu = pos ? precioUnit(pos.it, q) : 0;
+      items.push({ nombre: nombre, calibre: calibre, qty: q, pr: pu });
+      total += pu * q;
+    });
     if (!items.length) return;
     localStorage.setItem(LS_ULTIMO, JSON.stringify({ items: items, total: total, fecha: new Date().toISOString() }));
   } catch(e) {}
@@ -16309,18 +16444,47 @@ function cargarUltimoPedido() {
     var data = JSON.parse(raw);
     if (!data.items || !data.items.length) return;
 
-    // Cargar al carrito
+    // v3.27.0 (P0-A/P1-A): resolver SIEMPRE por nombre contra el CAT
+    // vigente. Antes se restauraba por índice posicional (si-ii): tras
+    // cualquier deploy que reordenara el CAT, se cargaban productos
+    // EQUIVOCADOS en silencio. Ítems que ya no existen o están sin
+    // stock se omiten y se avisa.
+    var omitidos = 0;
     data.items.forEach(function(it) {
-      var key = it.si + '-' + it.ii;
-      // Verificar que el producto todavía existe en CAT
-      if (CAT[it.si] && CAT[it.si].items[it.ii]) {
-        qty[key] = it.qty;
+      var q = Number(it.qty) || 0;
+      if (q <= 0) return;
+
+      // Ítems con calibre (formato v3.27.0+): {nombre, calibre, qty}
+      if (it.calibre) {
+        var posC = _catBuscarPorNombre(it.nombre);
+        if (posC && !SIN_STOCK.has(it.nombre)) {
+          qty['cal:' + it.nombre + ':' + it.calibre] = q;
+        } else { omitidos++; }
+        return;
+      }
+
+      // Ítems normales: primero por nombre; fallback posicional SOLO
+      // para datos viejos sin nombre guardado (comportamiento previo).
+      var pos = it.nombre ? _catBuscarPorNombre(it.nombre) : null;
+      if (pos) {
+        if (!SIN_STOCK.has(it.nombre)) qty[pos.si + '-' + pos.ii] = q;
+        else omitidos++;
+      } else if (!it.nombre && it.si !== undefined && CAT[it.si] && CAT[it.si].items[it.ii]) {
+        qty[it.si + '-' + it.ii] = q;
+      } else {
+        omitidos++;
       }
     });
     renderBody();
     updateBar();
     renderDrawer();
     saveCartLS();
+
+    if (omitidos > 0 && typeof combosToast === 'function') {
+      combosToast(omitidos === 1
+        ? '1 producto de tu pedido anterior ya no está disponible'
+        : omitidos + ' productos de tu pedido anterior ya no están disponibles', 4000);
+    }
 
     // Ocultar FAB
     ocultarRepFab();
@@ -21558,7 +21722,7 @@ function confirmarCiudadNoAtendida() {
    TCK_UPD_LOCAL aca Y el archivo version.json del repo.
    ============================================================ */
 (function(){
-  var TCK_UPD_LOCAL = '3.26.2';        /* <-- bump en cada deploy */
+  var TCK_UPD_LOCAL = '3.27.0';        /* <-- bump en cada deploy */
   var TCK_UPD_INTERVALO = 10 * 60 * 1000;   /* chequeo de fondo: 10 min */
   var _updUltChequeo = 0;
 
