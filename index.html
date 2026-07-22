@@ -2,6 +2,25 @@
 <html lang="es">
 <head>
 <!-- ═══════════════════════════════════════════════════════════════════════
+     TCK CATÁLOGO — v3.26.0 — 21/07/2026
+     v3.26.0: PEDIDO BLINDADO (auditoría P1-2).
+        · saveOrderToSheets con ACK REAL: fetch normal (sin mode no-cors,
+          la respuesta ya no es opaca) + timeout 8s + 1 reintento. Devuelve
+          true/false. El CORS del endpoint está probado a diario por
+          enviarOTP/cliRegistro (mismo GET, mismo deployment).
+        · confirmarYEnviarWA ahora es async y ESPERA el ACK antes de la
+          pantalla de éxito. Si el Sheet no confirma: banner naranja en la
+          pantalla de éxito con botón "Enviar mi pedido por WhatsApp"
+          (reusa hablarConVendedor + _tckUltimoMensajeWA, va con el detalle
+          completo). El pedido nunca más se pierde en silencio.
+        · Backup Supabase pedidos_cliente: ahora SIEMPRE (antes solo
+          logueados; el invitado quedaba sin red). cliente_auth_id null si
+          invitado. Payload ampliado con datos de rescate (cliente, comercio,
+          telefono, cuit, direccion, subtotal, descuento, cupon) + sheet_ack
+          para detectar desde admin los pedidos que el Sheet no confirmó.
+        · Requiere correr primero el SQL PEDIDOS_CLIENTE v1 (tabla + RLS
+          solo-INSERT para anon). Sin la tabla, el POST sigue fallando
+          suave como hasta ahora (no rompe nada).
      TCK CATÁLOGO — v3.25.0 — 21/07/2026
      v3.25.0: OTP RESCATABLE (auditoría ETAPAS 1-2).
         · cliFlowEnviarOtp ya NO descarta data.message: mensaje según motivo
@@ -13360,10 +13379,30 @@ async function saveOrderToSheets(payload) {
     if (payload.direccion)            _add('direccion', payload.direccion);
     if (payload.detalle_estructurado) _add('detalle_estructurado', payload.detalle_estructurado);
     const url = SHEETS_ENDPOINT + '?' + _kv.join('&');
-    await fetch(url, { method: 'GET', mode: 'no-cors' });
-    console.log('[TCK Sheets] Pedido enviado via GET (v3.11.2, encoding %20)');
+    // v3.26.0: ACK REAL + reintento. Se quita mode:'no-cors' (respuesta
+    // opaca: era imposible saber si el pedido llegó). El mismo deployment
+    // responde CORS OK a los GET de enviarOTP/cliRegistro todos los días,
+    // así que leer r.ok acá es seguro. r.ok === true ⇒ doGet ejecutó.
+    for (let _int = 1; _int <= 2; _int++) {
+      try {
+        const _ctl = new AbortController();
+        const _tmr = setTimeout(function(){ _ctl.abort(); }, 8000);
+        const r = await fetch(url, { method: 'GET', signal: _ctl.signal });
+        clearTimeout(_tmr);
+        if (r.ok) {
+          console.log('[TCK Sheets] Pedido CONFIRMADO por el servidor (intento ' + _int + ')');
+          return true;
+        }
+        console.warn('[TCK Sheets] Respuesta HTTP ' + r.status + ' (intento ' + _int + ')');
+      } catch(e2) {
+        console.warn('[TCK Sheets] Sin respuesta del servidor (intento ' + _int + '):', (e2 && e2.name) || e2);
+      }
+      if (_int === 1) await new Promise(function(res){ setTimeout(res, 1500); });
+    }
+    return false;
   } catch(e) {
-    console.error('[TCK Sheets] Error al guardar pedido:', e);
+    console.error('[TCK Sheets] Error al preparar/guardar pedido:', e);
+    return false;
   }
 }
 
@@ -13387,7 +13426,7 @@ function cliPreRellenarModal() {
   }
 }
 
-function confirmarYEnviarWA() {
+async function confirmarYEnviarWA() { // v3.26.0: async para esperar el ACK del Sheet
   // Protección contra doble envío
   if (_enviandoPedido) return;
   _enviandoPedido = true;
@@ -13844,8 +13883,11 @@ function confirmarYEnviarWA() {
     detalle_estructurado: JSON.stringify(detalleEstructurado)
   };
 
-  // Fire-and-forget: no await, WhatsApp se abre siempre
-  saveOrderToSheets(payload);
+  // v3.26.0: ACK REAL — se espera la confirmación del Sheet (timeout 8s +
+  // 1 reintento). Antes era fire-and-forget con mode:'no-cors': la pantalla
+  // de éxito salía aunque el pedido nunca llegara al Sheet. _sheetOk alimenta
+  // el aviso de la pantalla de éxito y la columna sheet_ack del backup.
+  const _sheetOk = await saveOrderToSheets(payload);
   guardarUltimoPedido();  // Guardar para "Repetir pedido"
 
   // ── v2.7.6 · Meta Pixel — Purchase ───────────────────────────
@@ -13948,6 +13990,7 @@ function confirmarYEnviarWA() {
         estado: 'Pendiente',
         cliente_id: _cliIdPedido || '',
         origen_marketing: ((utmLeer() || {}).origen_marketing) || null,
+        sheet_ack: _sheetOk, // v3.26.0: qué respondió el Sheet
         mensajeWA: mensajeCompleto
       });
     }
@@ -13976,6 +14019,28 @@ function confirmarYEnviarWA() {
   // Guardar el pedidoId actual para que los botones "Ver mi pedido" / "Hablar con vendedor"
   // sepan a qué pedido referirse.
   try { window._tckUltimoPedidoId = pedidoId; } catch(e){}
+
+  // ── v3.26.0: si el Sheet NO confirmó la recepción, avisar y rescatar ──
+  // El pedido NO se pierde: queda en localStorage + Supabase (sheet_ack=false)
+  // y el cliente lo manda por WhatsApp con un toque (mensaje ya armado).
+  try {
+    const _okBox = document.getElementById('pedido-ok-detalle');
+    const _prevWarn = document.getElementById('pedido-ok-ack-warn');
+    if (_prevWarn) _prevWarn.remove();
+    if (!_sheetOk && _okBox && _okBox.parentNode) {
+      const _w = document.createElement('div');
+      _w.id = 'pedido-ok-ack-warn';
+      _w.style.cssText = 'background:#B45309;color:#fff;border-radius:12px;padding:12px 14px;margin:0 0 12px;font-size:13px;line-height:1.4';
+      _w.textContent = '⚠️ No pudimos confirmar la recepción automática de tu pedido. Para asegurarlo, mandalo por WhatsApp ahora — ya va armado con todo el detalle:';
+      const _b = document.createElement('button');
+      _b.type = 'button';
+      _b.textContent = '📲 Enviar mi pedido por WhatsApp';
+      _b.style.cssText = 'display:block;width:100%;margin-top:10px;background:#1EBE5D;color:#fff;border:none;border-radius:10px;padding:11px;font-weight:800;font-family:\'Barlow Condensed\',sans-serif;font-size:15px;letter-spacing:.4px;cursor:pointer';
+      _b.onclick = function(){ if (typeof hablarConVendedor === 'function') hablarConVendedor(); };
+      _w.appendChild(_b);
+      _okBox.parentNode.insertBefore(_w, _okBox);
+    }
+  } catch(e){ console.warn('[v3.26.0] banner ack:', e); }
 
   // Snapshot del carrito ANTES de vaciarlo
   const qtySnapshot = Object.assign({}, qty);
@@ -14997,12 +15062,13 @@ function guardarPedidoPersistente(pedido){
   else lista.push(pedido);
   _tckEscribirPedidosLS(lista);
 
-  // 2) Supabase (fire-and-forget) si hay cliente logueado
+  // 2) Supabase (fire-and-forget) — v3.26.0: SIEMPRE, logueado o invitado.
+  // Antes solo si _cliActivo: el pedido del invitado quedaba sin backup.
   // Reusa SB_URL + SB_KEY ya definidos arriba.
-  if (_cliActivo && _cliActivo.id && typeof SB_URL === 'string' && typeof SB_KEY === 'string') {
+  if (typeof SB_URL === 'string' && typeof SB_KEY === 'string') {
     try {
       const payload = {
-        cliente_auth_id: _cliActivo.id,
+        cliente_auth_id: (_cliActivo && _cliActivo.id) || null,
         pedido_id: pedido.pedidoId,
         fecha: pedido.fecha,
         total: pedido.total,
@@ -15012,7 +15078,17 @@ function guardarPedidoPersistente(pedido){
         vendedor: pedido.vendedor || '',
         localidad: pedido.localidad || '',
         origen_marketing: pedido.origen_marketing || null,
-        detalle_estructurado: pedido.detalle_estructurado || null
+        detalle_estructurado: pedido.detalle_estructurado || null,
+        // v3.26.0: datos de rescate (reconstruir el pedido si el Sheet falló)
+        cliente: pedido.cliente || '',
+        comercio: pedido.comercio || '',
+        telefono: pedido.telefono || '',
+        cuit: pedido.cuit || '',
+        direccion: pedido.direccion || '',
+        subtotal: (typeof pedido.subtotal === 'number') ? pedido.subtotal : null,
+        descuento: pedido.descuento || 0,
+        cupon_aplicado: pedido.cuponAplicado || '',
+        sheet_ack: (pedido.sheet_ack === true)
       };
       fetch(SB_URL + '/rest/v1/pedidos_cliente', {
         method: 'POST',
@@ -21429,7 +21505,7 @@ function confirmarCiudadNoAtendida() {
    TCK_UPD_LOCAL aca Y el archivo version.json del repo.
    ============================================================ */
 (function(){
-  var TCK_UPD_LOCAL = '3.25.0';        /* <-- bump en cada deploy */
+  var TCK_UPD_LOCAL = '3.26.0';        /* <-- bump en cada deploy */
   var TCK_UPD_INTERVALO = 10 * 60 * 1000;   /* chequeo de fondo: 10 min */
   var _updUltChequeo = 0;
 
