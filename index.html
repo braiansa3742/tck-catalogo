@@ -2,6 +2,32 @@
 <html lang="es">
 <head>
 <!-- ═══════════════════════════════════════════════════════════════════════
+     TCK CATÁLOGO — v3.26.2 — 21/07/2026 (HOTFIX P0, reemplaza a 3.26.1
+     que NO llegó a deployarse)
+     v3.26.2: el cierre del gate #sv se mueve al TOPE de elegir() — primera
+        instrucción, envuelta en try/catch. En 3.26.1 estaba al final: si
+        cualquier línea intermedia tirara una excepción (device raro, LS
+        bloqueado, etc.), el gate quedaba abierto igual. Ahora el tap
+        SIEMPRE destraba, pase lo que pase después. Callees de elegir()
+        verificados existentes (cerrarFAB, saveCartLS, cliGuardar, cliRpc,
+        _nombreVendedorVisible). Video de Claudio (21/07 22:57) confirma
+        el flujo exacto: portal → Nuevo pedido → catálogo visible 1s →
+        gate encima → taps sin efecto.
+     TCK CATÁLOGO — v3.26.1 — 21/07/2026 (HOTFIX P0)
+     v3.26.1: PORTAL → NUEVO PEDIDO destrababa en gate huérfano.
+        Caso real (Claudio/Ofelia, IG iPhone, 21/07 22:47): cliente
+        registrado orgánico (vendedor='TCK Online') toca "Nuevo pedido"
+        en el portal → cliNuevoPedido() busca su vendedor en VEND (solo
+        Miguel/Juan/Lisandro, TCK Online es interno) → idx -1 → mostraba
+        el gate #sv de pantalla completa, que quedó huérfano de un
+        refactor ("sv vacío — mantenido por compatibilidad"): elegir()
+        seteaba el vendedor pero NUNCA cerraba el gate → app congelada.
+        FIX 1: cliNuevoPedido reconoce 'TCK Online' (_esVendedorOnline)
+        y va directo al catálogo, como el init hace con orgánicos.
+        FIX 2 (cinturón): elegir() ahora cierra #sv si estaba visible —
+        cualquier residuo del gate deja de ser terminal.
+        El bug dormía desde v3.5/3.6: recién hoy hay clientes orgánicos
+        reales usando el portal (el registro estuvo roto 12/06→21/07).
      TCK CATÁLOGO — v3.26.0 — 21/07/2026
      v3.26.0: PEDIDO BLINDADO (auditoría P1-2).
         · saveOrderToSheets con ACK REAL: fetch normal (sin mode no-cors,
@@ -11219,6 +11245,17 @@ function renderVend(){
 }
 
 function elegir(i){
+  // ── v3.26.2 FIX P0: cerrar el gate #sv PRIMERO, pase lo que pase ──
+  // El gate quedó huérfano de un refactor (elegir() nunca lo cerraba) y
+  // congelaba al cliente. Al tope y con try/catch: aunque cualquier línea
+  // posterior falle, el tap siempre destraba la pantalla.
+  try {
+    const _svEl = document.getElementById('sv');
+    if (_svEl && _svEl.style.display !== 'none') {
+      _svEl.classList.add('gone');
+      _svEl.style.display = 'none';
+    }
+  } catch(e) {}
   vActivo = VEND[i];
   // Actualizar UI del header
   const vchip = document.getElementById('vchip');
@@ -18234,6 +18271,22 @@ function cliNuevoPedido() {
       if (bv) bv.style.display = 'block';
       return;
     }
+    // ── v3.26.1 FIX P0 ────────────────────────────────────────
+    // Vendedor 'TCK Online' (registro orgánico IG/FB/Google) NO está
+    // en VEND → idx -1 → antes caía al gate #sv huérfano y el cliente
+    // quedaba congelado. Ahora: directo al catálogo con el canal online,
+    // mismo criterio que la auto-asignación del init.
+    if (typeof _esVendedorOnline === 'function' && _esVendedorOnline(_cliActivo.vendedor)) {
+      const svOn = document.getElementById('sv');
+      if (svOn) { svOn.classList.add('gone'); svOn.style.display = 'none'; }
+      vActivo = { nombre: VEND_ONLINE.nombre, wa: VEND_ONLINE.wa };
+      try { localStorage.setItem('tck_vendedor_link', 'TCK_ONLINE'); } catch(e) {}
+      if (typeof actualizarWaFlotante === 'function') actualizarWaFlotante();
+      if (typeof saveCartLS === 'function') saveCartLS();
+      const bvOn = document.getElementById('cli-btn-volver-portal');
+      if (bvOn) bvOn.style.display = 'block';
+      return;
+    }
   }
   // Sin vendedor asignado — mostrar selector
   const sv = document.getElementById('sv');
@@ -21505,7 +21558,7 @@ function confirmarCiudadNoAtendida() {
    TCK_UPD_LOCAL aca Y el archivo version.json del repo.
    ============================================================ */
 (function(){
-  var TCK_UPD_LOCAL = '3.26.0';        /* <-- bump en cada deploy */
+  var TCK_UPD_LOCAL = '3.26.2';        /* <-- bump en cada deploy */
   var TCK_UPD_INTERVALO = 10 * 60 * 1000;   /* chequeo de fondo: 10 min */
   var _updUltChequeo = 0;
 
