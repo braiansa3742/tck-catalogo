@@ -2,6 +2,23 @@
 <html lang="es">
 <head>
 <!-- ═══════════════════════════════════════════════════════════════════════
+     TCK CATÁLOGO — v3.25.0 — 21/07/2026
+     v3.25.0: OTP RESCATABLE (auditoría ETAPAS 1-2).
+        · cliFlowEnviarOtp ya NO descarta data.message: mensaje según motivo
+          real (saldo / límite / código en curso / número inválido) + detalle
+          técnico visible chico (diagnóstico en campo).
+        · Fallback cuando el envío falla: botón WhatsApp a Miguel (mismo
+          número de consultas del catálogo) con texto precargado + "Seguir
+          sin cuenta por ahora". También en pantalla OTP si falla el reenvío.
+        · "Reenviar código" con feedback: éxito (verde, 6s) o error con
+          motivo. Antes fallaba EN SILENCIO.
+        · Mensaje de validación del teléfono explica el formato esperado
+          (característica + número, sin 0 ni 15). normTel NO se tocó: la
+          normalización 549/54 requiere migrar 18 cuentas existentes (plan
+          ETAPA 3, cambio coordinado front+SQL).
+        Contexto: registro caído por DOS fallas apiladas — RPC cli_registro
+        insertaba NULL en nombre NOT NULL (desde 12/06, fixeado en SQL el
+        21/07) + Vonage sin saldo (~29/06, recargado 21/07).
      TCK CATÁLOGO — v3.24.0 — 06/07/2026
      v3.24.0: BAJAS DE CATALOGO (pedido del equipo 06/07). Ocultos via
         V4_PRODUCTOS_OCULTOS (reversible: quitar del Set y deployar):
@@ -9763,6 +9780,15 @@ body.v4-mode .body .card:has(.card-price-tramos) .card-body{padding-bottom:6px}
 
       <div class="cli-flow-error" id="cli-flow-tel-err"></div>
 
+      <!-- v3.25.0: fallback cuando el envío de OTP falla -->
+      <div id="cli-flow-tel-fallback" style="display:none;margin:10px 0 4px">
+        <div id="cli-flow-tel-fallback-det" style="font-size:11px;opacity:.6;margin-bottom:8px;text-align:center;word-break:break-word"></div>
+        <a id="cli-flow-tel-fallback-wa" href="#" target="_blank" rel="noopener"
+           style="display:block;text-align:center;background:#1EBE5D;color:#fff;font-weight:800;font-family:'Barlow Condensed',sans-serif;letter-spacing:.4px;font-size:15px;padding:12px;border-radius:12px;text-decoration:none;margin-bottom:8px">📲 Pedir mi código por WhatsApp</a>
+        <button type="button" onclick="cliFlowFallbackInvitado()"
+           style="display:block;width:100%;background:none;border:1px solid rgba(255,255,255,.25);color:rgba(255,255,255,.85);font-size:13px;padding:10px;border-radius:12px;cursor:pointer">Seguir sin cuenta por ahora →</button>
+      </div>
+
       <button class="cli-flow-btn" id="cli-flow-tel-btn" onclick="cliFlowTelSiguiente()">Enviar código →</button>
 
       <button class="cli-flow-link" onclick="cliFlowSwitch('login')" id="cli-flow-tel-switch">¿Ya tenés cuenta? Iniciá sesión</button>
@@ -9792,6 +9818,12 @@ body.v4-mode .body .card:has(.card-price-tramos) .card-body{padding-bottom:6px}
       </div>
 
       <div class="cli-flow-error" id="cli-flow-otp-err"></div>
+
+      <!-- v3.25.0: fallback si el reenvío falla -->
+      <div id="cli-flow-otp-fallback" style="display:none;margin:6px 0 2px">
+        <a id="cli-flow-otp-fallback-wa" href="#" target="_blank" rel="noopener"
+           style="display:block;text-align:center;background:#1EBE5D;color:#fff;font-weight:800;font-family:'Barlow Condensed',sans-serif;letter-spacing:.4px;font-size:14px;padding:10px;border-radius:12px;text-decoration:none">📲 Pedir mi código por WhatsApp</a>
+      </div>
 
       <div class="cli-flow-timer" id="cli-flow-otp-timer">Expira en 02:00</div>
       <button class="cli-flow-reenvio" id="cli-flow-otp-reenvio" onclick="cliFlowOtpReenviar()" disabled>Reenviar código en <span id="cli-flow-otp-reenvio-sec">30</span>s</button>
@@ -16820,7 +16852,7 @@ async function cliFlowTelSiguiente() {
 
   const tel = normTel(inp.value);
   if (!tel || tel.length < 8) {
-    err.textContent = 'Ingresá un teléfono válido';
+    err.textContent = 'Ingresá tu número completo: característica + número, sin 0 y sin 15 (ej: 2392400000).';
     return;
   }
 
@@ -16889,10 +16921,11 @@ async function cliFlowTelSiguiente() {
 // ── PASO 2: Enviar OTP via Vonage (reutiliza infraestructura) ──
 async function cliFlowEnviarOtp() {
   try {
+    cliFlowFallbackOcultar(); // v3.25.0: limpiar fallback de un intento previo
     const data = await appsScriptCall({ accion: 'enviarOTP', telefono: _flowTel });
     if (data.status !== 'ok') {
-      const err = document.getElementById('cli-flow-tel-err');
-      if (err) err.textContent = 'No pudimos enviar el código. Intentá de nuevo.';
+      // v3.25.0: antes se descartaba data.message (motivo real del backend)
+      cliFlowOtpFallo(data && data.message);
       return;
     }
     _otpRequestId = data.request_id;
@@ -16919,9 +16952,60 @@ async function cliFlowEnviarOtp() {
     // Iniciar timers
     cliFlowStartOtpTimer();
   } catch(e) {
-    const err = document.getElementById('cli-flow-tel-err');
-    if (err) err.textContent = 'Error al enviar código. Intentá más tarde.';
+    cliFlowOtpFallo(null, true); // v3.25.0: error de red/JSON con fallback
   }
+}
+
+// ── v3.25.0: manejo de fallas del envío de OTP ─────────────────
+// Antes cualquier status≠ok mostraba el genérico "No pudimos enviar el
+// código. Intentá de nuevo." y tiraba data.message. Ahora: mensaje según
+// el motivo + fallback WhatsApp (Miguel, receptor del catálogo desde B2)
+// + opción de seguir como invitado. El detalle técnico queda visible en
+// chico para diagnóstico en campo.
+var TCK_WA_FALLBACK = '5492392449725'; // Miguel — mismo wa.me de consultas
+
+function cliFlowOtpMensajePorMotivo(motivo, esConexion) {
+  if (esConexion) return 'No pudimos conectar con el servidor. Revisá tu señal e intentá de nuevo.';
+  const m = String(motivo || '').toLowerCase();
+  if (/concurrent|already|en curso|pendiente/.test(m))
+    return 'Ya te enviamos un código hace un momento. Esperá 1–2 minutos, revisá tus SMS, o pedilo por WhatsApp.';
+  if (/throttl|too many|max attempt|limit|demasiad/.test(m))
+    return 'Hiciste varios intentos seguidos. Esperá unos minutos antes de volver a probar.';
+  if (/balance|credit|quota|saldo|fund/.test(m))
+    return 'El servicio de SMS no está disponible en este momento. Pedí tu código por WhatsApp y te ayudamos al toque.';
+  if (/invalid|not valid|format|numero inv|number/.test(m))
+    return 'Ese número no parece válido. Ingresá los 10 dígitos: característica + número, sin 0 y sin 15.';
+  return 'No pudimos enviar el código a ese número.';
+}
+
+function cliFlowOtpFallo(motivo, esConexion) {
+  const err = document.getElementById('cli-flow-tel-err');
+  if (err) err.textContent = cliFlowOtpMensajePorMotivo(motivo, esConexion);
+  const fb  = document.getElementById('cli-flow-tel-fallback');
+  const det = document.getElementById('cli-flow-tel-fallback-det');
+  const wa  = document.getElementById('cli-flow-tel-fallback-wa');
+  if (det) det.textContent = motivo ? ('Detalle técnico: ' + motivo) : '';
+  if (wa) {
+    const txt = 'Hola TCK! Estoy intentando registrarme en el catálogo y no me llega el código.' +
+                (_flowTel ? (' Mi teléfono es ' + _flowTel + '.') : '');
+    wa.href = 'https://wa.me/' + TCK_WA_FALLBACK + '?text=' + encodeURIComponent(txt);
+  }
+  if (fb) fb.style.display = 'block';
+}
+
+function cliFlowFallbackOcultar() {
+  const fb = document.getElementById('cli-flow-tel-fallback');
+  if (fb) fb.style.display = 'none';
+  const det = document.getElementById('cli-flow-tel-fallback-det');
+  if (det) det.textContent = '';
+  const fb2 = document.getElementById('cli-flow-otp-fallback');
+  if (fb2) fb2.style.display = 'none';
+}
+
+function cliFlowFallbackInvitado() {
+  cliFlowFallbackOcultar();
+  if (typeof ocultarLoginModal === 'function') ocultarLoginModal();
+  if (typeof cliInvitado === 'function') cliInvitado();
 }
 
 function cliFlowStartOtpTimer() {
@@ -16971,13 +17055,37 @@ function cliFlowStartOtpTimer() {
 async function cliFlowOtpReenviar() {
   const btn = document.getElementById('cli-flow-otp-reenvio');
   if (btn && btn.disabled) return;
+  // v3.25.0: antes esta función fallaba EN SILENCIO (el cliente creía que
+  // el código se reenvió). Ahora hay feedback en ambas ramas + fallback WA.
+  const err = document.getElementById('cli-flow-otp-err');
+  const fb  = document.getElementById('cli-flow-otp-fallback');
+  const wa  = document.getElementById('cli-flow-otp-fallback-wa');
+  if (btn) { btn.disabled = true; btn.classList.remove('enabled'); btn.textContent = 'Reenviando...'; }
   try {
     const data = await appsScriptCall({ accion: 'enviarOTP', telefono: _flowTel });
     if (data.status === 'ok') {
       _otpRequestId = data.request_id;
+      if (fb) fb.style.display = 'none';
+      if (err) {
+        err.style.color = '#7CC576';
+        err.textContent = '✓ Código reenviado. Puede demorar hasta 1 minuto.';
+        setTimeout(function(){ if (err && err.style.color === 'rgb(124, 197, 118)') { err.textContent = ''; err.style.color = ''; } }, 6000);
+      }
       cliFlowStartOtpTimer();
+    } else {
+      if (err) { err.style.color = ''; err.textContent = cliFlowOtpMensajePorMotivo(data && data.message); }
+      if (wa) {
+        const txt = 'Hola TCK! No me llega el código para registrarme en el catálogo.' +
+                    (_flowTel ? (' Mi teléfono es ' + _flowTel + '.') : '');
+        wa.href = 'https://wa.me/' + TCK_WA_FALLBACK + '?text=' + encodeURIComponent(txt);
+      }
+      if (fb) fb.style.display = 'block';
+      if (btn) { btn.disabled = false; btn.classList.add('enabled'); btn.textContent = 'Reenviar código'; }
     }
-  } catch(e) {}
+  } catch(e) {
+    if (err) { err.style.color = ''; err.textContent = 'No pudimos conectar con el servidor. Revisá tu señal e intentá de nuevo.'; }
+    if (btn) { btn.disabled = false; btn.classList.add('enabled'); btn.textContent = 'Reenviar código'; }
+  }
 }
 
 function cliFlowOtpInput(el, idx) {
@@ -17033,7 +17141,7 @@ async function cliFlowOtpVerificar() {
   const code = [0,1,2,3].map(i => (document.getElementById('cli-flow-otp-' + i)||{}).value || '').join('');
   if (code.length < 4) return;
   const err = document.getElementById('cli-flow-otp-err');
-  if (err) err.textContent = '';
+  if (err) { err.textContent = ''; err.style.color = ''; } // v3.25.0: reset color reenvío
   for (let i = 0; i < 4; i++) {
     const d = document.getElementById('cli-flow-otp-' + i);
     if (d) d.disabled = true;
@@ -21321,7 +21429,7 @@ function confirmarCiudadNoAtendida() {
    TCK_UPD_LOCAL aca Y el archivo version.json del repo.
    ============================================================ */
 (function(){
-  var TCK_UPD_LOCAL = '3.24.0';        /* <-- bump en cada deploy */
+  var TCK_UPD_LOCAL = '3.25.0';        /* <-- bump en cada deploy */
   var TCK_UPD_INTERVALO = 10 * 60 * 1000;   /* chequeo de fondo: 10 min */
   var _updUltChequeo = 0;
 
