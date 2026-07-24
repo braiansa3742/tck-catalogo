@@ -2,7 +2,22 @@
 <html lang="es">
 <head>
 <!-- ═══════════════════════════════════════════════════════════════════════
-     TCK CATÁLOGO — v3.29.0 — 24/07/2026 (SECCIÓN "PAPAS CONGELADAS" + PORTADA)
+     TCK CATÁLOGO — v3.29.1 — 24/07/2026 (PAPAS CONGELADAS EN HOME V4)
+
+     v3.29.1: GRUPO PROPIO "PAPAS CONGELADAS" EN EL HOME V4.
+       · Bug de v3.29.0: la sección nueva existía en CAT pero el home
+         visual (V4_GRUPOS) seguía metiendo papas_mccain dentro del
+         grupo "Rebozados y Papas" (decisión v3.21). Resultado: en el
+         home las papas se veían dentro de Rebozados con Shaddai.
+       · V4_GRUPOS: nuevo grupo 'papas' (ids:['papas_mccain']);
+         'rebozados' vuelve a ser solo Shaddai ("Rebozados").
+       · Card nueva en el home (HTML estático) + overlay #BA4A00 +
+         fallback gradiente naranja. Foto de categoría del home:
+         subir img/categorias/papas.jpg (el loader prueba .jpg/.webp/.png,
+         con fallback a gradiente si no está).
+       · Sub de Verduras corregido: sacaba "Papas" de la descripción.
+
+     ── v3.29.0 — 24/07/2026 (SECCIÓN "PAPAS CONGELADAS" + PORTADA) ──
 
      v3.29.0: SECCIÓN PAPAS CONGELADAS.
        · Sección papas_mccain renombrada: "McCAIN & BALCARCE" → "PAPAS
@@ -7990,6 +8005,12 @@ body.v4-mode.v4-vista-home .v4-home{display:block}
     radial-gradient(circle at 30% 60%, #d8a040 0%, transparent 45%),
     linear-gradient(135deg,#b87830 0%,#5c2e0c 100%);
 }
+.v4-cat-img-fallback.papas{
+  background:
+    radial-gradient(circle at 60% 45%, #BA4A00 0%, transparent 45%),
+    radial-gradient(circle at 30% 60%, #7A3000 0%, transparent 45%),
+    linear-gradient(135deg,#BA4A00 0%,#7A3000 100%);
+}
 .v4-cat-img-fallback.premium{
   background:
     radial-gradient(circle at 60% 40%, #c89858 0%, transparent 45%),
@@ -8043,6 +8064,7 @@ body.v4-mode.v4-vista-home .v4-home{display:block}
 .v4-cat-card[data-v4-grupo="pollos"]    .v4-cat-overlay{background:#B71C1C}
 .v4-cat-card[data-v4-grupo="huevos"]    .v4-cat-overlay{background:#C99700}
 .v4-cat-card[data-v4-grupo="rebozados"] .v4-cat-overlay{background:#922B21}
+.v4-cat-card[data-v4-grupo="papas"] .v4-cat-overlay{background:#BA4A00}
 .v4-cat-card[data-v4-grupo="premium"]   .v4-cat-overlay{background:#6A1B9A}
 .v4-cat-card[data-v4-grupo="milanesas"] .v4-cat-overlay{background:#7B241C}
 .v4-cat-card[data-v4-grupo="verduras"]  .v4-cat-overlay{background:#1E8449}
@@ -10466,8 +10488,20 @@ body.v4-mode .body .card:has(.card-price-tramos) .card-body{padding-bottom:6px}
       <div class="v4-cat-img-fallback rebozados"></div>
       <div class="v4-cat-overlay"></div>
       <div class="v4-cat-name">
-        <div class="v4-cat-name-text">Rebozados y Papas</div>
-        <div class="v4-cat-name-sub">Medallones, nuggets, filets y papas</div>
+        <div class="v4-cat-name-text">Rebozados</div>
+        <div class="v4-cat-name-sub">Medallones, nuggets y filets</div>
+      </div>
+      <div class="v4-cat-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></div>
+    </button>
+
+    <!-- 🍟 Papas Congeladas (McCain + Balcarce) -->
+    <button class="v4-cat-card" data-v4-grupo="papas" onclick="v4AbrirGrupo('papas')">
+      <img class="v4-cat-img-real" data-v4-grupo-img="papas" alt="" aria-hidden="true">
+      <div class="v4-cat-img-fallback papas"></div>
+      <div class="v4-cat-overlay"></div>
+      <div class="v4-cat-name">
+        <div class="v4-cat-name-text">Papas Congeladas</div>
+        <div class="v4-cat-name-sub">McCain y Balcarce</div>
       </div>
       <div class="v4-cat-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></div>
     </button>
@@ -19432,10 +19466,11 @@ function confirmarCiudadNoAtendida() {
   const V4_GRUPOS = {
     'pollos':    { titulo:'Pollos',              sub:'Pollo entero y trozados',           ids:['pollos','trozados'] },
     'huevos':    { titulo:'Huevos Mayorista',    sub:'Maples y combos',                   ids:['huevos'] },
-    'rebozados': { titulo:'Rebozados y Papas',           sub:'Medallones, nuggets, filets y papas',      ids:['shaddai','papas_mccain'] },
+    'rebozados': { titulo:'Rebozados',           sub:'Medallones, nuggets y filets',      ids:['shaddai'] },
+    'papas':     { titulo:'Papas Congeladas',   sub:'McCain y Balcarce',                 ids:['papas_mccain'] },
     'premium':   { titulo:'Rebozados Premium',   sub:'Línea Fresnova · pescados y mariscos', ids:['premium'] },
     'milanesas': { titulo:'Milanesas y Hamburguesas', sub:'Nalga, peceto, pollo, soja y hamburguesas', ids:['mila'] },
-    'verduras':  { titulo:'Verduras Congeladas', sub:'Papas, brócoli, mix vegetal',       ids:['verd'] },
+    'verduras':  { titulo:'Verduras Congeladas', sub:'Brócoli, espinaca, mix vegetal',       ids:['verd'] },
     'pastas':    { titulo:'Pastas Congeladas',   sub:'Sorrentinos, ravioles, ñoquis',     ids:['pastas'] },
     'tapamania': { titulo:'Tapa Manía',          sub:'Empanadas, pastas y panificados',  ids:['tapamania'] },
     'combos':    { titulo:'Combos y Promos',     sub:'Ofertas del mes y combos mayoristas', ids:[], esCombos:true }
