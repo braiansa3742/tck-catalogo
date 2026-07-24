@@ -2,7 +2,20 @@
 <html lang="es">
 <head>
 <!-- ═══════════════════════════════════════════════════════════════════════
-     TCK CATÁLOGO — v3.29.1 — 24/07/2026 (PAPAS CONGELADAS EN HOME V4)
+     TCK CATÁLOGO — v3.29.2 — 24/07/2026 (FOTOS TM + FIX BANNER DUPLICADO V4)
+
+     v3.29.2: FOTOS TAPA MANÍA NUEVOS + FIX PORTADA DUPLICADA.
+       · _imgmap TM apuntado a los archivos reales subidos al repo:
+         prepizza_580g.jpg, ravioles_calabaza.jpg, fideos_500g.jpg,
+         ñoquis_1kg.jpg. Ravioles 4 Quesos → ravioles_calabaza.jpg
+         (PLACEHOLDER hasta tener foto propia).
+       · FIX: en modo v4 la vista categoría mostraba la foto de
+         categoría Y el banner .sec-portada (imagen duplicada).
+         El banner de sección ahora se oculta en v4-mode
+         (body.v4-mode .sec-portada{display:none}) y queda solo
+         para la vista "todo" legacy.
+
+     ── v3.29.1 — 24/07/2026 (PAPAS CONGELADAS EN HOME V4) ──
 
      v3.29.1: GRUPO PROPIO "PAPAS CONGELADAS" EN EL HOME V4.
        · Bug de v3.29.0: la sección nueva existía en CAT pero el home
@@ -3035,6 +3048,7 @@ button,
 .sec-stripe{height:3px;background:linear-gradient(90deg,var(--gold),var(--gold2),var(--gold))}
 .sec-portada{overflow:hidden;background:var(--cream)}.sec-portada img{width:100%;height:120px;object-fit:cover;display:block}
 @media(min-width:780px){.sec-portada img{height:170px}}
+body.v4-mode .sec-portada{display:none} /* v3.29.2: en v4 ya está la foto de categoría — evitar imagen duplicada */
 
 .sec-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:12px 10px 16px;background:var(--cream)}
 
@@ -10899,11 +10913,11 @@ const _imgmap = {
   "McCain Noisettes Retail 600g": "McCain_Noisettes_Retail_600g.png.jpg",
   "McCain Crinkle Retail 600g": "McCain_Crinkle_Retail_600g.png.webp",
   "McCain Golazo Retail 700g": "McCain_Golazo_Retail_700g.png.jpg",
-  "Tapa Manía Ravioles 4 Quesos 500g": "Ravioles_4_Quesos_500g.png",
-  "Tapa Manía Ravioles Calabaza 500g": "Ravioles_Calabaza_500g.png",
-  "Tapa Manía Fideos Frescos 500g": "Fideos_Frescos_500g.png",
-  "Tapa Manía Ñoquis Bolsa 1kg": "Noquis_Bolsa_1kg.png",
-  "Tapa Manía Pre-Pizza 2u 580g": "Pre_Pizza_580g.png",
+  "Tapa Manía Ravioles 4 Quesos 500g": "ravioles_calabaza.jpg",  // PLACEHOLDER hasta foto propia
+  "Tapa Manía Ravioles Calabaza 500g": "ravioles_calabaza.jpg",
+  "Tapa Manía Fideos Frescos 500g": "fideos_500g.jpg",
+  "Tapa Manía Ñoquis Bolsa 1kg": "ñoquis_1kg.jpg",
+  "Tapa Manía Pre-Pizza 2u 580g": "prepizza_580g.jpg",
   // v3.9: nombres unificados Pollo A/B con retrocompat de Ginosa/Optimo
   "Pollo A":                   "pollo_entero.jpg",
   "Pollo B":                   "pollo_entero.jpg",
