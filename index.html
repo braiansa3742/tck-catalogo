@@ -2,7 +2,25 @@
 <html lang="es">
 <head>
 <!-- ═══════════════════════════════════════════════════════════════════════
-     TCK CATÁLOGO — v3.32.0 — 29/07/2026 (UNA SOLA LISTA DE OCULTOS)
+     TCK CATÁLOGO — v3.33.0 — 29/07/2026 (LOCALIDADES: FILTRO ACTIVO + FALLBACK)
+
+     v3.33.0: CONSOLIDA LO QUE SE PERDIÓ DE LA v3.31.0.
+       La v3.31.0 y la v3.32.0 se armaron las dos sobre la v3.30.0 (ramas
+       paralelas), así que al deployar la 3.32.0 se pisaron los cambios de
+       localidades. Esta versión los reaplica sobre la 3.32.0 real.
+       · El fetch de `rutas` no filtraba por activo → General Villegas
+         (alta 29/06 con activo=false, a la espera de que se tomen pedidos
+         ahí) aparecía como opción elegible y el cliente podía confirmar un
+         pedido que ningún camión iba a llevar. Fix: &activo=is.true.
+       · _LOCALIDADES_FALLBACK regenerado desde `rutas`: tenía las zonas
+         viejas (Zona 1 / Zona 2 / Solo América y Fortín), le faltaba Carlos
+         Casares y le sobraban dos alias peligrosos. Ahora son 29 localidades
+         activas con los alias reales.
+       Contenido acumulado en producción tras esta versión:
+         v3.30.0 calendario de 5 subzonas + v3.32.0 lista única de ocultos
+         + v3.33.0 localidades.
+
+     ── v3.32.0 — 29/07/2026 (UNA SOLA LISTA DE OCULTOS) ──
 
      v3.32.0: PRODUCTOS DADOS DE BAJA QUE SEGUÍAN A LA VENTA.
        Causa raíz: existían DOS listas de ocultos independientes.
@@ -2483,42 +2501,49 @@ function _localidadNormalizar(s) {
     .trim();
 }
 
-// v3.12.4 — RESPALDO LOCAL de localidades (anti-bloqueo).
-// Si el fetch a Supabase falla (señal débil del cliente en el celu), el desplegable
-// quedaba VACÍO y el texto libre rechazaba ciudades reales (caso América/Rivadavia),
-// dejando al cliente sin poder confirmar. Estas 28 ciudades baked-in se usan SOLO
-// como fallback cuando el fetch falla, para que el cliente SIEMPRE pueda elegir su
-// ciudad y confirmar. La próxima llamada reintenta el fetch real (ver _localidadesEsFallback).
+// v3.33.0 — RESPALDO LOCAL de localidades (anti-bloqueo), regenerado desde la
+// tabla `rutas` real el 29/07/2026. Si el fetch a Supabase falla (señal débil
+// del cliente en el celu), el desplegable quedaba VACÍO y el texto libre
+// rechazaba ciudades reales, dejando al cliente sin poder confirmar.
+// Estas 29 localidades ACTIVAS se usan SOLO como fallback.
+// La próxima llamada reintenta el fetch real (ver _localidadesEsFallback).
+//
+// General Villegas NO está: en `rutas` tiene activo=false (no se reparte aún).
+// Se quitaron los alias 'Olavarría' de Bolívar y 'Pigüé' de Guaminí: son
+// ciudades distintas, fuera de ruta. El único cliente que escribe "Olavarría"
+// es de FORTÍN Olavarría (zona3, miércoles) y el alias lo mandaba al camión de
+// Bolívar (zona1b, martes). Sin alias, cae en la bandeja Sin Zona del admin.
 var _localidadesEsFallback = false;
 const _LOCALIDADES_FALLBACK = [
-  { ciudad: "30 de Agosto", zona: "Zona 2", aliases: ["30 DE AGOSTO","treinta de agosto","30_DE_AGOSTO","Treinta de Agosto","30 De Agosto","TREINTA DE AGOSTO","Treinta De Agosto"] },
-  { ciudad: "América", zona: "Solo América y Fortín", aliases: ["AMERICA_RIVADAVIA","AMERICA","america","Rivadavia","AMÉRICA","América Rivadavia","America Rivadavia","GRAL_VILLEGAS","General Villegas"] },
-  { ciudad: "Berutti", zona: "Zona 1", aliases: ["BERUTI","berutti","BERUTTI","Beruti"] },
-  { ciudad: "Bolívar", zona: "Zona 1", aliases: ["SAN_CARLOS_DE_BOLIVAR","Bolivar","San Carlos de Bolívar","BOLIVAR","BOLÍVAR","bolivar","OLAVARRIA","Olavarría"] },
-  { ciudad: "Bonifacio", zona: "Zona 1", aliases: ["laguna alsina","LAGUNA_ALSINA","Laguna Alsina","BONIFACIO","bonifacio","LAGUNA ALSINA"] },
-  { ciudad: "Casbas", zona: "Zona 2", aliases: ["CASBAS","casbas"] },
-  { ciudad: "Cochicó", zona: "Zona 2", aliases: ["cochico","COCHICÓ","COCHICO","Cochico"] },
-  { ciudad: "Daireaux", zona: "Zona 1", aliases: ["daireaux","DAIREAUX"] },
-  { ciudad: "De Bary", zona: "Zona 2", aliases: ["DE BARY","DE_BARY","Debary","de bary"] },
-  { ciudad: "Fortín Olavarría", zona: "Solo América y Fortín", aliases: ["Fortín","FORTIN_OLAVARRIA","Fortin Olavarria","FORTÍN OLAVARRÍA","fortin olavarria","FORTIN OLAVARRIA"] },
-  { ciudad: "Garré", zona: "Zona 2", aliases: ["GARRE","garre","GARRÉ","Garre"] },
-  { ciudad: "Gonzalez Moreno", zona: "Solo América y Fortín", aliases: ["gonzalez moreno","GONZALEZ_MORENO","GONZÁLEZ MORENO","Gonzales Moreno","gonzález moreno","González Moreno","GONZALEZ MORENO"] },
-  { ciudad: "Guaminí", zona: "Zona 2", aliases: ["GUAMINÍ","GUAMINI","guamini","Guamini","Guaminin","PIGUE","Pigüé"] },
-  { ciudad: "Henderson", zona: "Zona 1", aliases: ["Hendersom","HENDERSON","henderson"] },
-  { ciudad: "Madero", zona: "Zona 1", aliases: ["francisco madero","madero","Francisco Madero","FRANCISCO_MADERO","Francisco madero","MADERO","FRANCISCO MADERO"] },
-  { ciudad: "Mones Cazón", zona: "Zona 1", aliases: ["MONES CAZON","mones cazon","MONES_CAZON","Mones Cazon","MONES CAZÓN"] },
-  { ciudad: "Paso", zona: "Zona 1", aliases: ["JUAN JOSE PASO","JUAN JOSÉ PASO","JUAN_JOSE_PASO","Juan José Paso","paso","Juan José paso","Juan Jose Paso","juan josé paso","J.J. Paso","PASO"] },
-  { ciudad: "Pehuajó", zona: "Zona 1", aliases: ["Pehuajo","PEHUAJO","PEHUAJÓ","pehuajo","pehuajó"] },
-  { ciudad: "Pellegrini", zona: "Zona 2", aliases: ["Pellwgeini","PELLEGRINI","Pellegrinii","pellegrini","Peregrini"] },
-  { ciudad: "Pirovano", zona: "Zona 1", aliases: ["pirovano","PIROVANO"] },
-  { ciudad: "Quenumá", zona: "Zona 2", aliases: ["QUENUMÁ","quenuma","QUENUMA","Quenuma"] },
-  { ciudad: "Salazar", zona: "Zona 1", aliases: ["SALAZAR","salazar"] },
-  { ciudad: "Salliqueló", zona: "Zona 2", aliases: ["Saliqueló","SALLIQUELO","Saliquelo","Salliqelo","salliqueló","SALLIQUELÓ","Salliquelo","Salliquello","salliquelo"] },
-  { ciudad: "Thompson", zona: "Zona 2", aliases: ["thompson","INGENIERO THOMPSON","Ing. Thompson","THOMPSON","INGENIERO_THOMPSON","Ingeniero Thompson"] },
-  { ciudad: "Trenque Lauquen", zona: "Venta local", aliases: ["tr","TRENQUE_LAUQUEN","tl","trenque lauquen","TL","Trenque","TRENQUE LAUQUEN","T. Lauquen","Tte Lauquen","Tte. Lauquen"] },
-  { ciudad: "Tres Lomas", zona: "Zona 2", aliases: ["3 Lomas","TRES_LOMAS","TRES LOMAS","tres lomas","3 LOMAS","3 lomas"] },
-  { ciudad: "Urdampilleta", zona: "Zona 1", aliases: ["Urdanpilleta","URDAMPILLETA","urdampilleta"] },
-  { ciudad: "Villa Maza", zona: "Zona 2", aliases: ["Maza","maza","villa maza","VILLA_MAZA","MAZA","VILLA MAZA"] }
+  { ciudad: "30 de Agosto", zona: "Zona 2B", aliases: ["30 DE AGOSTO","treinta de agosto","30_DE_AGOSTO","Treinta de Agosto","30 De Agosto","TREINTA DE AGOSTO","Treinta De Agosto"] },
+  { ciudad: "América", zona: "Zona 3", aliases: ["AMERICA_RIVADAVIA","AMERICA","america","Rivadavia","AMÉRICA","América Rivadavia","America Rivadavia"] },
+  { ciudad: "Berutti", zona: "Zona 1A", aliases: ["BERUTI","berutti","BERUTTI","Beruti"] },
+  { ciudad: "Bolívar", zona: "Zona 1B", aliases: ["SAN_CARLOS_DE_BOLIVAR","Bolivar","San Carlos de Bolívar","BOLIVAR","BOLÍVAR","bolivar"] },
+  { ciudad: "Bonifacio", zona: "Zona 1B", aliases: ["laguna alsina","LAGUNA_ALSINA","Laguna Alsina","BONIFACIO","bonifacio","LAGUNA ALSINA"] },
+  { ciudad: "Carlos Casares", zona: "Zona 1A", aliases: ["carlos casares","CARLOS CASARES","CARLOS_CASARES","C. Casares","Casares","casares"] },
+  { ciudad: "Casbas", zona: "Zona 2B", aliases: ["CASBAS","casbas"] },
+  { ciudad: "Cochicó", zona: "Zona 2B", aliases: ["cochico","COCHICÓ","COCHICO","Cochico"] },
+  { ciudad: "Daireaux", zona: "Zona 1B", aliases: ["daireaux","DAIREAUX"] },
+  { ciudad: "De Bary", zona: "Zona 2A", aliases: ["DE BARY","DE_BARY","Debary","de bary"] },
+  { ciudad: "Fortín Olavarría", zona: "Zona 3", aliases: ["Fortín","FORTIN_OLAVARRIA","Fortin Olavarria","FORTÍN OLAVARRÍA","fortin olavarria","FORTIN OLAVARRIA"] },
+  { ciudad: "Garré", zona: "Zona 2B", aliases: ["GARRE","garre","GARRÉ","Garre"] },
+  { ciudad: "Gonzalez Moreno", zona: "Zona 3", aliases: ["gonzalez moreno","GONZALEZ_MORENO","GONZÁLEZ MORENO","Gonzales Moreno","gonzález moreno","González Moreno","GONZALEZ MORENO"] },
+  { ciudad: "Guaminí", zona: "Zona 2B", aliases: ["GUAMINÍ","GUAMINI","guamini","Guamini","Guaminin"] },
+  { ciudad: "Henderson", zona: "Zona 1B", aliases: ["Hendersom","HENDERSON","henderson"] },
+  { ciudad: "Madero", zona: "Zona 1A", aliases: ["francisco madero","madero","Francisco Madero","FRANCISCO_MADERO","Francisco madero","MADERO","FRANCISCO MADERO"] },
+  { ciudad: "Mones Cazón", zona: "Zona 1B", aliases: ["MONES CAZON","mones cazon","MONES_CAZON","Mones Cazon","MONES CAZÓN"] },
+  { ciudad: "Paso", zona: "Zona 1A", aliases: ["JUAN JOSE PASO","JUAN JOSÉ PASO","JUAN_JOSE_PASO","Juan José Paso","paso","Juan José paso","Juan Jose Paso","juan josé paso","J.J. Paso","PASO"] },
+  { ciudad: "Pehuajó", zona: "Zona 1A", aliases: ["Pehuajo","PEHUAJO","PEHUAJÓ","pehuajo","pehuajó"] },
+  { ciudad: "Pellegrini", zona: "Zona 2A", aliases: ["Pellwgeini","PELLEGRINI","Pellegrinii","pellegrini","Peregrini"] },
+  { ciudad: "Pirovano", zona: "Zona 1B", aliases: ["pirovano","PIROVANO"] },
+  { ciudad: "Quenumá", zona: "Zona 2A", aliases: ["QUENUMÁ","quenuma","QUENUMA","Quenuma"] },
+  { ciudad: "Salazar", zona: "Zona 1B", aliases: ["SALAZAR","salazar"] },
+  { ciudad: "Salliqueló", zona: "Zona 2A", aliases: ["Saliqueló","SALLIQUELO","Saliquelo","Salliqelo","salliqueló","SALLIQUELÓ","Salliquelo","Salliquello","salliquelo"] },
+  { ciudad: "Thompson", zona: "Zona 2A", aliases: ["thompson","INGENIERO THOMPSON","Ing. Thompson","THOMPSON","INGENIERO_THOMPSON","Ingeniero Thompson"] },
+  { ciudad: "Trenque Lauquen", zona: "Venta local", aliases: ["tr","TRENQUE_LAUQUEN","trenque layuqyuebn","Trenuqe Lauquen","tl","trenque lauquen","Tr","Trenque Launquen","Tte Lauquen","TL","Trenque","TRENQUE LAUQUEN","T. Lauquen","TTE LAUQUEN","Tte. Lauquen","Trenque launquen"] },
+  { ciudad: "Tres Lomas", zona: "Zona 2A", aliases: ["3 Lomas","TRES_LOMAS","TRES LOMAS","tres lomas","3 LOMAS","3 lomas"] },
+  { ciudad: "Urdampilleta", zona: "Zona 1B", aliases: ["Urdanpilleta","Hundarpilleta","URDAMPILLETA","urdampilleta"] },
+  { ciudad: "Villa Maza", zona: "Zona 2A", aliases: ["Maza","maza","villa maza","VILLA_MAZA","MAZA","VILLA MAZA"] }
 ];
 
 async function cargarLocalidadesCanonicas(forzar) {
@@ -2527,7 +2552,10 @@ async function cargarLocalidadesCanonicas(forzar) {
 
   _localidadesCargando = (async function() {
     try {
-      const url = SB_URL + '/rest/v1/rutas?select=ciudad,zona,aliases,dias_carga&zona=not.is.null&order=ciudad.asc';
+      // v3.33.0 — &activo=is.true: sin este filtro las localidades dadas de alta
+      // pero todavía SIN reparto (General Villegas) aparecían en el desplegable
+      // y el cliente podía confirmar un pedido que el camión no lleva.
+      const url = SB_URL + '/rest/v1/rutas?select=ciudad,zona,aliases,dias_carga&zona=not.is.null&activo=is.true&order=ciudad.asc';
       const resp = await fetch(url, {
         headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY }
       });
