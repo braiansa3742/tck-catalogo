@@ -2,7 +2,32 @@
 <html lang="es">
 <head>
 <!-- ═══════════════════════════════════════════════════════════════════════
-     TCK CATÁLOGO — v3.29.2 — 24/07/2026 (FOTOS TM + FIX BANNER DUPLICADO V4)
+     TCK CATÁLOGO — v3.30.0 — 29/07/2026 (CALENDARIO DE REPARTO: 5 SUBZONAS)
+
+     v3.30.0: CALENDARIO DE REPARTO ACTUALIZADO A LA OPERACIÓN REAL.
+       El catálogo mostraba el esquema viejo (Zona 1 "Lun+Mar", Zona 2
+       "Jue+Vie", "Martes" para América/Fortín). Ese esquema murió el
+       29/06/2026: se pasó a 5 unidades de reparto con UN día fijo cada
+       una (Lun=1A, Mar=1B, Mié=Z3, Jue=2A, Vie=2B, Sáb=solo TL).
+       Consecuencia del bug: a un cliente de América se le anunciaba
+       martes cuando el camión sale miércoles, y Carlos Casares (alta
+       29/06) no figuraba en ningún grupo → caía en "consultá a tu
+       vendedor" sin fecha estimada.
+       Bloques tocados:
+       · <title> y hdr-brand-sub: se saca "Abril 2026" (fecha fija que
+         envejece; el título viaja en las previews de WhatsApp/Facebook).
+       · intro-tck: "25 pueblos" → "28 pueblos"; 4 grupos → 6 grupos con
+         los días reales; + Carlos Casares y Gonzalez Moreno.
+       · ZONA_ETIQUETAS_CATALOGO: agregadas las claves nuevas de
+         rutas.zona (Zona 1A/1B/2A/2B/3). Antes caían al fallback r.zona.
+       · _CLI_RUTA_* / _CLI_CIUDADES_*_LABEL: de 3 buckets (lunmar/mar/
+         juevie) a 5 (lun/mar/mie/jue/vie). Corregidos "Beruty"→Berutti,
+         "Devary"→De Bary, "Cochico"→Cochicó.
+       · _cliProximoDiaSalida + _cliRenderEntregaCard: data-driven sobre
+         _CLI_GRUPOS_ENTREGA en vez de 3 bloques hardcodeados.
+       NO se muestra General Villegas: está en rutas con activo=false.
+
+     ── v3.29.2 — 24/07/2026 (FOTOS TM + FIX BANNER DUPLICADO V4) ──
 
      v3.29.2: FOTOS TAPA MANÍA NUEVOS + FIX PORTADA DUPLICADA.
        · _imgmap TM apuntado a los archivos reales subidos al repo:
@@ -2413,10 +2438,18 @@ var _localidadesCanonicasMap = {};     // 'pehuajo' → { ciudad: 'Pehuajó', zo
 var _localidadesCargando = null;       // Promise en curso (evita duplicar fetch)
 
 const ZONA_ETIQUETAS_CATALOGO = {
+  // v3.30.0 — claves reales de rutas.zona post migración 29/06/2026.
+  // Se dejan las viejas por si algún registro quedó sin migrar.
+  'Zona 1A':               'Lunes',
+  'Zona 1B':               'Martes',
+  'Zona 3':                'Miércoles',
+  'Zona 2A':               'Jueves',
+  'Zona 2B':               'Viernes',
+  'Venta local':           'Trenque Lauquen',
+  // legacy
   'Zona 1':                'Zona 1',
   'Zona 2':                'Zona 2',
-  'Solo América y Fortín': 'América y Fortín',
-  'Venta local':           'Trenque Lauquen'
+  'Solo América y Fortín': 'América y Fortín'
 };
 
 function _localidadNormalizar(s) {
@@ -2866,7 +2899,7 @@ setInterval(function(){ _pxCarted = {}; }, 3000);
 <link rel="manifest" href="/manifest_catalogo.json">
 <!-- v2.7.7 · Verificación de dominio Facebook/Meta (Business Portfolio TCK) -->
 <meta name="facebook-domain-verification" content="nhvaag2prmibwha7xryr2o8efvcwym" />
-<title>TCK &ndash; The Chicken Kings &middot; Cat&aacute;logo Abril 2026</title>
+<title>TCK &ndash; The Chicken Kings &middot; Cat&aacute;logo Mayorista</title>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@300;400;600;700;800;900&family=Barlow:wght@400;500;600&family=Playfair+Display:wght@600;700;800;900&display=swap" rel="stylesheet">
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@300;400;600;700;800;900&family=Barlow:wght@400;500;600&family=Playfair+Display:wght@600;700;800;900&display=swap');
@@ -10672,7 +10705,7 @@ body.v4-mode .body .card:has(.card-price-tramos) .card-body{padding-bottom:6px}
 </div>
 
 <div class="hdr"><div class="hdr-stripe"></div><div class="hdr-body">
-<div class="hdr-brand"><img class="hdr-brand-logo" src="img/logo.png" alt="TCK · The Chicken Kings" onerror="this.outerHTML='&lt;div class=&quot;hdr-brand-name&quot;&gt;THE CHICKEN &lt;span&gt;KINGS&lt;/span&gt;&lt;/div&gt;'"><div class="hdr-brand-sub" id="hdr-price-status">Cat&aacute;logo Abril 2026 &middot; Trenque Lauquen</div></div>
+<div class="hdr-brand"><img class="hdr-brand-logo" src="img/logo.png" alt="TCK · The Chicken Kings" onerror="this.outerHTML='&lt;div class=&quot;hdr-brand-name&quot;&gt;THE CHICKEN &lt;span&gt;KINGS&lt;/span&gt;&lt;/div&gt;'"><div class="hdr-brand-sub" id="hdr-price-status">Cat&aacute;logo Mayorista &middot; Trenque Lauquen</div></div>
 <div class="hdr-right"><div class="cart-pill" id="cart-pill"></div><button id="cli-btn-volver-portal" onclick="cliVolverPortal()" style="display:none;background:rgba(255,215,0,.15);border:1.5px solid rgba(255,215,0,.4);border-radius:20px;padding:6px 12px;font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:800;color:var(--gold);cursor:pointer;white-space:nowrap;letter-spacing:.3px">← Mi cuenta</button><button id="cli-btn-micuenta" class="btn-cuenta registrarme" onclick="cliBotonHeader()">🎁 Registrarme</button><button class="hdr-sobre" id="hdr-sobre-tck" onclick="reabrirIntroTCK()" aria-label="Conocé TCK">📍 <span class="hdr-btn-txt">Sobre TCK</span></button><button class="hdr-pedir-vend" id="hdr-pedir-vend" onclick="abrirModalPedirVendedor()" aria-label="Pedir contacto humano">🙋 <span class="hdr-btn-txt">Necesito un vendedor</span></button><button class="hdr-support" id="hdr-support" onclick="toggleFAB()" aria-label="Ayuda"><svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor" style="opacity:.85;flex-shrink:0"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z"/></svg> <span class="hdr-btn-txt">Ayuda</span></button><div class="vchip" id="vchip" onclick="cambiarVendedor()"></div></div>
 </div><div class="catnav" id="catnav"></div></div>
 <!-- v2.6.1 — Banner de registro (aparece una sola vez hasta que lo cierren) -->
@@ -16003,7 +16036,7 @@ document.addEventListener('visibilitychange', function() {
            onerror="this.style.display='none'">
     </div>
     <h1 class="intro-tck-titulo" id="intro-tck-titulo">The Chicken Kings</h1>
-    <div class="intro-tck-sub">Pollos y congelados con env&iacute;o propio a 25 pueblos</div>
+    <div class="intro-tck-sub">Pollos y congelados con env&iacute;o propio a 28 pueblos</div>
 
     <!-- v3.6.10 — Cronograma de zonas MOVIDO al tope (era bloque 7, ahora va 2do) -->
     <!-- "¿Llegás a mi pueblo?" es la pregunta #1 del almacenero. Si no llegás, se va. -->
@@ -16022,16 +16055,22 @@ document.addEventListener('visibilitychange', function() {
         </div>
       </div>
       <div class="intro-tck-zona">
-        <div class="intro-tck-zona-dias">🚚 Lunes y Martes</div>
+        <div class="intro-tck-zona-dias">🚚 Lunes</div>
         <div class="intro-tck-zona-chips">
-          <span class="intro-tck-chip">Beruti</span>
+          <span class="intro-tck-chip">Berutti</span>
+          <span class="intro-tck-chip">Carlos Casares</span>
+          <span class="intro-tck-chip">Madero</span>
+          <span class="intro-tck-chip">Paso</span>
+          <span class="intro-tck-chip">Pehuaj&oacute;</span>
+        </div>
+      </div>
+      <div class="intro-tck-zona">
+        <div class="intro-tck-zona-dias">🚚 Martes</div>
+        <div class="intro-tck-zona-chips">
           <span class="intro-tck-chip">Bol&iacute;var</span>
           <span class="intro-tck-chip">Daireaux</span>
           <span class="intro-tck-chip">Henderson</span>
-          <span class="intro-tck-chip">Madero</span>
           <span class="intro-tck-chip">Mones Caz&oacute;n</span>
-          <span class="intro-tck-chip">Paso</span>
-          <span class="intro-tck-chip">Pehuaj&oacute;</span>
           <span class="intro-tck-chip">Pirovano</span>
           <span class="intro-tck-chip">Salazar</span>
           <span class="intro-tck-chip">Urdampilleta</span>
@@ -16040,14 +16079,17 @@ document.addEventListener('visibilitychange', function() {
         <div class="intro-tck-zona-nota">* Bonifacio: condiciones especiales, consultar por WhatsApp</div>
       </div>
       <div class="intro-tck-zona">
-        <div class="intro-tck-zona-dias">🚚 Jueves y Viernes</div>
+        <div class="intro-tck-zona-dias">🚚 Mi&eacute;rcoles</div>
         <div class="intro-tck-zona-chips">
-          <span class="intro-tck-chip">30 de Agosto</span>
-          <span class="intro-tck-chip">Casbas</span>
-          <span class="intro-tck-chip">Cochic&oacute;</span>
-          <span class="intro-tck-chip">Debary</span>
-          <span class="intro-tck-chip">Garr&eacute;</span>
-          <span class="intro-tck-chip">Guamin&iacute;</span>
+          <span class="intro-tck-chip">Am&eacute;rica</span>
+          <span class="intro-tck-chip">Fort&iacute;n Olavarr&iacute;a</span>
+          <span class="intro-tck-chip">Gonzalez Moreno</span>
+        </div>
+      </div>
+      <div class="intro-tck-zona">
+        <div class="intro-tck-zona-dias">🚚 Jueves</div>
+        <div class="intro-tck-zona-chips">
+          <span class="intro-tck-chip">De Bary</span>
           <span class="intro-tck-chip">Pellegrini</span>
           <span class="intro-tck-chip">Quenum&aacute;</span>
           <span class="intro-tck-chip">Salliquel&oacute;</span>
@@ -16057,10 +16099,13 @@ document.addEventListener('visibilitychange', function() {
         </div>
       </div>
       <div class="intro-tck-zona">
-        <div class="intro-tck-zona-dias">🚚 Martes</div>
+        <div class="intro-tck-zona-dias">🚚 Viernes</div>
         <div class="intro-tck-zona-chips">
-          <span class="intro-tck-chip">Am&eacute;rica</span>
-          <span class="intro-tck-chip">Fort&iacute;n</span>
+          <span class="intro-tck-chip">30 de Agosto</span>
+          <span class="intro-tck-chip">Casbas</span>
+          <span class="intro-tck-chip">Cochic&oacute;</span>
+          <span class="intro-tck-chip">Garr&eacute;</span>
+          <span class="intro-tck-chip">Guamin&iacute;</span>
         </div>
       </div>
     </div>
@@ -18135,40 +18180,77 @@ const _CLI_SVG = {
   wa:      '<svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.2 1.36.172 1.872.104.571-.074 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413z"/></svg>'
 };
 
-// v2.7.3: calendario REAL del camión según operación confirmada
-// LUNES y MARTES → ruta zona norte/este
-// MARTES (exclusivo) → Fortín Olavarría + América
-// JUEVES y VIERNES → ruta zona sur/oeste
-// Trenque Lauquen: atención diaria con horario fijo (Juan vende continuo)
+// v3.30.0: calendario REAL del camión — 5 unidades de reparto, UN día fija
+// cada una (migración 29/06/2026). Nunca salen dos camiones el mismo día.
+//   LUNES     → Zona 1A
+//   MARTES    → Zona 1B
+//   MIÉRCOLES → Zona 3
+//   JUEVES    → Zona 2A
+//   VIERNES   → Zona 2B
+//   SÁBADO    → solo Trenque Lauquen (atención local, se maneja aparte)
+// General Villegas NO figura: está en rutas con activo=false.
+// Ojo con el matching por substring de _cliCiudadEnRuta: NO agregar
+// 'olavarria' suelto porque colisiona con 'fortin olavarria'.
 
-// Ruta LUN+MAR (zona norte/este) — claves normalizadas para matching
-const _CLI_RUTA_LUNMAR = [
-  'beruty','paso','madero','pehuajo','pehuajó',
+// LUNES — Zona 1A
+const _CLI_RUTA_LUN = [
+  'berutti','beruti','paso','juan jose paso','juan josé paso',
+  'madero','francisco madero','pehuajo','pehuajó',
+  'carlos casares','casares'
+];
+// MARTES — Zona 1B
+const _CLI_RUTA_MAR = [
   'mones cazon','mones cazón','salazar',
   'henderson','daireaux','dariaux',
-  'bonifacio','urdampilleta','urdampille',
-  'pirovano','bolivar','bolívar'
+  'urdampilleta','urdampille','pirovano',
+  'bolivar','bolívar','san carlos de bolivar',
+  'bonifacio','laguna alsina'
 ];
-// Ruta exclusiva del MARTES
-const _CLI_RUTA_MAR = ['fortin','fortín','fortin olavarria','fortín olavarría','america','américa'];
-// Ruta JUE+VIE (zona sur/oeste)
-const _CLI_RUTA_JUEVIE = [
-  'pellegrini','devary','quenuma','quenumá',
-  'villa maza','tres lomas','thompson',
-  'salliquelo','salliqueló','guamini','guaminí',
-  'cochico','casbas','garre','garré',
-  '30 de agosto','treinta de agosto'
+// MIÉRCOLES — Zona 3
+const _CLI_RUTA_MIE = [
+  'gonzalez moreno','gonzález moreno',
+  'fortin','fortín','fortin olavarria','fortín olavarría',
+  'america','américa','america rivadavia','américa rivadavia'
+];
+// JUEVES — Zona 2A
+const _CLI_RUTA_JUE = [
+  'pellegrini','de bary','debary','devary',
+  'quenuma','quenumá','villa maza','maza',
+  'salliquelo','salliqueló','tres lomas','3 lomas','thompson'
+];
+// VIERNES — Zona 2B
+const _CLI_RUTA_VIE = [
+  '30 de agosto','treinta de agosto','garre','garré',
+  'casbas','cochico','cochicó','guamini','guaminí'
 ];
 
-// Labels para mostrar en la card (orden "operativo" amigable)
-const _CLI_CIUDADES_LUNMAR_LABEL = [
-  'Beruty', 'Paso', 'Madero', 'Pehuajó', 'Mones Cazón', 'Salazar',
-  'Henderson', 'Daireaux', 'Bonifacio', 'Urdampilleta', 'Pirovano', 'Bolívar'
+// Labels para mostrar en la card (alfabético dentro de cada día)
+const _CLI_CIUDADES_LUN_LABEL = [
+  'Berutti', 'Carlos Casares', 'Madero', 'Paso', 'Pehuajó'
 ];
-const _CLI_CIUDADES_MAR_LABEL = ['Fortín Olavarría', 'América'];
-const _CLI_CIUDADES_JUEVIE_LABEL = [
-  'Pellegrini', 'Devary', 'Quenumá', 'Villa Maza', 'Tres Lomas', 'Thompson',
-  'Salliqueló', 'Guaminí', 'Cochico', 'Casbas', 'Garré', '30 de Agosto'
+const _CLI_CIUDADES_MAR_LABEL = [
+  'Bolívar', 'Bonifacio', 'Daireaux', 'Henderson', 'Mones Cazón',
+  'Pirovano', 'Salazar', 'Urdampilleta'
+];
+const _CLI_CIUDADES_MIE_LABEL = [
+  'América', 'Fortín Olavarría', 'Gonzalez Moreno'
+];
+const _CLI_CIUDADES_JUE_LABEL = [
+  'De Bary', 'Pellegrini', 'Quenumá', 'Salliqueló', 'Thompson',
+  'Tres Lomas', 'Villa Maza'
+];
+const _CLI_CIUDADES_VIE_LABEL = [
+  '30 de Agosto', 'Casbas', 'Cochicó', 'Garré', 'Guaminí'
+];
+
+// Grupos para render y para el cálculo del próximo día (data-driven:
+// agregar un día es agregar una fila acá, no tocar el render).
+const _CLI_GRUPOS_ENTREGA = [
+  { tipo: 'lun', chip: 'LUNES',     dia: 1, ruta: _CLI_RUTA_LUN, ciudades: _CLI_CIUDADES_LUN_LABEL },
+  { tipo: 'mar', chip: 'MARTES',    dia: 2, ruta: _CLI_RUTA_MAR, ciudades: _CLI_CIUDADES_MAR_LABEL },
+  { tipo: 'mie', chip: 'MIÉRCOLES', dia: 3, ruta: _CLI_RUTA_MIE, ciudades: _CLI_CIUDADES_MIE_LABEL },
+  { tipo: 'jue', chip: 'JUEVES',    dia: 4, ruta: _CLI_RUTA_JUE, ciudades: _CLI_CIUDADES_JUE_LABEL },
+  { tipo: 'vie', chip: 'VIERNES',   dia: 5, ruta: _CLI_RUTA_VIE, ciudades: _CLI_CIUDADES_VIE_LABEL }
 ];
 
 function _cliNormalizarCiudad(c) {
@@ -18187,31 +18269,25 @@ function _cliCiudadEnRuta(ciudad, rutaArr) {
 }
 
 // Devuelve cuál es la combinación de días de salida para una ciudad
-// Retorna: 'lunmar' | 'mar' | 'juevie' | null
+// Retorna: 'lun' | 'mar' | 'mie' | 'jue' | 'vie' | null
 function _cliDiaSalidaDeCiudad(ciudad) {
-  // Orden de precedencia: MAR exclusivo > LUN+MAR > JUE+VIE
-  // (así Pehuajó cae en LUN+MAR, América cae en MAR exclusivo)
-  if (_cliCiudadEnRuta(ciudad, _CLI_RUTA_MAR))    return 'mar';
-  if (_cliCiudadEnRuta(ciudad, _CLI_RUTA_LUNMAR)) return 'lunmar';
-  if (_cliCiudadEnRuta(ciudad, _CLI_RUTA_JUEVIE)) return 'juevie';
+  // v3.30.0 — las 5 listas son disjuntas, así que el orden no decide nada.
+  for (var i = 0; i < _CLI_GRUPOS_ENTREGA.length; i++) {
+    if (_cliCiudadEnRuta(ciudad, _CLI_GRUPOS_ENTREGA[i].ruta)) {
+      return _CLI_GRUPOS_ENTREGA[i].tipo;
+    }
+  }
   return null;
 }
 
-// Dado un día objetivo ('lunmar'|'mar'|'juevie') devuelve el próximo día real
+// v3.30.0 — cada grupo sale UN día fijo. Devuelve el próximo día real.
 function _cliProximoDiaSalida(tipo) {
-  const hoy = new Date();
-  const diaSemana = hoy.getDay(); // 0=dom, 1=lun, ..., 6=sáb
-  let diasValidos = [];
-  if (tipo === 'lunmar') diasValidos = [1, 2];  // lun, mar
-  else if (tipo === 'mar') diasValidos = [2];   // mar
-  else if (tipo === 'juevie') diasValidos = [4, 5]; // jue, vie
-  else return null;
-
-  // Buscar el próximo día de esa lista
+  const grupo = _CLI_GRUPOS_ENTREGA.find(function(g) { return g.tipo === tipo; });
+  if (!grupo) return null;
+  const diaSemana = new Date().getDay(); // 0=dom, 1=lun, ..., 6=sáb
   for (let i = 0; i < 7; i++) {
-    const d = (diaSemana + i) % 7;
-    if (diasValidos.includes(d)) {
-      return { diasFaltan: i, diaSemana: d };
+    if (((diaSemana + i) % 7) === grupo.dia) {
+      return { diasFaltan: i, diaSemana: grupo.dia };
     }
   }
   return null;
@@ -18304,8 +18380,15 @@ function _cliRenderEntregaCard() {
   }
 
   // Ruta: card con "próxima entrega" + detalle de ciudades agrupadas por día
-  // Mostrar los 3 grupos, destacar el grupo del cliente
+  // v3.30.0 — loop sobre los 5 grupos, destacando el del cliente
   const diaTipo = proxEnt.diaTipo;
+  const filasDias = _CLI_GRUPOS_ENTREGA.map(function(g) {
+    return '<div class="cli-perfil-entrega-dia' + (diaTipo === g.tipo ? ' activo' : '') + '">'
+      +      '<div class="cli-perfil-entrega-dia-chip">' + g.chip + '</div>'
+      +      '<div class="cli-perfil-entrega-dia-ciudades">' + g.ciudades.join(' · ') + '</div>'
+      +    '</div>';
+  }).join('');
+
   return '<div class="cli-perfil-entrega">'
     + '<div class="cli-perfil-extra" style="border:none;box-shadow:none;margin:0;padding:0 0 10px;border-radius:0;">'
     +   '<div class="cli-perfil-extra-ico entrega">' + _CLI_SVG.truck + '</div>'
@@ -18318,18 +18401,7 @@ function _cliRenderEntregaCard() {
     + '<div class="cli-perfil-entrega-divider"></div>'
     + '<div class="cli-perfil-entrega-calendario">'
     +   '<div class="cli-perfil-entrega-calendario-titulo">Ciudades que atendemos por día</div>'
-    +   '<div class="cli-perfil-entrega-dia' + (diaTipo === 'lunmar' ? ' activo' : '') + '">'
-    +     '<div class="cli-perfil-entrega-dia-chip">LUN · MAR</div>'
-    +     '<div class="cli-perfil-entrega-dia-ciudades">' + _CLI_CIUDADES_LUNMAR_LABEL.join(' · ') + '</div>'
-    +   '</div>'
-    +   '<div class="cli-perfil-entrega-dia' + (diaTipo === 'mar' ? ' activo' : '') + '">'
-    +     '<div class="cli-perfil-entrega-dia-chip">MAR</div>'
-    +     '<div class="cli-perfil-entrega-dia-ciudades">' + _CLI_CIUDADES_MAR_LABEL.join(' · ') + '</div>'
-    +   '</div>'
-    +   '<div class="cli-perfil-entrega-dia' + (diaTipo === 'juevie' ? ' activo' : '') + '">'
-    +     '<div class="cli-perfil-entrega-dia-chip">JUE · VIE</div>'
-    +     '<div class="cli-perfil-entrega-dia-ciudades">' + _CLI_CIUDADES_JUEVIE_LABEL.join(' · ') + '</div>'
-    +   '</div>'
+    +   filasDias
     + '</div>'
     + '</div>';
 }
