@@ -2,7 +2,31 @@
 <html lang="es">
 <head>
 <!-- ═══════════════════════════════════════════════════════════════════════
-     TCK CATÁLOGO — v3.34.0 — 30/07/2026 (VARIANTES: CALIBRE + ESTADO CON STOCK)
+     TCK CATÁLOGO — v3.34.1 — 30/07/2026 (FIX DE 5 BUGS DE LA 3.34.0)
+
+     v3.34.1: la v3.34.0 nunca se deployó. Revisión posterior encontró:
+       B1 [GRAVE] El botón ✕ del carrito llamaba v4ChgCal con parsed.calibre
+          ('x6') en vez del slug ('x6@congelado'): reconstruía una clave
+          inexistente y el ítem NO se borraba del carrito.
+       B2 Las variantes se leían UNA sola vez al iniciar. _v4VarEstado pasaba
+          a 'ok' y nunca volvía, así que el tope quedaba congelado desde la
+          carga de la página. Ahora hay TTL de 60 s y se relee al abrir ficha.
+       B3 [RACE] Abrir una ficha mientras el fetch estaba en vuelo: la función
+          cortaba con un return temprano y, por ser async, devolvía una promesa
+          YA RESUELTA. El .then() disparaba al instante con el fallback y
+          cuando llegaba la data real ya nadie re-renderizaba: quedaba pegado
+          en x6/x7. Ahora se devuelve la promesa en curso.
+       B4 El mensaje de tope salía al revés en el caso más común: comparaba
+          contra V4_TOPE_DEFAULT (50) pero el tope de Pollo B es 40, así que
+          al topear en 40 —que ES el tope comercial— mostraba el mensaje de
+          stock en vez de derivar al vendedor. Se agregó tope_comercial a
+          vw_cat_variantes y el motivo se decide comparando contra ese valor.
+       B5 Si el fetch fallaba quedaba en 'error' y no reintentaba nunca.
+     REQUIERE correr antes TCK_fix_vista_tope_comercial.sql (agrega la
+     columna tope_comercial a la vista). Sin eso topeCom llega en 0 y todos
+     los mensajes salen como "hablá con tu vendedor" — degrada, no rompe.
+
+     ── v3.34.0 — 30/07/2026 (VARIANTES: CALIBRE + ESTADO CON STOCK) ──
 
      v3.34.0: EL CLIENTE ELIGE CONTRA DISPONIBILIDAD REAL.  [DEPLOY 1 de 2]
        ANTES: V4_CALIBRES era una constante con x6/x7. El calibre era una
@@ -20887,7 +20911,10 @@ function confirmarCiudadNoAtendida() {
   };
   // { 'Pollo B': [ {id, calibre, estado, hay, tope, label}, ... ] }
   const V4_VARIANTES = {};
-  let   _v4VarEstado = 'vacio';   // 'vacio' | 'cargando' | 'ok' | 'error'
+  let   _v4VarEstado  = 'vacio';   // 'vacio' | 'cargando' | 'ok' | 'error'
+  let   _v4VarPromise = null;      // promesa EN CURSO (evita el race de B3)
+  let   _v4VarTs      = 0;         // cuándo se cargó (para el TTL de B2)
+  const V4_VAR_TTL_MS = 60000;     // 60 s: pasado eso, se relee al abrir ficha
 
   const V4_CALIBRES_SUBLABEL = {
     'x5': 'Pollos grandes (cajón con 5)',
@@ -20904,12 +20931,31 @@ function confirmarCiudadNoAtendida() {
   // Lee las variantes disponibles. NO usa el cache de 1 h del sin_stock:
   // si topeamos contra stock de hace 50 minutos, aceptamos pedidos contra
   // mercadería que ya no está.
-  async function v4CargarVariantes(){
-    if (_v4VarEstado === 'cargando') return;
-    _v4VarEstado = 'cargando';
+  // v3.34.1 — tres arreglos acá:
+  //  · devuelve la promesa EN CURSO en vez de una ya resuelta, así el
+  //    re-render del sheet espera de verdad a que llegue la data (B3);
+  //  · TTL de 60 s: se relee al abrir una ficha si está vieja (B2). Antes
+  //    cargaba una única vez al iniciar y el tope quedaba congelado;
+  //  · si falló, el próximo intento reintenta (B5).
+  function v4CargarVariantes(){
+    const ahora = Date.now();
+    if (_v4VarEstado === 'ok' && (ahora - _v4VarTs) < V4_VAR_TTL_MS) {
+      return Promise.resolve();
+    }
+    if (_v4VarPromise) return _v4VarPromise;
+    _v4VarEstado  = 'cargando';
+    _v4VarPromise = _v4CargarVariantesReal().then(function(r){
+      _v4VarPromise = null; return r;
+    }, function(e){
+      _v4VarPromise = null; throw e;
+    });
+    return _v4VarPromise;
+  }
+
+  async function _v4CargarVariantesReal(){
     try {
       const r = await fetch(
-        SB_URL + '/rest/v1/vw_cat_variantes?select=familia,xubio_producto_id,calibre,estado,hay_stock,tope_efectivo,orden&order=familia.asc,orden.asc',
+        SB_URL + '/rest/v1/vw_cat_variantes?select=familia,xubio_producto_id,calibre,estado,hay_stock,tope_comercial,tope_efectivo,orden&order=familia.asc,orden.asc',
         { headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY },
           cache: 'no-store' }
       );
@@ -20924,12 +20970,16 @@ function confirmarCiudadNoAtendida() {
           calibre: f.calibre || '',
           estado:  f.estado  || '',
           hay:     f.hay_stock === true,
-          tope:    (typeof f.tope_efectivo === 'number') ? f.tope_efectivo : 0
+          tope:    (typeof f.tope_efectivo === 'number') ? f.tope_efectivo : 0,
+          // v3.34.1 — tope comercial del producto. Sin este dato no se puede
+          // saber si el techo lo puso el stock o la política comercial.
+          topeCom: (typeof f.tope_comercial === 'number') ? f.tope_comercial : 0
         });
       });
       _v4VarEstado = 'ok';
+      _v4VarTs     = Date.now();
     } catch(e) {
-      console.warn('[v3.34.0] No se pudieron cargar variantes, uso fallback:', e);
+      console.warn('[v3.34.1] No se pudieron cargar variantes, uso fallback:', e);
       _v4VarEstado = 'error';
     }
   }
@@ -20940,7 +20990,8 @@ function confirmarCiudadNoAtendida() {
     const v = V4_VARIANTES[nombre];
     if (v && v.length) return v;
     return (V4_CALIBRES_FALLBACK[nombre] || []).map(function(cal){
-      return { id: null, calibre: cal, estado: '', hay: true, tope: V4_TOPE_DEFAULT };
+      return { id: null, calibre: cal, estado: '', hay: true,
+               tope: V4_TOPE_DEFAULT, topeCom: V4_TOPE_DEFAULT };
     });
   }
 
@@ -21164,10 +21215,14 @@ function confirmarCiudadNoAtendida() {
       if (_v && _v.tope > 0 && q > _v.tope) {
         q = _v.tope;
         try {
-          const _esTopeComercial = (_v.tope >= V4_TOPE_DEFAULT);
-          const _msg = _esTopeComercial
-            ? 'Para pedidos más grandes, hablá con tu vendedor.'
-            : 'Por ahora no podemos tomar más de esta presentación.';
+          // v3.34.1 FIX — antes comparaba contra V4_TOPE_DEFAULT (50), pero
+          // el tope de Pollo B es 40: al topear en 40, que ES el tope
+          // comercial, mostraba el mensaje de stock. El motivo del techo se
+          // decide comparando con el tope comercial real del producto.
+          const _porStock = (_v.topeCom > 0) && (_v.tope < _v.topeCom);
+          const _msg = _porStock
+            ? 'Por ahora no podemos tomar más de esta presentación.'
+            : 'Para pedidos más grandes, hablá con tu vendedor.';
           v4Aviso(_msg);
         } catch(e){}
       }
@@ -21327,7 +21382,10 @@ function confirmarCiudadNoAtendida() {
       if (rmBtn) {
         rmBtn.addEventListener('click', function(){
           const cur = qty[k] || 0;
-          if (cur > 0) v4ChgCal(parsed.nombre, parsed.calibre, -cur);
+          // v3.34.1 FIX — antes iba parsed.calibre ('x6'), pero la clave real
+          // es 'cal:<nombre>:x6@congelado'. Reconstruía una clave inexistente
+          // y el ítem NO se borraba del carrito.
+          if (cur > 0) v4ChgCal(parsed.nombre, parsed.slug, -cur);
         });
       }
       dBody.appendChild(div);
@@ -21491,7 +21549,12 @@ function confirmarCiudadNoAtendida() {
     // v3.34.0 — si todavía no cargaron las variantes reales, se dispara el
     // fetch y se re-renderiza la ficha cuando llegan. Mientras tanto se
     // muestra el fallback, así la ficha nunca aparece vacía.
-    if (_v4VarEstado === 'vacio' || _v4VarEstado === 'cargando') {
+    // v3.34.1 — antes sólo recargaba si estaba 'vacio' o 'cargando', así que
+    // una vez en 'ok' NUNCA se releía y el tope quedaba viejo. Ahora también
+    // relee si pasó el TTL o si el intento anterior falló.
+    const _v4Vieja = (_v4VarEstado !== 'ok') ||
+                     ((Date.now() - _v4VarTs) > V4_VAR_TTL_MS);
+    if (_v4Vieja) {
       v4CargarVariantes().then(function(){
         try {
           const sh = document.getElementById('v4-sheet');
