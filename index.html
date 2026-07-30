@@ -2,7 +2,42 @@
 <html lang="es">
 <head>
 <!-- ═══════════════════════════════════════════════════════════════════════
-     TCK CATÁLOGO — v3.33.0 — 29/07/2026 (LOCALIDADES: FILTRO ACTIVO + FALLBACK)
+     TCK CATÁLOGO — v3.34.0 — 30/07/2026 (VARIANTES: CALIBRE + ESTADO CON STOCK)
+
+     v3.34.0: EL CLIENTE ELIGE CONTRA DISPONIBILIDAD REAL.  [DEPLOY 1 de 2]
+       ANTES: V4_CALIBRES era una constante con x6/x7. El calibre era una
+       NOTA DE PREFERENCIA — no había estado (fresco/congelado) en ninguna
+       parte del catálogo, y ninguna de las dos cosas miraba el stock. El
+       cliente podía pedir 40 cajones de una variante que tenía 3, y nadie se
+       enteraba hasta que el pedido llegaba al depósito.
+       AHORA:
+         · Las filas salen de vw_cat_variantes: calibre + estado + hay_stock
+           + tope. Alta de una variante en Xubio -> aparece sola, sin deploy.
+         · Las sin stock van deshabilitadas y colapsadas bajo "Ver otras
+           presentaciones (n)": el cliente ve primero lo que puede pedir, pero
+           encuentra el calibre que busca en vez de creer que no se trabaja.
+         · El stepper topea en tope_efectivo = LEAST(stock, tope comercial),
+           calculado en la vista. El NÚMERO DE STOCK NUNCA VIAJA AL NAVEGADOR:
+           la vista sólo devuelve un booleano y el tope.
+         · Dos mensajes distintos al llegar al techo: tope comercial deriva al
+           vendedor (un cliente que quiere 40 cajones es buena noticia); tope
+           por stock avisa sin decir cuánto queda.
+         · Lectura SIN cache: el sin_stock se cachea 1 h, pero topear contra
+           stock de hace 50 minutos es aceptar pedidos contra mercadería que
+           ya no está.
+       EL PAYLOAD DEL PEDIDO NO CAMBIA. La clave de qty pasó a
+       'cal:<nombre>:<calibre>@<estado>', pero el armado de
+       detalle_estructurado descarta el estado y fusiona las líneas del mismo
+       calibre, así el pedido sale con la forma exacta de la v3.33.0. Apps
+       Script, el Sheet y pedidos_items no requieren ningún cambio.
+       El estado elegido viaja en `obs` para que el vendedor lo vea.
+       Las claves viejas guardadas en localStorage (sin '@') siguen andando.
+       FALLBACK: si el fetch a Supabase falla, se usan x6/x7 como en v3.33.0.
+       PENDIENTE (Deploy 2): columnas estado + xubio_producto_id en
+       pedidos_items, el campo en el payload y el parseo en Apps Script.
+       Recién ahí la factura sale contra la variante que salió del depósito.
+
+     ── v3.33.0 — 29/07/2026 (LOCALIDADES: FILTRO ACTIVO + FALLBACK) ──
 
      v3.33.0: CONSOLIDA LO QUE SE PERDIÓ DE LA v3.31.0.
        La v3.31.0 y la v3.32.0 se armaron las dos sobre la v3.30.0 (ramas
@@ -13256,7 +13291,9 @@ function confirmarZonaCliente() {
   const ciudad = (sel && sel.value || '').trim();
   if (!ciudad) {
     if (sel) sel.focus();
-    if (typeof toast === 'function') toast('Elegí tu ciudad para continuar', 'err');
+    // v3.34.0 — era toast(), que no existe en ningún lado: el aviso nunca
+    // se mostraba. El toast real del catálogo es combosToast().
+    if (typeof combosToast === 'function') combosToast('Elegí tu ciudad para continuar');
     else alert('Elegí tu ciudad para continuar');
     return;
   }
@@ -13272,7 +13309,8 @@ function confirmarZonaCliente() {
   // Si el cliente cambió de zona y ya tenía combos en el carrito → avisar
   const zonaNueva = getZonaCliente();
   if (zonaAnterior !== zonaNueva && Object.keys(qtyCombo).some(k => (qtyCombo[k] || 0) > 0)) {
-    if (typeof toast === 'function') toast('Actualizamos tus combos según tu zona', 'ok');
+    // v3.34.0 — idem: nunca se mostraba.
+    if (typeof combosToast === 'function') combosToast('Actualizamos tus combos según tu zona');
   }
 }
 
@@ -13768,8 +13806,11 @@ async function confirmarYEnviarWA() { // v3.26.0: async para esperar el ACK del 
   if (typeof setZonaCliente === 'function') setZonaCliente(localidad);
   const zonaNueva = (typeof getZonaCliente === 'function') ? getZonaCliente() : 'interior';
   if (zonaPrevia !== zonaNueva && Object.keys(qtyCombo).some(k => (qtyCombo[k] || 0) > 0)) {
-    if (typeof toast === 'function') {
-      toast('Actualizamos tus combos según ' + localidad, 'ok');
+    // v3.34.0 — el más importante de los tres: al cliente le recalculaban los
+    // precios de los combos al cambiar de localidad y NO se enteraba, porque
+    // toast() no existe. Ahora usa el toast real.
+    if (typeof combosToast === 'function') {
+      combosToast('Actualizamos tus combos según ' + localidad);
     }
     if (typeof updateBar === 'function') updateBar();
     // Re-render carrito si está abierto
@@ -13867,12 +13908,16 @@ async function confirmarYEnviarWA() { // v3.26.0: async para esperar el ACK del 
     if (typeof k !== 'string' || k.indexOf('cal:') !== 0) return;
     const q = qty[k] || 0;
     if (q <= 0) return;
-    // Parsear "cal:<nombre>:<calibre>"
+    // Parsear "cal:<nombre>:<calibre>" — v3.34.0: el tramo final puede venir
+    // como 'x6@congelado'. Acá se descarta el estado para que la línea del
+    // mensaje de WhatsApp quede EXACTAMENTE igual que en v3.33.0 (Apps Script
+    // parsea esas líneas). El estado llega por la observación.
     const rest = k.slice(4);
     const lastColon = rest.lastIndexOf(':');
     if (lastColon === -1) return;
     const nombre  = rest.slice(0, lastColon);
-    const calibre = rest.slice(lastColon + 1);
+    const _slugW  = rest.slice(lastColon + 1);
+    const calibre = (_slugW.indexOf('@') === -1) ? _slugW : _slugW.slice(0, _slugW.indexOf('@'));
     // Buscar producto en CAT por nombre exacto
     let prodInfo = null;
     for (let si = 0; si < CAT.length && !prodInfo; si++) {
@@ -14058,7 +14103,13 @@ async function confirmarYEnviarWA() { // v3.26.0: async para esperar el ACK del 
     const lastColon = rest.lastIndexOf(':');
     if (lastColon === -1) return;
     const nombre  = rest.slice(0, lastColon);
-    const calibre = rest.slice(lastColon + 1);
+    // v3.34.0 — al pedido va SOLO el calibre: la estructura del payload queda
+    // idéntica a la v3.33.0 y Apps Script no necesita cambios. El estado se
+    // suma a la observación (abajo) para que el vendedor lo vea. Cuando
+    // existan las columnas en pedidos_items (Deploy 2), pasa a campo propio.
+    const _slug   = rest.slice(lastColon + 1);
+    const calibre = (_slug.indexOf('@') === -1) ? _slug : _slug.slice(0, _slug.indexOf('@'));
+    const _estado = (_slug.indexOf('@') === -1) ? ''    : _slug.slice(_slug.indexOf('@') + 1);
     let prodInfo = null;
     for (let si = 0; si < CAT.length && !prodInfo; si++) {
       const sec = CAT[si];
@@ -14073,6 +14124,24 @@ async function confirmarYEnviarWA() { // v3.26.0: async para esperar el ACK del 
     if (!prodInfo) return;
     // v3.27.0 (P1-C): incluir la observación del calibre en el
     // estructurado (key de obs: '<nombre> <calibre>', igual que el WA).
+    // v3.34.0 — si el cliente pidió el mismo calibre en dos estados, se fusiona
+    // en una sola línea para no duplicar filas en el Sheet. El total no cambia.
+    let _yaC = null;
+    for (let _z = 0; _z < itemsEstructurados.length; _z++) {
+      const _e = itemsEstructurados[_z];
+      if (_e && _e.tipo === 'producto_calibre' &&
+          _e.nombre_canonico === nombre && _e.calibre === calibre) { _yaC = _e; break; }
+    }
+    if (_yaC) {
+      _yaC.cantidad = (_yaC.cantidad || 0) + qProd;
+      _yaC.subtotal = precioUnit(prodInfo.it, _yaC.cantidad) * _yaC.cantidad;
+      _yaC.precio_unitario = precioUnit(prodInfo.it, _yaC.cantidad);
+      if (_estado) {
+        const _et = qProd + ' ' + _estado;
+        _yaC.obs = _yaC.obs ? (_yaC.obs + ' | ' + _et) : _et;
+      }
+      return;
+    }
     const _itemC = {
       tipo: 'producto_calibre',
       nombre_canonico: nombre,
@@ -14083,6 +14152,11 @@ async function confirmarYEnviarWA() { // v3.26.0: async para esperar el ACK del 
       subtotal: precioUnit(prodInfo.it, qProd) * qProd,
       elegible_cupon: cuponEsElegibleCat(prodInfo.sec.id)
     };
+    // v3.34.0 — el estado elegido viaja en la observación de la línea
+    if (_estado) {
+      const _et0 = qProd + ' ' + _estado;
+      _itemC.obs = _itemC.obs ? (_itemC.obs + ' | ' + _et0) : _et0;
+    }
     const _obsC = _obsDe(nombre + ' ' + calibre);
     if (_obsC) _itemC.obs = _obsC;
     itemsEstructurados.push(_itemC);
@@ -14406,7 +14480,11 @@ async function confirmarYEnviarWA() { // v3.26.0: async para esperar el ACK del 
       const lastColon = rest.lastIndexOf(':');
       if (lastColon === -1) return;
       const nombre  = rest.slice(0, lastColon);
-      const calibre = rest.slice(lastColon + 1);
+      // v3.34.0 — pantalla de confirmación: mostramos calibre y estado.
+      const _slugC  = rest.slice(lastColon + 1);
+      const _estC   = (_slugC.indexOf('@') === -1) ? '' : _slugC.slice(_slugC.indexOf('@') + 1);
+      const calibre = ((_slugC.indexOf('@') === -1) ? _slugC : _slugC.slice(0, _slugC.indexOf('@')))
+                    + (_estC ? ' \u00b7 ' + v4EstadoLabel(_estC) : '');
       let prodInfo = null;
       for (let si = 0; si < CAT.length && !prodInfo; si++) {
         const sec = CAT[si];
@@ -20795,15 +20873,159 @@ function confirmarCiudadNoAtendida() {
   // ═══════════════════════════════════════════════════════════════════════
 
   // Calibres configurados
-  const V4_CALIBRES = {
+  // v3.34.0 — VARIANTES DINÁMICAS.
+  // Antes esto era una constante con x6/x7 hardcodeados: el cliente elegía
+  // calibre como NOTA DE PREFERENCIA, sin estado y sin mirar el stock, así que
+  // podía pedir 40 cajones de una variante que tenía 3. Ahora las filas salen
+  // de vw_cat_variantes (calibre + estado + hay_stock + tope).
+  // FALLBACK: si el fetch falla, se usa V4_CALIBRES_FALLBACK y el catálogo
+  // funciona igual que en v3.33.0. Nunca queda sin presentaciones.
+  const V4_CALIBRES_FALLBACK = {
     'Pollo A': ['x6', 'x7'],
     'Pollo B': ['x6', 'x7'],
     'Pollo C': ['x6', 'x7']
   };
+  // { 'Pollo B': [ {id, calibre, estado, hay, tope, label}, ... ] }
+  const V4_VARIANTES = {};
+  let   _v4VarEstado = 'vacio';   // 'vacio' | 'cargando' | 'ok' | 'error'
+
   const V4_CALIBRES_SUBLABEL = {
+    'x5': 'Pollos grandes (cajón con 5)',
     'x6': 'Pollos más grandes (cajón con 6)',
-    'x7': 'Pollos medianos (cajón con 7)'
+    'x7': 'Pollos medianos (cajón con 7)',
+    'x8': 'Pollos chicos (cajón con 8)',
+    'x9': 'Pollos chicos (cajón con 9)',
+    'x10': 'Pollos chicos (cajón con 10)'
   };
+
+  // Tope por defecto si el producto no tiene tope_pedido cargado.
+  const V4_TOPE_DEFAULT = 50;
+
+  // Lee las variantes disponibles. NO usa el cache de 1 h del sin_stock:
+  // si topeamos contra stock de hace 50 minutos, aceptamos pedidos contra
+  // mercadería que ya no está.
+  async function v4CargarVariantes(){
+    if (_v4VarEstado === 'cargando') return;
+    _v4VarEstado = 'cargando';
+    try {
+      const r = await fetch(
+        SB_URL + '/rest/v1/vw_cat_variantes?select=familia,xubio_producto_id,calibre,estado,hay_stock,tope_efectivo,orden&order=familia.asc,orden.asc',
+        { headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY },
+          cache: 'no-store' }
+      );
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      const filas = await r.json();
+      Object.keys(V4_VARIANTES).forEach(function(k){ delete V4_VARIANTES[k]; });
+      (filas || []).forEach(function(f){
+        if (!f || !f.familia) return;
+        if (!V4_VARIANTES[f.familia]) V4_VARIANTES[f.familia] = [];
+        V4_VARIANTES[f.familia].push({
+          id:      f.xubio_producto_id,
+          calibre: f.calibre || '',
+          estado:  f.estado  || '',
+          hay:     f.hay_stock === true,
+          tope:    (typeof f.tope_efectivo === 'number') ? f.tope_efectivo : 0
+        });
+      });
+      _v4VarEstado = 'ok';
+    } catch(e) {
+      console.warn('[v3.34.0] No se pudieron cargar variantes, uso fallback:', e);
+      _v4VarEstado = 'error';
+    }
+  }
+
+  // Devuelve las variantes de una familia. Si no cargaron, arma las del
+  // fallback marcadas como disponibles (comportamiento v3.33.0).
+  function v4VariantesDe(nombre){
+    const v = V4_VARIANTES[nombre];
+    if (v && v.length) return v;
+    return (V4_CALIBRES_FALLBACK[nombre] || []).map(function(cal){
+      return { id: null, calibre: cal, estado: '', hay: true, tope: V4_TOPE_DEFAULT };
+    });
+  }
+
+  // Compatibilidad: varias partes del código preguntan "¿este producto tiene
+  // calibres?". Se mantiene la forma de objeto-con-arrays.
+  const V4_CALIBRES = new Proxy({}, {
+    get: function(_t, nombre){
+      if (typeof nombre !== 'string') return undefined;
+      const v = v4VariantesDe(nombre);
+      return v.length ? v.map(function(x){ return v4VarSlug(x); }) : undefined;
+    },
+    has: function(_t, nombre){ return v4VariantesDe(nombre).length > 0; }
+  });
+
+  // slug de variante = lo que va en la clave de qty y en el DOM.
+  // Formato: '<calibre>' si no hay estado, o '<calibre>@<estado>'.
+  function v4VarSlug(v){
+    return v.estado ? (v.calibre + '@' + v.estado) : v.calibre;
+  }
+  function v4SlugCalibre(slug){
+    const i = String(slug || '').indexOf('@');
+    return i === -1 ? String(slug || '') : String(slug).slice(0, i);
+  }
+  function v4SlugEstado(slug){
+    const i = String(slug || '').indexOf('@');
+    return i === -1 ? '' : String(slug).slice(i + 1);
+  }
+  function v4VarPorSlug(nombre, slug){
+    const v = v4VariantesDe(nombre);
+    for (let i = 0; i < v.length; i++) {
+      if (v4VarSlug(v[i]) === slug) return v[i];
+    }
+    return null;
+  }
+  function v4EstadoLabel(e){
+    if (e === 'fresco')    return 'Fresco';
+    if (e === 'congelado') return 'Congelado';
+    return '';
+  }
+
+  // Aviso efímero. El catálogo NO tenía ningún mecanismo de toast, así que va
+  // uno mínimo y autocontenido: estilos inline, sin depender del CSS ni de
+  // ninguna clase existente, y se borra solo. Se usa para los avisos de tope.
+  let _v4AvisoT = null;
+  function v4Aviso(msg){
+    // El catálogo ya tiene un toast propio (combosToast + #combo-toast + CSS).
+    // Se reusa para no meter un mecanismo paralelo con otro aspecto.
+    try {
+      if (typeof combosToast === 'function' && document.getElementById('combo-toast')) {
+        combosToast(msg, 3600);
+        return;
+      }
+    } catch(e){}
+    try {
+      let el = document.getElementById('v4-aviso');
+      if (!el) {
+        el = document.createElement('div');
+        el.id = 'v4-aviso';
+        el.setAttribute('role', 'status');
+        el.style.cssText = 'position:fixed;left:50%;bottom:96px;transform:translateX(-50%);'
+          + 'max-width:88vw;background:#1A0800;color:#FAF4EC;padding:11px 16px;'
+          + 'border-radius:10px;font-size:14px;line-height:1.35;text-align:center;'
+          + 'box-shadow:0 6px 24px rgba(0,0,0,.32);z-index:99999;opacity:0;'
+          + 'transition:opacity .18s ease;pointer-events:none';
+        document.body.appendChild(el);
+      }
+      el.textContent = msg;
+      requestAnimationFrame(function(){ el.style.opacity = '1'; });
+      if (_v4AvisoT) clearTimeout(_v4AvisoT);
+      _v4AvisoT = setTimeout(function(){
+        el.style.opacity = '0';
+        setTimeout(function(){ if (el && el.parentNode) el.parentNode.removeChild(el); }, 260);
+      }, 3200);
+    } catch(e){ console.info('[aviso]', msg); }
+  }
+
+  // Precarga al iniciar: así la primera ficha que abra el cliente ya tiene las
+  // variantes reales y no cae al fallback de x6/x7.
+  try {
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', function(){ v4CargarVariantes(); });
+    } else {
+      v4CargarVariantes();
+    }
+  } catch(e){}
 
   // v4.10.0: Productos ocultos por decisión de Braian (reversibles)
   // Para reactivar: quitar el nombre de este Set y deployar.
@@ -20891,14 +21113,21 @@ function confirmarCiudadNoAtendida() {
   function v4CalKey(nombre, calibre){
     return 'cal:' + nombre + ':' + calibre;
   }
+  // v3.34.0 — el tramo final puede ser 'x6' o 'x6@congelado'.
+  // Devuelve slug (crudo), calibre (sin estado) y estado por separado.
+  // Las claves viejas guardadas en localStorage siguen funcionando: sin '@'
+  // el estado queda en '' y el calibre es el slug entero.
   function v4CalKeyParse(key){
     if (!key || key.indexOf('cal:') !== 0) return null;
     const rest = key.slice(4);
     const lastColon = rest.lastIndexOf(':');
     if (lastColon === -1) return null;
+    const slug = rest.slice(lastColon + 1);
     return {
-      nombre: rest.slice(0, lastColon),
-      calibre: rest.slice(lastColon + 1)
+      nombre:  rest.slice(0, lastColon),
+      slug:    slug,
+      calibre: v4SlugCalibre(slug),
+      estado:  v4SlugEstado(slug)
     };
   }
   function v4CalKeyEsCalibre(key){
@@ -20924,7 +21153,29 @@ function confirmarCiudadNoAtendida() {
   window.v4ChgCal = function(nombre, calibre, delta){
     const key = v4CalKey(nombre, calibre);
     const prev = (typeof qty !== 'undefined' && qty[key]) ? qty[key] : 0;
-    const q = Math.max(0, prev + delta);
+    let   q = Math.max(0, prev + delta);
+
+    // v3.34.0 — TOPE. tope = LEAST(stock disponible, tope comercial), ya
+    // calculado en vw_cat_variantes. Los dos mensajes son distintos a
+    // propósito: uno deriva al vendedor, el otro avisa que no hay más.
+    // Nunca se muestra el número de stock.
+    if (delta > 0) {
+      const _v = v4VarPorSlug(nombre, calibre);
+      if (_v && _v.tope > 0 && q > _v.tope) {
+        q = _v.tope;
+        try {
+          const _esTopeComercial = (_v.tope >= V4_TOPE_DEFAULT);
+          const _msg = _esTopeComercial
+            ? 'Para pedidos más grandes, hablá con tu vendedor.'
+            : 'Por ahora no podemos tomar más de esta presentación.';
+          v4Aviso(_msg);
+        } catch(e){}
+      }
+      if (_v && !_v.hay) {
+        try { v4Aviso('Esta presentación no está disponible por ahora.'); } catch(e){}
+        return;
+      }
+    }
     if (q === 0) {
       try { delete qty[key]; } catch(e){ qty[key] = 0; }
     } else {
@@ -21054,7 +21305,8 @@ function confirmarCiudadNoAtendida() {
       const info = v4CalGetProductoByNombre(parsed.nombre);
       if (!info) return;
       const it = info.it;
-      const titulo = parsed.nombre + ' ' + parsed.calibre;
+      const titulo = parsed.nombre + ' ' + parsed.calibre
+                   + (parsed.estado ? ' \u00b7 ' + v4EstadoLabel(parsed.estado) : '');
       const imgSrc = (function(){
         try {
           if (typeof _imgmap !== 'undefined' && _imgmap[it.n]) return 'img/' + _imgmap[it.n];
@@ -21233,45 +21485,90 @@ function confirmarCiudadNoAtendida() {
   // ─── SHEET: render de presentaciones (calibres) ────────────────────────
   // Llamada DESDE v4SheetRenderCalc cuando el producto es Pollo A/B (override)
   function v4SheetRenderPresentaciones(it, slot){
-    const calibres = V4_CALIBRES[it.n] || [];
-    if (!calibres.length) return false;
+    const variantes = v4VariantesDe(it.n);
+    if (!variantes.length) return false;
+
+    // v3.34.0 — si todavía no cargaron las variantes reales, se dispara el
+    // fetch y se re-renderiza la ficha cuando llegan. Mientras tanto se
+    // muestra el fallback, así la ficha nunca aparece vacía.
+    if (_v4VarEstado === 'vacio' || _v4VarEstado === 'cargando') {
+      v4CargarVariantes().then(function(){
+        try {
+          const sh = document.getElementById('v4-sheet');
+          // sólo si la ficha sigue abierta en ESTE producto
+          if (!sh || sh.getAttribute('data-prod-nombre') !== it.n) return;
+          if (!slot || !slot.isConnected) return;
+          // se re-renderiza SOLO el bloque de presentaciones, sin tocar
+          // v4SheetRenderCalc (que necesita sec y sinStock y no los tenemos acá)
+          const viejo = slot.querySelector('.v4-presentaciones');
+          if (viejo && viejo.parentNode) viejo.parentNode.removeChild(viejo);
+          const descVieja = slot.querySelector('.v4-sheet-desc');
+          if (descVieja && descVieja.parentNode) descVieja.parentNode.removeChild(descVieja);
+          v4SheetRenderPresentaciones(it, slot);
+          if (typeof v4SheetActualizarFilasPollo === 'function') v4SheetActualizarFilasPollo();
+        } catch(e){}
+      });
+    }
 
     const desc = V4_DESCRIPCIONES[it.n] || '';
+    const conStock = variantes.filter(function(v){ return v.hay; });
+    const sinStock = variantes.filter(function(v){ return !v.hay; });
 
-    let html = '';
-    // Descripción (si existe)
-    if (desc) {
-      html += '<div class="v4-sheet-desc">' + desc + '</div>';
-    }
-    // Sección presentaciones
-    html += '<div class="v4-presentaciones">';
-    html += '<div class="v4-presentaciones-title">Presentaciones</div>';
-    html += '<div class="v4-presentaciones-sub">Elegí cuántos cajones de cada calibre querés.</div>';
-    html += '<div class="v4-presentaciones-list">';
-    calibres.forEach(function(cal){
-      const key = v4CalKey(it.n, cal);
-      const q = qty[key] || 0;
-      const active = q > 0;
-      const sublabel = V4_CALIBRES_SUBLABEL[cal] || '';
+    // Arma una fila. `dis` = sin stock -> gris y sin stepper.
+    function filaHTML(v, dis){
+      const slug = v4VarSlug(v);
+      const key  = v4CalKey(it.n, slug);
+      const q    = qty[key] || 0;
+      const active = (q > 0) && !dis;
+      const sublabel = V4_CALIBRES_SUBLABEL[v.calibre] || '';
       const precio = (typeof fmt === 'function') ? fmt(it.pr) : ('$' + it.pr);
-      const calEsc = cal.replace(/'/g, "\\'");
-      const nomEsc = it.n.replace(/'/g, "\\'");
-      html += '<div class="v4-pres-row' + (active ? ' active' : '') + '" data-v4-cal="' + cal + '" data-v4-pres-row="1">'
+      const estLbl = v4EstadoLabel(v.estado);
+      return '<div class="v4-pres-row' + (active ? ' active' : '') + (dis ? ' v4-pres-off' : '')
+          + '" data-v4-cal="' + slug + '" data-v4-pres-row="' + (dis ? '0' : '1') + '"'
+          + (dis ? ' style="opacity:.45"' : '') + '>'
         + '<div class="v4-pres-check">'
         + '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>'
         + '</div>'
         + '<div class="v4-pres-info">'
-        + '<div class="v4-pres-label">Calibre ' + cal + '</div>'
+        + '<div class="v4-pres-label">Calibre ' + v.calibre + (estLbl ? ' · ' + estLbl : '') + '</div>'
         + (sublabel ? '<div class="v4-pres-sublabel">' + sublabel + '</div>' : '')
-        + '<div class="v4-pres-price" style="margin-top:3px">' + precio + ' por cajón</div>'
+        + (dis
+            ? '<div class="v4-pres-sublabel" style="margin-top:3px">Sin stock por ahora</div>'
+            : '<div class="v4-pres-price" style="margin-top:3px">' + precio + ' por cajón</div>')
         + '</div>'
-        + '<div class="v4-pres-stepper">'
-        + '<button class="v4-pres-stepper-btn" data-v4-cal-minus="' + cal + '"' + (q === 0 ? ' disabled' : '') + '>−</button>'
-        + '<span class="v4-pres-stepper-value" data-v4-cal-qty="' + cal + '">' + q + '</span>'
-        + '<button class="v4-pres-stepper-btn" data-v4-cal-plus="' + cal + '">+</button>'
-        + '</div>'
+        + (dis ? '<div class="v4-pres-stepper"></div>'
+               : '<div class="v4-pres-stepper">'
+                 + '<button class="v4-pres-stepper-btn" data-v4-cal-minus="' + slug + '"' + (q === 0 ? ' disabled' : '') + '>−</button>'
+                 + '<span class="v4-pres-stepper-value" data-v4-cal-qty="' + slug + '">' + q + '</span>'
+                 + '<button class="v4-pres-stepper-btn" data-v4-cal-plus="' + slug + '">+</button>'
+                 + '</div>')
         + '</div>';
-    });
+    }
+
+    let html = '';
+    if (desc) html += '<div class="v4-sheet-desc">' + desc + '</div>';
+
+    html += '<div class="v4-presentaciones">';
+    html += '<div class="v4-presentaciones-title">Presentaciones</div>';
+    html += '<div class="v4-presentaciones-sub">Eleg\u00ed calibre y estado. Fresco se trabaja al recibirlo; congelado necesita uno o dos d\u00edas afuera.</div>';
+    html += '<div class="v4-presentaciones-list">';
+
+    if (!conStock.length) {
+      html += '<div class="v4-presentaciones-sub" style="padding:10px 0">Ahora mismo no tenemos stock de este producto. Consult\u00e1 con tu vendedor.</div>';
+    }
+    conStock.forEach(function(v){ html += filaHTML(v, false); });
+
+    // Las sin stock van colapsadas: el cliente ve primero lo que puede pedir,
+    // pero si busca un calibre puntual lo encuentra y no cree que no se trabaja.
+    if (sinStock.length) {
+      html += '<button type="button" class="v4-presentaciones-sub" data-v4-pres-toggle="1" '
+           +  'style="background:none;border:none;padding:8px 0;text-decoration:underline;cursor:pointer;text-align:left;width:100%">'
+           +  'Ver otras presentaciones (' + sinStock.length + ')</button>';
+      html += '<div data-v4-pres-off-wrap="1" style="display:none">';
+      sinStock.forEach(function(v){ html += filaHTML(v, true); });
+      html += '</div>';
+    }
+
     html += '</div>'; // .v4-presentaciones-list
     html += '</div>'; // .v4-presentaciones
 
@@ -21293,14 +21590,27 @@ function confirmarCiudadNoAtendida() {
       });
     });
     // Click en toda la fila también suma 1 (sólo si qty=0) — comportamiento Pedix
-    slot.querySelectorAll('[data-v4-pres-row]').forEach(function(row){
+    // v3.34.0: las filas sin stock traen data-v4-pres-row="0" y no reaccionan.
+    slot.querySelectorAll('[data-v4-pres-row="1"]').forEach(function(row){
       row.addEventListener('click', function(ev){
-        // No disparar si el click fue en un stepper (ya se manejó arriba)
         if (ev.target.closest('.v4-pres-stepper')) return;
         const cal = row.getAttribute('data-v4-cal');
         const key = v4CalKey(it.n, cal);
         const cur = qty[key] || 0;
         if (cur === 0) v4ChgCal(it.n, cal, 1);
+      });
+    });
+    // v3.34.0 — desplegar las presentaciones sin stock
+    slot.querySelectorAll('[data-v4-pres-toggle]').forEach(function(btn){
+      btn.addEventListener('click', function(ev){
+        ev.stopPropagation();
+        const wrap = slot.querySelector('[data-v4-pres-off-wrap]');
+        if (!wrap) return;
+        const abierto = wrap.style.display !== 'none';
+        wrap.style.display = abierto ? 'none' : '';
+        btn.textContent = abierto
+          ? 'Ver otras presentaciones (' + wrap.querySelectorAll('[data-v4-cal]').length + ')'
+          : 'Ocultar otras presentaciones';
       });
     });
 
