@@ -2,7 +2,25 @@
 <html lang="es">
 <head>
 <!-- ═══════════════════════════════════════════════════════════════════════
-     TCK CATÁLOGO — v3.37.0 — 31/07/2026  (ACUMULATIVA: reemplaza 3.35/3.36)
+     TCK CATÁLOGO — v3.38.0 — 31/07/2026  (FIX: las 2 categorías nuevas no tenían tile)
+
+     v3.38.0: BUG — UNIÓN GANADERA y CERDO existían en CAT pero NO en
+       V4_GRUPOS, y el catálogo arranca en v4-mode: el cliente entra por los
+       tiles del home. Los 26 productos nuevos sólo se alcanzaban por el
+       buscador o por "Ver todo el catálogo". Detectado al ir a poner la foto
+       de categoría — que es justamente la imagen del tile.
+       FIX (4 partes):
+         · V4_GRUPOS: +unionganadera (ids:[unionganadera]) y +cerdo.
+         · Dos tiles nuevos en el home con badge "★ NUEVO": UG después de
+           Pollos, Cerdo antes de Huevos.
+         · CSS .v4-cat-img-fallback.unionganadera / .cerdo (degradé de marca
+           si la foto no carga).
+         · fallbacksPorCategoria: ug_salchicha_corta_380.jpg y
+           bondiola_cerdo.jpg, que ya están en /img/.
+       REQUIERE: img/categorias/unionganadera.jpg e img/categorias/cerdo.jpg
+       (van en la carpeta categorias/, NO en la raíz de img/).
+
+     ── TCK CATÁLOGO — v3.37.0 — 31/07/2026  (ACUMULATIVA: reemplaza 3.35/3.36) ──
 
      v3.37.0: LÍNEA UNIÓN GANADERA CON FOTO PROPIA POR SKU.
        · CAT: sección "unionganadera" (col1 #0E4B42 / col2 #062A25, el verde
@@ -8214,6 +8232,18 @@ body.v4-mode.v4-vista-home .v4-home{display:block}
     radial-gradient(ellipse at 72% 62%, #d85040 0%, transparent 45%),
     linear-gradient(135deg,#C0392B 0%,#5c1410 100%);
 }
+.v4-cat-img-fallback.unionganadera{
+  background:
+    radial-gradient(ellipse at 38% 42%, #2e8f7e 0%, transparent 45%),
+    radial-gradient(ellipse at 72% 62%, #14675a 0%, transparent 45%),
+    linear-gradient(135deg,#0E4B42 0%,#04211c 100%);
+}
+.v4-cat-img-fallback.cerdo{
+  background:
+    radial-gradient(ellipse at 38% 42%, #e08aa0 0%, transparent 45%),
+    radial-gradient(ellipse at 72% 62%, #c05070 0%, transparent 45%),
+    linear-gradient(135deg,#B03A5B 0%,#4e1528 100%);
+}
 .v4-cat-img-fallback.combos{
   background:
     radial-gradient(circle at 30% 35%, #f8d878 0%, transparent 45%),
@@ -10630,6 +10660,19 @@ body.v4-mode .body .card:has(.card-price-tramos) .card-body{padding-bottom:6px}
       <div class="v4-cat-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></div>
     </button>
 
+    <!-- Unión Ganadera -->
+    <button class="v4-cat-card" data-v4-grupo="unionganadera" onclick="v4AbrirGrupo('unionganadera')">
+      <img class="v4-cat-img-real" data-v4-grupo-img="unionganadera" alt="" aria-hidden="true">
+      <div class="v4-cat-img-fallback unionganadera"></div>
+      <div class="v4-cat-overlay"></div>
+      <div class="v4-cat-badge">★ NUEVO</div>
+      <div class="v4-cat-name">
+        <div class="v4-cat-name-text">Unión Ganadera</div>
+        <div class="v4-cat-name-sub">Salchichas, hamburguesas y milanesas</div>
+      </div>
+      <div class="v4-cat-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></div>
+    </button>
+
     <!-- 🥟 Tapa Manía -->
     <button class="v4-cat-card" data-v4-grupo="tapamania" onclick="v4AbrirGrupo('tapamania')">
       <img class="v4-cat-img-real" data-v4-grupo-img="tapamania" alt="" aria-hidden="true">
@@ -10638,6 +10681,19 @@ body.v4-mode .body .card:has(.card-price-tramos) .card-body{padding-bottom:6px}
       <div class="v4-cat-name">
         <div class="v4-cat-name-text">Tapa Manía</div>
         <div class="v4-cat-name-sub">Empanadas, pastas y panificados</div>
+      </div>
+      <div class="v4-cat-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></div>
+    </button>
+
+    <!-- Cerdo -->
+    <button class="v4-cat-card" data-v4-grupo="cerdo" onclick="v4AbrirGrupo('cerdo')">
+      <img class="v4-cat-img-real" data-v4-grupo-img="cerdo" alt="" aria-hidden="true">
+      <div class="v4-cat-img-fallback cerdo"></div>
+      <div class="v4-cat-overlay"></div>
+      <div class="v4-cat-badge">★ NUEVO</div>
+      <div class="v4-cat-name">
+        <div class="v4-cat-name-text">Cerdo</div>
+        <div class="v4-cat-name-sub">Cortes de cerdo congelados</div>
       </div>
       <div class="v4-cat-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></div>
     </button>
@@ -19786,6 +19842,8 @@ function confirmarCiudadNoAtendida() {
     'verduras':  { titulo:'Verduras Congeladas', sub:'Brócoli, espinaca, mix vegetal',       ids:['verd'] },
     'pastas':    { titulo:'Pastas Congeladas',   sub:'Sorrentinos, ravioles, ñoquis',     ids:['pastas'] },
     'tapamania': { titulo:'Tapa Manía',          sub:'Empanadas, pastas y panificados',  ids:['tapamania'] },
+    'unionganadera': { titulo:'Unión Ganadera',  sub:'Salchichas, hamburguesas y milanesas', ids:['unionganadera'] },
+    'cerdo':     { titulo:'Cerdo',               sub:'Cortes de cerdo congelados',        ids:['cerdo'] },
     'combos':    { titulo:'Combos y Promos',     sub:'Ofertas del mes y combos mayoristas', ids:[], esCombos:true }
   };
 
@@ -20019,7 +20077,9 @@ function confirmarCiudadNoAtendida() {
       'tapamania': 'img/Empanadas_Tradicionales_para_Horno.png',
       'rebozados': 'img/Nuggets%20de%20Pollo%20Crocante.jpg',
       'premium':   'img/langostinos_rebozados.jpg',
-      'pollos':    'img/suprema_x_5kg.jpg'
+      'pollos':    'img/suprema_x_5kg.jpg',
+      'unionganadera': 'img/ug_salchicha_corta_380.jpg',
+      'cerdo':     'img/bondiola_cerdo.jpg'
     };
     const elementos = document.querySelectorAll('.v4-cat-img-real');
     elementos.forEach(function(imgEl){
