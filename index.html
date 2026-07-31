@@ -2,7 +2,24 @@
 <html lang="es">
 <head>
 <!-- ═══════════════════════════════════════════════════════════════════════
-     TCK CATÁLOGO — v3.38.0 — 31/07/2026  (FIX: las 2 categorías nuevas no tenían tile)
+     TCK CATÁLOGO — v3.39.0 — 31/07/2026  (FIX: botón + sobre productos sin stock)
+
+     v3.39.0: el botón "+" aparecía sobre las cards SIN STOCK y tapaba el
+       aviso "Momentáneamente sin stock. Consultá a tu vendedor". Se vio con
+       los 25 SKUs de Unión Ganadera, que entraron todos sin stock a la vez.
+       CAUSA (no era un olvido, era especificidad CSS): la regla de sin-stock
+       ya ponía display:none sobre .qrow desde v4.14.5, pero tenía 6 clases
+         .card.card-sinstock:not(.card-dual) .qrow
+       contra las 7 de la regla general del botón
+         .card:not(.card-dual):not(.combo-card):not(.promo-card) .qrow
+       Con igual !important gana la más específica — la general — así que el
+       display:none nunca se aplicó. Se iguala sumando los dos :not().
+       ADEMÁS: el <br> del aviso estaba en display:none y el texto salía
+       pegado ("sin stock.Consultá"). Ahora que la esquina quedó libre, el
+       aviso usa sus dos líneas.
+       Nada de esto afecta a los productos CON stock: su botón + no cambia.
+
+     ── TCK CATÁLOGO — v3.38.0 — 31/07/2026  (FIX: las 2 categorías nuevas no tenían tile) ──
 
      v3.38.0: BUG — UNIÓN GANADERA y CERDO existían en CAT pero NO en
        V4_GRUPOS, y el catálogo arranca en v4-mode: el cliente entra por los
@@ -8748,7 +8765,12 @@ body.v4-mode .body .card.card-sinstock:not(.card-dual){
   background:#FAF6F0 !important;
   border-color:#D8C9B0 !important;
 }
+body.v4-mode .body .card.card-sinstock:not(.card-dual):not(.combo-card):not(.promo-card) .qrow,
 body.v4-mode .body .card.card-sinstock:not(.card-dual) .qrow{
+  /* v3.39.0 FIX: la regla general del botón +/qty (arriba) tiene 7 clases y
+     esta tenía 6, así que le ganaba aunque las dos usen !important: el botón
+     seguía apareciendo sobre productos sin stock y pisaba el aviso. Se iguala
+     la especificidad sumando :not(.combo-card):not(.promo-card). */
   display:none !important;
 }
 body.v4-mode .body .card.card-sinstock:not(.card-dual) .card-price{
@@ -8772,9 +8794,12 @@ body.v4-mode .body .card.card-sinstock:not(.card-dual) .card-sinstock-msg{
   text-align:left !important;
   max-width:none;
   line-height:1.3 !important;
+  padding-right:0 !important;   /* v3.39.0: el botón + ya no ocupa esa esquina */
 }
 body.v4-mode .body .card.card-sinstock:not(.card-dual) .card-sinstock-msg strong{font-weight:700}
-body.v4-mode .body .card.card-sinstock:not(.card-dual) .card-sinstock-msg br{display:none}
+/* v3.39.0: el br se ocultaba y el texto quedaba pegado ("sin stock.Consultá").
+   Ahora que el botón + no está encima, el aviso usa sus dos líneas. */
+body.v4-mode .body .card.card-sinstock:not(.card-dual) .card-sinstock-msg br{display:inline}
 
 /* ─── CALCULADORA + CALIBRE — colapsan al fondo, no rompen layout ─── */
 /* Por ahora, las escondemos por simplicidad. Si querés mostrarlas inline en Fase
