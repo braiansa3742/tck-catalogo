@@ -2,7 +2,40 @@
 <html lang="es">
 <head>
 <!-- ═══════════════════════════════════════════════════════════════════════
-     TCK CATÁLOGO — v3.39.0 — 31/07/2026  (FIX: botón + sobre productos sin stock)
+     TCK CATÁLOGO — v3.40.0 — 04/08/2026  (REPETIR PEDIDO: AVISO DE PRECIOS + BANNER DE UPDATE)
+
+     v3.40.0: DOS COSAS QUE SALIERON DEL RECLAMO DE UN CLIENTE (03/08).
+       Contexto: Julio Nicolás Barraza (Pehuajó) reclamó que le cobraron
+       $4.300 de más. Mandó captura del catálogo con su carrito en $162.500
+       contra la factura B-00008-00002878 de $166.800. La factura estaba
+       BIEN: pidió el 31/07 a las 09:51 con el Cuarto Trasero IQF a $57.300
+       y ese mismo día ~11:38 el precio bajó a $53.000. Lo que fotografió
+       no era su pedido: era el carrito de "Repetir pedido" re-valorizado.
+
+       1. AVISO DE CAMBIO DE PRECIO AL REPETIR (cargarUltimoPedido).
+          `guardarUltimoPedido` guarda los precios del pedido anterior, pero
+          `cargarUltimoPedido` restaura SOLO las cantidades y el carrito se
+          re-valoriza con la lista de hoy (precioUnit sobre el CAT vigente).
+          Es lo correcto —es un pedido nuevo— pero el FAB muestra el total
+          viejo ("Tu último pedido: $166.800") y al cargarlo el drawer marca
+          otro ($162.500) sin explicar por qué. Ahora, si algún precio
+          cambió, sale un toast: "Cambiaron los precios de N productos: el
+          total que ves es el de hoy". Se unificó con el toast de productos
+          no disponibles (el toast se pisa a sí mismo, no se encadenan dos).
+          NO se toca el total del FAB: ahí "$166.800" es correcto, es lo que
+          gastó la vez pasada.
+
+       2. TCK_UPD_LOCAL ESTABA EN 3.27.0 CON version.json EN 3.39.0.
+          El bump se venía olvidando desde la 3.27.0, así que el chequeo de
+          versión daba "hay una nueva" SIEMPRE y TODOS los clientes veían el
+          banner negro "🔄 Nueva versión disponible / Actualizar" de forma
+          permanente — se ve en la captura que mandó el cliente. Peor: al
+          tocar "Actualizar" borra caches, desregistra el SW y recarga, y el
+          index nuevo vuelve a traer 3.27.0 → el banner reaparece en la
+          sesión siguiente, para siempre. Ahora TCK_UPD_LOCAL = version.json
+          = 3.40.0. RECORDATORIO: los dos se bumpean juntos en cada deploy.
+
+     ── v3.39.0 — 31/07/2026  (FIX: botón + sobre productos sin stock) ──
 
      v3.39.0: el botón "+" aparecía sobre las cards SIN STOCK y tapaba el
        aviso "Momentáneamente sin stock. Consultá a tu vendedor". Se vio con
@@ -16901,7 +16934,22 @@ function cargarUltimoPedido() {
     // cualquier deploy que reordenara el CAT, se cargaban productos
     // EQUIVOCADOS en silencio. Ítems que ya no existen o están sin
     // stock se omiten y se avisa.
-    var omitidos = 0;
+    // v3.40.0: el carrito se re-valoriza SIEMPRE con la lista de precios
+    // vigente (precioUnit sobre el CAT de hoy), NO con los precios que
+    // tenía el pedido anterior. Eso está bien —es un pedido nuevo— pero sin
+    // avisarlo el cliente lee este carrito como si fuera el comprobante de
+    // lo que ya encargó y cree que le facturaron mal.
+    // Caso real (reclamo Barraza, 03/08): pidió el 31/07 09:51 con el Cuarto
+    // Trasero IQF a $57.300, a las 11:38 de ese mismo día bajó a $53.000,
+    // repitió el pedido después y reclamó los $4.300 de diferencia contra su
+    // factura B-00008-00002878 (que estaba bien emitida).
+    var omitidos = 0, cambios = 0;
+    function _repChequearPrecio(itCat, q, prGuardado) {
+      var prAntes = Number(prGuardado) || 0;
+      if (prAntes <= 0) return;                    // datos viejos sin precio
+      var prAhora = precioUnit(itCat, q);
+      if (prAhora > 0 && prAhora !== prAntes) cambios++;
+    }
     data.items.forEach(function(it) {
       var q = Number(it.qty) || 0;
       if (q <= 0) return;
@@ -16911,6 +16959,7 @@ function cargarUltimoPedido() {
         var posC = _catBuscarPorNombre(it.nombre);
         if (posC && !SIN_STOCK.has(it.nombre)) {
           qty['cal:' + it.nombre + ':' + it.calibre] = q;
+          _repChequearPrecio(posC.it, q, it.pr);
         } else { omitidos++; }
         return;
       }
@@ -16919,10 +16968,14 @@ function cargarUltimoPedido() {
       // para datos viejos sin nombre guardado (comportamiento previo).
       var pos = it.nombre ? _catBuscarPorNombre(it.nombre) : null;
       if (pos) {
-        if (!SIN_STOCK.has(it.nombre)) qty[pos.si + '-' + pos.ii] = q;
+        if (!SIN_STOCK.has(it.nombre)) {
+          qty[pos.si + '-' + pos.ii] = q;
+          _repChequearPrecio(pos.it, q, it.pr);
+        }
         else omitidos++;
       } else if (!it.nombre && it.si !== undefined && CAT[it.si] && CAT[it.si].items[it.ii]) {
         qty[it.si + '-' + it.ii] = q;
+        _repChequearPrecio(CAT[it.si].items[it.ii], q, it.pr);
       } else {
         omitidos++;
       }
@@ -16932,10 +16985,21 @@ function cargarUltimoPedido() {
     renderDrawer();
     saveCartLS();
 
-    if (omitidos > 0 && typeof combosToast === 'function') {
-      combosToast(omitidos === 1
-        ? '1 producto de tu pedido anterior ya no está disponible'
-        : omitidos + ' productos de tu pedido anterior ya no están disponibles', 4000);
+    // Un solo toast: si hay las dos cosas, van juntas (el toast se pisa a
+    // sí mismo, no se pueden encadenar dos llamadas).
+    if ((omitidos > 0 || cambios > 0) && typeof combosToast === 'function') {
+      var _msg = [];
+      if (omitidos > 0) {
+        _msg.push(omitidos === 1
+          ? '1 producto de tu pedido anterior ya no está disponible'
+          : omitidos + ' productos de tu pedido anterior ya no están disponibles');
+      }
+      if (cambios > 0) {
+        _msg.push(cambios === 1
+          ? 'Cambió el precio de 1 producto: el total que ves es el de hoy'
+          : 'Cambiaron los precios de ' + cambios + ' productos: el total que ves es el de hoy');
+      }
+      combosToast(_msg.join(' · '), 5000);
     }
 
     // Ocultar FAB
@@ -22475,7 +22539,7 @@ function confirmarCiudadNoAtendida() {
    TCK_UPD_LOCAL aca Y el archivo version.json del repo.
    ============================================================ */
 (function(){
-  var TCK_UPD_LOCAL = '3.27.0';        /* <-- bump en cada deploy */
+  var TCK_UPD_LOCAL = '3.40.0';        /* <-- bump en cada deploy */
   var TCK_UPD_INTERVALO = 10 * 60 * 1000;   /* chequeo de fondo: 10 min */
   var _updUltChequeo = 0;
 
