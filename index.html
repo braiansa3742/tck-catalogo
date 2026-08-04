@@ -2,7 +2,78 @@
 <html lang="es">
 <head>
 <!-- ═══════════════════════════════════════════════════════════════════════
-     TCK CATÁLOGO — v3.41.0 — 04/08/2026  (EMBUDO wa_meta + BUG N35 + CIUDADES SIN REPARTO)
+     TCK CATÁLOGO — v3.42.1 — 04/08/2026  (REPASO DE LA 3.42.0)
+
+     v3.42.1: seis cosas que aparecieron al releer la 3.42.0 entera.
+       1. LEAD DIRECTO PEDÍA LA CIUDAD QUE YA TENÍA. El alta por
+          lead_registro arrastra nombre, comercio y localidad que Jose ya
+          cargó, y aun así se mostraba la pantalla "¿De dónde sos?". Ahora,
+          si la cuenta ya nace con ciudad, va derecho al éxito; si le falta,
+          el campo viene pre-cargado con lo que tenga.
+       2. EL SUBTÍTULO DE LA PANTALLA DE PIN QUEDABA PEGADO. Al entrar por
+          lead se reemplaza por "tu número ya está verificado", y ese texto
+          se quedaba ahí para el siguiente cliente que sí verificara por SMS
+          (mismo DOM, el modal no se re-crea). Ahora se guarda el original y
+          cliFlowIniciar lo restaura.
+       3. EL setTimeout DE 20s DEL BOTÓN "LLAMAME" NO SE CANCELABA. Dos
+          envíos seguidos dejaban dos timers vivos y el segundo habilitaba el
+          botón antes de tiempo. Se guarda el id y se limpia.
+       4. _flowLeadDirecto NO SE RESETEABA en cliFlowIniciar. Se recalculaba
+          en cada intento de registro, así que no llegaba a hacer daño, pero
+          dependía de eso. Ahora arranca limpio.
+       5. LA PANTALLA DE OTP NO TENÍA SALIDA. "Hacer mi pedido sin cuenta"
+          existía solo en la pantalla del teléfono, que aparece cuando el
+          ENVÍO falla. El caso real es otro: el envío sale bien, el SMS no
+          llega, y el cliente queda encerrado mirando 4 casillas vacías.
+          Ahora la salida está también ahí.
+       6. cliFlowDatosPreparar miraba solo localStorage; ahora mira primero
+          _cliActivo.ciudad (que es lo que trajo el lead).
+
+     ── v3.42.0 — 04/08/2026  (RESCATE DEL OTP POR LLAMADA DE VOZ) ──
+
+     v3.42.0: EL OTP FALLABA Y LA SOLUCIÓN YA ESTABA PAGA.
+       Caso 04/08: Vonage reportó `delivered` sobre un SMS que el equipo
+       del cliente nunca mostró (filtro A2P de la operadora o bandeja de
+       remitentes desconocidos). Al revisar el Apps Script apareció que
+       `enviarOTP` usa Verify v1 SIN workflow_id → workflow 1 por defecto:
+       SMS → LLAMADA DE VOZ → LLAMADA DE VOZ. O sea que a los ~125s Vonage
+       llama y dicta el código. Nunca llegaba a pasar:
+         · el timer de esta pantalla expiraba a los 120s, 5s antes;
+         · el botón "Reenviar" se habilita a los 30s y disparaba un
+           enviarOTP nuevo SIN cancelar el anterior → Vonage lo rechaza por
+           verificación concurrente, o reinicia el workflow desde cero.
+       Cada reenvío alejaba al cliente de la llamada que lo iba a salvar.
+
+       1. BOTÓN "NO ME LLEGÓ — LLAMAME" (se habilita a los 20s).
+          Llama a la acción nueva `siguientePasoOTP` del Apps Script
+          (v25.104.0), que hace cmd=trigger_next_event sobre Verify: fuerza
+          el paso siguiente del workflow AL INSTANTE, sin esperar los 125s.
+          El SMS lo filtran; la llamada no la filtra nadie.
+
+       2. TIMER 2:00 → 5:00. Es la vida real del request en Verify v1 (300s).
+          Antes matábamos el request antes de que Vonage terminara.
+
+       3. REENVIAR CANCELA EL REQUEST ANTERIOR (`cancelarOTP`, que ya existía
+          en el Apps Script y el catálogo nunca llamaba) antes de pedir uno
+          nuevo. Y pasa a ser secundario: el botón que importa es el de la
+          llamada.
+
+       4. FALLBACK HONESTO. Decía "Pedir mi código por WhatsApp" y mandaba al
+          WhatsApp de Miguel — que no puede generar ningún código, porque lo
+          emite Vonage. Ahora lo primero es "Hacer mi pedido sin cuenta":
+          el cliente pierde el cupón, no la compra. El WhatsApp queda como
+          último recurso y el mensaje precargado le dice al operador qué pasó
+          y qué tiene que hacer.
+
+       5. REGISTRO SIN OTP PARA LEADS DE JOSE. Si el cliente entró con
+          ?l=CODIGO y el teléfono que escribe es el MISMO que Jose cargó en
+          Lead.html, el número ya está verificado: Jose habló con esa persona
+          por WhatsApp antes de generarle el link. Pedirle un SMS es
+          verificar dos veces lo mismo y perder gente en el medio. Se saltea
+          el OTP y va derecho a elegir PIN, con alta por la RPC lead_registro
+          (valida el par código+teléfono contra leads_captacion).
+
+     ── v3.41.0 — 04/08/2026  (EMBUDO wa_meta + BUG N35 + CIUDADES SIN REPARTO) ──
 
      v3.41.0: TRES ARREGLOS DE UNA PASADA, TODOS SOBRE EL MISMO PROBLEMA:
        el catálogo perdía los datos que definen zona, precio y vendedor.
@@ -3083,6 +3154,13 @@ async function tckLocResolverAuto(id) {
 // lead_evento() es SECURITY DEFINER (anon solo puede insertar en la
 // tabla): marca abrio_at / registrado_at y ata el cliente_auth_id.
 // Fire-and-forget: si la RPC no existe todavía, no rompe nada.
+// v3.42.0: true cuando el cliente entró por un link de Jose y su teléfono
+// coincide con el del lead → el número ya está verificado, no va OTP.
+var _flowLeadDirecto = false;
+
+// v3.42.1: id del timer que habilita el botón de rescate por llamada.
+var _flowLlamarTimeout = null;
+
 function leadCodigoActual() {
   try {
     const d = (typeof utmLeer === 'function') ? utmLeer() : null;
@@ -10537,10 +10615,12 @@ body.v4-mode .body .card:has(.card-price-tramos) .card-body{padding-bottom:6px}
       <!-- v3.25.0: fallback cuando el envío de OTP falla -->
       <div id="cli-flow-tel-fallback" style="display:none;margin:10px 0 4px">
         <div id="cli-flow-tel-fallback-det" style="font-size:11px;opacity:.6;margin-bottom:8px;text-align:center;word-break:break-word"></div>
-        <a id="cli-flow-tel-fallback-wa" href="#" target="_blank" rel="noopener"
-           style="display:block;text-align:center;background:#1EBE5D;color:#fff;font-weight:800;font-family:'Barlow Condensed',sans-serif;letter-spacing:.4px;font-size:15px;padding:12px;border-radius:12px;text-decoration:none;margin-bottom:8px">📲 Pedir mi código por WhatsApp</a>
+        <!-- v3.42.0: lo primero es que pueda comprar. La cuenta y el cupón
+             se recuperan después; la venta perdida no. -->
         <button type="button" onclick="cliFlowFallbackInvitado()"
-           style="display:block;width:100%;background:none;border:1px solid rgba(255,255,255,.25);color:rgba(255,255,255,.85);font-size:13px;padding:10px;border-radius:12px;cursor:pointer">Seguir sin cuenta por ahora →</button>
+           style="display:block;width:100%;background:linear-gradient(135deg,#8B0000,#B71C1C);border:none;color:#FFD700;font-family:'Barlow Condensed',sans-serif;font-weight:900;letter-spacing:.4px;font-size:15px;padding:13px;border-radius:12px;cursor:pointer;margin-bottom:8px">🛒 Hacer mi pedido sin cuenta →</button>
+        <a id="cli-flow-tel-fallback-wa" href="#" target="_blank" rel="noopener"
+           style="display:block;text-align:center;background:none;border:1px solid rgba(255,255,255,.25);color:rgba(255,255,255,.85);font-size:13px;padding:10px;border-radius:12px;text-decoration:none">📲 Que te registremos nosotros</a>
       </div>
 
       <button class="cli-flow-btn" id="cli-flow-tel-btn" onclick="cliFlowTelSiguiente()">Enviar código →</button>
@@ -10573,14 +10653,27 @@ body.v4-mode .body .card:has(.card-price-tramos) .card-body{padding-bottom:6px}
 
       <div class="cli-flow-error" id="cli-flow-otp-err"></div>
 
+      <!-- v3.42.0: rescate por llamada de voz. El SMS lo puede filtrar la
+           operadora o la bandeja de desconocidos; la llamada no. -->
+      <button type="button" id="cli-flow-otp-llamar" onclick="cliFlowOtpLlamarme()" disabled
+        style="display:block;width:100%;margin:8px 0 2px;padding:12px;border:1.5px solid rgba(255,215,0,.55);border-radius:12px;background:rgba(255,215,0,.10);color:#FFD700;font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:800;letter-spacing:.4px;cursor:pointer;opacity:.5">
+        📞 No me llegó — llamame y dictame el código
+      </button>
+      <div id="cli-flow-otp-llamar-ok" style="display:none;font-size:12px;line-height:1.4;color:#7CC576;text-align:center;margin:6px 0 2px"></div>
+
       <!-- v3.25.0: fallback si el reenvío falla -->
       <div id="cli-flow-otp-fallback" style="display:none;margin:6px 0 2px">
+        <!-- v3.42.1 (fix 5): el caso real no es que falle el ENVÍO, es que el
+             SMS no llegue. Ahí el cliente quedaba encerrado en esta pantalla
+             sin ninguna salida. Ahora puede comprar igual. -->
+        <button type="button" onclick="cliFlowFallbackInvitado()"
+           style="display:block;width:100%;background:linear-gradient(135deg,#8B0000,#B71C1C);border:none;color:#FFD700;font-family:'Barlow Condensed',sans-serif;font-weight:900;letter-spacing:.4px;font-size:15px;padding:13px;border-radius:12px;cursor:pointer;margin-bottom:8px">🛒 Hacer mi pedido sin cuenta →</button>
         <a id="cli-flow-otp-fallback-wa" href="#" target="_blank" rel="noopener"
-           style="display:block;text-align:center;background:#1EBE5D;color:#fff;font-weight:800;font-family:'Barlow Condensed',sans-serif;letter-spacing:.4px;font-size:14px;padding:10px;border-radius:12px;text-decoration:none">📲 Pedir mi código por WhatsApp</a>
+           style="display:block;text-align:center;background:none;border:1px solid rgba(255,255,255,.25);color:rgba(255,255,255,.85);font-size:13px;padding:10px;border-radius:12px;text-decoration:none">📲 Que te registremos nosotros</a>
       </div>
 
-      <div class="cli-flow-timer" id="cli-flow-otp-timer">Expira en 02:00</div>
-      <button class="cli-flow-reenvio" id="cli-flow-otp-reenvio" onclick="cliFlowOtpReenviar()" disabled>Reenviar código en <span id="cli-flow-otp-reenvio-sec">30</span>s</button>
+      <div class="cli-flow-timer" id="cli-flow-otp-timer">Expira en 05:00</div>
+      <button class="cli-flow-reenvio" id="cli-flow-otp-reenvio" onclick="cliFlowOtpReenviar()" disabled>Reenviar SMS en <span id="cli-flow-otp-reenvio-sec">30</span>s</button>
 
       <button class="cli-flow-btn" id="cli-flow-otp-btn" onclick="cliFlowOtpVerificar()" disabled>Verificar</button>
     </div>
@@ -18035,6 +18128,12 @@ function cliFlowIniciar(modo) {
   _flowOtpOK = false;
   _flowPinActual = '';
   _flowClienteData = null;
+  _flowLeadDirecto = false;   // v3.42.1 (fix 4)
+
+  // v3.42.1 (fix 2): restaurar el subtítulo de la pantalla de PIN por si el
+  // cliente anterior entró por link de Jose y lo dejó en "ya verificado".
+  const subPin = document.querySelector('#cli-flow-pin .cli-flow-sub');
+  if (subPin && subPin.dataset.original) subPin.innerHTML = subPin.dataset.original;
 
   cliFlowShow('tel');
 }
@@ -18127,6 +18226,40 @@ async function cliFlowTelSiguiente() {
         btn.textContent = cliFlowTelBtnTextoPorModo();
         return;
       }
+      // ── v3.42.0: ATAJO PARA LEADS DE JOSE ──────────────────────
+      // Si entró con ?l=CODIGO y el teléfono que escribe es el mismo que
+      // Jose cargó en Lead.html, el número YA está verificado: Jose habló
+      // con esa persona por WhatsApp antes de generarle el link. Mandarle
+      // un SMS es verificar dos veces lo mismo — y el SMS es justo lo que
+      // falla. Se saltea el OTP y va derecho a elegir PIN.
+      _flowLeadDirecto = false;
+      const codLead = leadCodigoActual();
+      if (codLead) {
+        try {
+          const v = await cliRpc('lead_verifica', { p_codigo: codLead, p_telefono: tel });
+          _flowLeadDirecto = !!(v && v.ok);
+        } catch(e) { _flowLeadDirecto = false; }
+      }
+      if (_flowLeadDirecto) {
+        _flowOtpOK = true;
+        const subPin = document.querySelector('#cli-flow-pin .cli-flow-sub');
+        if (subPin) {
+          // v3.42.1: guardar el original ANTES de pisarlo — el modal es el
+          // mismo DOM para todos los clientes de esa sesión.
+          if (!subPin.dataset.original) subPin.dataset.original = subPin.innerHTML;
+          subPin.innerHTML = '✅ <b>Tu número ya está verificado.</b><br>'
+            + 'Elegí un PIN de 4 dígitos para entrar a tu cuenta. '
+            + '<b>Evitá PINs obvios</b> como 1234 o 0000.';
+        }
+        cliFlowShow('pin');
+        setTimeout(() => {
+          const p0 = document.getElementById('cli-flow-pin-0');
+          if (p0) p0.focus();
+        }, 100);
+        btn.disabled = false;
+        btn.textContent = cliFlowTelBtnTextoPorModo();
+        return;
+      }
       await cliFlowEnviarOtp();
       btn.disabled = false;
       btn.textContent = cliFlowTelBtnTextoPorModo();
@@ -18182,6 +18315,8 @@ async function cliFlowEnviarOtp() {
 // el motivo + fallback WhatsApp (Miguel, receptor del catálogo desde B2)
 // + opción de seguir como invitado. El detalle técnico queda visible en
 // chico para diagnóstico en campo.
+// Quién atiende al cliente que no pudo verificarse. Cambiando ESTA línea
+// se redirige a otra persona (ej: administración) sin tocar nada más.
 var TCK_WA_FALLBACK = '5492392449725'; // Miguel — mismo wa.me de consultas
 
 function cliFlowOtpMensajePorMotivo(motivo, esConexion) {
@@ -18206,8 +18341,11 @@ function cliFlowOtpFallo(motivo, esConexion) {
   const wa  = document.getElementById('cli-flow-tel-fallback-wa');
   if (det) det.textContent = motivo ? ('Detalle técnico: ' + motivo) : '';
   if (wa) {
-    const txt = 'Hola TCK! Estoy intentando registrarme en el catálogo y no me llega el código.' +
-                (_flowTel ? (' Mi teléfono es ' + _flowTel + '.') : '');
+    // v3.42.0: el mensaje tiene que servirle al que atiende. Antes decía
+    // "pedir mi código", que es algo que ningún humano puede emitir.
+    const txt = 'Hola TCK! Quiero crear mi cuenta en el catálogo y no me llega el código'
+      + (_flowTel ? (', mi teléfono es ' + _flowTel) : '')
+      + '. ¿Me pueden dar de alta o tomar el pedido por acá?';
     wa.href = 'https://wa.me/' + TCK_WA_FALLBACK + '?text=' + encodeURIComponent(txt);
   }
   if (fb) fb.style.display = 'block';
@@ -18229,9 +18367,11 @@ function cliFlowFallbackInvitado() {
 }
 
 function cliFlowStartOtpTimer() {
-  // Timer de expiración (2 minutos)
+  // v3.42.0: 120 → 300 s. Es la vida real del request en Verify v1: si el
+  // SMS no entra, Vonage llama a los ~125s y vuelve a llamar a los ~180s.
+  // Con el timer en 2:00 matábamos la pantalla justo antes del rescate.
   if (_flowOtpTimer) clearInterval(_flowOtpTimer);
-  let seg = 120;
+  let seg = 300;
   const timerEl = document.getElementById('cli-flow-otp-timer');
   const update = () => {
     const m = Math.floor(seg/60);
@@ -18241,6 +18381,9 @@ function cliFlowStartOtpTimer() {
     if (seg < 0) {
       clearInterval(_flowOtpTimer);
       if (timerEl) timerEl.textContent = 'El código expiró';
+      // v3.42.1 (fix 5): si llegó hasta acá, el SMS no apareció nunca.
+      // Mostrarle la salida en vez de dejarlo mirando 4 casillas vacías.
+      if (typeof cliFlowMostrarFallbackOtp === 'function') cliFlowMostrarFallbackOtp();
     }
   };
   update();
@@ -18254,8 +18397,26 @@ function cliFlowStartOtpTimer() {
   if (reenvioBtn) {
     reenvioBtn.disabled = true;
     reenvioBtn.classList.remove('enabled');
-    reenvioBtn.innerHTML = 'Reenviar código en <span id="cli-flow-otp-reenvio-sec">30</span>s';
+    reenvioBtn.innerHTML = 'Reenviar SMS en <span id="cli-flow-otp-reenvio-sec">30</span>s';
   }
+  // v3.42.0: el botón de rescate por llamada se habilita a los 20s — antes
+  // de que el cliente se canse, pero dándole al SMS su chance primero.
+  const btnLlamar = document.getElementById('cli-flow-otp-llamar');
+  const okLlamar  = document.getElementById('cli-flow-otp-llamar-ok');
+  if (okLlamar) { okLlamar.style.display = 'none'; okLlamar.textContent = ''; }
+  if (btnLlamar) {
+    btnLlamar.disabled = true;
+    btnLlamar.style.opacity = '.5';
+    btnLlamar.textContent = '📞 No me llegó — llamame y dictame el código';
+    // v3.42.1 (fix 3): cancelar el timer del envío anterior. Sin esto, dos
+    // envíos seguidos dejaban dos timers y el segundo habilitaba el botón
+    // antes de los 20s.
+    if (_flowLlamarTimeout) clearTimeout(_flowLlamarTimeout);
+    _flowLlamarTimeout = setTimeout(function() {
+      if (btnLlamar) { btnLlamar.disabled = false; btnLlamar.style.opacity = '1'; }
+    }, 20000);
+  }
+
   const updateRe = () => {
     reenvio--;
     const sec = document.getElementById('cli-flow-otp-reenvio-sec');
@@ -18265,11 +18426,72 @@ function cliFlowStartOtpTimer() {
       if (reenvioBtn) {
         reenvioBtn.disabled = false;
         reenvioBtn.classList.add('enabled');
-        reenvioBtn.textContent = 'Reenviar código';
+        reenvioBtn.textContent = 'Reenviar SMS';
       }
     }
   };
   _flowReenvioTimer = setInterval(updateRe, 1000);
+}
+
+// ── v3.42.0 · RESCATE POR LLAMADA DE VOZ ──────────────────────
+// Verify v1 con workflow 1 (el que usa enviarOTP) es SMS → voz → voz.
+// `siguientePasoOTP` hace cmd=trigger_next_event: adelanta el paso
+// siguiente sin esperar los ~125s del temporizador de Vonage.
+// Requiere Apps Script v25.104.0.
+async function cliFlowOtpLlamarme() {
+  const btn = document.getElementById('cli-flow-otp-llamar');
+  const ok  = document.getElementById('cli-flow-otp-llamar-ok');
+  const err = document.getElementById('cli-flow-otp-err');
+  if (!btn || btn.disabled) return;
+  if (!_otpRequestId) return;
+  btn.disabled = true;
+  btn.style.opacity = '.6';
+  btn.textContent = 'Llamando...';
+  if (err) { err.textContent = ''; err.style.color = ''; }
+  try {
+    const data = await appsScriptCall({ accion: 'siguientePasoOTP', request_id: _otpRequestId });
+    if (data && data.status === 'ok') {
+      if (ok) {
+        ok.style.display = 'block';
+        ok.innerHTML = '📞 <b>Te estamos llamando.</b> Atendé y anotá los 4 dígitos que te dictan — es el mismo código.';
+      }
+      btn.textContent = '📞 Llamada en camino';
+      // Por si no atiende: se puede volver a pedir en 45s.
+      setTimeout(function() {
+        if (btn) {
+          btn.disabled = false;
+          btn.style.opacity = '1';
+          btn.textContent = '📞 Llamame de nuevo';
+        }
+      }, 45000);
+    } else {
+      // status 19 de Vonage = el request ya no admite otro paso (agotado)
+      if (err) err.textContent = 'No pudimos llamarte. Probá "Reenviar SMS" o escribinos por WhatsApp.';
+      cliFlowMostrarFallbackOtp();
+      btn.disabled = false;
+      btn.style.opacity = '1';
+      btn.textContent = '📞 No me llegó — llamame y dictame el código';
+    }
+  } catch(e) {
+    if (err) err.textContent = 'No pudimos conectar. Revisá tu señal e intentá de nuevo.';
+    btn.disabled = false;
+    btn.style.opacity = '1';
+    btn.textContent = '📞 No me llegó — llamame y dictame el código';
+  }
+}
+
+// Muestra el WhatsApp de último recurso con un mensaje que le sirva al
+// operador: qué pasó, con qué teléfono, y qué tiene que hacer.
+function cliFlowMostrarFallbackOtp() {
+  const fb = document.getElementById('cli-flow-otp-fallback');
+  const wa = document.getElementById('cli-flow-otp-fallback-wa');
+  if (wa) {
+    const txt = 'Hola TCK! No me llega el código para crear mi cuenta en el catálogo'
+      + (_flowTel ? (', mi teléfono es ' + _flowTel) : '')
+      + '. ¿Me pueden dar de alta o tomar el pedido por acá?';
+    wa.href = 'https://wa.me/' + TCK_WA_FALLBACK + '?text=' + encodeURIComponent(txt);
+  }
+  if (fb) fb.style.display = 'block';
 }
 
 async function cliFlowOtpReenviar() {
@@ -18282,24 +18504,27 @@ async function cliFlowOtpReenviar() {
   const wa  = document.getElementById('cli-flow-otp-fallback-wa');
   if (btn) { btn.disabled = true; btn.classList.remove('enabled'); btn.textContent = 'Reenviando...'; }
   try {
+    // v3.42.0: CANCELAR EL REQUEST ANTERIOR ANTES DE PEDIR OTRO.
+    // Vonage no admite dos verificaciones concurrentes al mismo número: sin
+    // esto el reenvío se rechazaba (o reiniciaba el workflow y postergaba la
+    // llamada de rescate otros 125s). `cancelarOTP` ya existía en el Apps
+    // Script desde siempre y el catálogo nunca la había llamado.
+    if (_otpRequestId) {
+      try { await appsScriptCall({ accion: 'cancelarOTP', request_id: _otpRequestId }); } catch(e) {}
+    }
     const data = await appsScriptCall({ accion: 'enviarOTP', telefono: _flowTel });
     if (data.status === 'ok') {
       _otpRequestId = data.request_id;
       if (fb) fb.style.display = 'none';
       if (err) {
         err.style.color = '#7CC576';
-        err.textContent = '✓ Código reenviado. Puede demorar hasta 1 minuto.';
+        err.textContent = '✓ SMS reenviado. Si no llega, tocá "llamame" y te lo dictamos.';
         setTimeout(function(){ if (err && err.style.color === 'rgb(124, 197, 118)') { err.textContent = ''; err.style.color = ''; } }, 6000);
       }
       cliFlowStartOtpTimer();
     } else {
       if (err) { err.style.color = ''; err.textContent = cliFlowOtpMensajePorMotivo(data && data.message); }
-      if (wa) {
-        const txt = 'Hola TCK! No me llega el código para registrarme en el catálogo.' +
-                    (_flowTel ? (' Mi teléfono es ' + _flowTel + '.') : '');
-        wa.href = 'https://wa.me/' + TCK_WA_FALLBACK + '?text=' + encodeURIComponent(txt);
-      }
-      if (fb) fb.style.display = 'block';
+      cliFlowMostrarFallbackOtp();  // v3.42.0: mensaje útil para el operador
       if (btn) { btn.disabled = false; btn.classList.add('enabled'); btn.textContent = 'Reenviar código'; }
     }
   } catch(e) {
@@ -18497,15 +18722,29 @@ async function cliFlowPinGuardar() {
       const vendedorLink = _canalSinVendedor
         ? null
         : (vActivo ? vActivo.nombre : '');
-      // v3.14.0: alta vía Apps Script (cliRegistro) con auth_token del OTP.
-      const paramsReg = cliParamsLimpios(Object.assign({
-        accion: 'cliRegistro', auth_token: _otpAuthToken,
-        telefono: _flowTel, clave: pin, usuario: _flowTel,
-        nombre: '', vendedor: vendedorLink
-      }, utmPayloadRegistro()));
-      const dataReg = await appsScriptCall(paramsReg);
-      if (dataReg.status !== 'ok' || !dataReg.cliente) throw new Error(dataReg.message || 'Error al crear la cuenta');
-      const cli = dataReg.cliente;
+      let cli;
+      if (_flowLeadDirecto) {
+        // v3.42.0: alta sin OTP. La RPC solo crea la cuenta si el par
+        // código+teléfono existe en leads_captacion — hay que conocer el
+        // código de 5 caracteres Y el teléfono exacto que cargó Jose.
+        // No pasa por Apps Script: no hay auth_token que mostrar.
+        cli = await cliRpc('lead_registro', {
+          p_codigo:   leadCodigoActual(),
+          p_telefono: _flowTel,
+          p_clave:    pin
+        });
+        if (!cli || !cli.id) throw new Error('Error al crear la cuenta');
+      } else {
+        // v3.14.0: alta vía Apps Script (cliRegistro) con auth_token del OTP.
+        const paramsReg = cliParamsLimpios(Object.assign({
+          accion: 'cliRegistro', auth_token: _otpAuthToken,
+          telefono: _flowTel, clave: pin, usuario: _flowTel,
+          nombre: '', vendedor: vendedorLink
+        }, utmPayloadRegistro()));
+        const dataReg = await appsScriptCall(paramsReg);
+        if (dataReg.status !== 'ok' || !dataReg.cliente) throw new Error(dataReg.message || 'Error al crear la cuenta');
+        cli = dataReg.cliente;
+      }
       cliGuardar(cli);
       // v3.7.3 N42-C: cliVincularMaster() removida. Era no-op desde v3.7.2.
       // Marcar cupón de primera compra disponible
@@ -18536,8 +18775,14 @@ async function cliFlowPinGuardar() {
       // v3.41.0 (bug N35): antes se iba derecho al éxito y la cuenta quedaba
       // sin nombre, sin comercio y sin ciudad. Ahora pasa por el paso de datos
       // (con la ciudad pre-cargada si ya la eligió en el modal de bienvenida).
-      cliFlowDatosPreparar();
-      cliFlowShow('datos');
+      // v3.42.1: si la cuenta ya nació con ciudad (alta por lead_registro, que
+      // arrastra lo que Jose cargó), no le pedimos de nuevo lo que ya tenemos.
+      if ((cli.ciudad || '').trim()) {
+        cliFlowShow('exito');
+      } else {
+        cliFlowDatosPreparar();
+        cliFlowShow('datos');
+      }
     }
   } catch(e) {
     if (err) err.textContent = 'Error al guardar. Intentá de nuevo.';
@@ -18554,8 +18799,15 @@ function cliFlowDatosPreparar() {
   if (err) err.textContent = '';
   const inp = document.getElementById('cli-flow-ciudad');
   if (inp && !inp.value) {
-    const guardada = (typeof getCiudadCliente === 'function') ? getCiudadCliente() : '';
+    // v3.42.1: primero lo que ya tiene la cuenta (viene del lead de Jose),
+    // después lo que eligió en el modal de bienvenida.
+    const guardada = (_cliActivo && _cliActivo.ciudad)
+      || ((typeof getCiudadCliente === 'function') ? getCiudadCliente() : '');
     if (guardada) tckLocPreset('cli-flow-ciudad', guardada);
+  }
+  const comEl = document.getElementById('cli-flow-comercio');
+  if (comEl && !comEl.value && _cliActivo && _cliActivo.comercio) {
+    comEl.value = _cliActivo.comercio;
   }
 }
 
@@ -23036,7 +23288,7 @@ function confirmarCiudadNoAtendida() {
    TCK_UPD_LOCAL aca Y el archivo version.json del repo.
    ============================================================ */
 (function(){
-  var TCK_UPD_LOCAL = '3.41.0';        /* <-- bump en cada deploy */
+  var TCK_UPD_LOCAL = '3.42.1';        /* <-- bump en cada deploy */
   var TCK_UPD_INTERVALO = 10 * 60 * 1000;   /* chequeo de fondo: 10 min */
   var _updUltChequeo = 0;
 
