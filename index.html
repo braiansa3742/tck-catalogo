@@ -2,7 +2,65 @@
 <html lang="es">
 <head>
 <!-- ═══════════════════════════════════════════════════════════════════════
-     TCK CATÁLOGO — v3.40.0 — 04/08/2026  (REPETIR PEDIDO: AVISO DE PRECIOS + BANNER DE UPDATE)
+     TCK CATÁLOGO — v3.41.0 — 04/08/2026  (EMBUDO wa_meta + BUG N35 + CIUDADES SIN REPARTO)
+
+     v3.41.0: TRES ARREGLOS DE UNA PASADA, TODOS SOBRE EL MISMO PROBLEMA:
+       el catálogo perdía los datos que definen zona, precio y vendedor.
+
+       1. PARÁMETRO &l= Y CANAL wa_meta (embudo de captación Meta).
+          utmCapturar() ahora lee ?l=CODIGO (5 chars) además de ?v=, y
+          CANALES_SIN_VENDEDOR incorpora 'wa_meta' → 'CANAL_WA_META'.
+          El código se guarda en el mismo blob de UTMs (30 días) y NO se
+          pisa con null si el cliente vuelve por otro link.
+          Con el código en mano se marcan los dos hitos del embudo contra
+          leads_captacion vía la RPC nueva lead_evento():
+            · al abrir el link  → evento 'abrio'    (abrio_at)
+            · al crear la cuenta → evento 'registro' (registrado_at +
+              cliente_auth_id + clientes_auth.lead_codigo)
+          NO pasa por Apps Script: cli_registro(p jsonb) inserta una lista
+          fija de columnas y lead_codigo no está en esa lista. Se resuelve
+          con RPC directa desde el navegador, igual que cli_login.
+          ⚠️ REQUIERE correr sql/v3.41.0_lead_evento_y_datos.sql en Supabase.
+          Sin eso el catálogo no rompe (las RPC fallan al .catch()), pero
+          el embudo se queda en "mandado" para siempre.
+
+       2. BUG N35 — 58 de 108 clientes con ciudad NULL, 68 con nombre vacío.
+          CAUSA REAL (arqueología 04/08): existen dos flows de registro y el
+          único vivo es el corto (cli-flow: tel → OTP → PIN). Ese flow llama
+          a cliRegistro con `nombre: ''` y sin comercio ni ciudad. El form
+          largo que sí los mandaba (cli-form-registro + otpCompletarRegistro)
+          está con display:none desde que se hizo el flow con PIN — o sea que
+          nadie llegaba nunca. Los 68 nombres vacíos arrancan el 21/04, que
+          es justo cuando el flow corto quedó como único camino.
+          Además la ciudad se preguntaba en DOS lugares más y se tiraba:
+            · modal de bienvenida (zc-localidad) → solo iba a localStorage
+            · modal de pedido (ci-localidad)     → iba al pedido, nunca al perfil
+          AHORA:
+            · pantalla nueva 'datos' entre el PIN y el éxito, con ciudad
+              (pre-cargada si ya la eligió en el modal de bienvenida: es un
+              tap, no hay que escribir) + nombre del negocio opcional.
+              Tiene "Lo completo después", y aun salteando se guarda la
+              ciudad que ya teníamos en localStorage.
+            · el modal de pedido escribe nombre/comercio/localidad al perfil.
+            · el modal de bienvenida escribe la ciudad si hay sesión.
+          Todo por cli_update_datos(), que SOLO rellena campos vacíos: nunca
+          pisa un dato ya cargado.
+
+       3. CIUDAD SIN REPARTO YA NO EXPULSA AL CLIENTE.
+          Los <select> de 30 localidades canónicas pasaron a ser un buscador
+          contra localidades_ar (4.030 localidades del INDEC) usando la RPC
+          buscar_localidades(q) — el mismo componente que usa Jose en
+          Lead.html. Migrados: zc-localidad (bienvenida), ci-localidad
+          (pedido), rp2-ciudad (perfil) y el campo nuevo del registro.
+          Si la localidad no tiene reparto NO da error: se guarda igual y
+          sale el aviso "todavía no llegamos, te avisamos cuando abramos la
+          zona". Esto termina con el texto libre sin normalizar que había en
+          base ("America" junto a "América", "Trenuqe Lauquen", "TRENQUE
+          LAUQUEN"): el buscador devuelve siempre el nombre canónico.
+          nn-localidad y vi-localidad (formularios internos) quedan con el
+          select de 30 canónicas — se migran en otra pasada.
+
+     ── v3.40.0 — 04/08/2026  (REPETIR PEDIDO: AVISO DE PRECIOS + BANNER DE UPDATE) ──
 
      v3.40.0: DOS COSAS QUE SALIERON DEL RECLAMO DE UN CLIENTE (03/08).
        Contexto: Julio Nicolás Barraza (Pehuajó) reclamó que le cobraron
@@ -2596,7 +2654,11 @@ const CANALES_SIN_VENDEDOR = {
   'ig': 'CANAL_IG',
   'fb': 'CANAL_FB',
   'google': 'CANAL_GOOGLE',
-  'tiktok': 'CANAL_TIKTOK'
+  'tiktok': 'CANAL_TIKTOK',
+  // v3.41.0: embudo Meta → WhatsApp (Jose filtra) → link con código de lead.
+  // Igual que los otros canales: no hay vendedor real, queda TCK Online y
+  // después Jose deriva a Miguel desde Lead.html.
+  'wa_meta': 'CANAL_WA_META'
 };
 // Canal detectado en la sesión actual (se setea al leer ?v=)
 // Si vale 'CANAL_IG' (o similar), el registro NO asigna vendedor.
@@ -2815,6 +2877,266 @@ function poblarLocalidadesSelects() {
 }
 
 // ═══════════════════════════════════════════════════════════════════
+// v3.41.0 — BUSCADOR DE LOCALIDADES CONTRA localidades_ar
+// ═══════════════════════════════════════════════════════════════════
+// Los <select> de 30 canónicas se quedaban cortos: si la ciudad del
+// cliente no estaba, la única salida era el modal "mi ciudad no está
+// aquí", que mete texto libre sin normalizar. Por eso en base conviven
+// "America" y "América", "Trenuqe Lauquen" y "TRENQUE LAUQUEN".
+// Ahora se busca contra las 4.030 localidades del INDEC por la RPC
+// buscar_localidades(q) — mismo componente que usa Jose en Lead.html.
+// El nombre que se guarda es SIEMPRE el canónico de localidades_ar.
+//
+// Markup esperado (los ids -res y -aviso se derivan del id del input):
+//   <div class="tckloc">
+//     <input id="X" ...><div class="tckloc-res" id="X-res"></div>
+//   </div>
+//   <div class="tckloc-aviso" id="X-aviso"></div>
+var _tckLocDebounce = {};   // id → timeout
+var _tckLocElegida  = {};   // id → {id,nombre,tiene_reparto,zona} | null
+
+function tckLocNorm(t) {
+  return String(t || '').toLowerCase()
+    .replace(/[\u00E1\u00E0\u00E4\u00E2\u00E3]/g, 'a')
+    .replace(/[\u00E9\u00E8\u00EB\u00EA]/g, 'e')
+    .replace(/[\u00ED\u00EC\u00EF\u00EE]/g, 'i')
+    .replace(/[\u00F3\u00F2\u00F6\u00F4\u00F5]/g, 'o')
+    .replace(/[\u00FA\u00F9\u00FC\u00FB]/g, 'u')
+    .replace(/\u00F1/g, 'n').replace(/\u00E7/g, 'c')
+    .trim();
+}
+
+async function tckLocBuscar(q) {
+  const n = tckLocNorm(q);
+  if (n.length < 2) return [];
+  try {
+    const r = await cliRpc('buscar_localidades', { q: n });
+    return Array.isArray(r) ? r : [];
+  } catch(e) { return []; }
+}
+
+// Texto actual del campo (elegido de la lista o tipeado a mano)
+function tckLocValor(id) {
+  const el = document.getElementById(id);
+  return el ? (el.value || '').trim() : '';
+}
+
+// Objeto completo de localidades_ar, si el cliente eligió de la lista
+function tckLocElegidaDe(id) { return _tckLocElegida[id] || null; }
+
+function tckLocAviso(id, loc) {
+  const av = document.getElementById(id + '-aviso');
+  if (!av) return;
+  if (!loc) { av.className = 'tckloc-aviso'; av.textContent = ''; return; }
+  if (loc.tiene_reparto) {
+    av.className = 'tckloc-aviso on si';
+    av.textContent = '\uD83D\uDE9A Llegamos a ' + loc.nombre
+      + (loc.zona ? ' \u00B7 ' + loc.zona : '') + '.';
+  } else {
+    av.className = 'tckloc-aviso on no';
+    av.textContent = '\uD83D\uDCCD Todav\u00EDa no llegamos a ' + loc.nombre
+      + '. Guardamos igual tu ciudad y te avisamos cuando abramos la zona.';
+  }
+}
+
+function tckLocCerrar(id) {
+  const caja = document.getElementById(id + '-res');
+  if (caja) caja.classList.remove('on');
+  const inp = document.getElementById(id);
+  if (inp) inp.setAttribute('aria-expanded', 'false');
+}
+
+function tckLocElegir(id, loc) {
+  const inp = document.getElementById(id);
+  if (!inp || !loc) return;
+  _tckLocElegida[id] = loc;
+  inp.value = loc.nombre;
+  tckLocCerrar(id);
+  tckLocAviso(id, loc);
+  // Dispara el onchange declarado en el HTML (ej: ciActualizarEntregaEstimada)
+  try { inp.dispatchEvent(new Event('change')); } catch(e) {}
+}
+
+function tckLocPintar(id, res) {
+  const caja = document.getElementById(id + '-res');
+  const inp  = document.getElementById(id);
+  if (!caja) return;
+  if (!res.length) {
+    caja.innerHTML = '<p class="tckloc-nada">No encontramos esa localidad. '
+      + 'Revis\u00E1 c\u00F3mo se escribe \u2014 si igual no aparece, dejala '
+      + 'como la escribiste y un vendedor te contacta.</p>';
+    caja.__res = [];
+  } else {
+    let html = '';
+    for (let i = 0; i < res.length; i++) {
+      const c = res[i];
+      html += '<div class="tckloc-item" data-i="' + i + '">'
+        + '<span class="tckloc-pin">' + (c.tiene_reparto ? '\uD83D\uDE9A' : '\uD83D\uDCCD') + '</span>'
+        + '<span class="tckloc-nom">' + c.nombre
+        + '<span class="tckloc-sub">'
+        + (c.departamento ? c.departamento + ' \u00B7 ' : '') + c.provincia
+        + (c.tiene_reparto ? ' \u00B7 con reparto' : '') + '</span></span></div>';
+    }
+    caja.innerHTML = html;
+    caja.__res = res;
+  }
+  // Los modales tienen overflow-y:auto, así que el desplegable puede quedar
+  // fuera de vista. Al abrirlo (no en cada tecla) centramos el campo.
+  const yaAbierto = caja.classList.contains('on');
+  caja.classList.add('on');
+  if (inp) {
+    inp.setAttribute('aria-expanded', 'true');
+    if (!yaAbierto) {
+      try { inp.scrollIntoView({ block: 'center', behavior: 'smooth' }); } catch(e) {}
+    }
+  }
+}
+
+// Pre-carga un valor conocido (localStorage, perfil, último pedido) y
+// resuelve el aviso de zona en segundo plano, sin molestar al cliente.
+function tckLocPreset(id, nombre) {
+  const inp = document.getElementById(id);
+  if (!inp || !nombre) return;
+  inp.value = nombre;
+  _tckLocElegida[id] = null;
+  tckLocBuscar(nombre).then(function(res) {
+    const n = tckLocNorm(nombre);
+    for (let i = 0; i < res.length; i++) {
+      if (tckLocNorm(res[i].nombre) === n || tckLocNorm(res[i].alias) === n) {
+        _tckLocElegida[id] = res[i];
+        inp.value = res[i].nombre;
+        tckLocAviso(id, res[i]);
+        return;
+      }
+    }
+  }).catch(function() {});
+}
+
+// Escribe un valor a mano (viene del modal "mi ciudad no está aquí")
+function tckLocLimpiar(id, valor) {
+  const inp = document.getElementById(id);
+  if (inp) inp.value = valor || '';
+  _tckLocElegida[id] = null;
+  tckLocAviso(id, null);
+  tckLocCerrar(id);
+}
+
+// Antes de confirmar: si tipeó el nombre exacto pero no tocó la lista,
+// lo resolvemos igual para guardar el canónico y saber si hay reparto.
+async function tckLocResolverAuto(id) {
+  if (_tckLocElegida[id]) return _tckLocElegida[id];
+  const txt = tckLocValor(id);
+  if (txt.length < 2) return null;
+  const res = await tckLocBuscar(txt);
+  const n = tckLocNorm(txt);
+  for (let i = 0; i < res.length; i++) {
+    if (tckLocNorm(res[i].nombre) === n || tckLocNorm(res[i].alias) === n) {
+      _tckLocElegida[id] = res[i];
+      const inp = document.getElementById(id);
+      if (inp) inp.value = res[i].nombre;
+      tckLocAviso(id, res[i]);
+      return res[i];
+    }
+  }
+  return null;
+}
+
+// Delegación global: un solo set de listeners para todos los buscadores.
+(function() {
+  document.addEventListener('input', function(ev) {
+    const inp = ev.target;
+    if (!inp || !inp.id || !inp.closest || !inp.closest('.tckloc')) return;
+    const id = inp.id;
+    _tckLocElegida[id] = null;
+    tckLocAviso(id, null);
+    clearTimeout(_tckLocDebounce[id]);
+    if (tckLocNorm(inp.value).length < 2) { tckLocCerrar(id); return; }
+    _tckLocDebounce[id] = setTimeout(function() {
+      tckLocBuscar(inp.value)
+        .then(function(res) { tckLocPintar(id, res); })
+        .catch(function() { tckLocCerrar(id); });
+    }, 250);
+  });
+
+  document.addEventListener('click', function(ev) {
+    const item = ev.target.closest ? ev.target.closest('.tckloc-item') : null;
+    if (item) {
+      const caja = item.parentElement;
+      const id = (caja.id || '').replace(/-res$/, '');
+      const res = caja.__res || [];
+      const i = parseInt(item.getAttribute('data-i'), 10);
+      if (res[i]) tckLocElegir(id, res[i]);
+      return;
+    }
+    // Click afuera → cerrar todos los desplegables abiertos
+    if (!ev.target.closest || !ev.target.closest('.tckloc')) {
+      const abiertos = document.querySelectorAll('.tckloc-res.on');
+      for (let k = 0; k < abiertos.length; k++) abiertos[k].classList.remove('on');
+    }
+  });
+})();
+
+// ═══════════════════════════════════════════════════════════════════
+// v3.41.0 — EMBUDO DE CAPTACIÓN (leads_captacion)
+// ═══════════════════════════════════════════════════════════════════
+// El código de lead viaja en ?l= y queda guardado con los UTMs.
+// lead_evento() es SECURITY DEFINER (anon solo puede insertar en la
+// tabla): marca abrio_at / registrado_at y ata el cliente_auth_id.
+// Fire-and-forget: si la RPC no existe todavía, no rompe nada.
+function leadCodigoActual() {
+  try {
+    const d = (typeof utmLeer === 'function') ? utmLeer() : null;
+    return (d && d.lead_codigo) ? d.lead_codigo : '';
+  } catch(e) { return ''; }
+}
+
+function leadMarcar(evento, clienteAuthId) {
+  const cod = leadCodigoActual();
+  if (!cod) return;
+  try {
+    cliRpc('lead_evento', {
+      p_codigo: cod,
+      p_evento: evento,
+      p_cliente_auth_id: clienteAuthId || null
+    }).catch(function() {});
+  } catch(e) {}
+}
+
+// Al cargar la página con un link de lead: marcar que lo abrió.
+// En DOMContentLoaded porque cliRpc se declara más abajo en el archivo.
+document.addEventListener('DOMContentLoaded', function() {
+  if (leadCodigoActual()) leadMarcar('abrio', null);
+});
+
+// ═══════════════════════════════════════════════════════════════════
+// v3.41.0 — COMPLETAR DATOS DEL CLIENTE LOGUEADO (bug N35)
+// ═══════════════════════════════════════════════════════════════════
+// cli_update_datos() SOLO rellena campos vacíos: nunca pisa un dato que
+// el cliente ya tenía cargado. Por eso se puede llamar sin miedo desde
+// varios puntos (registro, modal de pedido, modal de bienvenida).
+function cliCompletarDatos(datos) {
+  datos = datos || {};
+  if (typeof _cliActivo === 'undefined' || !_cliActivo || !_cliActivo.id) {
+    return Promise.resolve();
+  }
+  const nombre   = (datos.nombre   || '').trim();
+  const comercio = (datos.comercio || '').trim();
+  const ciudad   = (datos.ciudad   || '').trim();
+  if (!nombre && !comercio && !ciudad) return Promise.resolve();
+  return cliRpc('cli_update_datos', {
+    p_id: _cliActivo.id,
+    p_nombre: nombre,
+    p_comercio: comercio,
+    p_ciudad: ciudad
+  }).then(function() {
+    if (nombre   && !_cliActivo.nombre)   _cliActivo.nombre   = nombre;
+    if (comercio && !_cliActivo.comercio) _cliActivo.comercio = comercio;
+    if (ciudad   && !_cliActivo.ciudad)   _cliActivo.ciudad   = ciudad;
+    try { if (typeof cliGuardar === 'function') cliGuardar(_cliActivo); } catch(e) {}
+  }).catch(function() {});
+}
+
+// ═══════════════════════════════════════════════════════════════════
 
 // ═══════════════════════════════════════════════════════════════════
 // v3.6.13 — INFERENCIA DE FECHA DE ENTREGA SEGÚN LOCALIDAD
@@ -2943,14 +3265,18 @@ function utmCapturar() {
     const params = new URLSearchParams(window.location.search);
     const utmFields = ['utm_source','utm_medium','utm_campaign','utm_content','utm_term'];
     const vParam = (params.get('v') || '').toLowerCase().trim();
+    // v3.41.0: código de lead del embudo Meta → ?v=wa_meta&l=ABC12
+    // 5 chars sobre un alfabeto de 32 (ver Lead.html en tck-ventas).
+    const lParam = (params.get('l') || '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 8);
     // ¿Hay algo que capturar?
     const hayUTM = utmFields.some(k => params.get(k));
     const hayCanal = vParam && CANALES_SIN_VENDEDOR[vParam];
-    if (!hayUTM && !hayCanal) return;
+    if (!hayUTM && !hayCanal && !lParam) return;
     // v3.8.1: ya NO chequeamos previo — el ?v= actual SIEMPRE gana.
     // Esto es last-touch real, alineado con cómo atribuyen Google/Meta.
     const data = {
       origen_marketing: hayCanal ? CANALES_SIN_VENDEDOR[vParam] : null,
+      lead_codigo:  lParam || null,
       utm_source:   params.get('utm_source')   || null,
       utm_medium:   params.get('utm_medium')   || null,
       utm_campaign: params.get('utm_campaign') || null,
@@ -2962,6 +3288,14 @@ function utmCapturar() {
     // Si vino canal (ig/fb/etc) pero no utm_source, inferirlo del canal
     if (hayCanal && !data.utm_source) {
       data.utm_source = vParam;
+    }
+    // v3.41.0: el last-touch pisa el canal, pero NO el código de lead.
+    // Si el cliente vuelve por otro link seguimos sabiendo de qué lead salió.
+    if (!data.lead_codigo) {
+      try {
+        const prev = utmLeer();
+        if (prev && prev.lead_codigo) data.lead_codigo = prev.lead_codigo;
+      } catch(e) {}
     }
     localStorage.setItem(UTM_KEY, JSON.stringify({ data, exp: Date.now() + UTM_TTL }));
     // v3.8.1: log para debug de atribución
@@ -2993,6 +3327,9 @@ function utmPayloadRegistro() {
   if (d.utm_term)         p.utm_term         = d.utm_term;
   if (d.landing_first)    p.landing_first    = d.landing_first;
   if (d.landing_url)      p.landing_url      = d.landing_url;
+  // v3.41.0: se manda por si Apps Script lo llega a whitelistear algún día.
+  // Hoy cli_registro() lo ignora — el vínculo real lo hace lead_evento().
+  if (d.lead_codigo)      p.lead_codigo      = d.lead_codigo;
   return p;
 }
 // Captura al cargar el script (first-touch)
@@ -4935,6 +5272,43 @@ body.intro-tck-abierta .hdr-sobre{display:none;}
   font-weight: 900; color: var(--red);
 }
 .cli-horario-opt-ciudad { font-size: 12px; color: rgba(0,0,0,.45); margin-top: 2px; }
+
+/* ═══ v3.41.0 · BUSCADOR DE LOCALIDADES (localidades_ar, 4.030 filas) ═══ */
+.tckloc { position: relative; }
+.tckloc-res {
+  position: absolute; top: calc(100% + 4px); left: 0; right: 0; z-index: 9998;
+  background: #fff; border: 2px solid #8B0000; border-radius: 12px;
+  max-height: 240px; overflow-y: auto; display: none; text-align: left;
+  box-shadow: 0 10px 28px rgba(26,8,0,.18);
+}
+.tckloc-res.on { display: block; }
+.tckloc-item {
+  padding: 11px 13px; border-bottom: 1px solid #F0E3D0; cursor: pointer;
+  display: flex; align-items: center; gap: 9px;
+}
+.tckloc-item:last-child { border-bottom: 0; }
+.tckloc-item:hover, .tckloc-item:active { background: #FAF4EC; }
+.tckloc-pin { font-size: 15px; line-height: 1; }
+.tckloc-nom {
+  flex: 1; font-family: 'Barlow', sans-serif; font-size: 15px;
+  font-weight: 600; color: #1A0800; line-height: 1.25;
+}
+.tckloc-sub {
+  display: block; font-size: 11.5px; color: #9C7050;
+  font-weight: 500; margin-top: 1px;
+}
+.tckloc-nada {
+  padding: 14px 13px; font-size: 13px; color: #9C7050;
+  line-height: 1.45; font-family: 'Barlow', sans-serif;
+}
+.tckloc-aviso {
+  margin-top: 8px; padding: 10px 12px; border-radius: 10px;
+  font-family: 'Barlow', sans-serif; font-size: 12.5px;
+  line-height: 1.45; display: none;
+}
+.tckloc-aviso.on { display: block; }
+.tckloc-aviso.si { background: rgba(30,132,73,.12); color: #146034; }
+.tckloc-aviso.no { background: rgba(180,83,9,.12);  color: #7c3a06; }
 
 /* v2.7.0/v2.7.1: Perfil rediseñado */
 
@@ -10252,6 +10626,35 @@ body.v4-mode .body .card:has(.card-price-tramos) .card-body{padding-bottom:6px}
       <button class="cli-flow-btn" id="cli-flow-pin-btn" onclick="cliFlowPinGuardar()" disabled>Crear cuenta →</button>
     </div>
 
+    <!-- PANTALLA 3B (v3.41.0): CIUDAD + NEGOCIO — arregla el bug N35.
+         Hasta la 3.40.0 el flow saltaba del PIN al éxito y la cuenta
+         quedaba con nombre '', comercio null y ciudad null. -->
+    <div class="cli-flow" id="cli-flow-datos" style="position:relative">
+      <div class="cli-flow-pasos">
+        <div class="cli-flow-paso-dot done"></div>
+        <div class="cli-flow-paso-dot done"></div>
+        <div class="cli-flow-paso-dot done"></div>
+      </div>
+      <div class="cli-flow-ico">📍</div>
+      <div class="cli-flow-titulo">¿De dónde sos?</div>
+      <div class="cli-flow-sub">Con tu ciudad ya te podemos decir <b>qué día pasamos</b> por tu zona.</div>
+
+      <div class="tckloc" style="margin-top:14px">
+        <input class="cli-flow-input" id="cli-flow-ciudad" type="text" autocomplete="off"
+               role="combobox" aria-expanded="false" placeholder="Escribí tu ciudad">
+        <div class="tckloc-res" id="cli-flow-ciudad-res" role="listbox"></div>
+      </div>
+      <div class="tckloc-aviso" id="cli-flow-ciudad-aviso"></div>
+
+      <input class="cli-flow-input" id="cli-flow-comercio" type="text" autocapitalize="words"
+             style="margin-top:10px" placeholder="Nombre del negocio (opcional)">
+
+      <div class="cli-flow-error" id="cli-flow-datos-err"></div>
+
+      <button class="cli-flow-btn" id="cli-flow-datos-btn" onclick="cliFlowDatosGuardar()">Listo →</button>
+      <button class="cli-flow-link" onclick="cliFlowDatosSaltear()">Lo completo después</button>
+    </div>
+
     <!-- PANTALLA 4: Éxito con cupón -->
     <div class="cli-flow" id="cli-flow-exito" style="position:relative">
       <div class="cli-flow-ico success">✓</div>
@@ -13433,43 +13836,24 @@ function abrirModalZonaCliente() {
     window._zonaPendientePorIntro = true;
     return;
   }
-  const sel = document.getElementById('zc-localidad');
-  if (!sel) return;
-  // Si ya estaba poblado, no repoblar
-  if (sel.options.length > 1) {
-    abrirModal('modal-zona-cliente');
-    return;
-  }
-  // Esperar a que las localidades canónicas estén cargadas
-  function poblar() {
-    if (!Array.isArray(_localidadesCanonicas) || _localidadesCanonicas.length === 0) return false;
-    sel.innerHTML = '<option value="">— Elegí tu ciudad —</option>';
-    for (const loc of _localidadesCanonicas) {
-      const opt = document.createElement('option');
-      opt.value = loc.ciudad;
-      opt.textContent = loc.ciudad;
-      sel.appendChild(opt);
-    }
-    return true;
-  }
-  if (!poblar()) {
-    // Reintentar cuando estén cargadas
-    let intentos = 0;
-    const tick = setInterval(() => {
-      intentos++;
-      if (poblar() || intentos >= 30) {  // 30 intentos × 200ms = 6s máx
-        clearInterval(tick);
-      }
-    }, 200);
+  // v3.41.0: el select de 30 canónicas pasó a ser un buscador sobre
+  // localidades_ar — ya no hay que poblar nada ni esperar a Supabase.
+  const inp = document.getElementById('zc-localidad');
+  if (inp && !inp.value) {
+    const guardada = (typeof getCiudadCliente === 'function') ? getCiudadCliente() : '';
+    if (guardada) tckLocPreset('zc-localidad', guardada);
   }
   abrirModal('modal-zona-cliente');
 }
 
 // Se llama al tocar "Continuar" en el modal de zona.
 // Si no eligió, no cierra (es obligatorio).
-function confirmarZonaCliente() {
+async function confirmarZonaCliente() {
+  // v3.41.0: resolver contra localidades_ar antes de guardar, así queda
+  // el nombre canónico y no "Trenuqe Lauquen".
+  try { await tckLocResolverAuto('zc-localidad'); } catch(e) {}
   const sel = document.getElementById('zc-localidad');
-  const ciudad = (sel && sel.value || '').trim();
+  const ciudad = tckLocValor('zc-localidad');
   if (!ciudad) {
     if (sel) sel.focus();
     // v3.34.0 — era toast(), que no existe en ningún lado: el aviso nunca
@@ -13480,6 +13864,9 @@ function confirmarZonaCliente() {
   }
   const zonaAnterior = getZonaCliente();
   setZonaCliente(ciudad);
+  // v3.41.0 (bug N35): si hay sesión, esta ciudad va también al perfil.
+  // Antes moría en localStorage y clientes_auth.ciudad quedaba en NULL.
+  try { cliCompletarDatos({ ciudad: ciudad }); } catch(e) {}
   cerrarModal('modal-zona-cliente');
   // Re-render combos con precios actualizados
   if (typeof combosRender === 'function') combosRender();
@@ -13599,7 +13986,11 @@ function cargarDatosCliente(){
     const d = JSON.parse(localStorage.getItem(LS_KEY)||'{}');
     if(d.nombre)    document.getElementById('ci-nombre').value    = d.nombre;
     if(d.comercio)  document.getElementById('ci-comercio').value  = d.comercio;
-    if(d.localidad) document.getElementById('ci-localidad').value = d.localidad;
+    // v3.41.0: el campo es un buscador — tckLocPreset resuelve además la zona
+    if(d.localidad) {
+      if (typeof tckLocPreset === 'function') tckLocPreset('ci-localidad', d.localidad);
+      else document.getElementById('ci-localidad').value = d.localidad;
+    }
     if(d.telefono)  document.getElementById('ci-telefono').value  = d.telefono;
     // v3.10.6: cuit y direccion persistidos
     const cuitEl = document.getElementById('ci-cuit');
@@ -13804,11 +14195,30 @@ function ciActualizarEntregaEstimada() {
 
   const info = inferirEntregaDesdeLocalidadCat(loc);
   if (!info) {
-    // Ciudad no canónica (raro porque el select solo tiene canónicas)
-    panel.style.display = 'none';
+    // v3.41.0: la localidad no está en la tabla `rutas`. Antes se escondía
+    // el panel y el cliente no entendía nada. Ahora se le dice la verdad.
+    // OJO: no todas las que faltan en `rutas` están sin reparto — hoy
+    // General Villegas tiene reparto (zona 3) y no figura en `rutas`.
+    // Por eso mandamos primero lo que dice localidades_ar.tiene_reparto.
+    const elegida = (typeof tckLocElegidaDe === 'function')
+      ? tckLocElegidaDe('ci-localidad') : null;
+    if (elegida && elegida.tiene_reparto) {
+      txt.textContent = 'Llegamos a tu localidad. Tu vendedor te confirma el día de entrega.';
+      zonaEl.textContent = '📍 ' + loc + (elegida.zona ? ' · ' + elegida.zona : '');
+      panel.style.border = '1.5px solid #2E7D32';
+      panel.style.background = 'linear-gradient(180deg,#E8F5E9 0%,#FFFFFF 100%)';
+    } else {
+      txt.textContent = 'Todavía no tenemos reparto fijo en tu zona.';
+      zonaEl.textContent = '📍 ' + loc + ' · Te contactamos para coordinar la entrega';
+      panel.style.border = '1.5px solid #B45309';
+      panel.style.background = 'linear-gradient(180deg,#FFF3E0 0%,#FFFFFF 100%)';
+    }
+    panel.style.display = 'block';
     return;
   }
 
+  panel.style.border = '1.5px solid #2E7D32';
+  panel.style.background = 'linear-gradient(180deg,#E8F5E9 0%,#FFFFFF 100%)';
   txt.textContent = info.mensajeCorto;
   zonaEl.textContent = '📍 ' + info.ciudadCanonica + ' · Zona: ' + info.zonaAmigable;
   panel.style.display = 'block';
@@ -14000,6 +14410,11 @@ async function confirmarYEnviarWA() { // v3.26.0: async para esperar el ACK del 
 
   // Guardar datos para próxima vez
   guardarDatosCliente(nombre, comercio, localidad, telefono, cuit, direccion);
+
+  // v3.41.0 (bug N35): el modal de pedido tenía nombre, comercio y localidad
+  // y NUNCA los escribía en el perfil — por eso 58 clientes con ciudad NULL.
+  // cli_update_datos solo rellena vacíos, no pisa nada ya cargado.
+  try { cliCompletarDatos({ nombre: nombre, comercio: comercio, ciudad: localidad }); } catch(e) {}
 
   // Cerrar modal
   cerrarModal('modal-cliente-id');
@@ -14421,13 +14836,15 @@ async function confirmarYEnviarWA() { // v3.26.0: async para esperar el ACK del 
       if (_canalSinVendedor === 'CANAL_IG')     return 'ig';
       if (_canalSinVendedor === 'CANAL_GOOGLE') return 'google';
       if (_canalSinVendedor === 'CANAL_TIKTOK') return 'tiktok';
+      if (_canalSinVendedor === 'CANAL_WA_META') return 'wa_meta';  // v3.41.0
       // Fallback v3.8.1: leer el último canal del UTM guardado (last-touch).
       // utmLeer() devuelve el origen_marketing del último ?v= captado.
       try {
         const utmData = (typeof utmLeer === 'function') ? utmLeer() : null;
         if (utmData && utmData.origen_marketing) {
           // Mapear CANAL_X → 'x' (mismo formato que el switch de arriba)
-          const mapa = { 'CANAL_FB':'fb', 'CANAL_IG':'ig', 'CANAL_GOOGLE':'google', 'CANAL_TIKTOK':'tiktok' };
+          const mapa = { 'CANAL_FB':'fb', 'CANAL_IG':'ig', 'CANAL_GOOGLE':'google',
+                         'CANAL_TIKTOK':'tiktok', 'CANAL_WA_META':'wa_meta' };  // v3.41.0
           if (mapa[utmData.origen_marketing]) return mapa[utmData.origen_marketing];
         }
       } catch(e) {}
@@ -15514,6 +15931,8 @@ async function otpCompletarRegistro() {
     if (dataReg.status !== 'ok' || !dataReg.cliente) throw new Error(dataReg.message || 'Error al crear la cuenta');
     const cli = dataReg.cliente;
     cliGuardar(cli);
+    // v3.41.0: hito 2 del embudo también en el flow legacy.
+    leadMarcar('registro', cli.id);
     // v3.7.3 N42-C: cliVincularMaster() removida. Era no-op desde v3.7.2.
     // Marcar que es primer pedido — al segundo pedido mostramos paso 2
     try { localStorage.setItem('tck_pedidos_count', '1'); } catch(e) {}
@@ -16604,15 +17023,19 @@ document.addEventListener('visibilitychange', function() {
     </div>
     <div class="tck-field">
       <label class="tck-label">Tu ciudad <span style="color:var(--red2)">*</span></label>
-      <select class="tck-input tck-select" id="zc-localidad">
-        <option value="">— Elegí tu ciudad —</option>
-      </select>
+      <!-- v3.41.0: buscador contra localidades_ar (antes: select de 30) -->
+      <div class="tckloc">
+        <input class="tck-input" id="zc-localidad" type="text" autocomplete="off"
+               role="combobox" aria-expanded="false" placeholder="Escribí tu ciudad">
+        <div class="tckloc-res" id="zc-localidad-res" role="listbox"></div>
+      </div>
+      <div class="tckloc-aviso" id="zc-localidad-aviso"></div>
     </div>
     <button class="tck-submit-wa" onclick="confirmarZonaCliente()" style="margin-top:8px">
       Continuar
     </button>
     <div style="text-align:center;margin-top:10px;font-size:11px;color:var(--text3)">
-      Si tu ciudad no está, podés elegirla más tarde al confirmar el pedido.
+      Si todavía no llegamos a tu ciudad, igual podés dejar tu pedido: te avisamos cuando abramos la zona.
     </div>
   </div>
 </div>
@@ -16641,11 +17064,15 @@ document.addEventListener('visibilitychange', function() {
     </div>
     <div class="tck-field">
       <label class="tck-label">Localidad <span style="color:var(--red2)">*</span></label>
-      <!-- v3.2.4: select canónico (anti-typos) -->
-      <select class="tck-input tck-select" id="ci-localidad" onchange="ciActualizarEntregaEstimada()">
-        <option value="">— Elegí localidad —</option>
-      </select>
-      <button type="button" class="tck-localidad-otra-btn" onclick="abrirModalCiudadNoAtendida()" style="margin-top:6px;background:none;border:none;color:var(--red2);font-size:12px;text-decoration:underline;cursor:pointer;padding:4px 0;">Mi ciudad no está en la lista</button>
+      <!-- v3.41.0: buscador contra localidades_ar. Ya no hace falta el botón
+           "mi ciudad no está en la lista": están las 4.030 del INDEC. -->
+      <div class="tckloc">
+        <input class="tck-input" id="ci-localidad" type="text" autocomplete="off"
+               role="combobox" aria-expanded="false" placeholder="Escribí tu localidad"
+               onchange="ciActualizarEntregaEstimada()">
+        <div class="tckloc-res" id="ci-localidad-res" role="listbox"></div>
+      </div>
+      <div class="tckloc-aviso" id="ci-localidad-aviso"></div>
       <!-- v3.6.13: panel de entrega estimada que se actualiza al elegir localidad -->
       <div id="ci-entrega-estimada" style="display:none;margin-top:10px;padding:10px 12px;background:linear-gradient(180deg,#E8F5E9 0%,#FFFFFF 100%);border:1.5px solid #2E7D32;border-radius:10px;">
         <div style="font-size:12px;font-weight:700;color:#1B5E20;line-height:1.4;" id="ci-entrega-estimada-txt">—</div>
@@ -17535,7 +17962,7 @@ const PINS_DEBILES = ['0000','1111','2222','3333','4444','5555','6666','7777','8
 
 // ── Mostrar una pantalla del flow (oculta las demás) ────────────
 function cliFlowShow(step) {
-  const pantallas = ['tel','otp','pin','exito','login-pin'];
+  const pantallas = ['tel','otp','pin','datos','exito','login-pin'];  // v3.41.0: +datos
   pantallas.forEach(p => {
     const el = document.getElementById('cli-flow-' + p);
     if (el) el.classList.remove('active');
@@ -17545,7 +17972,7 @@ function cliFlowShow(step) {
   // Ocultar divider + guest btn en pantallas finales
   const divider = document.querySelector('.cli-divider');
   const guest = document.querySelector('.cli-guest-btn');
-  const hideExtras = (step === 'exito' || step === 'pin' || step === 'login-pin');
+  const hideExtras = (step === 'exito' || step === 'pin' || step === 'datos' || step === 'login-pin');
   if (divider) divider.style.display = hideExtras ? 'none' : '';
   if (guest)   guest.style.display   = hideExtras ? 'none' : '';
   // v2.7.5: mensaje personalizado en pantalla de éxito si viene de canal sin vendedor
@@ -18104,13 +18531,65 @@ async function cliFlowPinGuardar() {
       // Ocultar banner si estaba visible
       const banner = document.getElementById('banner-registro');
       if (banner) banner.classList.add('hidden');
-      // Mostrar pantalla de éxito
-      cliFlowShow('exito');
+      // v3.41.0: hito 2 del embudo — el lead se registró.
+      leadMarcar('registro', cli.id);
+      // v3.41.0 (bug N35): antes se iba derecho al éxito y la cuenta quedaba
+      // sin nombre, sin comercio y sin ciudad. Ahora pasa por el paso de datos
+      // (con la ciudad pre-cargada si ya la eligió en el modal de bienvenida).
+      cliFlowDatosPreparar();
+      cliFlowShow('datos');
     }
   } catch(e) {
     if (err) err.textContent = 'Error al guardar. Intentá de nuevo.';
     if (btn) { btn.disabled = false; btn.textContent = 'Crear cuenta →'; }
   }
+}
+
+// ── v3.41.0 · PASO DE DATOS (ciudad + negocio) ────────────────
+// Liviano a propósito: un campo obligatorio (ciudad) que además viene
+// pre-cargado si el cliente ya la eligió en el modal de bienvenida, y
+// uno opcional. Los datos de facturación se piden por WhatsApp.
+function cliFlowDatosPreparar() {
+  const err = document.getElementById('cli-flow-datos-err');
+  if (err) err.textContent = '';
+  const inp = document.getElementById('cli-flow-ciudad');
+  if (inp && !inp.value) {
+    const guardada = (typeof getCiudadCliente === 'function') ? getCiudadCliente() : '';
+    if (guardada) tckLocPreset('cli-flow-ciudad', guardada);
+  }
+}
+
+async function cliFlowDatosGuardar() {
+  const btn = document.getElementById('cli-flow-datos-btn');
+  const err = document.getElementById('cli-flow-datos-err');
+  if (err) err.textContent = '';
+  try { await tckLocResolverAuto('cli-flow-ciudad'); } catch(e) {}
+  const ciudad   = tckLocValor('cli-flow-ciudad');
+  const comEl    = document.getElementById('cli-flow-comercio');
+  const comercio = comEl ? (comEl.value || '').trim() : '';
+  if (!ciudad) {
+    if (err) err.textContent = 'Escribí tu ciudad y elegila de la lista';
+    const i = document.getElementById('cli-flow-ciudad');
+    if (i) i.focus();
+    return;
+  }
+  if (btn) { btn.disabled = true; btn.textContent = 'Guardando...'; }
+  try {
+    if (typeof setZonaCliente === 'function') setZonaCliente(ciudad);
+    await cliCompletarDatos({ comercio: comercio, ciudad: ciudad });
+  } catch(e) {}
+  if (btn) { btn.disabled = false; btn.textContent = 'Listo →'; }
+  cliFlowShow('exito');
+}
+
+function cliFlowDatosSaltear() {
+  // Aunque saltee: si ya había elegido ciudad en el modal de bienvenida,
+  // la guardamos igual. Es el dato que define zona, precio y vendedor.
+  try {
+    const guardada = (typeof getCiudadCliente === 'function') ? getCiudadCliente() : '';
+    if (guardada) cliCompletarDatos({ ciudad: guardada });
+  } catch(e) {}
+  cliFlowShow('exito');
 }
 
 function cliFlowExitoCerrar() {
@@ -19190,12 +19669,14 @@ document.addEventListener('touchmove', function(e) {
       <input id="rp2-comercio" type="text" placeholder="Rotisería, almacén, etc." autocapitalize="words"
         style="width:100%;padding:12px 14px;border:1.5px solid #E8D5BB;border-radius:12px;font-family:'Barlow',sans-serif;font-size:15px;color:#1A0800;background:#FDFAF7;outline:none;box-sizing:border-box;margin-bottom:10px;">
       <div style="font-size:11px;font-weight:700;color:#9C7050;text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px;">Ciudad</div>
-      <!-- v3.2.4: select canónico (anti-typos) -->
-      <select id="rp2-ciudad"
-        style="width:100%;padding:12px 14px;border:1.5px solid #E8D5BB;border-radius:12px;font-family:'Barlow',sans-serif;font-size:15px;color:#1A0800;background:#FDFAF7;outline:none;box-sizing:border-box;">
-        <option value="">— Elegí ciudad —</option>
-      </select>
-      <button type="button" onclick="abrirModalCiudadNoAtendida()" style="margin-top:6px;background:none;border:none;color:#9C7050;font-size:11px;text-decoration:underline;cursor:pointer;padding:4px 0;">Mi ciudad no está aquí</button>
+      <!-- v3.41.0: buscador contra localidades_ar -->
+      <div class="tckloc">
+        <input id="rp2-ciudad" type="text" autocomplete="off" role="combobox" aria-expanded="false"
+          placeholder="Escribí tu ciudad"
+          style="width:100%;padding:12px 14px;border:1.5px solid #E8D5BB;border-radius:12px;font-family:'Barlow',sans-serif;font-size:15px;color:#1A0800;background:#FDFAF7;outline:none;box-sizing:border-box;">
+        <div class="tckloc-res" id="rp2-ciudad-res" role="listbox"></div>
+      </div>
+      <div class="tckloc-aviso" id="rp2-ciudad-aviso"></div>
     </div>
     <div id="rp2-err" style="color:#C62828;font-size:12px;min-height:16px;margin-bottom:8px;text-align:center;"></div>
 
@@ -19284,7 +19765,13 @@ function mostrarPopupPerfil() {
     const c = document.getElementById('rp2-comercio');
     const ci = document.getElementById('rp2-ciudad');
     if (c && _cliActivo.comercio) c.value = _cliActivo.comercio;
-    if (ci && _cliActivo.ciudad)  ci.value = _cliActivo.ciudad;
+    // v3.41.0: buscador. Si no tiene ciudad en el perfil, probamos con la
+    // que eligió en el modal de bienvenida (queda a un tap de confirmar).
+    if (ci && !ci.value) {
+      const c0 = _cliActivo.ciudad
+        || ((typeof getCiudadCliente === 'function') ? getCiudadCliente() : '');
+      if (c0) tckLocPreset('rp2-ciudad', c0);
+    }
   }
   overlay.style.display = 'flex';
   setTimeout(() => { sheet.style.transform = 'translateY(0)'; }, 10);
@@ -19301,12 +19788,15 @@ function cerrarPopupReg2() {
 
 async function regPaso2Confirmar() {
   const comercio = (document.getElementById('rp2-comercio').value || '').trim();
-  const ciudad   = (document.getElementById('rp2-ciudad').value || '').trim();
   const btn      = document.getElementById('rp2-btn');
   const err      = document.getElementById('rp2-err');
   err.textContent = '';
 
-  if (!ciudad) { err.textContent = 'Ingresá tu ciudad'; return; }
+  // v3.41.0: resolver contra localidades_ar para guardar el canónico
+  try { await tckLocResolverAuto('rp2-ciudad'); } catch(e) {}
+  const ciudad = tckLocValor('rp2-ciudad');
+
+  if (!ciudad) { err.textContent = 'Escribí tu ciudad y elegila de la lista'; return; }
   if (!_cliActivo) { cerrarPopupReg2(); return; }
 
   btn.disabled = true; btn.textContent = 'Guardando...';
@@ -19567,16 +20057,23 @@ function confirmarCiudadNoAtendida() {
     return;
   }
 
-  // Insertar option custom (si no existe ya) y seleccionarlo
-  let optCustom = target.querySelector('option[data-custom="1"]');
-  if (!optCustom) {
-    optCustom = document.createElement('option');
-    optCustom.setAttribute('data-custom', '1');
-    target.appendChild(optCustom);
+  // v3.41.0: los campos migrados al buscador de localidades_ar son <input>,
+  // no <select> — ahí alcanza con escribir el valor.
+  if (target.tagName === 'INPUT') {
+    if (typeof tckLocLimpiar === 'function') tckLocLimpiar(target.id, val);
+    else target.value = val;
+  } else {
+    // Insertar option custom (si no existe ya) y seleccionarlo
+    let optCustom = target.querySelector('option[data-custom="1"]');
+    if (!optCustom) {
+      optCustom = document.createElement('option');
+      optCustom.setAttribute('data-custom', '1');
+      target.appendChild(optCustom);
+    }
+    optCustom.value = val;
+    optCustom.textContent = val + ' ⚠️ (sin servicio)';
+    target.value = val;
   }
-  optCustom.value = val;
-  optCustom.textContent = val + ' ⚠️ (sin servicio)';
-  target.value = val;
 
   // Marcar globalmente que este pedido viene con ciudad no atendida
   window._ciudadNoAtendida = true;
@@ -22539,7 +23036,7 @@ function confirmarCiudadNoAtendida() {
    TCK_UPD_LOCAL aca Y el archivo version.json del repo.
    ============================================================ */
 (function(){
-  var TCK_UPD_LOCAL = '3.40.0';        /* <-- bump en cada deploy */
+  var TCK_UPD_LOCAL = '3.41.0';        /* <-- bump en cada deploy */
   var TCK_UPD_INTERVALO = 10 * 60 * 1000;   /* chequeo de fondo: 10 min */
   var _updUltChequeo = 0;
 
