@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <!-- ═══════════════════════════════════════════════════════════════════════
-     TCK CATÁLOGO — v3.43.0 — 10/08/2026
+     TCK CATÁLOGO — v3.43.1 — 10/08/2026
 
      v3.43.0: NINGUNA VENTA SE PIERDE POR FALTA DE ACUSE + EL PIXEL
      DEJA DE CONTAR COMPRAS QUE NO EXISTEN.
@@ -30,10 +30,16 @@
           guarda armado junto al pedido porque al reintentar el carrito ya
           está vacío.
 
-       3. eventID = pedidoId. fbqSafe acepta un 4to parámetro. Meta lo usa
-          para deduplicar el mismo hecho llegado por navegador y por API de
-          conversiones. Hoy hay las dos vías activas y ningún eventID: el
-          pixel reporta 288 compras contra ~109 reales.
+       3. NO SE MANDA eventID (corrección sobre el plan original). Los CSV
+          de Meta muestran que la deduplicación YA funciona: cobertura 97%,
+          "cumple las prácticas recomendadas". La columna "Eventos totales"
+          de la tabla SUMA navegador + servidor antes de deduplicar, por eso
+          parecía el doble: Purchase 151 navegador + 153 servidor = 304.
+          Las compras reales del píxel son ~151, no 288. Prueba: el evento
+          CompleteRegistration da 15 en navegador y en clientes_auth hay
+          exactamente 15 altas en el mismo período.
+          Mandar eventID solo desde el navegador podría ROMPER esa
+          deduplicación. fbqSafe queda preparada pero sin usarlo.
 
        4. TIMEOUT 8s → 12s. Menos falsos negativos de entrada.
 
@@ -3454,10 +3460,11 @@ utmCapturar();
 // ── v2.7.6 · Meta Pixel — helpers y estado de debounce ────────────
 // fbqSafe: wrapper tolerante. Si el Pixel está bloqueado (adblock,
 // privacy strict, brave), no rompe el flujo del cliente.
-// v3.43.0: 4to parametro eventID. Meta usa eventID para deduplicar el
-// mismo hecho llegado por dos vias (navegador + API de conversiones).
-// Sin esto, cada compra se cuenta dos veces. Se manda el pedidoId, que
-// es unico y se genera una sola vez gracias al lock _enviandoPedido.
+// v3.43.1: fbqSafe acepta eventID (4to parametro) pero HOY NO SE USA.
+// Meta ya deduplica bien: cobertura 97%, "cumple las practicas
+// recomendadas". Mandar eventID solo desde el navegador, sin que el
+// servidor mande el mismo, puede ROMPER esa deduplicacion. Queda
+// disponible por si algun dia mandamos la CAPI nosotros.
 function fbqSafe(event, params, customData, eventID) {
   try {
     if (typeof fbq !== 'function') return;
@@ -14458,7 +14465,7 @@ async function _colaProcesar(motivo) {
       if (ok) {
         console.log('[cola] Confirmado en reintento:', it.payload.pedidoId);
         // Recién ahora Meta se entera de la compra.
-        try { if (it.px) fbqSafe('Purchase', it.px, false, it.payload.pedidoId); } catch (e) {}
+        try { if (it.px) fbqSafe('Purchase', it.px); } catch (e) {}
       } else {
         it.intentos++;
         quedan.push(it);
@@ -15180,7 +15187,7 @@ async function confirmarYEnviarWA() { // v3.26.0: async para esperar el ACK del 
       origen_marketing: (utmLeer() || {}).origen_marketing || null
     };
     if (_sheetOk) {
-      fbqSafe('Purchase', _pxCompra, false, pedidoId);
+      fbqSafe('Purchase', _pxCompra);
     } else {
       _colaEncolar(payload, _pxCompra);
     }
@@ -23484,7 +23491,7 @@ function confirmarCiudadNoAtendida() {
    TCK_UPD_LOCAL aca Y el archivo version.json del repo.
    ============================================================ */
 (function(){
-  var TCK_UPD_LOCAL = '3.43.0';        /* <-- bump en cada deploy */
+  var TCK_UPD_LOCAL = '3.43.1';        /* <-- bump en cada deploy */
   var TCK_UPD_INTERVALO = 10 * 60 * 1000;   /* chequeo de fondo: 10 min */
   var _updUltChequeo = 0;
 
