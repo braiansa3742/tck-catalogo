@@ -2,6 +2,32 @@
 <html lang="es">
 <head>
 <!-- ═══════════════════════════════════════════════════════════════════════
+     TCK CATÁLOGO — v3.45.0 — 11/08/2026
+
+     v3.45.0: EL TRAMO SE GANA POR LA SUMA DE CALIBRES + ESCALERA VISIBLE
+     + NUDGE MAYORISTA (opción B Braian, tramos SQL precios de guerra v4).
+
+       FIX (cobro de más): precioUnit(it,q) resolvía el tramo con la q de
+       CADA LÍNEA. Un pedido de 6 Pollo B x6 + 6 Pollo B x7 (12 cajas del
+       mismo producto) pagaba el tramo de 5-9 en las dos líneas en vez del
+       10+. Regla TCK (5/6): calibre y estado son VARIANTES, no productos.
+       Ahora: qtyTotalProducto(nombre) suma la key plana + todas las
+       cal:Nombre:* y el tramo se resuelve con esa suma (nunca menos que
+       la q de la línea). Aplica solo a la resolución del tramo — el
+       subtotal de cada línea sigue siendo precio × q de la línea.
+
+       UI: cardPriceHTML muestra la escalera COMPLETA (N tramos, rangos
+       "1-4 / 5-9 / 10+") con la fila activa resaltada según lo que hay en
+       el carrito, en vez de "caja + suelto" que mentía con 3-4 tramos.
+       Nudge informativo: a 1-2 cajas del próximo tramo, banda "➕2 cajas
+       más → $69.900 c/u · ahorrás $X"; dentro de un tramo mayorista,
+       banda verde con el ahorro. refrescarTramosDeProducto() repinta la
+       card al tocar −/+ (chg) o cambiar calibres (v4ChgCal), sin
+       re-render del body.
+
+       REFRESH: _refrescarPreciosBg ahora también recarga producto_tramos
+       (antes los tramos solo vivían del boot — regla v14.65.0).
+
      TCK CATÁLOGO — v3.44.0 — 10/08/2026
 
      v3.43.0: NINGUNA VENTA SE PIERDE POR FALTA DE ACUSE + EL PIXEL
@@ -10610,6 +10636,17 @@ src="https://www.facebook.com/tr?id=2034313150514758&ev=PageView&noscript=1"
 <style>
 /* v3.12.0 — precio escalonado en card de grilla */
 .card-price-box.card-price-tramos{display:flex;flex-direction:column;gap:3px;align-items:stretch;width:100%}
+/* v3.45.0 — escalera de tramos (opción B) + nudge mayorista */
+.tck-esc{border:1px solid #E8DCC8;border-radius:8px;overflow:hidden;font-size:10px;background:#fff;width:100%}
+.tck-esc-row{display:flex;justify-content:space-between;align-items:center;padding:2.5px 7px}
+.tck-esc-row+.tck-esc-row{border-top:1px solid #F3EADD}
+.tck-esc-row .r-l{color:#6b5d49}
+.tck-esc-row .r-p{font-weight:800;font-family:'Barlow Condensed',sans-serif;font-size:12px;color:#444}
+.tck-esc-row.act{background:#EAF3DE}
+.tck-esc-row.act .r-l,.tck-esc-row.act .r-p{color:#27500A;font-weight:900}
+.tck-nudge{margin-top:4px;width:100%;border-radius:8px;background:linear-gradient(135deg,#FFF3D6,#FFE7AE);color:#7a4b00;font-size:10px;font-weight:800;padding:5px 7px;text-align:left;line-height:1.3;box-shadow:inset 0 0 0 1px #E8C77E}
+.tck-nudge b{font-size:11px}
+.tck-nudge.ok{background:#EAF3DE;box-shadow:inset 0 0 0 1px #97C459;color:#27500A;text-align:center}
 .cpt-caja{display:flex;align-items:center;justify-content:space-between;gap:6px;background:#EAF3DE;border:.5px solid #97C459;border-radius:8px;padding:4px 8px}
 .cpt-caja-l{display:flex;flex-direction:column;line-height:1.05}
 .cpt-caja-t{font-size:11px;font-weight:600;color:#27500A}
@@ -13167,6 +13204,8 @@ function chg(key,si,ii,d){
   updateBar();
   if(document.getElementById('drawer').classList.contains('on'))renderDrawer();
   saveCartLS();
+  // v3.45.0 — actualizar escalera/nudge de la card (fila activa por cantidad)
+  try { if (CAT[si] && CAT[si].items[ii]) refrescarTramosDeProducto(CAT[si].items[ii].n); } catch(e){}
   // v3.2.0: si el filtro "En carrito" está activo, refrescar para que la card se oculte/aparezca
   if (typeof _filtrosEstado !== 'undefined' && _filtrosEstado.has('encarrito')) {
     if (typeof aplicarFiltros === 'function') aplicarFiltros();
@@ -15564,12 +15603,36 @@ function tramosDe(it) {
   return (t && t.length) ? t : null;
 }
 
+// v3.45.0 — cajas TOTALES del producto en el carrito: key plana "si-ii"
+// + todas las keys de calibre "cal:Nombre:*". Regla TCK: calibre y estado
+// son variantes del mismo producto — el tramo se gana por la SUMA.
+function qtyTotalProducto(nombre) {
+  let total = 0;
+  try {
+    for (let si = 0; si < CAT.length; si++) {
+      const sec = CAT[si]; if (!sec || !sec.items) continue;
+      for (let ii = 0; ii < sec.items.length; ii++) {
+        if (sec.items[ii].n === nombre) total += (qty[si + '-' + ii] || 0);
+      }
+    }
+    const pref = 'cal:' + nombre + ':';
+    Object.keys(qty).forEach(function(k) {
+      if (typeof k === 'string' && k.indexOf(pref) === 0) total += (qty[k] || 0);
+    });
+  } catch (e) {}
+  return total;
+}
+
 // Precio unitario según cantidad. Con tramos: el del mayor min<=q.
 // Sin tramos (o sin piso cargado): it.pr.
+// v3.45.0 — el tramo se resuelve con las cajas TOTALES del producto
+// (suma de calibres), nunca menos que la q de la línea. Antes, 6 x6 +
+// 6 x7 pagaba el tramo de 6 en cada línea en vez del de 12.
 function precioUnit(it, q) {
   const t = tramosDe(it);
   if (!t) return (it && it.pr) || 0;
-  const qn = Math.max(1, Number(q) || 1);
+  const qLinea = Math.max(1, Number(q) || 1);
+  const qn = Math.max(qLinea, (it && it.n) ? (qtyTotalProducto(it.n) || 0) : 0);
   let precio = (it && it.pr) || 0, hayPiso = false;
   for (let i = 0; i < t.length; i++) {
     if (qn >= t[i].min) { precio = t[i].precio; hayPiso = true; }
@@ -15586,19 +15649,74 @@ function tramoSuelto(it) {
   return t.reduce(function(a, b) { return b.min < a.min ? b : a; }, t[0]);
 }
 
+// v3.45.0 — etiqueta del rango del tramo i: "1-4", "5-9", "10+", "15+"
+function rangoTramoLbl(t, i) {
+  const sig = t[i + 1];
+  if (t[i].min === 1) return sig ? ('1-' + (sig.min - 1)) : '1+';
+  return sig ? (t[i].min + '-' + (sig.min - 1)) : (t[i].min + '+');
+}
+
+// v3.45.0 — nudge mayorista (informativo, sin auto-sumar: en el catálogo
+// el cliente decide; el botón que completa solo vive en ventas).
+function nudgeTramoHTML(it) {
+  const t = tramosDe(it);
+  if (!t || t.length < 2) return '';
+  const q = qtyTotalProducto(it.n);
+  if (!q) return '';
+  let prox = null;
+  for (let i = 0; i < t.length; i++) { if (q < t[i].min) { prox = t[i]; break; } }
+  if (prox && (prox.min - q) <= 2) {
+    const faltan = prox.min - q;
+    const ahorro = (precioUnit(it, q) - prox.precio) * prox.min;
+    return '<div class="tck-nudge">\u2795' + faltan + ' caja' + (faltan > 1 ? 's' : '')
+      + ' m\u00E1s \u2192 <b>' + fmt(prox.precio) + '</b> c/u \u00B7 ahorr\u00E1s ' + fmt(ahorro) + '</div>';
+  }
+  let vig = null;
+  for (let i = 0; i < t.length; i++) { if (q >= t[i].min) vig = t[i]; }
+  if (vig && vig.min > 1) {
+    const dif = (t[0].precio - vig.precio) * q;
+    if (dif > 0) return '<div class="tck-nudge ok">\u2713 Precio mayorista \u00B7 ahorr\u00E1s ' + fmt(dif) + '</div>';
+  }
+  return '';
+}
+
 // HTML del bloque de precio en la card de la grilla.
-// Con tramos → presentación B (caja destacada + suelta). Sin tramos → simple.
+// v3.45.0 — escalera COMPLETA (opción B): N tramos, fila activa según el
+// carrito, nudge debajo. Sin tramos → precio simple (sin cambios).
 function cardPriceHTML(it) {
   const t = tramosDe(it);
   if (!t || t.length < 2) {
     return '<div class="card-price-box"><div class="card-price">' + fmt(it.pr) + '</div></div>';
   }
-  const caja = tramoCaja(it), suelto = tramoSuelto(it);
-  return '<div class="card-price-box card-price-tramos">'
-    + '<div class="cpt-caja"><div class="cpt-caja-l"><span class="cpt-caja-t">Caja x' + caja.min + '</span><span class="cpt-caja-s">mejor precio</span></div>'
-    + '<span class="cpt-caja-p">' + fmt(caja.precio) + ' <span class="cpt-cu">c/u</span></span></div>'
-    + '<div class="cpt-suelto"><span class="cpt-suelto-l">Suelta (1 a ' + (caja.min - 1) + ')</span><span class="cpt-suelto-p">' + fmt(suelto.precio) + '</span></div>'
-    + '</div>';
+  const q = qtyTotalProducto(it.n);
+  let vig = null;
+  for (let i = 0; i < t.length; i++) { if (Math.max(1, q) >= t[i].min) vig = t[i]; }
+  let html = '<div class="card-price-box card-price-tramos"><div class="tck-esc">';
+  for (let i = 0; i < t.length; i++) {
+    const act = vig && vig.min === t[i].min;
+    html += '<div class="tck-esc-row' + (act ? ' act' : '') + '">'
+      + '<span class="r-l">' + rangoTramoLbl(t, i) + '</span>'
+      + '<span class="r-p">' + fmt(t[i].precio) + '</span></div>';
+  }
+  html += '</div>' + nudgeTramoHTML(it) + '</div>';
+  return html;
+}
+
+// v3.45.0 — repinta escalera + nudge de todas las cards visibles del
+// producto tras un cambio de cantidad. No re-renderiza el body.
+function refrescarTramosDeProducto(nombre) {
+  try {
+    CAT.forEach(function(sec, si) {
+      sec.items.forEach(function(it, ii) {
+        if (it.n !== nombre || !tramosDe(it)) return;
+        document.querySelectorAll('.card[data-key="' + si + '-' + ii + '"] .card-price-box').forEach(function(nodo) {
+          const tmp = document.createElement('div');
+          tmp.innerHTML = cardPriceHTML(it);
+          if (tmp.firstChild) nodo.replaceWith(tmp.firstChild);
+        });
+      });
+    });
+  } catch (e) {}
 }
 
 function aplicarPriceMap(priceMap) {
@@ -15692,6 +15810,9 @@ function _refrescarPreciosBg() {
       }
       aplicarPriceMap(priceMap);
       localStorage.setItem(PRECIOS_CACHE_KEY, JSON.stringify({ ts: Date.now(), priceMap }));
+      // v3.45.0 — los tramos se refrescan junto con los precios (antes
+      // solo vivían del boot; regla v14.65.0: nada "solo en el boot").
+      try { await cargarTramos(); } catch(e) {}
       renderBody(); // Re-renderizar con precios frescos
       console.log('[TCK Precios] Caché actualizada en background');
     } catch(e) {}
@@ -22415,6 +22536,9 @@ function confirmarCiudadNoAtendida() {
     }
     // Update sheet UI
     v4SheetActualizarFilasPollo();
+    // v3.45.0 — el tramo se gana por la SUMA de calibres: repintar la
+    // escalera/nudge de la card del producto en la grilla.
+    if (typeof refrescarTramosDeProducto === 'function') { try { refrescarTramosDeProducto(nombre); } catch(e){} }
     // Update barra inferior y drawer
     if (typeof updateBar === 'function') updateBar();
     if (document.getElementById('drawer') && document.getElementById('drawer').classList.contains('on')) {
