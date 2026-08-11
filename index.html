@@ -2,6 +2,21 @@
 <html lang="es">
 <head>
 <!-- ═══════════════════════════════════════════════════════════════════════
+     TCK CATÁLOGO — v3.45.1 — 11/08/2026
+
+     v3.45.1: FIXES DE PRODUCCIÓN (capturas Braian 16:18).
+       · La pill absolute "Elegir calibre →" (y el "+"/qty en cards sin
+         calibre) TAPABA la última fila de la escalera: la card con
+         .tck-esc reserva 44px de piso en el card-body y la pill cae en
+         ese espacio (independiente del ancho del botón).
+       · Sheet de calibres: cada fila decía "$86.000 por cajón" (precio
+         base fijo) mientras el footer ya cobraba el tramo — ahora la
+         fila muestra el precio del TRAMO VIGENTE por la suma de calibres
+         (+ etiqueta "· mayorista") y se repinta en cada − / +.
+       · Nudge mayorista DENTRO del sheet (slot #v4-sheet-nudge-tramo
+         debajo de la lista de presentaciones), que es donde el cliente
+         está decidiendo cantidades. Informativo, como en la grilla.
+
      TCK CATÁLOGO — v3.45.0 — 11/08/2026
 
      v3.45.0: EL TRAMO SE GANA POR LA SUMA DE CALIBRES + ESCALERA VISIBLE
@@ -10647,6 +10662,10 @@ src="https://www.facebook.com/tr?id=2034313150514758&ev=PageView&noscript=1"
 .tck-nudge{margin-top:4px;width:100%;border-radius:8px;background:linear-gradient(135deg,#FFF3D6,#FFE7AE);color:#7a4b00;font-size:10px;font-weight:800;padding:5px 7px;text-align:left;line-height:1.3;box-shadow:inset 0 0 0 1px #E8C77E}
 .tck-nudge b{font-size:11px}
 .tck-nudge.ok{background:#EAF3DE;box-shadow:inset 0 0 0 1px #97C459;color:#27500A;text-align:center}
+/* v3.45.1 — la pill "Elegir calibre →" y el +/qty son absolute bottom:8 del
+   card-body: con la escalera (4 filas) tapaban la última fila. Reservamos
+   piso: la pill cae en el espacio vacío, sea cual sea su ancho. */
+body.v4-mode .body .card:has(.tck-esc) .card-body{padding-bottom:46px !important}
 .cpt-caja{display:flex;align-items:center;justify-content:space-between;gap:6px;background:#EAF3DE;border:.5px solid #97C459;border-radius:8px;padding:4px 8px}
 .cpt-caja-l{display:flex;flex-direction:column;line-height:1.05}
 .cpt-caja-t{font-size:11px;font-weight:600;color:#27500A}
@@ -22885,7 +22904,13 @@ function confirmarCiudadNoAtendida() {
       const q    = qty[key] || 0;
       const active = (q > 0) && !dis;
       const sublabel = V4_CALIBRES_SUBLABEL[v.calibre] || '';
-      const precio = (typeof fmt === 'function') ? fmt(it.pr) : ('$' + it.pr);
+      // v3.45.1 — precio del TRAMO VIGENTE (precioUnit ya resuelve por la
+      // suma de calibres). Antes la fila mostraba it.pr fijo y contradecía
+      // al footer.
+      const pu1 = (typeof precioUnit === 'function') ? precioUnit(it, 1) : (it.pr || 0);
+      const esMay = pu1 < (it.pr || 0);
+      const precio = ((typeof fmt === 'function') ? fmt(pu1) : ('$' + pu1))
+        + (esMay ? ' <b style="color:#27500A">\u00B7 mayorista</b>' : '');
       const estLbl = v4EstadoLabel(v.estado);
       return '<div class="v4-pres-row' + (active ? ' active' : '') + (dis ? ' v4-pres-off' : '')
           + '" data-v4-cal="' + slug + '" data-v4-pres-row="' + (dis ? '0' : '1') + '"'
@@ -22934,6 +22959,10 @@ function confirmarCiudadNoAtendida() {
     }
 
     html += '</div>'; // .v4-presentaciones-list
+    // v3.45.1 — nudge mayorista dentro del sheet (se repinta en cada −/+)
+    html += '<div id="v4-sheet-nudge-tramo">'
+         + ((typeof nudgeTramoHTML === 'function') ? nudgeTramoHTML(it) : '')
+         + '</div>';
     html += '</div>'; // .v4-presentaciones
 
     slot.insertAdjacentHTML('afterbegin', html);
@@ -22988,6 +23017,16 @@ function confirmarCiudadNoAtendida() {
     const prodName = sheet.getAttribute('data-prod-nombre');
     if (!prodName) return;
     const calibres = V4_CALIBRES[prodName] || [];
+    // v3.45.1 — precio del tramo vigente (por suma de calibres) para
+    // repintar cada fila y el nudge del sheet.
+    const infoP = v4CalGetProductoByNombre(prodName);
+    const pu1P = (infoP && typeof precioUnit === 'function') ? precioUnit(infoP.it, 1) : 0;
+    const esMayP = infoP && pu1P > 0 && pu1P < (infoP.it.pr || 0);
+    const precioTxtP = infoP
+      ? (((typeof fmt === 'function') ? fmt(pu1P) : ('$' + pu1P))
+         + (esMayP ? ' <b style="color:#27500A">\u00B7 mayorista</b>' : '')
+         + ' por caj\u00F3n')
+      : '';
     calibres.forEach(function(cal){
       const key = v4CalKey(prodName, cal);
       const q = qty[key] || 0;
@@ -22998,7 +23037,16 @@ function confirmarCiudadNoAtendida() {
       if (qv) qv.textContent = q;
       const minusBtn = row.querySelector('[data-v4-cal-minus="' + cal + '"]');
       if (minusBtn) minusBtn.disabled = (q === 0);
+      const priceEl = row.querySelector('.v4-pres-price');
+      if (priceEl && precioTxtP) priceEl.innerHTML = precioTxtP;
     });
+    // v3.45.1 — nudge del sheet
+    try {
+      const slotN = sheet.querySelector('#v4-sheet-nudge-tramo');
+      if (slotN && infoP && typeof nudgeTramoHTML === 'function') {
+        slotN.innerHTML = nudgeTramoHTML(infoP.it);
+      }
+    } catch(e){}
     // Actualizar el footer del sheet con el total de los calibres
     v4SheetSyncFooterPollo();
   }
