@@ -2,6 +2,17 @@
 <html lang="es">
 <head>
 <!-- ═══════════════════════════════════════════════════════════════════════
+     TCK CATÁLOGO — v3.45.2 — 11/08/2026
+
+     v3.45.2: EL BOTÓN "CONFIRMAR PEDIDO" SIEMPRE VISIBLE (reporte Braian,
+     iPhone). El modal de datos del cliente (#modal-cliente-id) scrollea
+     entero (max-height 80vh) y el botón era el último hijo: en pantallas
+     chicas nacía bajo el fold y el cliente no veía cómo confirmar.
+     Fix: position:sticky bottom:0 en .tck-submit-wa de ESE modal — el
+     botón flota visible desde que se abre, con fade crema arriba para
+     que los campos no se vean pasar por debajo. Solo CSS, scope
+     quirúrgico a ese modal.
+
      TCK CATÁLOGO — v3.45.1 — 11/08/2026
 
      v3.45.1: FIXES DE PRODUCCIÓN (capturas Braian 16:18).
@@ -4716,6 +4727,10 @@ body.intro-tck-abierta .hdr-sobre{display:none;}
 
 /* ── MODAL IDENTIFICACIÓN CLIENTE ── */
 #modal-cliente-id .tck-modal-box{max-height:80vh;}
+/* v3.45.2 — botón Confirmar SIEMPRE visible (sticky). En iPhone el form
+   supera los 80vh y el botón quedaba bajo el fold. bottom:0 respeta el
+   padding inferior del box (24px + safe-area), así flota con aire. */
+#modal-cliente-id .tck-submit-wa{position:sticky;bottom:0;z-index:5;box-shadow:0 -16px 14px -8px var(--cream),0 3px 12px rgba(139,0,0,.3);}
 #modal-cliente-id .tck-modal-title{color:var(--red);}
 .modal-wa-preview{background:var(--cream2);border-radius:10px;padding:10px 12px;margin-bottom:14px;font-size:12px;color:var(--text2);line-height:1.5;}
 .modal-wa-preview strong{color:var(--text);font-size:13px;}
