@@ -2,31 +2,43 @@
 <html lang="es">
 <head>
 <!-- ═══════════════════════════════════════════════════════════════════════
-     TCK CATÁLOGO — v3.42.2 — 10/08/2026
+     TCK CATÁLOGO — v3.43.0 — 10/08/2026
 
-     v3.42.2: EL BOTÓN "CONFIRMAR PEDIDO" QUEDABA FUERA DEL CARRITO.
-       REPORTE DE BRAIAN: en el drawer del pedido hay que scrollear
-       para llegar al botón de confirmar.
+     v3.43.0: NINGUNA VENTA SE PIERDE POR FALTA DE ACUSE + EL PIXEL
+     DEJA DE CONTAR COMPRAS QUE NO EXISTEN.
 
-       CAUSA: .d-body es un flex item con flex:1 y min-height:auto (el
-       default). min-height:auto = "no me achico por debajo de mi
-       contenido". Con el carrito cargado el body se planta con el alto
-       de todos los items, el drawer topea contra max-height:83% y el
-       .d-foot —donde viven Total y "Confirmar pedido"— se sale del
-       recuadro. El overflow-y:auto del body no se activa nunca porque
-       el body jamás se ve obligado a encogerse.
-       Por eso con 2 productos anda bien y con 10 no: el bug aparece
-       justo en los carritos grandes, que son los que más facturan.
+       LO QUE PASABA: saveOrderToSheets devuelve false si el servidor no
+       contesta a tiempo. Ese false no lo miraba NADIE. El cliente veía
+       la pantalla de éxito, el Purchase se disparaba igual y del lado
+       de TCK no quedaba rastro.
 
-       FIX (2 líneas de CSS, cero JS):
-         1. .d-body   → min-height:0   (ahora sí encoge y scrollea)
-         2. .drawer   → overflow:hidden (nada se dibuja fuera del panel)
-       Resultado: el footer con el botón queda SIEMPRE fijo abajo y lo
-       que scrollea es la lista de productos, como corresponde.
+       MEDICIÓN (10/08): 12 de 104 pedidos quedaron con sheet_ack=false
+       y los 12 habían llegado al Sheet. El false es casi siempre un
+       falso negativo: entra el pedido, se pierde la respuesta.
 
-       SOSPECHA QUE LO DISPARÓ (Pixel, 13/7 al 9/8): AddToCart 3.500 →
-       InitiateCheckout 533. Se pierde el 85% entre agregar al carrito
-       y abrir el confirmar. Si el botón no se ve, encaja.
+       1. COLA DE REINTENTO. El pedido sin acuse queda en localStorage y
+          se reintenta solo: al volver la señal, al volver la app al
+          frente, cada 90s y a los 4s de abrir. Hasta 8 intentos; después
+          el badge se pone rojo y pide acción. Badge abajo a la izquierda,
+          se toca y reintenta al toque.
+          ES SEGURO REINTENTAR: la rama del catálogo en Apps Script (doGet
+          sin `accion`) busca el pedidoId en el Sheet ANTES de escribir y
+          si ya está devuelve {status:'duplicate'} sin agregar fila.
+
+       2. PURCHASE CONDICIONADO. Se dispara solo cuando el Sheet confirma,
+          en el primer intento o en un reintento de la cola. El evento se
+          guarda armado junto al pedido porque al reintentar el carrito ya
+          está vacío.
+
+       3. eventID = pedidoId. fbqSafe acepta un 4to parámetro. Meta lo usa
+          para deduplicar el mismo hecho llegado por navegador y por API de
+          conversiones. Hoy hay las dos vías activas y ningún eventID: el
+          pixel reporta 288 compras contra ~109 reales.
+
+       4. TIMEOUT 8s → 12s. Menos falsos negativos de entrada.
+
+       5. Incluye el fix del drawer de la v3.42.2 (botón Confirmar pedido
+          fuera del recuadro con el carrito cargado) por si no se deployó.
 
      TCK CATÁLOGO — v3.42.1 — 04/08/2026  (REPASO DE LA 3.42.0)
 
@@ -3442,7 +3454,11 @@ utmCapturar();
 // ── v2.7.6 · Meta Pixel — helpers y estado de debounce ────────────
 // fbqSafe: wrapper tolerante. Si el Pixel está bloqueado (adblock,
 // privacy strict, brave), no rompe el flujo del cliente.
-function fbqSafe(event, params, customData) {
+// v3.43.0: 4to parametro eventID. Meta usa eventID para deduplicar el
+// mismo hecho llegado por dos vias (navegador + API de conversiones).
+// Sin esto, cada compra se cuenta dos veces. Se manda el pedidoId, que
+// es unico y se genera una sola vez gracias al lock _enviandoPedido.
+function fbqSafe(event, params, customData, eventID) {
   try {
     if (typeof fbq !== 'function') return;
     const p = params || {};
@@ -3455,10 +3471,11 @@ function fbqSafe(event, params, customData) {
         if (utm.utm_campaign && !p.utm_campaign) p.utm_campaign = utm.utm_campaign;
       }
     } catch(e) {}
+    const _opts = eventID ? { eventID: String(eventID) } : undefined;
     if (customData) {
-      fbq('trackCustom', event, p);
+      if (_opts) fbq('trackCustom', event, p, _opts); else fbq('trackCustom', event, p);
     } else {
-      fbq('track', event, p);
+      if (_opts) fbq('track', event, p, _opts); else fbq('track', event, p);
     }
   } catch(e) {
     // Silencioso — el Pixel bloqueado no es error del negocio
@@ -3923,6 +3940,16 @@ body.v4-mode .sec-portada{display:none} /* v3.29.2: en v4 ya está la foto de ca
 .overlay.on{display:block}
 .drawer{position:absolute;bottom:0;left:0;right:0;background:var(--cream);border-radius:18px 18px 0 0;z-index:110;max-height:83%;overflow:hidden;display:flex;flex-direction:column;transform:translateY(100%);transition:transform .28s cubic-bezier(.32,0,.15,1);box-shadow:0 -4px 28px rgba(0,0,0,.25)}
 .drawer.on{transform:translateY(0)}
+/* v3.43.0 — aviso de pedidos esperando confirmacion */
+#tck-cola-badge{position:fixed;left:12px;bottom:12px;z-index:100060;max-width:74vw;
+  background:#FFF8E1;border:1px solid #E0A800;border-left:4px solid #E0A800;
+  border-radius:10px;padding:9px 12px;cursor:pointer;
+  box-shadow:0 4px 16px rgba(0,0,0,.18);font-family:system-ui,sans-serif;}
+#tck-cola-badge b{display:block;font-size:13px;color:#6B4E00;line-height:1.25;}
+#tck-cola-badge span{display:block;font-size:11.5px;color:#8A6D1F;margin-top:2px;line-height:1.3;}
+#tck-cola-badge.trabado{background:#FFEBEE;border-color:#B00020;border-left-color:#B00020;}
+#tck-cola-badge.trabado b{color:#8A0018;}
+#tck-cola-badge.trabado span{color:#A33;}
 .d-pill{width:34px;height:4px;background:var(--cream3);border-radius:2px;margin:11px auto 0}
 .d-hdr{display:flex;align-items:flex-start;justify-content:space-between;padding:14px 16px 11px;border-bottom:1px solid var(--cream3)}
 .d-title{font-family:'Barlow Condensed',sans-serif;font-size:21px;font-weight:900;color:var(--red)}
@@ -14356,6 +14383,135 @@ function _setVendedorEnModalEnvio(nombre) {
   }
 }
 
+// ═══════════════════════════════════════════════════════════════════
+// v3.43.0 — COLA DE PEDIDOS SIN CONFIRMAR
+// ═══════════════════════════════════════════════════════════════════
+// QUÉ RESUELVE: saveOrderToSheets devuelve false cuando el servidor no
+// contesta en 12s o el fetch se corta. Hasta ahora ese false no lo
+// miraba nadie: el cliente veía "listo", el Purchase se disparaba igual
+// y del lado de TCK nadie se enteraba.
+//
+// DATO MEDIDO (10/08): 12 de 104 pedidos del catálogo quedaron con
+// sheet_ack=false y los 12 SÍ habían llegado al Sheet. O sea que el
+// false casi siempre es un falso negativo: el pedido entró y lo que se
+// perdió fue la respuesta. Por eso esto NO es "el pedido se perdió",
+// es "no me confirmaron".
+//
+// POR QUÉ REINTENTAR ES SEGURO: la rama del catálogo en Apps Script
+// (doGet sin `accion`) recorre el Sheet buscando el pedidoId ANTES de
+// escribir y, si ya está, devuelve {status:'duplicate'} sin agregar
+// nada. Reenviar el mismo pedidoId no puede duplicar la fila.
+//
+// EL PURCHASE AHORA ESPERA: se dispara cuando el Sheet confirma —sea en
+// el primer intento o en un reintento de la cola— y nunca antes. Lleva
+// eventID = pedidoId para que Meta pueda deduplicar contra la CAPI.
+var TCK_COLA_KEY      = 'tck_cola_pedidos_v1';
+var TCK_COLA_MAX_INT  = 8;      // después de esto deja de reintentar solo
+var TCK_COLA_CADA_MS  = 90000;  // reintento periódico
+var _colaProcesando   = false;
+
+function _colaLeer() {
+  try {
+    var raw = localStorage.getItem(TCK_COLA_KEY);
+    var arr = raw ? JSON.parse(raw) : [];
+    return Array.isArray(arr) ? arr : [];
+  } catch (e) { return []; }
+}
+
+function _colaEscribir(arr) {
+  try { localStorage.setItem(TCK_COLA_KEY, JSON.stringify(arr || [])); } catch (e) {}
+}
+
+// Encola un pedido que no recibió confirmación. `px` es el objeto del
+// evento Purchase ya armado: se guarda porque cuando el reintento salga
+// bien el carrito ya va a estar vacío y no se podría reconstruir.
+function _colaEncolar(payload, px) {
+  if (!payload || !payload.pedidoId) return;
+  var arr = _colaLeer();
+  for (var i = 0; i < arr.length; i++) {
+    if (arr[i] && arr[i].payload && arr[i].payload.pedidoId === payload.pedidoId) return;
+  }
+  arr.push({ payload: payload, px: px || null, intentos: 0, creado: Date.now() });
+  _colaEscribir(arr);
+  _colaBadgeRender();
+  console.warn('[cola] Pedido sin confirmar, encolado:', payload.pedidoId);
+}
+
+async function _colaProcesar(motivo) {
+  if (_colaProcesando) return;
+  var arr = _colaLeer();
+  if (!arr.length) return;
+  if (typeof navigator !== 'undefined' && navigator.onLine === false) return;
+
+  _colaProcesando = true;
+  console.log('[cola] Procesando ' + arr.length + ' pendiente(s) — ' + (motivo || ''));
+  try {
+    var quedan = [];
+    for (var i = 0; i < arr.length; i++) {
+      var it = arr[i];
+      if (!it || !it.payload || !it.payload.pedidoId) continue;
+      if (it.intentos >= TCK_COLA_MAX_INT) { quedan.push(it); continue; }
+
+      var ok = false;
+      try { ok = await saveOrderToSheets(it.payload); } catch (e) { ok = false; }
+
+      if (ok) {
+        console.log('[cola] Confirmado en reintento:', it.payload.pedidoId);
+        // Recién ahora Meta se entera de la compra.
+        try { if (it.px) fbqSafe('Purchase', it.px, false, it.payload.pedidoId); } catch (e) {}
+      } else {
+        it.intentos++;
+        quedan.push(it);
+      }
+    }
+    _colaEscribir(quedan);
+    _colaBadgeRender();
+  } finally {
+    _colaProcesando = false;
+  }
+}
+
+// Aviso discreto abajo a la izquierda. Solo aparece si hay algo pendiente.
+// No es un error rojo a propósito: en la enorme mayoría de los casos el
+// pedido está bien y solo falta el acuse.
+function _colaBadgeRender() {
+  var arr = _colaLeer();
+  var el  = document.getElementById('tck-cola-badge');
+  if (!arr.length) { if (el) el.remove(); return; }
+
+  var trabados = arr.filter(function (x) { return x && x.intentos >= TCK_COLA_MAX_INT; }).length;
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'tck-cola-badge';
+    el.onclick = function () { _colaProcesar('tap del cliente'); };
+    document.body.appendChild(el);
+  }
+  el.className = trabados ? 'trabado' : '';
+  el.innerHTML = trabados
+    ? '<b>' + trabados + ' pedido' + (trabados > 1 ? 's' : '') + ' sin confirmar</b>'
+      + '<span>Tocá para reintentar o escribinos por WhatsApp</span>'
+    : '<b>Confirmando ' + arr.length + ' pedido' + (arr.length > 1 ? 's' : '') + '…</b>'
+      + '<span>Reintentando solo. Podés seguir usando la app.</span>';
+}
+
+function _colaInstalar() {
+  try {
+    _colaBadgeRender();
+    setTimeout(function () { _colaProcesar('apertura'); }, 4000);
+    setInterval(function () { _colaProcesar('periódico'); }, TCK_COLA_CADA_MS);
+    window.addEventListener('online', function () { _colaProcesar('volvió la señal'); });
+    document.addEventListener('visibilitychange', function () {
+      if (!document.hidden) _colaProcesar('volvió al frente');
+    });
+  } catch (e) { console.warn('[cola] no se pudo instalar:', e); }
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', function () { setTimeout(_colaInstalar, 0); });
+} else {
+  setTimeout(_colaInstalar, 0);
+}
+
 async function saveOrderToSheets(payload) {
   try {
     // GET con parámetros en URL — evita CORS preflight 100%
@@ -14404,7 +14560,8 @@ async function saveOrderToSheets(payload) {
     for (let _int = 1; _int <= 2; _int++) {
       try {
         const _ctl = new AbortController();
-        const _tmr = setTimeout(function(){ _ctl.abort(); }, 8000);
+        const _tmr = setTimeout(function(){ _ctl.abort(); }, 12000);   // v3.43.0: era 8000. El Sheet a veces tarda mas y se
+                                        // marcaba como fallido un pedido que si entro.
         const r = await fetch(url, { method: 'GET', signal: _ctl.signal });
         clearTimeout(_tmr);
         if (r.ok) {
@@ -15009,7 +15166,11 @@ async function confirmarYEnviarWA() { // v3.26.0: async para esperar el ACK del 
         item_price: comboPrecioPorZona(combo)
       });
     });
-    fbqSafe('Purchase', {
+    // v3.43.0: el evento se arma SIEMPRE pero se dispara solo si el Sheet
+    // confirmo. Si no confirmo, viaja con el pedido a la cola y sale cuando
+    // el reintento tenga exito. Antes salia igual, asi que Meta contaba
+    // compras que del lado de TCK no existian.
+    const _pxCompra = {
       value: t,
       currency: 'ARS',
       num_items: itemsTotales,
@@ -15017,8 +15178,17 @@ async function confirmarYEnviarWA() { // v3.26.0: async para esperar el ACK del 
       content_type: 'product',
       order_id: pedidoId,
       origen_marketing: (utmLeer() || {}).origen_marketing || null
-    });
-  } catch(e) { /* no bloquear el envío */ }
+    };
+    if (_sheetOk) {
+      fbqSafe('Purchase', _pxCompra, false, pedidoId);
+    } else {
+      _colaEncolar(payload, _pxCompra);
+    }
+  } catch(e) {
+    // Si algo falla armando el evento, el pedido igual tiene que encolarse:
+    // la cola es lo que evita perder la venta, el pixel es secundario.
+    try { if (!_sheetOk) _colaEncolar(payload, null); } catch(e2) {}
+  }
 
   // ── v3.6.14 · Google Ads Conversion ────────────────────────────
   // Dispara la conversión "Pedido enviado por WhatsApp" en Google Ads.
@@ -23314,7 +23484,7 @@ function confirmarCiudadNoAtendida() {
    TCK_UPD_LOCAL aca Y el archivo version.json del repo.
    ============================================================ */
 (function(){
-  var TCK_UPD_LOCAL = '3.42.2';        /* <-- bump en cada deploy */
+  var TCK_UPD_LOCAL = '3.43.0';        /* <-- bump en cada deploy */
   var TCK_UPD_INTERVALO = 10 * 60 * 1000;   /* chequeo de fondo: 10 min */
   var _updUltChequeo = 0;
 
