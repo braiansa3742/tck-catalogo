@@ -2,7 +2,49 @@
 <html lang="es">
 <head>
 <!-- ═══════════════════════════════════════════════════════════════════════
-     TCK CATÁLOGO — v3.46.2 — 21/08/2026
+     TCK CATÁLOGO — v3.47.0 — 21/08/2026
+
+     v3.47.0: P0 FASE 1 — EL CATALOGO EMPIEZA A DECIR QUE VARIANTE ES.
+     ADITIVA: el backend v25.122.0 ignora todo lo que se agrega. Un pedido
+     hecho con esta version tiene que generar EXACTAMENTE el mismo
+     presupuesto Xubio que hoy. Si cambia algo, hay que revertir.
+
+     PROBLEMA (P0): el catalogo sabe calibre, estado y xubio_producto_id de
+     la variante elegida, pero el item que emite es
+       {tipo:'producto_calibre', nombre_canonico:'Pollo B', calibre:'x6'}
+     sin estado. El .gs entonces hardcodea
+       nomFinal = 'Pollo B ' + calibre + ' Congelado'   (.gs linea 4986)
+     y el fresco se factura contra el producto Xubio congelado.
+
+     LO QUE ESTA VERSION AGREGA AL ITEM (todo opcional, todo ignorado hoy):
+       xubio_producto_id : 2859571   identidad exacta, de vw_cat_variantes
+       estado            : 'fresco'
+       variante          : 'x6 Fresco'   llave de productos_xubio_mapping
+       variantes[]       : desglose por estado, con cantidad e id
+
+     POR QUE HACEN FALTA LOS DOS (id + variante): el id es exacto pero muere
+     cuando editarPedido limpia la col T (.gs linea 3651). La variante como
+     string sobrevive por la ruta de texto y es lo unico que el editor de
+     Ventas sabe transportar (_editarCalibres {txt,sep}). Ese es el bloqueante
+     F2b y este diseno lo deja abierto en vez de cerrarlo.
+
+     BLOQUEANTE QUE HABIA QUE RESOLVER PRIMERO: _itemC vive en el bloque
+     <script> 12087 y V4_VARIANTES / v4VarPorSlug viven dentro de la IIFE del
+     bloque 20897, que no exportaba nada de variantes. Se agrega un unico
+     export nuevo, window.tckVarInfo(nombre, slug), de SOLO LECTURA.
+
+     FUSION: si el cliente pide x6 fresco Y x6 congelado, las dos lineas se
+     fusionan en una. La identidad plana se ANULA (son dos productos Xubio
+     distintos) y el desglose queda en variantes[]. No se inventa un id.
+
+     TAMBIEN: obs deja de PISAR el estado. Antes, si el cliente escribia una
+     observacion en ese calibre, `_itemC.obs = _obsC` borraba el "1 fresco".
+     Ahora concatena, igual que ya hacia la rama de fusion.
+
+     NO TOCA: precios, totales, cupon, stock, topes, combos, promos, el
+     mensaje de WhatsApp, el texto de detallePedido ni el Apps Script.
+
+     Base: v3.46.2.
 
      v3.46.2: FIX — LA PANTALLA DE CONFIRMACION NO SE ABRIA.
      Un unico cambio, una unica linea de codigo real (mas comentarios).
@@ -15252,6 +15294,31 @@ async function confirmarYEnviarWA() { // v3.26.0: async para esperar el ACK del 
       _yaC.cantidad = (_yaC.cantidad || 0) + qProd;
       _yaC.subtotal = precioUnit(prodInfo.it, _yaC.cantidad) * _yaC.cantidad;
       _yaC.precio_unitario = precioUnit(prodInfo.it, _yaC.cantidad);
+      // ─── v3.47.0 F1 — LA FUSION NO PUEDE MENTIR LA IDENTIDAD ───────────
+      // Cuando el cliente pide el MISMO calibre en dos estados (x6 fresco +
+      // x6 congelado), las dos lineas se fusionan en una sola. La identidad
+      // plana que quedo del primer slug deja de ser cierta para la linea
+      // fusionada: son dos productos Xubio distintos.
+      // Se ANULA (no se miente) y el desglose completo queda en variantes[],
+      // que es lo que va a necesitar la fase que des-fusione. Sin esto, F2
+      // facturaria las 5 cajas contra la variante del primero que entro.
+      try {
+        var _viF = (typeof window.tckVarInfo === 'function') ? window.tckVarInfo(nombre, _slug) : null;
+        if (!Array.isArray(_yaC.variantes)) _yaC.variantes = [];
+        _yaC.variantes.push({
+          calibre: calibre,
+          estado: _estado || '',
+          cantidad: qProd,
+          xubio_producto_id: (_viF && _viF.id) ? _viF.id : null
+        });
+        var _estSet = {};
+        _yaC.variantes.forEach(function (x) { _estSet[x.estado || ''] = 1; });
+        if (Object.keys(_estSet).length > 1) {
+          delete _yaC.xubio_producto_id;
+          delete _yaC.estado;
+          delete _yaC.variante;
+        }
+      } catch (_eF) { /* nunca bloquea el pedido */ }
       if (_estado) {
         const _et = qProd + ' ' + _estado;
         _yaC.obs = _yaC.obs ? (_yaC.obs + ' | ' + _et) : _et;
@@ -15268,13 +15335,49 @@ async function confirmarYEnviarWA() { // v3.26.0: async para esperar el ACK del 
       subtotal: precioUnit(prodInfo.it, qProd) * qProd,
       elegible_cupon: cuponEsElegibleCat(prodInfo.sec.id)
     };
+    // ─── v3.47.0 F1 — IDENTIDAD EXPLICITA DE LA VARIANTE ────────────────
+    // ADITIVO POR DISENO. Verificado contra Apps Script v25.122.0: la ruta
+    // JSON de crearPresupuestoXubio (lineas 4962-5007) lee UNICAMENTE
+    // it.tipo / it.nombre_canonico / it.calibre / it.cantidad /
+    // it.precio_unitario, y arma parseado.lineas con un literal de
+    // whitelist. Los 5 consumidores de la col T (4962, 5370, 6835, 6158,
+    // 16743) ignoran campos desconocidos. La col T se escribe con
+    // setValue() del string crudo (linea 4291), sin filtrar.
+    // => hasta que F2 toque el .gs, estos campos viajan y NO hacen nada.
+    //
+    // Nombres alineados con Ventas Fase 2A v14.158.1 a proposito:
+    //   variante = calibre + ' ' + Estado  ->  'x6 Fresco'
+    // que es la llave EXACTA de productos_xubio_mapping y la unica forma de
+    // identidad que el editor de Ventas sabe transportar. El id es exacto
+    // pero muere cuando editarPedido limpia la col T (.gs linea 3651); la
+    // variante sobrevive por la ruta de texto. Por eso van los dos.
+    try {
+      var _vi = (typeof window.tckVarInfo === 'function') ? window.tckVarInfo(nombre, _slug) : null;
+      if (_vi && _vi.id) _itemC.xubio_producto_id = _vi.id;
+      if (_vi && _vi.estado) {
+        _itemC.estado = _vi.estado;
+        if (_vi.label) _itemC.variante = calibre + ' ' + _vi.label;
+      }
+      _itemC.variantes = [{
+        calibre: calibre,
+        estado: _estado || '',
+        cantidad: qProd,
+        xubio_producto_id: (_vi && _vi.id) ? _vi.id : null
+      }];
+    } catch (_eVi) { /* nunca bloquea el pedido */ }
     // v3.34.0 — el estado elegido viaja en la observación de la línea
     if (_estado) {
       const _et0 = qProd + ' ' + _estado;
       _itemC.obs = _itemC.obs ? (_itemC.obs + ' | ' + _et0) : _et0;
     }
     const _obsC = _obsDe(nombre + ' ' + calibre);
-    if (_obsC) _itemC.obs = _obsC;
+    // v3.47.0 F1 — antes ASIGNABA: la observacion escrita por el cliente
+    // borraba el estado que se acababa de escribir dos lineas arriba. La
+    // rama de fusion (mas arriba) siempre concateno; esta no. Nadie lee obs
+    // aguas abajo (verificado: 0 ocurrencias en app_script.txt, tck-ventas y
+    // tck-admin; el unico lector es abrirDetallePedido de este mismo
+    // archivo), asi que concatenar es riesgo cero.
+    if (_obsC) _itemC.obs = _itemC.obs ? (_itemC.obs + ' | ' + _obsC) : _obsC;
     itemsEstructurados.push(_itemC);
   });
 
@@ -22576,6 +22679,35 @@ function confirmarCiudadNoAtendida() {
     if (e === 'congelado') return 'Congelado';
     return '';
   }
+
+  // ═══════════════════════════════════════════════════════════════════════
+  // v3.47.0 F1 — PUENTE DE IDENTIDAD (unico export nuevo de esta version)
+  // ═══════════════════════════════════════════════════════════════════════
+  // El armado del pedido (_itemC, en el bloque <script> 12087) NO ve nada de
+  // esta IIFE: V4_VARIANTES, v4VarPorSlug, v4VariantesDe y v4EstadoLabel son
+  // privadas y ninguna estaba exportada. Verificado con parser: la IIFE tiene
+  // 0 declaraciones a nivel de bloque <script> y exporta 35 nombres a window,
+  // ninguno de variantes. Sin este puente, F1 es literalmente imposible: el
+  // catalogo conoce el xubio_producto_id de la variante y no puede leerlo
+  // desde donde arma el pedido.
+  //
+  // Contrato: SOLO LECTURA. Devuelve una copia plana, nunca la referencia
+  // interna, asi que quien la use no puede mutar V4_VARIANTES por accidente.
+  // Devuelve null si el slug no corresponde a ninguna variante viva (carrito
+  // viejo de localStorage con una variante dada de baja). `id` queda en null
+  // si vw_cat_variantes no cargo y se esta usando V4_CALIBRES_FALLBACK.
+  window.tckVarInfo = function (nom, slug) {
+    try {
+      var v = v4VarPorSlug(nom, slug);
+      if (!v) return null;
+      return {
+        id:      (typeof v.id === 'number' && v.id > 0) ? v.id : null,
+        calibre: v.calibre || '',
+        estado:  v.estado  || '',
+        label:   v4EstadoLabel(v.estado || '')
+      };
+    } catch (e) { return null; }
+  };
 
   // Aviso efímero. El catálogo NO tenía ningún mecanismo de toast, así que va
   // uno mínimo y autocontenido: estilos inline, sin depender del CSS ni de
