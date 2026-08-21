@@ -3264,6 +3264,80 @@ function leadCodigoActual() {
   } catch(e) { return ''; }
 }
 
+// ═══════════════════════════════════════════════════════════════════
+// v3.9.1 — ANALYTICS INTERNO (Etapa 1: solo embudo de registro)
+// ═══════════════════════════════════════════════════════════════════
+// Escribe en catalogo_eventos via RPC catalogo_evento_registrar().
+// Fire-and-forget: NUNCA bloquea ni cambia el resultado comercial.
+// Los hitos legacy (lead_evento -> leads_captacion) quedan INTACTOS.
+//
+// v3.9.1 corrige dos defectos de v3.9.0:
+//   1) La idem_key usaba un contador en memoria (_regIntento) junto a un
+//      sesion_id persistido en localStorage. Tras un reload el contador
+//      volvia a 1 y regeneraba claves ya usadas -> el ON CONFLICT las
+//      descartaba en silencio y se perdian eventos. Ahora cada intento
+//      lleva un attempt_id aleatorio: dos reloads, dos pestanas o mil
+//      reaperturas nunca colisionan.
+//   2) El listener de registration_start se agregaba con {once:true} y,
+//      si el usuario abria el registro sin escribir, quedaba pendiente y
+//      se acumulaba sobre el mismo input. Ahora se retira el anterior
+//      antes de montar el nuevo: como maximo hay UNO vivo, y captura su
+//      attempt_id por closure, no leyendo una global al dispararse.
+function tckUuid() {
+  try {
+    if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
+  } catch (e) {}
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+    var r = Math.random() * 16 | 0;
+    return (c === 'x' ? r : ((r & 0x3) | 0x8)).toString(16);
+  });
+}
+
+var _tckSesionId = null;
+function tckSesionId() {
+  if (_tckSesionId) return _tckSesionId;
+  var uuid = null;
+  try { uuid = localStorage.getItem('tck_sesion'); } catch (e) {}
+  if (!uuid || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(uuid)) {
+    uuid = tckUuid();
+    try { localStorage.setItem('tck_sesion', uuid); } catch (e) {}
+  }
+  _tckSesionId = uuid;   // si localStorage esta bloqueado, vive en memoria
+  return uuid;
+}
+
+// Identidad del intento de registro en curso. Se renueva en cada
+// cliFlowIniciar('registro'). _regIntento queda solo como ordinal legible
+// dentro de esta carga de pagina; la unicidad la garantiza _regAttemptId.
+var _regIntento = 0;
+var _regAttemptId = null;
+var _regStartHandler = null;
+var _regStartInput = null;
+
+function tckEvento(evento, datos, idemKey, clienteAuthId) {
+  try {
+    cliRpc('catalogo_evento_registrar', {
+      p_evento: evento,
+      p_sesion_id: tckSesionId(),
+      p_lead_codigo: leadCodigoActual() || null,
+      p_cliente_auth_id: clienteAuthId || (_cliActivo && _cliActivo.id) || null,
+      p_intento: _regIntento,
+      p_attempt_id: _regAttemptId,
+      p_datos: datos || null,
+      p_idem_key: idemKey || null
+    }).catch(function (e) {
+      console.warn('[analytics] evento no registrado:', evento, e && e.message);
+    });
+  } catch (e) {
+    console.warn('[analytics] evento no registrado:', evento, e && e.message);
+  }
+}
+
+function tckRegError(motivo, campo, etapa) {
+  tckEvento('registration_error', { motivo: motivo, campo: campo, etapa: etapa },
+            'err:' + (_regAttemptId || tckSesionId()) + ':' + motivo);
+}
+
 function leadMarcar(evento, clienteAuthId) {
   const cod = leadCodigoActual();
   if (!cod) return;
@@ -3280,6 +3354,11 @@ function leadMarcar(evento, clienteAuthId) {
 // En DOMContentLoaded porque cliRpc se declara más abajo en el archivo.
 document.addEventListener('DOMContentLoaded', function() {
   if (leadCodigoActual()) leadMarcar('abrio', null);
+  // v3.9.1: espejo en catalogo_eventos. Corre SIEMPRE, tambien sin ?l=.
+  // idem_key por sesion+dia: un reload no duplica, pero volver otro dia si
+  // cuenta como apertura nueva.
+  tckEvento('catalog_open', null,
+            'open:' + tckSesionId() + ':' + new Date().toISOString().slice(0, 10));
 });
 
 // ═══════════════════════════════════════════════════════════════════
@@ -18494,6 +18573,39 @@ function cliFlowIniciar(modo) {
   if (subPin && subPin.dataset.original) subPin.innerHTML = subPin.dataset.original;
 
   cliFlowShow('tel');
+
+  // v3.9.1 ANALYTICS: el modal ya esta visible (mostrarLoginParaCuenta lo
+  // puso en .visible antes de llamar aca) y cliFlowShow('tel') dejo la
+  // pantalla del telefono activa -> el usuario VE el formulario.
+  // Solo registro: login y recupero no cuentan en este embudo.
+  if (_flowModo === 'registro') {
+    _regIntento++;
+    _regAttemptId = tckUuid();          // unico por intento, sobrevive reloads
+    const _attempt = _regAttemptId;     // capturado por closure, no global
+    tckEvento('registration_view', null, 'view:' + _attempt);
+
+    // registration_start: primera edicion REAL del telefono. 'input' no lo
+    // dispara una asignacion por JS (la precarga del tel guardado) ni un
+    // focus() programatico; si lo disparan tipeo, paste y autocomplete.
+    try {
+      const _inpTel = document.getElementById('cli-flow-tel-input');
+      if (_inpTel) {
+        // Retirar el handler del intento anterior si quedo sin consumir
+        // (abrir el registro y cerrarlo sin escribir lo dejaba vivo).
+        if (_regStartHandler && _regStartInput) {
+          try { _regStartInput.removeEventListener('input', _regStartHandler); } catch (e) {}
+        }
+        _regStartHandler = function () {
+          tckEvento('registration_start', { primer_campo: 'telefono' },
+                    'start:' + _attempt);
+          _regStartHandler = null;
+          _regStartInput = null;
+        };
+        _regStartInput = _inpTel;
+        _inpTel.addEventListener('input', _regStartHandler, { once: true });
+      }
+    } catch (e) {}
+  }
 }
 
 // v2.6.8: helper para restaurar el texto del botón de submit tel según modo activo
@@ -18530,6 +18642,7 @@ async function cliFlowTelSiguiente() {
   const tel = normTel(inp.value);
   if (!tel || tel.length < 8) {
     err.textContent = 'Ingresá tu número completo: característica + número, sin 0 y sin 15 (ej: 2392400000).';
+    if (_flowModo === 'registro') tckRegError('invalid_phone', 'telefono', 'telefono');
     return;
   }
 
@@ -18692,6 +18805,11 @@ function cliFlowOtpMensajePorMotivo(motivo, esConexion) {
 }
 
 function cliFlowOtpFallo(motivo, esConexion) {
+  // v3.9.1: el motivo ya viene normalizado por el propio flow.
+  if (_flowModo === 'registro') {
+    tckRegError(esConexion ? 'network_error' : ('otp_' + String(motivo || 'desconocido')).slice(0, 40),
+                'otp', 'otp');
+  }
   const err = document.getElementById('cli-flow-tel-err');
   if (err) err.textContent = cliFlowOtpMensajePorMotivo(motivo, esConexion);
   const fb  = document.getElementById('cli-flow-tel-fallback');
@@ -19091,7 +19209,7 @@ async function cliFlowPinGuardar() {
           p_telefono: _flowTel,
           p_clave:    pin
         });
-        if (!cli || !cli.id) throw new Error('Error al crear la cuenta');
+        if (!cli || !cli.id) { tckRegError('rpc_error', null, 'alta'); throw new Error('Error al crear la cuenta'); }
       } else {
         // v3.14.0: alta vía Apps Script (cliRegistro) con auth_token del OTP.
         const paramsReg = cliParamsLimpios(Object.assign({
@@ -19100,7 +19218,7 @@ async function cliFlowPinGuardar() {
           nombre: '', vendedor: vendedorLink
         }, utmPayloadRegistro()));
         const dataReg = await appsScriptCall(paramsReg);
-        if (dataReg.status !== 'ok' || !dataReg.cliente) throw new Error(dataReg.message || 'Error al crear la cuenta');
+        if (dataReg.status !== 'ok' || !dataReg.cliente) { tckRegError('appscript_error', null, 'alta'); throw new Error(dataReg.message || 'Error al crear la cuenta'); }
         cli = dataReg.cliente;
       }
       cliGuardar(cli);
@@ -19130,6 +19248,10 @@ async function cliFlowPinGuardar() {
       if (banner) banner.classList.add('hidden');
       // v3.41.0: hito 2 del embudo — el lead se registró.
       leadMarcar('registro', cli.id);
+      // v3.9.1: espejo del hito. leadMarcar queda intacto y sigue siendo
+      // la fuente de verdad (leads_captacion.registrado_at).
+      tckEvento('registration_complete', null,
+                'complete:' + (_regAttemptId || tckSesionId()), cli.id);
       // v3.41.0 (bug N35): antes se iba derecho al éxito y la cuenta quedaba
       // sin nombre, sin comercio y sin ciudad. Ahora pasa por el paso de datos
       // (con la ciudad pre-cargada si ya la eligió en el modal de bienvenida).
@@ -19143,6 +19265,8 @@ async function cliFlowPinGuardar() {
       }
     }
   } catch(e) {
+    // v3.9.1: solo si el error NO fue ya reportado arriba (rpc/appscript).
+    if (!/crear la cuenta/i.test(String(e && e.message))) tckRegError('network_error', null, 'alta');
     if (err) err.textContent = 'Error al guardar. Intentá de nuevo.';
     if (btn) { btn.disabled = false; btn.textContent = 'Crear cuenta →'; }
   }
