@@ -3264,6 +3264,61 @@ function leadCodigoActual() {
   } catch(e) { return ''; }
 }
 
+// ═══════════════════════════════════════════════════════════════════
+// v3.9.0 — ANALYTICS INTERNO (Etapa 1: solo embudo de registro)
+// ═══════════════════════════════════════════════════════════════════
+// Escribe en catalogo_eventos via RPC catalogo_evento_registrar().
+// Fire-and-forget: NUNCA bloquea ni cambia el resultado comercial.
+// Los hitos legacy (lead_evento -> leads_captacion) quedan INTACTOS;
+// esto agrega la secuencia temporal por sesion, no la reemplaza.
+var _tckSesionId = null;
+function tckSesionId() {
+  if (_tckSesionId) return _tckSesionId;
+  var uuid = null;
+  try { uuid = localStorage.getItem('tck_sesion'); } catch (e) {}
+  if (!uuid || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(uuid)) {
+    try {
+      uuid = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : null;
+    } catch (e) { uuid = null; }
+    if (!uuid) {
+      // Fallback sin crypto.randomUUID: UUID v4 con Math.random.
+      uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+        var r = Math.random() * 16 | 0;
+        return (c === 'x' ? r : ((r & 0x3) | 0x8)).toString(16);
+      });
+    }
+    try { localStorage.setItem('tck_sesion', uuid); } catch (e) {}
+  }
+  _tckSesionId = uuid;   // si localStorage esta bloqueado, vive en memoria
+  return uuid;
+}
+
+// Contador de intentos de REGISTRO. Solo lo mueve cliFlowIniciar('registro').
+var _regIntento = 0;
+
+function tckEvento(evento, datos, idemKey, clienteAuthId) {
+  try {
+    cliRpc('catalogo_evento_registrar', {
+      p_evento: evento,
+      p_sesion_id: tckSesionId(),
+      p_lead_codigo: leadCodigoActual() || null,
+      p_cliente_auth_id: clienteAuthId || (_cliActivo && _cliActivo.id) || null,
+      p_intento: _regIntento,
+      p_datos: datos || null,
+      p_idem_key: idemKey || null
+    }).catch(function (e) {
+      console.warn('[analytics] evento no registrado:', evento, e && e.message);
+    });
+  } catch (e) {
+    console.warn('[analytics] evento no registrado:', evento, e && e.message);
+  }
+}
+
+function tckRegError(motivo, campo, etapa) {
+  tckEvento('registration_error', { motivo: motivo, campo: campo, etapa: etapa },
+            tckSesionId() + ':err:' + _regIntento + ':' + motivo);
+}
+
 function leadMarcar(evento, clienteAuthId) {
   const cod = leadCodigoActual();
   if (!cod) return;
@@ -3280,6 +3335,9 @@ function leadMarcar(evento, clienteAuthId) {
 // En DOMContentLoaded porque cliRpc se declara más abajo en el archivo.
 document.addEventListener('DOMContentLoaded', function() {
   if (leadCodigoActual()) leadMarcar('abrio', null);
+  // v3.9.0: espejo en catalogo_eventos. Corre SIEMPRE, tambien sin ?l=,
+  // para poder medir el embudo de quien entra directo (lead_codigo NULL).
+  tckEvento('catalog_open', null, tckSesionId() + ':catalog_open');
 });
 
 // ═══════════════════════════════════════════════════════════════════
@@ -18494,6 +18552,30 @@ function cliFlowIniciar(modo) {
   if (subPin && subPin.dataset.original) subPin.innerHTML = subPin.dataset.original;
 
   cliFlowShow('tel');
+
+  // v3.9.0 ANALYTICS: el modal ya esta visible (mostrarLoginParaCuenta lo
+  // puso en .visible antes de llamar aca) y cliFlowShow('tel') dejo la
+  // pantalla del telefono activa -> el usuario VE el formulario.
+  // Solo registro: login y recupero no cuentan en este embudo.
+  if (_flowModo === 'registro') {
+    _regIntento++;
+    tckEvento('registration_view', null,
+              tckSesionId() + ':view:' + _regIntento);
+    // registration_start: primera edicion REAL del telefono. 'input' no lo
+    // dispara una asignacion por JS (la precarga de tel guardado) ni un
+    // focus() programatico; si lo disparan tipeo, paste y autocomplete.
+    // { once: true } garantiza un solo disparo y que el listener se quite
+    // solo: reabrir el modal no acumula listeners.
+    try {
+      const _inpTel = document.getElementById('cli-flow-tel-input');
+      if (_inpTel) {
+        _inpTel.addEventListener('input', function () {
+          tckEvento('registration_start', { primer_campo: 'telefono' },
+                    tckSesionId() + ':start:' + _regIntento);
+        }, { once: true });
+      }
+    } catch (e) {}
+  }
 }
 
 // v2.6.8: helper para restaurar el texto del botón de submit tel según modo activo
@@ -18530,6 +18612,7 @@ async function cliFlowTelSiguiente() {
   const tel = normTel(inp.value);
   if (!tel || tel.length < 8) {
     err.textContent = 'Ingresá tu número completo: característica + número, sin 0 y sin 15 (ej: 2392400000).';
+    if (_flowModo === 'registro') tckRegError('invalid_phone', 'telefono', 'telefono');
     return;
   }
 
@@ -18692,6 +18775,11 @@ function cliFlowOtpMensajePorMotivo(motivo, esConexion) {
 }
 
 function cliFlowOtpFallo(motivo, esConexion) {
+  // v3.9.0: el motivo ya viene normalizado por el propio flow.
+  if (_flowModo === 'registro') {
+    tckRegError(esConexion ? 'network_error' : ('otp_' + String(motivo || 'desconocido')).slice(0, 40),
+                'otp', 'otp');
+  }
   const err = document.getElementById('cli-flow-tel-err');
   if (err) err.textContent = cliFlowOtpMensajePorMotivo(motivo, esConexion);
   const fb  = document.getElementById('cli-flow-tel-fallback');
@@ -19091,7 +19179,7 @@ async function cliFlowPinGuardar() {
           p_telefono: _flowTel,
           p_clave:    pin
         });
-        if (!cli || !cli.id) throw new Error('Error al crear la cuenta');
+        if (!cli || !cli.id) { tckRegError('rpc_error', null, 'alta'); throw new Error('Error al crear la cuenta'); }
       } else {
         // v3.14.0: alta vía Apps Script (cliRegistro) con auth_token del OTP.
         const paramsReg = cliParamsLimpios(Object.assign({
@@ -19100,7 +19188,7 @@ async function cliFlowPinGuardar() {
           nombre: '', vendedor: vendedorLink
         }, utmPayloadRegistro()));
         const dataReg = await appsScriptCall(paramsReg);
-        if (dataReg.status !== 'ok' || !dataReg.cliente) throw new Error(dataReg.message || 'Error al crear la cuenta');
+        if (dataReg.status !== 'ok' || !dataReg.cliente) { tckRegError('appscript_error', null, 'alta'); throw new Error(dataReg.message || 'Error al crear la cuenta'); }
         cli = dataReg.cliente;
       }
       cliGuardar(cli);
@@ -19130,6 +19218,10 @@ async function cliFlowPinGuardar() {
       if (banner) banner.classList.add('hidden');
       // v3.41.0: hito 2 del embudo — el lead se registró.
       leadMarcar('registro', cli.id);
+      // v3.9.0: espejo del hito. leadMarcar queda intacto y sigue siendo
+      // la fuente de verdad (leads_captacion.registrado_at).
+      tckEvento('registration_complete', null,
+                tckSesionId() + ':complete', cli.id);
       // v3.41.0 (bug N35): antes se iba derecho al éxito y la cuenta quedaba
       // sin nombre, sin comercio y sin ciudad. Ahora pasa por el paso de datos
       // (con la ciudad pre-cargada si ya la eligió en el modal de bienvenida).
@@ -19143,6 +19235,8 @@ async function cliFlowPinGuardar() {
       }
     }
   } catch(e) {
+    // v3.9.0: solo si el error NO fue ya reportado arriba (rpc/appscript).
+    if (!/crear la cuenta/i.test(String(e && e.message))) tckRegError('network_error', null, 'alta');
     if (err) err.textContent = 'Error al guardar. Intentá de nuevo.';
     if (btn) { btn.disabled = false; btn.textContent = 'Crear cuenta →'; }
   }
