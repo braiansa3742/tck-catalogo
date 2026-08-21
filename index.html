@@ -2,7 +2,32 @@
 <html lang="es">
 <head>
 <!-- ═══════════════════════════════════════════════════════════════════════
-     TCK CATÁLOGO — v3.46.1 — 21/08/2026
+     TCK CATÁLOGO — v3.46.2 — 21/08/2026
+
+     v3.46.2: FIX — LA PANTALLA DE CONFIRMACION NO SE ABRIA.
+     Un unico cambio, una unica linea de codigo real (mas comentarios).
+
+     SINTOMA: el cliente toca "Confirmar pedido", el carrito se vacia y no
+     pasa nada. El pedido SI se guardo (Sheet + Supabase + backup): lo que
+     falla es solo la pantalla de exito.
+
+     CAUSA: confirmarYEnviarWA() (bloque <script> 12087) llamaba a
+     v4EstadoLabel(), que esta declarada dentro de la IIFE del bloque
+     <script> 20897 y NO se exporta a window. ReferenceError no capturado
+     -> la funcion aborta en la linea 15593, y la linea 15619
+     (#pedido-ok.classList.add('on')) nunca corre. Es la unica linea del
+     archivo que abre esa pantalla.
+
+     ALCANCE: se dispara solo cuando el slug del carrito trae estado, o sea
+     desde v3.34.0 (30/07) y solo en Pollo B y Pollo C. Pollo A no tiene
+     estado en el slug y nunca lo disparo. Verificado con parser (acorn):
+     es el UNICO uso cross-scope del archivo, no hay otros latentes.
+
+     FIX: etiqueta local (fresco -> Fresco / congelado -> Congelado), sin
+     dependencia de scope. NO se exporta nada a window en esta version.
+
+     NO TOCA: pedido, payload, detalle_estructurado, col T, presupuesto,
+     Xubio, precios ni stock. Es 100% presentacion.
 
      v3.46.1: CORRECCION DE NOMBRE (reporte Braian). El producto de
      Fresnova es MEDALLON DE MERLUZA ESP Y MUZZ (M2) — lleva muzzarella,
@@ -15589,8 +15614,21 @@ async function confirmarYEnviarWA() { // v3.26.0: async para esperar el ACK del 
       // v3.34.0 — pantalla de confirmación: mostramos calibre y estado.
       const _slugC  = rest.slice(lastColon + 1);
       const _estC   = (_slugC.indexOf('@') === -1) ? '' : _slugC.slice(_slugC.indexOf('@') + 1);
+      // v3.46.2 FIX — v4EstadoLabel() esta declarada DENTRO de la IIFE del
+      // bloque <script> 20897 y esa IIFE no exporta nada de variantes a
+      // window. Llamarla desde aca (bloque <script> 12087) era un
+      // ReferenceError que abortaba confirmarYEnviarWA ANTES de la linea que
+      // hace #pedido-ok.classList.add('on'), que es la UNICA que abre la
+      // pantalla de confirmacion. Efecto real: el pedido se guardaba, el
+      // carrito se vaciaba y el cliente se quedaba sin pantalla de exito.
+      // Activo desde v3.34.0 (30/07) en TODO pedido con Pollo B o Pollo C
+      // (los unicos con estado en el slug). Pollo A no lo disparaba.
+      // Se resuelve con una etiqueta local, sin dependencias de scope.
+      const _estLbl = (_estC === 'fresco')    ? 'Fresco'
+                    : (_estC === 'congelado') ? 'Congelado'
+                    : _estC;
       const calibre = ((_slugC.indexOf('@') === -1) ? _slugC : _slugC.slice(0, _slugC.indexOf('@')))
-                    + (_estC ? ' \u00b7 ' + v4EstadoLabel(_estC) : '');
+                    + (_estC ? ' \u00b7 ' + _estLbl : '');
       let prodInfo = null;
       for (let si = 0; si < CAT.length && !prodInfo; si++) {
         const sec = CAT[si];
