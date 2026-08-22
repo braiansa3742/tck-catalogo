@@ -2,7 +2,53 @@
 <html lang="es">
 <head>
 <!-- ═══════════════════════════════════════════════════════════════════════
-     TCK CATÁLOGO — v3.47.0 — 21/08/2026
+     TCK CATÁLOGO — v3.48.0 — 21/08/2026
+
+     v3.48.0: F2b PASO 1 — EL TEXTO DEL PEDIDO LLEVA LA VARIANTE COMPLETA.
+     UN SOLO HUNK. No toca precios, cantidades, descuentos, cupon, stock,
+     col T estructurada, xubio_producto_id, estado, variante ni Apps Script.
+
+     CAMBIO: la cabecera de las lineas de pollo con calibre pasa de
+       🐔 *Pollo B · calibre x6*        (no dice el estado)
+     a
+       🐔 *Pollo B x6 Congelado*  /  🐔 *Pollo B x6 Fresco*
+     Pollo A, que no tiene estado, queda 🐔 *Pollo A x7*.
+
+     POR QUE: ese string es el carrier DURABLE de la identidad. La col T
+     estructurada que agrego v3.47.0 muere en cuanto alguien edita el pedido
+     en Ventas (editarPedido la limpia, .gs linea 3651), y desde ahi el
+     presupuesto se resuelve por la ruta de TEXTO contra
+     productos_xubio_mapping por nombre exacto. La fila legacy
+     'Pollo B · calibre x6' apunta SIEMPRE a 2859574 (congelado), asi que un
+     x6 fresco editado se facturaba congelado. 'Pollo B x6 Fresco' resuelve
+     2859571. Simulado con el parser real del .gs: la ruta de texto pasa de
+     4/6 a 6/6 casos correctos.
+
+     BONUS OPERATIVO: es el mismo formato que ya emite el tomador, asi que el
+     editor de Ventas hace round-trip sin fricción — _editarSepararCalibre lo
+     parsea y _calNormalizar lo valida, y el vendedor deja de tener que
+     reelegir la variante cada vez que abre un pedido web.
+
+     FUENTE DEL LABEL: window.tckVarInfo, el mismo puente de v3.47.0 que
+     alimenta xubio_producto_id/estado/variante en la col T. Texto e identidad
+     estructurada salen del MISMO lugar y no pueden divergir. Degradaciones:
+     sin puente o con variante dada de baja, se capitaliza el estado del slug;
+     sin estado, la cabecera queda 'Pollo A x7'. Nunca se pierde ni se inventa.
+
+     REQUIERE tck-ventas v14.160.0 YA DESPLEGADO (lo esta). Ese guard frena la
+     edicion cuando un pedido trae DOS variantes de la misma familia. Hasta
+     v3.47.0 eso lo frenaba de casualidad la ambigüedad del texto viejo; al
+     desambiguarlo, sin el guard el editor colapsaria las dos variantes en
+     silencio. Los dos cambios son inseparables y van en este orden.
+
+     NO RESUELVE el P0 de Pollo C x5: un pedido web SIN editar sigue entrando
+     por la ruta JSON, que hardcodea ' Congelado' y devuelve
+     PRODUCTOS_SIN_MAPEAR. Eso se cierra en F2 (Apps Script), no aca.
+
+     LEGACY: los pedidos historicos con 'Pollo B · calibre x6' siguen
+     funcionando igual. Las filas legacy del mapping NO se retiran todavia.
+
+     Base: v3.47.0.
 
      v3.47.0: P0 FASE 1 — EL CATALOGO EMPIEZA A DECIR QUE VARIANTE ES.
      ADITIVA: el backend v25.122.0 ignora todo lo que se agrega. Un pedido
@@ -15094,7 +15140,33 @@ async function confirmarYEnviarWA() { // v3.26.0: async para esperar el ACK del 
     const presTxt = (typeof presLabel === 'function') ? presLabel(prodInfo.sec, prodInfo.it, q) : '';
     const presPart = presTxt ? ' (' + presTxt + ')' : '';
     const qtyTxt = q + ' ' + (q === 1 ? meta.singular : meta.plural);
-    lineasProductos.push(meta.emoji + ' *' + nombre + ' · calibre ' + calibre + '*');
+    // ─── v3.48.0 F2b PASO 1 — LA CABECERA LLEVA LA VARIANTE COMPLETA ──────
+    // Antes: 'Pollo B · calibre x6'  →  ahora: 'Pollo B x6 Congelado'.
+    // POR QUE: ese string es el carrier DURABLE de la identidad. Cuando un
+    // pedido se edita en Ventas, editarPedido limpia la col T (.gs 3651) y el
+    // presupuesto pasa a resolverse por la ruta de TEXTO, contra
+    // productos_xubio_mapping por nombre exacto. 'Pollo B · calibre x6' esta
+    // mapeado a 2859574 (congelado) SIEMPRE, asi que un x6 fresco editado se
+    // facturaba congelado. 'Pollo B x6 Fresco' resuelve 2859571.
+    // Es ademas el formato que ya emite el tomador, con lo cual el editor de
+    // Ventas hace round-trip sin pedirle al vendedor que reelija la variante
+    // (_editarSepararCalibre lo parsea y _calNormalizar lo valida directo).
+    //
+    // FUENTE DEL LABEL: window.tckVarInfo, el mismo puente que v3.47.0 usa
+    // para poner xubio_producto_id/estado/variante en la col T. Asi el texto
+    // y la identidad estructurada NO PUEDEN divergir: salen del mismo lugar.
+    // Si el puente no esta (v4 desactivado) o la variante ya no vive en
+    // vw_cat_variantes (carrito viejo), se capitaliza el estado del slug.
+    // Si no hay estado (Pollo A), la cabecera queda 'Pollo A x7', que tambien
+    // esta en el mapping. En ningun caso se pierde el estado ni se inventa.
+    const _estW = (_slugW.indexOf('@') === -1) ? '' : _slugW.slice(_slugW.indexOf('@') + 1);
+    let _lblW = '';
+    try {
+      const _viW = (typeof window.tckVarInfo === 'function') ? window.tckVarInfo(nombre, _slugW) : null;
+      if (_viW && _viW.label) _lblW = _viW.label;
+    } catch (_eLblW) { /* nunca bloquea el pedido */ }
+    if (!_lblW && _estW) _lblW = _estW.charAt(0).toUpperCase() + _estW.slice(1);
+    lineasProductos.push(meta.emoji + ' *' + nombre + ' ' + calibre + (_lblW ? ' ' + _lblW : '') + '*');
     lineasProductos.push(qtyTxt + presPart + ' x ' + fmt(precioUnit(prodInfo.it, q)) + ' → ' + fmt(precioUnit(prodInfo.it, q) * q));
     lineasProductos.push('');
     itemsTotales += q;
