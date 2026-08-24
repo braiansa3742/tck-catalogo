@@ -2,6 +2,20 @@
 <html lang="es">
 <head>
 <!-- ═══════════════════════════════════════════════════════════════════════
+     TCK CATÁLOGO — v3.50.0 — 24/08/2026
+v3.50.0: FIX COBERTURA/RUTAS. `rutas` pasa a ser la unica autoridad
+  comercial (cobertura, zona, dia). Causa raiz: ZONA_DB_A_TECNICA_CAT
+  conocia 'Zona 1'/'Zona 2' pero rutas.zona migro a 'Zona 1A/1B/2A/2B/3'
+  el 29/06/2026 -> inferirEntregaDesdeLocalidadCat() devolvia null para
+  30 de las 31 ciudades y el panel caia a localidades_ar.tiene_reparto,
+  contradiciendo al aviso del buscador ("Llegamos a 9 de Julio" +
+  "Todavia no tenemos reparto fijo" en la misma pantalla).
+  Ahora el dia sale de rutas.dias_carga. localidades_ar queda solo como
+  padron geografico: identifica QUE localidad es, no si hay reparto.
+  Homonimos protegidos por localidad_georef_id + provincia: "9 de Julio,
+  Corrientes" ya no hereda la cobertura de "9 de Julio, Buenos Aires".
+  Texto ambiguo escrito a mano y fallo de fetch -> estado NEUTRO.
+     ─────────────────────────────────────────────────────────────────────
      TCK CATÁLOGO — v3.49.0 — 24/08/2026
 v3.49.0: ALTA "Cuarto Trasero B" en TROZADOS (pedido Braian 24/08).
   Ya vendía en la app de ventas (v14.154.0) pero no estaba acá. $47.000
@@ -3051,6 +3065,12 @@ function _localidadNormalizar(s) {
 // Bolívar (zona1b, martes). Sin alias, cae en la bandeja Sin Zona del admin.
 var _localidadesEsFallback = false;
 const _LOCALIDADES_FALLBACK = [
+  // v3.49.0: 9 de Julio y General Villegas estaban en `rutas` pero faltaban aca.
+  // Se agregan SOLO para que el desplegable no quede sin ellas si el fetch falla.
+  // NO otorgan cobertura: cuando se usa el fallback, la capa comercial devuelve
+  // estado DESCONOCIDO (ver resolverCoberturaCat).
+  { ciudad: "9 de Julio", zona: "Zona 1A", aliases: ["9 de julio","9 DE JULIO","9 De Julio","NUEVE DE JULIO","Nueve de Julio","nueve de julio","9 JULIO","9DEJULIO"] },
+  { ciudad: "General Villegas", zona: "Zona 3", aliases: ["general villegas","GENERAL VILLEGAS","GENERAL_VILLEGAS","GRAL_VILLEGAS","Gral. Villegas","gral villegas","Villegas","villegas","VILLEGAS"] },
   { ciudad: "30 de Agosto", zona: "Zona 2B", aliases: ["30 DE AGOSTO","treinta de agosto","30_DE_AGOSTO","Treinta de Agosto","30 De Agosto","TREINTA DE AGOSTO","Treinta De Agosto"] },
   { ciudad: "América", zona: "Zona 3", aliases: ["AMERICA_RIVADAVIA","AMERICA","america","Rivadavia","AMÉRICA","América Rivadavia","America Rivadavia"] },
   { ciudad: "Berutti", zona: "Zona 1A", aliases: ["BERUTI","berutti","BERUTTI","Beruti"] },
@@ -3091,7 +3111,7 @@ async function cargarLocalidadesCanonicas(forzar) {
       // v3.33.0 — &activo=is.true: sin este filtro las localidades dadas de alta
       // pero todavía SIN reparto (General Villegas) aparecían en el desplegable
       // y el cliente podía confirmar un pedido que el camión no lleva.
-      const url = SB_URL + '/rest/v1/rutas?select=ciudad,zona,aliases,dias_carga&zona=not.is.null&activo=is.true&order=ciudad.asc';
+      const url = SB_URL + '/rest/v1/rutas?select=ciudad,zona,aliases,dias_carga,localidad_georef_id&zona=not.is.null&activo=is.true&order=ciudad.asc';
       const resp = await fetch(url, {
         headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY }
       });
@@ -3104,7 +3124,8 @@ async function cargarLocalidadesCanonicas(forzar) {
         zona: r.zona,
         etiqueta_zona: ZONA_ETIQUETAS_CATALOGO[r.zona] || r.zona,
         aliases: r.aliases || [],
-        dias_carga: r.dias_carga || []
+        dias_carga: r.dias_carga || [],
+        georef_id: r.localidad_georef_id || null   // v3.49.0: identidad geografica
       })).sort((a, b) => a.ciudad.localeCompare(b.ciudad, 'es'));
 
       // Mapa lookup por nombre normalizado (incluye aliases)
@@ -3127,7 +3148,8 @@ async function cargarLocalidadesCanonicas(forzar) {
         zona: r.zona,
         etiqueta_zona: ZONA_ETIQUETAS_CATALOGO[r.zona] || r.zona,
         aliases: r.aliases || [],
-        dias_carga: []
+        dias_carga: [],          // v3.49.0: el fallback NO decide dia
+        georef_id: null          // v3.49.0: el fallback NO tiene identidad
       })).sort((a, b) => a.ciudad.localeCompare(b.ciudad, 'es'));
       _localidadesCanonicasMap = {};
       for (const loc of _localidadesCanonicas) {
@@ -3259,14 +3281,19 @@ function tckLocAviso(id, loc) {
   const av = document.getElementById(id + '-aviso');
   if (!av) return;
   if (!loc) { av.className = 'tckloc-aviso'; av.textContent = ''; return; }
+  // v3.49.0: localidades_ar YA NO es autoridad comercial. El aviso solo
+  // confirma que la localidad se reconocio; el dia y la zona los dice el
+  // panel de entrega, que consulta `rutas`. Antes este texto podia decir
+  // "Llegamos a X · zona1a" mientras el panel decia lo contrario.
   if (loc.tiene_reparto) {
     av.className = 'tckloc-aviso on si';
-    av.textContent = '\uD83D\uDE9A Llegamos a ' + loc.nombre
-      + (loc.zona ? ' \u00B7 ' + loc.zona : '') + '.';
+    av.textContent = '\uD83D\uDCCD ' + loc.nombre
+      + (loc.provincia ? ', ' + loc.provincia : '') + '.';
   } else {
+    // v3.49.0: idem — el buscador identifica, no dictamina cobertura.
     av.className = 'tckloc-aviso on no';
-    av.textContent = '\uD83D\uDCCD Todav\u00EDa no llegamos a ' + loc.nombre
-      + '. Guardamos igual tu ciudad y te avisamos cuando abramos la zona.';
+    av.textContent = '\uD83D\uDCCD ' + loc.nombre
+      + (loc.provincia ? ', ' + loc.provincia : '') + '.';
   }
 }
 
@@ -3609,27 +3636,110 @@ function _proximoDiaSemana_cat(diasValidos, baseDate) {
   return null;
 }
 
+// ═══════════════════════════════════════════════════════════════════
+// v3.49.0 — COBERTURA COMERCIAL: `rutas` es la unica autoridad
+// ═══════════════════════════════════════════════════════════════════
+// QUE ROMPIA ANTES:
+//   ZONA_DB_A_TECNICA_CAT conocia 'Zona 1'/'Zona 2' pero rutas.zona pasó a
+//   'Zona 1A'/'1B'/'2A'/'2B'/'3' en la migracion del 29/06/2026. El lookup
+//   devolvia undefined -> ZONA_DIAS_SALIDA_CAT[undefined] -> return null.
+//   30 de las 31 ciudades caian ahi (solo 'Venta local' seguia matcheando).
+//   El panel entonces se apoyaba en localidades_ar.tiene_reparto, que NO es
+//   autoridad comercial, y podia contradecir al aviso del buscador.
+//
+// AHORA: el dia sale de rutas.dias_carga. Los diccionarios de zona quedan
+// solo para texto; ya no deciden cobertura ni dia.
+
+const _DIA_NOMBRE_A_NUM_CAT = {
+  'domingo':0, 'lunes':1, 'martes':2, 'miercoles':3,
+  'jueves':4, 'viernes':5, 'sabado':6
+};
+
+function _diasCargaANumeros_cat(dias) {
+  if (!Array.isArray(dias)) return [];
+  const out = [];
+  for (const d of dias) {
+    const n = _DIA_NOMBRE_A_NUM_CAT[_localidadNormalizar(d)];
+    if (typeof n === 'number' && out.indexOf(n) < 0) out.push(n);
+  }
+  return out;
+}
+
+// Nombres de ruta que existen en mas de una provincia del padron.
+// Derivado de localidades_ar el 24/08/2026. Si se agregan rutas, regenerar con:
+//   WITH nombres AS (SELECT ciudad, norm(ciudad) n FROM rutas WHERE activo
+//                    UNION SELECT ciudad, norm(a) FROM rutas, unnest(aliases) a WHERE activo)
+//   SELECT n FROM nombres JOIN localidades_ar l ON l.nombre_norm = n
+//   GROUP BY n HAVING count(DISTINCT l.provincia) > 1;
+const _NOMBRES_AMBIGUOS_CAT = ['9 de julio', 'rivadavia'];
+
+/**
+ * Resuelve cobertura comercial. rutas manda; localidades_ar solo identifica.
+ * @param {string} texto    - lo que hay escrito en el campo
+ * @param {object} elegida  - fila de localidades_ar si el cliente eligio de la lista
+ * @returns {{estado:string, ruta:object|null, motivo:string}}
+ *          estado: 'cubierta' | 'sin_cobertura' | 'desconocido'
+ */
+function resolverCoberturaCat(texto, elegida) {
+  // rutas no cargo o estamos con el respaldo local -> NO afirmar nada
+  if (!_localidadesCanonicas || _localidadesCanonicas.length === 0) {
+    return { estado: 'desconocido', ruta: null, motivo: 'rutas_no_cargadas' };
+  }
+  if (_localidadesEsFallback) {
+    return { estado: 'desconocido', ruta: null, motivo: 'fallback_activo' };
+  }
+
+  // NIVEL 1 — identidad geografica exacta (26 de 31 rutas tienen georef_id)
+  if (elegida && elegida.id) {
+    for (const loc of _localidadesCanonicas) {
+      if (loc.georef_id && String(loc.georef_id) === String(elegida.id)) {
+        return { estado: 'cubierta', ruta: loc, motivo: 'georef_id' };
+      }
+    }
+  }
+
+  const norm = _localidadNormalizar(texto || (elegida && elegida.nombre) || '');
+  if (!norm) return { estado: 'desconocido', ruta: null, motivo: 'sin_texto' };
+  const ruta = _localidadesCanonicasMap[norm] || null;
+
+  // NIVEL 2 — eligio del buscador: hay identidad, se exige provincia
+  if (elegida && elegida.id) {
+    if (!ruta) return { estado: 'sin_cobertura', ruta: null, motivo: 'sin_ruta' };
+    if (_localidadNormalizar(elegida.provincia || '') !== 'buenos aires') {
+      // "9 de Julio, Corrientes" NO hereda la cobertura de "9 de Julio, BA"
+      return { estado: 'sin_cobertura', ruta: null, motivo: 'otra_provincia' };
+    }
+    return { estado: 'cubierta', ruta: ruta, motivo: 'nombre_provincia' };
+  }
+
+  // NIVEL 3 — escrito a mano, sin identidad geografica
+  if (!ruta) return { estado: 'sin_cobertura', ruta: null, motivo: 'sin_ruta' };
+  if (_NOMBRES_AMBIGUOS_CAT.indexOf(norm) >= 0) {
+    // No inferir Buenos Aires solo porque TCK opera ahi
+    return { estado: 'desconocido', ruta: null, motivo: 'nombre_ambiguo' };
+  }
+  return { estado: 'cubierta', ruta: ruta, motivo: 'nombre_inequivoco' };
+}
+
 /**
  * Infiere fecha de entrega desde una localidad.
  * @param {string} localidad - Texto libre o canónico
+ * @param {object} [elegida] - v3.49.0: fila de localidades_ar (identidad geografica)
  * @returns {object|null} { dia, fechaISO, ciudadCanonica, zona, zonaAmigable, mensajeCorto, mensajeLargo }
+ *          null si no hay cobertura confirmada (sin_cobertura o desconocido)
  */
-function inferirEntregaDesdeLocalidadCat(localidad) {
-  if (!localidad) return null;
-  if (typeof localidadCanonicaDe !== 'function') return null;
+function inferirEntregaDesdeLocalidadCat(localidad, elegida) {
+  const res = resolverCoberturaCat(localidad, elegida);
+  if (res.estado !== 'cubierta' || !res.ruta) return null;
 
-  const canon = localidadCanonicaDe(localidad);
-  if (!canon) return null;
-
-  const zona = ZONA_DB_A_TECNICA_CAT[canon.zona] || canon.zona;
-  const diasValidos = ZONA_DIAS_SALIDA_CAT[zona];
-  if (!diasValidos) return null;
+  const canon = res.ruta;
+  const zona = canon.zona;   // v3.49.0: valor crudo de rutas, sin traducir
 
   const ahora = new Date();
   const horaActual = ahora.getHours() + (ahora.getMinutes() / 60);
   let fechaSalida;
 
-  if (zona === 'tl') {
+  if (zona === 'Venta local') {
     if (horaActual >= 17.5) {
       fechaSalida = new Date(ahora);
       fechaSalida.setDate(fechaSalida.getDate() + 1);
@@ -3642,6 +3752,9 @@ function inferirEntregaDesdeLocalidadCat(localidad) {
       fechaSalida.setHours(12, 0, 0, 0);
     }
   } else {
+    // v3.49.0: el dia sale de rutas.dias_carga, no de un diccionario local
+    const diasValidos = _diasCargaANumeros_cat(canon.dias_carga);
+    if (!diasValidos.length) return null;
     fechaSalida = _proximoDiaSemana_cat(diasValidos);
     if (!fechaSalida) return null;
   }
@@ -3652,7 +3765,7 @@ function inferirEntregaDesdeLocalidadCat(localidad) {
   const fechaISO = fechaSalida.getFullYear() + '-' +
                    String(fechaSalida.getMonth()+1).padStart(2,'0') + '-' +
                    String(fechaSalida.getDate()).padStart(2,'0');
-  const zonaAmigable = ZONA_NOMBRE_AMIGABLE_CAT[zona] || zona;
+  const zonaAmigable = zona;   // v3.49.0: 'Zona 1A' tal cual viene de rutas
 
   return {
     dia: diaTxt,
@@ -14680,26 +14793,38 @@ function ciActualizarEntregaEstimada() {
     return;
   }
 
-  const info = inferirEntregaDesdeLocalidadCat(loc);
+  // v3.49.0: la identidad geografica viaja al resolutor. localidades_ar
+  // identifica QUE localidad es; `rutas` decide si hay reparto.
+  const elegida = (typeof tckLocElegidaDe === 'function')
+    ? tckLocElegidaDe('ci-localidad') : null;
+
+  const info = inferirEntregaDesdeLocalidadCat(loc, elegida);
   if (!info) {
-    // v3.41.0: la localidad no está en la tabla `rutas`. Antes se escondía
-    // el panel y el cliente no entendía nada. Ahora se le dice la verdad.
-    // OJO: no todas las que faltan en `rutas` están sin reparto — hoy
-    // General Villegas tiene reparto (zona 3) y no figura en `rutas`.
-    // Por eso mandamos primero lo que dice localidades_ar.tiene_reparto.
-    const elegida = (typeof tckLocElegidaDe === 'function')
-      ? tckLocElegidaDe('ci-localidad') : null;
-    if (elegida && elegida.tiene_reparto) {
-      txt.textContent = 'Llegamos a tu localidad. Tu vendedor te confirma el día de entrega.';
-      zonaEl.textContent = '📍 ' + loc + (elegida.zona ? ' · ' + elegida.zona : '');
-      panel.style.border = '1.5px solid #2E7D32';
-      panel.style.background = 'linear-gradient(180deg,#E8F5E9 0%,#FFFFFF 100%)';
-    } else {
-      txt.textContent = 'Todavía no tenemos reparto fijo en tu zona.';
-      zonaEl.textContent = '📍 ' + loc + ' · Te contactamos para coordinar la entrega';
+    // v3.49.0: ya NO se consulta localidades_ar.tiene_reparto como respaldo
+    // comercial. Se distingue "no llegamos" de "no lo sabemos todavia".
+    const res = resolverCoberturaCat(loc, elegida);
+
+    if (res.estado === 'desconocido') {
+      // rutas no cargo, respaldo local activo, o nombre homonimo sin elegir.
+      // NO afirmar ni negar cobertura.
+      if (res.motivo === 'nombre_ambiguo') {
+        txt.textContent = 'Hay más de una localidad con ese nombre.';
+        zonaEl.textContent = '📍 Elegí tu localidad de la lista para confirmar la entrega';
+      } else {
+        txt.textContent = 'Estamos verificando la entrega para tu zona.';
+        zonaEl.textContent = '📍 ' + loc + ' · Tu vendedor te confirma el día';
+      }
       panel.style.border = '1.5px solid #B45309';
-      panel.style.background = 'linear-gradient(180deg,#FFF3E0 0%,#FFFFFF 100%)';
+      panel.style.background = 'linear-gradient(180deg,#FFF8E1 0%,#FFFFFF 100%)';
+      panel.style.display = 'block';
+      return;
     }
+
+    // sin_cobertura: no hay ruta activa, o es un homonimo de otra provincia
+    txt.textContent = 'Todavía no tenemos reparto fijo en tu zona.';
+    zonaEl.textContent = '📍 ' + loc + ' · Te contactamos para coordinar la entrega';
+    panel.style.border = '1.5px solid #B45309';
+    panel.style.background = 'linear-gradient(180deg,#FFF3E0 0%,#FFFFFF 100%)';
     panel.style.display = 'block';
     return;
   }
@@ -14707,7 +14832,7 @@ function ciActualizarEntregaEstimada() {
   panel.style.border = '1.5px solid #2E7D32';
   panel.style.background = 'linear-gradient(180deg,#E8F5E9 0%,#FFFFFF 100%)';
   txt.textContent = info.mensajeCorto;
-  zonaEl.textContent = '📍 ' + info.ciudadCanonica + ' · Zona: ' + info.zonaAmigable;
+  zonaEl.textContent = '📍 ' + info.ciudadCanonica + ' · ' + info.zonaAmigable;
   panel.style.display = 'block';
 }
 
@@ -15216,8 +15341,13 @@ async function confirmarYEnviarWA() { // v3.26.0: async para esperar el ACK del 
   // Ayuda a Francisco/vendedor a ver de un vistazo cuándo despachar
   // y al cliente a tener constancia escrita en su chat
   try {
+    // v3.49.0: se pasa la identidad geografica. Si la cobertura no esta
+    // confirmada, _entregaInfo es null y la linea de entrega NO se agrega:
+    // el mensaje nunca promete un dia que no corresponde.
+    const _elegidaWA = (typeof tckLocElegidaDe === 'function')
+      ? tckLocElegidaDe('ci-localidad') : null;
     const _entregaInfo = (typeof inferirEntregaDesdeLocalidadCat === 'function')
-      ? inferirEntregaDesdeLocalidadCat(localidad)
+      ? inferirEntregaDesdeLocalidadCat(localidad, _elegidaWA)
       : null;
     if (_entregaInfo) {
       L.push(_entregaInfo.mensajeLargo);
