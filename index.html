@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <!-- ═══════════════════════════════════════════════════════════════════════
-     TCK CATÁLOGO — v3.51.0 — 24/08/2026
+     TCK CATÁLOGO — v3.53.0 — 24/08/2026
 v3.51.0: BONDIOLA SE PARTE EN DOS SKU POR MARCA.
   SoyChu discontinuo la Pamplona x20 y paso a Aurora x25. En Supabase
   quedaron dos canonicos: 125 "Bondiola de Cerdo Pamplona" x 20 Kg
@@ -16021,8 +16021,11 @@ function _pdFmtMiles(n) {
 
 async function cargarPreciosDinamicos() {
   try {
-    const url = SB_URL + '/rest/v1/productos_canonicos'
-      + '?select=nombre,aliases,precio_actual,precio_kg&activo=eq.true';
+    // v3.53.0 — AUTORIDAD UNICA DEL PRECIO: vw_precio_efectivo.
+    // Resuelve promo vigente por xubio_producto_id; sin promo devuelve
+    // precio_lista. El Sheet ya no participa (ver cargarPrecios).
+    const url = SB_URL + '/rest/v1/vw_precio_efectivo'
+      + '?select=producto,aliases,precio_efectivo,precio_lista,promo_activa,label_badge';
     const r = await fetch(url, { headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY } });
     if (!r.ok) throw new Error('HTTP ' + r.status);
     const rows = await r.json();
@@ -16030,10 +16033,14 @@ async function cargarPreciosDinamicos() {
     // mapa: nombre/alias (lower) → { pr, kg }
     const map = {};
     rows.forEach(function(row) {
-      const precio = Number(row.precio_actual);
+      const precio = Number(row.precio_efectivo);
       if (!precio || precio <= 0) return;  // sin precio cargado → no pisa nada
-      const entry = { pr: precio, kg: Number(row.precio_kg) || 0 };
-      if (row.nombre) map[String(row.nombre).toLowerCase().trim()] = entry;
+      // precio_kg no viaja en la vista: se recalcula abajo desde el peso de la card.
+      const entry = { pr: precio, kg: 0,
+                      promo: !!row.promo_activa,
+                      lista: Number(row.precio_lista) || 0,
+                      badge: row.label_badge || '' };
+      if (row.producto) map[String(row.producto).toLowerCase().trim()] = entry;
       const al = Array.isArray(row.aliases) ? row.aliases : [];
       al.forEach(function(a) {
         const k = String(a || '').toLowerCase().trim();
@@ -16068,12 +16075,31 @@ async function cargarPreciosDinamicos() {
       });
     });
 
-    if (cambios) console.log('[precios] ' + cambios + ' precio(s) actualizados desde Supabase');
+    _preciosDesdeVista = true;   // v3.53.0: la vista respondio
+    _avisarPreciosOk();
+    if (cambios) console.log('[precios] ' + cambios + ' precio(s) desde vw_precio_efectivo');
     return cambios;
   } catch (e) {
+    _preciosDesdeVista = false;  // v3.53.0: fallback -> avisar al usuario
     console.error('[precios] cargar:', e);
+    _avisarPreciosSinActualizar();
     return 0;  // fallback seguro: quedan los precios hardcodeados del HTML
   }
+}
+
+// v3.53.0 — bandera + estado visible en el header (id 'hdr-price-status').
+var _preciosDesdeVista = false;
+function _avisarPreciosSinActualizar() {
+  try {
+    var el = document.getElementById('hdr-price-status');
+    if (el) el.innerHTML = '&#9888; PRECIOS SIN ACTUALIZAR';
+  } catch(e) {}
+}
+function _avisarPreciosOk() {
+  try {
+    var el = document.getElementById('hdr-price-status');
+    if (el) el.innerHTML = 'Precios actualizados &middot; Trenque Lauquen';
+  } catch(e) {}
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -16229,104 +16255,33 @@ function refrescarTramosDeProducto(nombre) {
   } catch (e) {}
 }
 
-function aplicarPriceMap(priceMap) {
-  let actualizados = 0;
-  CAT.forEach(sec => sec.items.forEach(it => {
-    if (priceMap[it.n]) {
-      it.pr = priceMap[it.n].precio;
-      if (priceMap[it.n].precioKg > 0) {
-        it.pu = '&#x2248;$' + priceMap[it.n].precioKg.toLocaleString('es-AR') + ' / kg';
-      }
-      actualizados++;
-    }
-  }));
-  return actualizados;
-}
+// v3.53.0 — ELIMINADAS aplicarPriceMap() y _fetchYGuardarPrecios().
+// Eran el unico camino por el que el Sheet (PRICES_CSV_URL) podia escribir
+// CAT[].pr. Sin ellas no existe NINGUNA ruta viva que pise el precio de la
+// autoridad. PRICES_CSV_URL sigue declarada: la reutiliza el lector de
+// pedidos del Sheet (gid=0), que no tiene nada que ver con precios.
 
+// v3.53.0 — cargarPrecios() NEUTRALIZADA (no-op).
+// Antes leia el Sheet y pisaba CAT[].pr; despues cargarPreciosDinamicos()
+// volvia a pisar con Supabase y _refrescarPreciosBg() pisaba de nuevo con el
+// Sheet: tres autoridades y un precio dependiente del timing (R3, auditoria
+// 25/08). Se conserva la funcion porque el arranque la invoca con .finally().
 async function cargarPrecios() {
-  const el = document.getElementById('hdr-price-status');
-
-  // ── 1. Intentar caché local primero ──
-  try {
-    const cached = localStorage.getItem(PRECIOS_CACHE_KEY);
-    if (cached) {
-      const { ts, priceMap } = JSON.parse(cached);
-      if (Date.now() - ts < PRECIOS_CACHE_TTL) {
-        const n = aplicarPriceMap(priceMap);
-        _preciosDesdeSheets = true;
-        if (el) el.innerHTML = 'Precios actualizados &middot; Trenque Lauquen';
-        console.log('[TCK Precios] ' + n + ' productos desde caché local');
-        // Refrescar en background sin bloquear
-        _refrescarPreciosBg();
-        return;
-      }
-    }
-  } catch(e) {}
-
-  // ── 2. Sin caché válida — cargar desde Sheet ──
-  await _fetchYGuardarPrecios(el);
-}
-
-async function _fetchYGuardarPrecios(el) {
-  try {
-    const res = await fetch(PRICES_CSV_URL + '&_t=' + Date.now(), { cache: 'no-cache' });
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    const csv = await res.text();
-    const lines = csv.trim().split('\n');
-    const priceMap = {};
-    for (let i = 1; i < lines.length; i++) {
-      const cols = parseCsvLine(lines[i]);
-      if (cols.length < 2) continue;
-      const nombre   = cols[0].trim().replace(/^"|"$/g, '');
-      const precio   = parseInt(cols[1].trim().replace(/^"|"$/g, '').replace(/[^\d]/g, ''));
-      const precioKg = cols[2] ? parseInt(cols[2].trim().replace(/^"|"$/g, '').replace(/[^\d]/g, '')) : 0;
-      const activo   = cols[5] ? cols[5].trim().replace(/^"|"$/g, '').toUpperCase() : 'SI';
-      if (nombre && !isNaN(precio) && activo !== 'NO') {
-        priceMap[nombre] = { precio, precioKg };
-      }
-    }
-    const actualizados = aplicarPriceMap(priceMap);
-    // Guardar en caché
-    try {
-      localStorage.setItem(PRECIOS_CACHE_KEY, JSON.stringify({ ts: Date.now(), priceMap }));
-    } catch(e) {}
-    _preciosDesdeSheets = true;
-    if (el) el.innerHTML = 'Precios actualizados &middot; Trenque Lauquen';
-    console.log('[TCK Precios] ' + actualizados + ' productos actualizados desde Sheets');
-  } catch(e) {
-    _preciosDesdeSheets = false;
-    if (el) el.innerHTML = 'Precios estimados &middot; Trenque Lauquen <span style="color:rgba(255,200,0,.7);font-size:8px;" title="Sin conexi\u00f3n a precios en tiempo real">&#9432;</span>';
-    console.warn('[TCK Precios] Usando precios del HTML (fallback):', e.message);
-  }
+  return;
 }
 
 function _refrescarPreciosBg() {
-  // Refrescar silenciosamente en background sin bloquear el render
+  // v3.53.0 — NO vuelve a leer el Sheet. Antes releia PRICES_CSV_URL y
+  // aplicaba priceMap, pisando los precios que cargarPreciosDinamicos()
+  // acababa de traer de Supabase. Ahora refresca desde la MISMA autoridad.
   setTimeout(async () => {
     try {
-      const res = await fetch(PRICES_CSV_URL + '&_t=' + Date.now(), { cache: 'no-cache' });
-      if (!res.ok) return;
-      const csv  = await res.text();
-      const lines = csv.trim().split('\n');
-      const priceMap = {};
-      for (let i = 1; i < lines.length; i++) {
-        const cols = parseCsvLine(lines[i]);
-        if (cols.length < 2) continue;
-        const nombre   = cols[0].trim().replace(/^"|"$/g, '');
-        const precio   = parseInt(cols[1].trim().replace(/^"|"$/g, '').replace(/[^\d]/g, ''));
-        const precioKg = cols[2] ? parseInt(cols[2].trim().replace(/^"|"$/g, '').replace(/[^\d]/g, '')) : 0;
-        const activo   = cols[5] ? cols[5].trim().replace(/^"|"$/g, '').toUpperCase() : 'SI';
-        if (nombre && !isNaN(precio) && activo !== 'NO') priceMap[nombre] = { precio, precioKg };
-      }
-      aplicarPriceMap(priceMap);
-      localStorage.setItem(PRECIOS_CACHE_KEY, JSON.stringify({ ts: Date.now(), priceMap }));
-      // v3.45.0 — los tramos se refrescan junto con los precios (antes
-      // solo vivían del boot; regla v14.65.0: nada "solo en el boot").
+      const n = await cargarPreciosDinamicos();
       try { await cargarTramos(); } catch(e) {}
-      renderBody(); // Re-renderizar con precios frescos
-      console.log('[TCK Precios] Caché actualizada en background');
-    } catch(e) {}
-  }, 100);
+      if (typeof renderBody === 'function') renderBody();
+      console.log('[TCK Precios] refresco background desde vw_precio_efectivo (' + n + ')');
+    } catch(e) { console.warn('[TCK Precios] refresco bg:', e); }
+  }, 1200);
 }
 
 function parseCsvLine(line) {
