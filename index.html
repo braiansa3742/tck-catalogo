@@ -14161,46 +14161,14 @@ function promosLineasWA() {
   return lineas;
 }
 
-// Descontar stock en Supabase al confirmar pedido (fire-and-forget)
-async function promosConsumirStock() {
-  const consumidos = [];
-  (_promosData||[]).forEach(p => {
-    const q = qtyPromo[p.id] || 0;
-    if (q > 0) consumidos.push({ id: p.id, cantidad: q, nombre: p.producto_nombre });
-  });
-  if (consumidos.length === 0) return;
+// v3.52.0 — ELIMINADO promosConsumirStock().
+// Escribia PATCH productos_promo (stock_disponible + activo) con la ANON KEY,
+// publicada en este mismo archivo: cualquier navegador podia desactivar una
+// promocion o alterar su precio. Su unico consumidor era el mecanismo viejo
+// de promos 50% OFF, inactivo desde abril/2026 (7 filas, todas activo=false).
+// Desde ahora la vigencia de una promo la resuelve vw_precio_efectivo por
+// fecha, NO por stock_disponible. El navegador solo LEE.
 
-  for (const item of consumidos) {
-    try {
-      // Leer stock actual
-      const rGet = await fetch(SB_URL + '/rest/v1/productos_promo?id=eq.' + encodeURIComponent(item.id) + '&select=stock_disponible', {
-        headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY }
-      });
-      if (!rGet.ok) continue;
-      const arr = await rGet.json();
-      if (!arr || !arr.length) continue;
-      const stockActual = Number(arr[0].stock_disponible || 0);
-      const stockNuevo = Math.max(0, stockActual - item.cantidad);
-      // Actualizar (auto-desactivar si llega a 0)
-      await fetch(SB_URL + '/rest/v1/productos_promo?id=eq.' + encodeURIComponent(item.id), {
-        method: 'PATCH',
-        headers: {
-          'apikey': SB_KEY,
-          'Authorization': 'Bearer ' + SB_KEY,
-          'Content-Type': 'application/json',
-          'Prefer': 'return=minimal'
-        },
-        body: JSON.stringify({
-          stock_disponible: stockNuevo,
-          modificado_at: new Date().toISOString(),
-          activo: stockNuevo > 0
-        })
-      });
-    } catch(e) {
-      console.warn('[promos] Error consumiendo stock de ' + item.nombre + ':', e);
-    }
-  }
-}
 // ═══════════════════════════════════════════════════════════════════════
 // Fin bloque PROMOS
 // ═══════════════════════════════════════════════════════════════════════
@@ -15790,8 +15758,7 @@ async function confirmarYEnviarWA() { // v3.26.0: async para esperar el ACK del 
   // v2: Descontar stock de combos en Supabase (fire-and-forget)
   combosConsumirStock().catch(e => console.error('[combos] Error al consumir stock:', e));
 
-  // v3.4.0: Descontar stock de promos 50% off en Supabase (fire-and-forget)
-  promosConsumirStock().catch(e => console.error('[promos] Error al consumir stock:', e));
+  // v3.52.0: promosConsumirStock() eliminado — el navegador ya no escribe productos_promo.
 
   // v2.6.3: Marcar cupón como usado si se aplicó (fire-and-forget)
   if (descuento > 0) {
