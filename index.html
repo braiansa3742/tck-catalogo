@@ -2,6 +2,24 @@
 <html lang="es">
 <head>
 <!-- ═══════════════════════════════════════════════════════════════════════
+     TCK CATÁLOGO — v3.54.0 — 03/09/2026
+v3.54.0: DOS ARREGLOS CHICOS SALIDOS DE QUEJAS DE VENDEDORES (03/09).
+     (1) El invitado (compra sin registrarse) manda origen_marketing =
+         'catalogo_invitado' en vez de 'directo'. Con 'directo', Ventas lo
+         pintaba como "📝 DIRECTO" (= tipeado por el vendedor): 9 de cada 12
+         pedidos del catálogo se veían así, y el vendedor no encontraba los
+         datos que el cliente SÍ había dejado (caso Macarena Ibáñez, 31/08).
+         Backend y admin no filtran por 'directo' (verificado): el valor pasa
+         tal cual a pedidos_zona.origen. Ventas v14.176.0 lo muestra como
+         "🌐 CATÁLOGO · invitado".
+     (2) cleanPres() decodifica entidades HTML. Las presentaciones de CAT
+         llevan &middot; &uacute; &iacute; para las tarjetas, pero el mismo
+         texto viaja al detalle del pedido (WhatsApp, Sheet, app del
+         vendedor) y llegaba crudo: "30 unidades &middot; 6 maples (o
+         m&uacute;ltiplos) se env&iacute;an…". Un solo punto de paso.
+     + TCK_UPD_LOCAL venía en 3.43.1 con version.json en 3.53.0 (el mismo
+       desfase que ya se corrigió una vez en la 3.4x). Alineados en 3.54.0.
+     ─────────────────────────────────────────────────────────────────────
      TCK CATÁLOGO — v3.53.0 — 24/08/2026
 v3.51.0: BONDIOLA SE PARTE EN DOS SKU POR MARCA.
   SoyChu discontinuo la Pamplona x20 y paso a Aurora x25. En Supabase
@@ -14303,8 +14321,31 @@ function holdEnd(){
   if(holdInterval){clearInterval(holdInterval); holdInterval=null;}
 }
 
+// v3.54.0 — Las presentaciones de CAT llevan entidades HTML (&middot;
+// &uacute; &iacute; …) porque se renderizan en tarjetas. Pero cleanPres()
+// también alimenta el TEXTO del pedido (waProductLine → detallePedido →
+// Sheet → app del vendedor → WhatsApp del cliente), y ahí llegaban crudas:
+// "30 unidades &middot; 6 maples (o m&uacute;ltiplos) se env&iacute;an…"
+// (pedido de Soledad / Nuestra Tierra, 31/08). Se decodifican acá, en el
+// único punto por donde pasan todas.
+function decodeEntidadesHtml(s){
+  s = String(s || '');
+  if (s.indexOf('&') < 0) return s;
+  try {
+    const ta = document.createElement('textarea');
+    ta.innerHTML = s;
+    return ta.value;
+  } catch(e) {
+    const map = { middot:'·', uacute:'ú', iacute:'í', aacute:'á', eacute:'é', oacute:'ó',
+                  ntilde:'ñ', Oacute:'Ó', Eacute:'É', Aacute:'Á', Iacute:'Í', Uacute:'Ú',
+                  Ntilde:'Ñ', nbsp:' ', amp:'&', quot:'"', lt:'<', gt:'>' };
+    return s.replace(/&#x([0-9a-f]+);/gi, (m,h)=>String.fromCodePoint(parseInt(h,16)))
+            .replace(/&#(\d+);/g, (m,d)=>String.fromCodePoint(parseInt(d,10)))
+            .replace(/&([a-zA-Z]+);/g, (m,n)=> map[n] !== undefined ? map[n] : m);
+  }
+}
 function cleanPres(p){
-  return String(p||'').replace(/^x\s*/i,'').trim();
+  return decodeEntidadesHtml(String(p||'')).replace(/^x\s*/i,'').trim();
 }
 
 function unitMeta(sec,it){
@@ -15668,7 +15709,15 @@ async function confirmarYEnviarWA() { // v3.26.0: async para esperar el ACK del 
           if (mapa[utmData.origen_marketing]) return mapa[utmData.origen_marketing];
         }
       } catch(e) {}
-      return _cliActivo ? 'web_cliente' : 'directo';
+      // v3.54.0 — el invitado (compra sin registrarse) deja de ser 'directo'.
+      // 'directo' es lo que Ventas pinta como "📝 DIRECTO" = cargado a mano
+      // por el vendedor. Con ese valor, 9 de cada 12 pedidos del catálogo se
+      // veían idénticos a uno tipeado, y el vendedor no encontraba los datos
+      // que el cliente SÍ había dejado (caso Macarena Ibáñez, 31/08).
+      // Ventas reconoce cualquier origen que contenga "catalog" como
+      // 🌐 CATÁLOGO (pedidoOrigen). Backend y admin no filtran por 'directo'
+      // (verificado 03/09): el valor pasa tal cual a pedidos_zona.origen.
+      return _cliActivo ? 'web_cliente' : 'catalogo_invitado';
     })(),
     cliente_id:     _cliIdPedido || '',
     // v2.6.3: si aplica cupón, mandar subtotal + descuento al Sheet
@@ -24208,7 +24257,7 @@ function confirmarCiudadNoAtendida() {
    TCK_UPD_LOCAL aca Y el archivo version.json del repo.
    ============================================================ */
 (function(){
-  var TCK_UPD_LOCAL = '3.43.1';        /* <-- bump en cada deploy */
+  var TCK_UPD_LOCAL = '3.54.0';        /* <-- bump en cada deploy */
   var TCK_UPD_INTERVALO = 10 * 60 * 1000;   /* chequeo de fondo: 10 min */
   var _updUltChequeo = 0;
 
