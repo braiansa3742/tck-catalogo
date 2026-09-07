@@ -2,7 +2,34 @@
 <html lang="es">
 <head>
 <!-- ═══════════════════════════════════════════════════════════════════════
-     TCK CATÁLOGO — v3.57.0 — 07/09/2026
+     TCK CATÁLOGO — v3.58.0 — 02/09/2026
+     v3.58.0: EL PORTAL DEL CLIENTE DEJA DE BAJAR LOS PEDIDOS DE TODA LA
+     EMPRESA.
+     Hasta hoy `cliCargarPedidos` se bajaba el CSV COMPLETO de la hoja
+     "Pedidos" y filtraba en el navegador. Medido sobre el CSV real: 486 KB
+     comprimidos, 8.178 pedidos, 1.306 nombres de cliente distintos, 744
+     teléfonos, todos los montos y todos los vendedores. Y se repetía cada
+     30 s mientras el portal estuviera abierto (el refresco silencioso de
+     L18839): ≈29 MB por hora, por portal abierto. Todo para mostrarle al
+     cliente un promedio de 4,3 pedidos propios (mediana 0, máximo 110).
+     · Ahora llama a la RPC `cli_pedidos(p_id)` de Supabase, que devuelve
+       SOLO los del cliente: ~1-2 KB típico, 19,5 KB el peor caso medido.
+       Entre 250x y 500x menos.
+     · Es además una corrección de seguridad: los datos del resto de los
+       clientes dejan de viajar al navegador de cualquiera que abra el
+       portal.
+     · La RPC es SECURITY DEFINER y arma el match desde la fila del propio
+       cliente en `clientes_auth`, no desde parámetros que el navegador
+       pueda inventar. Probado: con un uuid falso devuelve [] (2 bytes).
+     · El match sigue siendo el MISMO: nombre exacto O comercio como
+       substring. El merge con `_cliPedidosCache` y el fallback al cache
+       ante error quedan intactos.
+     ⚠️ La rama por teléfono NO se portó, a propósito: leía cols[11]
+     creyendo que era el teléfono y cols[11] es la fecha de entrega. Medido
+     sobre el CSV: 0 de 8.178 filas tienen algo con pinta de teléfono ahí
+     (está en cols[14]). Esa rama nunca matcheó nada — era código muerto
+     desde siempre. Agregar el match por teléfono BIEN es decisión aparte.
+     ─────────────────────────────────────────────────────────────────────
 v3.57.0: LA LOCALIDAD TIENE QUE SER UNA LOCALIDAD REAL.
      Pedido de Braian (07/09): "cliente sin ruta, hagamos algo para
      solucionarlo para siempre".
@@ -20026,35 +20053,27 @@ async function cliCargarPedidos(silencioso) {
   const el = document.getElementById('cli-portal-pedidos');
   if (!silencioso) el.innerHTML = '<div class="cli-empty"><div class="cli-empty-icon">⏳</div>Cargando pedidos...</div>';
   try {
-    const SHEET_CSV_PEDIDOS = PRICES_CSV_URL.replace('gid=1658103892', 'gid=0');
-    const res = await fetch(SHEET_CSV_PEDIDOS + '&_t=' + Date.now(), { cache: 'no-cache' });
-    const csv = await res.text();
-    const lines = csv.trim().split('\n');
-    const pedidos = [];
-    const nombreNorm  = (_cliActivo.nombre   || '').toLowerCase().trim();
-    const comercioNorm = (_cliActivo.comercio || '').toLowerCase().trim();
-    const telNorm = normTel(_cliActivo.telefono || '');
-
-    for (let i = 1; i < lines.length; i++) {
-      const cols = _cliParseCsv(lines[i]);
-      if (!cols[0] || !/^TCK-\d{8}-/.test(cols[0].trim())) continue;
-      const cliCol  = (cols[3] || '').toLowerCase().trim();
-      const telCol  = normTel(cols[11] || '');
-      const match = cliCol === nombreNorm ||
-                    (comercioNorm && cliCol.includes(comercioNorm)) ||
-                    (telNorm && telCol === telNorm);
-      if (match) {
-        pedidos.push({
-          id:       cols[0].trim(),
-          fecha:    cols[1].trim(),
-          vendedor: cols[2].trim(),
-          cliente:  cols[3].trim(),
-          total:    cols[6].trim(),
-          detalle:  (cols[9] || cols[7] || '').trim(),
-          estado:   (cols[10] || 'Pendiente').trim()
-        });
-      }
-    }
+    // ── v3.58.0 — los pedidos salen de Supabase, no del CSV de la planilla ──
+    // ANTES: se bajaba el CSV COMPLETO de la hoja "Pedidos" — 8.178 pedidos,
+    // 1.306 nombres de cliente, 744 teléfonos, todos los montos y todos los
+    // vendedores de la empresa — y se filtraba en el navegador. Se repetía cada
+    // 30 s mientras el portal estuviera abierto: unos 29 MB por hora, por
+    // portal abierto, para quedarse con un promedio de 4,3 pedidos propios.
+    //
+    // AHORA: la RPC cli_pedidos devuelve SOLO los del cliente. ~1-2 KB, peor
+    // caso medido 19,5 KB. Además de más rápido es más seguro: los datos del
+    // resto de los clientes dejan de viajar al navegador de cualquiera.
+    //
+    // El match (nombre exacto O comercio como substring) es el MISMO, pero
+    // ahora corre en el servidor y sale de la fila del propio cliente en
+    // clientes_auth, no de parámetros que el navegador pueda inventar.
+    //
+    // OJO: la rama por teléfono NO se porta a propósito. Leía cols[11] creyendo
+    // que era el teléfono, y cols[11] es la fecha de entrega. Medido sobre el
+    // CSV: 0 de 8.178 filas tienen algo con pinta de teléfono ahí (el teléfono
+    // está en cols[14]). Esa rama nunca matcheó nada. Agregar el match por
+    // teléfono BIEN es una decisión aparte.
+    const pedidos = (await cliRpc('cli_pedidos', { p_id: _cliActivo.id })) || [];
 
     // Merge con cache — nunca perder pedidos que ya se vieron
     if (pedidos.length > 0) {
@@ -24404,7 +24423,7 @@ function confirmarCiudadNoAtendida() {
    TCK_UPD_LOCAL aca Y el archivo version.json del repo.
    ============================================================ */
 (function(){
-  var TCK_UPD_LOCAL = '3.57.0';        /* <-- bump en cada deploy */
+  var TCK_UPD_LOCAL = '3.58.0';        /* <-- bump en cada deploy */
   var TCK_UPD_INTERVALO = 10 * 60 * 1000;   /* chequeo de fondo: 10 min */
   var _updUltChequeo = 0;
 
