@@ -2,6 +2,39 @@
 <html lang="es">
 <head>
 <!-- ═══════════════════════════════════════════════════════════════════════
+     TCK CATÁLOGO — v3.57.0 — 07/09/2026
+v3.57.0: LA LOCALIDAD TIENE QUE SER UNA LOCALIDAD REAL.
+     Pedido de Braian (07/09): "cliente sin ruta, hagamos algo para
+     solucionarlo para siempre".
+     EL AGUJERO: el campo de localidad del checkout es un <input> libre con
+     sugerencias. La única validación al confirmar era if(!localidad) — o
+     sea, cualquier texto pasaba. Romina Molinari tipeó "9 d julio pcia bs
+     as" y sus pedidos ($212.050 y $53.000, 06/09) cayeron en zona sin_ruta,
+     sin salida_planificada y sin viaje: invisibles en Logística hasta que
+     la clienta reclamó. Le pasó TRES veces con el mismo string (27/08 y dos
+     el 06/09); el fix del 27/08 (admin v13.175.0, botón "Asignar ciudad")
+     arregla el síntoma, no el origen.
+     POR QUÉ NO ALCANZABA EL BUSCADOR: buscar_localidades() es un LIKE por
+     prefijo. "9 d julio pcia bs as" devuelve CERO resultados, así que el
+     cliente no tenía de dónde elegir y mandaba el texto crudo.
+     FIX (3 partes, todo en el catálogo, sin backend):
+       . tckLocDepurar(): saca puntuación y cola provincial ("pcia bs as",
+         "prov de buenos aires", "pdo rivadavia", "partido de...").
+       . tckLocVariantes(): cascada de intentos, de específico a general —
+         "9 d julio" -> "9 de julio", "nueve de julio" -> "9 de julio",
+         sin preposición, y fallback a 2 y 1 palabra.
+       . tckLocBuscar() prueba la cascada y corta en el primer intento con
+         resultados, así el desplegable YA sugiere bien mientras tipea.
+     GUARD AL CONFIRMAR: confirmarYEnviarWA() ahora exige localidad
+     resuelta. Si resuelve, guarda el nombre CANÓNICO (no lo tipeado). Si no,
+     muestra las sugerencias y no deja confirmar; y si de verdad no existe,
+     pide confirmación expresa ("un vendedor te contacta") — el texto libre
+     sigue pudiendo entrar, pero como decisión del cliente, no por accidente.
+     MEDIDO contra los 10 textos libres reales de pedidos_cliente que hoy no
+     matchean rutas: resuelve 9. El que falla es "Trenuqe Lauquen" (typo),
+     y ahora se le pide corregirlo en vez de tragarlo.
+     SIN CAMBIOS: precios, CAT, combos, cupón, envío del pedido.
+     ─────────────────────────────────────────────────────────────────────
      TCK CATÁLOGO — v3.56.0 — 03/09/2026
 v3.56.0: MARCA LUJO PAMPEANO (03/09). Pedido del proveedor: trabajar la
      visibilidad de marca.
@@ -3323,13 +3356,55 @@ function tckLocNorm(t) {
     .trim();
 }
 
+// v3.57.0 — NORMALIZACION REAL, NO LISTA DE ALIASES.
+// buscar_localidades() es un LIKE por prefijo: "9 d julio pcia bs as" devuelve
+// CERO y el cliente terminaba mandando texto libre (caso Romina Molinari, 3
+// pedidos perdidos en sin_ruta el 27/08 y el 06/09 con ese mismo string).
+// tckLocDepurar saca la cola provincial y la puntuacion; tckLocVariantes arma
+// una cascada de intentos de mas especifico a mas general.
+// Medido contra los 10 textos libres reales que hay en pedidos_cliente:
+// resuelve 9 (el que falla es "Trenuqe Lauquen", un typo que el cliente
+// tiene que corregir — y ahora se lo pedimos en vez de tragarlo).
+function tckLocDepurar(t) {
+  var s = tckLocNorm(t).replace(/[.,;:/()\-_]+/g, ' ');
+  s = s.replace(/\b(pcia|prov|provincia)\b\s*\.?\s*(de\s+)?(bs\s*as|buenos\s*aires|bsas|ba)\b/g, ' ');
+  s = s.replace(/\b(bs\s*\.?\s*as|bsas|buenos\s*aires)\b/g, ' ');
+  s = s.replace(/\b(pdo|partido|dpto|depto|departamento)\b\s*\.?\s*(de\s+)?[a-z]+/g, ' ');
+  s = s.replace(/\b(localidad|ciudad|pueblo)\s+(de\s+)?/g, ' ');
+  return s.replace(/\s+/g, ' ').trim();
+}
+var _TCKLOC_NUM = { nueve:'9', ocho:'8', siete:'7', seis:'6', cinco:'5',
+                    cuatro:'4', tres:'3', dos:'2', uno:'1', once:'11',
+                    doce:'12', diecisiete:'17', veinticinco:'25', treinta:'30' };
+function tckLocVariantes(t) {
+  var base = tckLocDepurar(t), out = [];
+  function push(x) { x = (x || '').trim(); if (x.length > 1 && out.indexOf(x) < 0) out.push(x); }
+  push(base);
+  push(base.replace(/\b(\d+)\s*d\s+/g, '$1 de '));          // "9 d julio" -> "9 de julio"
+  var conNum = base.replace(/^([a-z]+)\b/, function(m) { return _TCKLOC_NUM[m] || m; });
+  push(conNum);                                              // "nueve de julio" -> "9 de julio"
+  push(conNum.replace(/\b(\d+)\s*d\s+/g, '$1 de '));
+  push(base.replace(/\bde\s+/g, ''));
+  var p = base.split(' ');
+  if (p.length > 2) push(p.slice(0, 2).join(' '));            // fallback: 2 palabras
+  if (p.length > 1 && p[0].length > 2) push(p[0]);            // fallback: 1 palabra
+  return out;
+}
+
 async function tckLocBuscar(q) {
   const n = tckLocNorm(q);
   if (n.length < 2) return [];
-  try {
-    const r = await cliRpc('buscar_localidades', { q: n });
-    return Array.isArray(r) ? r : [];
-  } catch(e) { return []; }
+  // v3.57.0: cascada. Se corta en el PRIMER intento con resultados, de mas
+  // especifico a mas general, para no degradar una busqueda que ya andaba.
+  const intentos = tckLocVariantes(q);
+  if (intentos.indexOf(n) < 0) intentos.unshift(n);
+  for (let i = 0; i < intentos.length; i++) {
+    try {
+      const r = await cliRpc('buscar_localidades', { q: intentos[i] });
+      if (Array.isArray(r) && r.length) return r;
+    } catch(e) { return []; }
+  }
+  return [];
 }
 
 // Texto actual del campo (elegido de la lista o tipeado a mano)
@@ -3450,9 +3525,14 @@ async function tckLocResolverAuto(id) {
   const txt = tckLocValor(id);
   if (txt.length < 2) return null;
   const res = await tckLocBuscar(txt);
+  // v3.57.0: ademas del texto crudo, se acepta la coincidencia contra las
+  // variantes depuradas — asi "9 d julio pcia bs as" resuelve a "9 de Julio"
+  // sin que el cliente tenga que tocar la lista.
+  const cands = [tckLocNorm(txt)].concat(tckLocVariantes(txt));
   const n = tckLocNorm(txt);
   for (let i = 0; i < res.length; i++) {
-    if (tckLocNorm(res[i].nombre) === n || tckLocNorm(res[i].alias) === n) {
+    const _nom = tckLocNorm(res[i].nombre), _ali = tckLocNorm(res[i].alias);
+    if (cands.indexOf(_nom) >= 0 || (_ali && cands.indexOf(_ali) >= 0)) {
       _tckLocElegida[id] = res[i];
       const inp = document.getElementById(id);
       if (inp) inp.value = res[i].nombre;
@@ -15110,6 +15190,7 @@ async function saveOrderToSheets(payload) {
 // _enviandoPedido declarado en bloque de estado global
 
 function cliPreRellenarModal() {
+  window._ciLocForzada = false;   // v3.57.0: cada pedido decide de nuevo
   // Si hay cliente logueado, pre-rellenar sus datos en el modal
   if (_cliActivo) {
     const n = document.getElementById('ci-nombre');
@@ -15138,7 +15219,7 @@ async function confirmarYEnviarWA() { // v3.26.0: async para esperar el ACK del 
 
   const nombre    = (document.getElementById('ci-nombre').value||'').trim();
   const comercio  = (document.getElementById('ci-comercio').value||'').trim();
-  const localidad = (document.getElementById('ci-localidad').value||'').trim();
+  let   localidad = (document.getElementById('ci-localidad').value||'').trim();   /* v3.57.0: let — se reescribe con el canonico */
   const telefono  = (document.getElementById('ci-telefono').value||'').trim().replace(/\D/g,'');
   // v3.10.6: CUIT/DNI y dirección obligatorios
   const cuitEl       = document.getElementById('ci-cuit');
@@ -15175,6 +15256,39 @@ async function confirmarYEnviarWA() { // v3.26.0: async para esperar el ACK del 
     document.getElementById('ci-localidad').focus();
     _resetBtn();
     return;
+  }
+  // ── v3.57.0: LA LOCALIDAD TIENE QUE SER UNA LOCALIDAD REAL ──────────
+  // Hasta acá alcanzaba con que el campo no estuviera vacío: cualquier texto
+  // pasaba. Romina Molinari tipeó "9 d julio pcia bs as" y sus pedidos
+  // ($212.050 y $53.000) cayeron en zona sin_ruta, sin salida planificada y
+  // sin viaje — invisibles en Logística hasta que la clienta reclamó. Le pasó
+  // tres veces con el MISMO string (27/08 y dos el 06/09).
+  // Ahora: se resuelve contra localidades_ar y se guarda el nombre canónico.
+  // Si no resuelve, no se confirma a ciegas — o elige de la lista, o confirma
+  // expresamente que la escribió bien (y ahí sí entra, pero fue una decisión
+  // suya y no un accidente).
+  let _ciLoc = null;
+  try { _ciLoc = await tckLocResolverAuto('ci-localidad'); } catch(e) {}
+  if (_ciLoc) {
+    localidad = _ciLoc.nombre;              // SIEMPRE el canónico, nunca lo tipeado
+  } else if (!window._ciLocForzada) {
+    let _sug = [];
+    try { _sug = await tckLocBuscar(localidad); } catch(e) {}
+    if (_sug.length) {
+      tckLocPintar('ci-localidad', _sug);
+      alert('Elegí tu localidad de la lista, así sabemos adónde llevarte el pedido.');
+      document.getElementById('ci-localidad').focus();
+      _resetBtn();
+      return;
+    }
+    if (!confirm('No encontramos "' + localidad + '".\n\n'
+        + 'Revisá cómo se escribe. Si estás seguro de que es correcta, '
+        + 'aceptá y un vendedor te contacta para coordinar la entrega.')) {
+      document.getElementById('ci-localidad').focus();
+      _resetBtn();
+      return;
+    }
+    window._ciLocForzada = true;            // insistió: se respeta, pero fue explícito
   }
   // v3.10.6: Dirección obligatoria (al menos 4 caracteres)
   if (!direccion || direccion.length < 4) {
@@ -24290,7 +24404,7 @@ function confirmarCiudadNoAtendida() {
    TCK_UPD_LOCAL aca Y el archivo version.json del repo.
    ============================================================ */
 (function(){
-  var TCK_UPD_LOCAL = '3.56.0';        /* <-- bump en cada deploy */
+  var TCK_UPD_LOCAL = '3.57.0';        /* <-- bump en cada deploy */
   var TCK_UPD_INTERVALO = 10 * 60 * 1000;   /* chequeo de fondo: 10 min */
   var _updUltChequeo = 0;
 
