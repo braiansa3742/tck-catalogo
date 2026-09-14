@@ -2,6 +2,33 @@
 <html lang="es">
 <head>
 <!-- ═══════════════════════════════════════════════════════════════════════
+     TCK CATÁLOGO — v3.60.0 — 14/09/2026
+     v3.60.0: PEDIDO ABIERTO 30 MIN — el segundo checkout SE SUMA al pedido, no crea otro.
+       Caso Gabriela Carreño (14/09, 9:00 → 9:03): hizo 3 checkouts seguidos
+       (Suprema / Medallón por error / MDM) y llegaron 3 pedidos, 3 IDs y 2
+       presupuestos. Braian: "que nos llegue uno solo".
+       Cómo: al confirmar, queda en localStorage un "pedido abierto" (id,
+       teléfono, foto del carrito, hora). Si el mismo dispositivo y el mismo
+       teléfono confirman otro pedido dentro de los 30 min:
+         1. se consulta accion=pedidoEstadoActual (GAS v25.118.0): solo se
+            fusiona si el pedido sigue Pendiente/Confirmado y sin factura;
+         2. la foto del carrito anterior se suma al carrito actual y se manda
+            accion=editarPedido (la misma que usa Ventas para editar) con el
+            MISMO pedidoId: el backend actualiza Sheet, pedidos_zona y
+            pedidos_items y, si ya había presupuesto, lo anula y vuelve el
+            pedido a Pendiente (v25.88.0) para que el vendedor lo reconfirme;
+         3. si el backend lo rechaza (factura emitida, camión en carga,
+            edición apagada, sin respuesta) se deshace la fusión y sale un
+            pedido aparte, como hasta hoy. Nunca se pierde una venta.
+       La pantalla de éxito avisa "¿Te olvidaste algo? Hasta las HH:MM se
+       suma a este mismo pedido" y el modal de checkout muestra a qué pedido
+       se va a sumar, con el botón "Prefiero hacer un pedido aparte".
+       Cupón: en la fusión se manda el subtotal SIN descuento; el .gs
+       (v25.137.0 _cuponCatalogoDeEdicion) reaplica el cupón original.
+       Combos: en la fusión solo se descuenta stock de los combos NUEVOS.
+       Pixel/Ads: la fusión no vuelve a disparar Purchase/conversion.
+       Sin cambios en Código.gs: usa dos acciones que ya existen en prod.
+     ──────────────────────────────────────────────────────────────────
      TCK CATÁLOGO — v3.59.1 — 10/09/2026
      v3.59.1: foto propia del Pan Maxi Hamburguesa 310g (img/Pan_Maxi_Hamburguesa.jpg,
        la pasó Braian) en lugar del placeholder del pan 210g. Presentación
@@ -3131,6 +3158,8 @@ const PRICES_CSV_URL  = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQDZk6Z
 // ── Claves de localStorage ────────────────────────────────────────
 const LS_KEY              = 'tck_cliente_id';
 const LS_ULTIMO           = 'tck_ultimo_pedido';
+const LS_PEDIDO_ABIERTO   = 'tck_pedido_abierto';   // v3.60.0: pedido al que se suman los checkouts siguientes
+const PEDIDO_ABIERTO_MIN  = 30;                     // v3.60.0: ventana en minutos
 const CART_TTL_MS         = 7 * 24 * 3600 * 1000;  // v3.27.0 (P1-A): TTL carrito persistido
 const CLI_KEY             = 'tck_cli_v2';
 const PRECIOS_CACHE_KEY   = 'tck_precios_cache';
@@ -5327,6 +5356,12 @@ body.intro-tck-abierta .hdr-sobre{display:none;}
 /* ═══════════════════════════════════════════════════════════════
    v4.13.0 B4.1 — N° de pedido destacado + 3 variantes de botones
    ═══════════════════════════════════════════════════════════════ */
+/* v3.60.0 — pedido abierto */
+.pod-abierto{margin:10px auto 0;max-width:360px;background:#FFF8E1;border:1.5px solid #D4A574;border-radius:12px;padding:10px 12px;font-size:13px;line-height:1.45;color:#5a3838;text-align:left;}
+.ci-pa{margin:0 0 12px;background:#FFF8E1;border:1.5px solid #D4A574;border-radius:12px;padding:10px 12px;font-size:13px;line-height:1.4;color:#5a3838;}
+.ci-pa-t{font-weight:700;color:#8B0000;margin-bottom:3px;}
+.ci-pa-s{margin-bottom:8px;}
+.ci-pa-btn{background:#fff;border:1.5px solid #8B0000;color:#8B0000;border-radius:10px;padding:7px 10px;font-weight:700;font-size:12px;cursor:pointer;font-family:inherit;}
 .pod-numero-wrap{
   width:100%;max-width:320px;
   text-align:center;
@@ -15174,6 +15209,171 @@ if (document.readyState === 'loading') {
   setTimeout(_colaInstalar, 0);
 }
 
+// ═══════════════════════════════════════════════════════════════════════
+// v3.60.0 — PEDIDO ABIERTO: el segundo checkout se SUMA al pedido anterior
+// ─────────────────────────────────────────────────────────────────────
+// Problema (Carreño, 14/09): el carrito se vacía al salir de la pantalla de
+// éxito; el cliente que se olvidó algo vuelve, carga UN producto y confirma
+// → otro pedido, otro ID, otro presupuesto, otra factura. Braian: "que nos
+// llegue uno solo".
+//
+// Solución sin tocar el backend: después de un checkout confirmado por el
+// servidor queda en localStorage {pedidoId, telefono, foto del carrito, ts}.
+// Al próximo checkout dentro de PEDIDO_ABIERTO_MIN, mismo teléfono:
+//   1. accion=pedidoEstadoActual (lee pedidos_zona): sigue Pendiente o
+//      Confirmado y sin factura → se puede sumar. Cualquier duda → NO.
+//   2. la foto se suma a qty/qtyCombo/qtyPromo ANTES de T(), así totales,
+//      líneas y detalle_estructurado salen ya fusionados.
+//   3. accion=editarPedido con el MISMO pedidoId (la que usa Ventas todos
+//      los días). El .gs reescribe Sheet + pedidos_zona + pedidos_items; si
+//      había presupuesto lo anula y vuelve el pedido a Pendiente.
+//   4. si el .gs rechaza, _paDeshacerFusion + pedido aparte (como hoy).
+// ═══════════════════════════════════════════════════════════════════════
+function _paLeer() {
+  try {
+    var raw = localStorage.getItem(LS_PEDIDO_ABIERTO);
+    if (!raw) return null;
+    var r = JSON.parse(raw);
+    if (!r || !r.pedidoId || !r.ts) return null;
+    return r;
+  } catch(e) { return null; }
+}
+function _paBorrar() { try { localStorage.removeItem(LS_PEDIDO_ABIERTO); } catch(e) {} }
+function _paVence(r) { return ((r && r.ts) ? r.ts : 0) + PEDIDO_ABIERTO_MIN * 60 * 1000; }
+function _paVigente() {
+  var r = _paLeer();
+  if (!r) return null;
+  if (Date.now() > _paVence(r)) { _paBorrar(); return null; }
+  return r;
+}
+function _paHoraTxt(ms) {
+  try {
+    var d = new Date(ms);
+    return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+  } catch(e) { return ''; }
+}
+// Foto del carrito actual. Mismo criterio que saveCartLS: se guarda el
+// nombre de cada key posicional (si-ii) para validarla si el CAT cambia.
+function _paFotoCarrito() {
+  var foto = { qty: {}, qtyCombo: {}, qtyPromo: {}, nombres: {} };
+  Object.keys(qty).forEach(function(k) {
+    var q = qty[k] || 0;
+    if (q <= 0) return;
+    foto.qty[k] = q;
+    if (typeof k === 'string' && k.indexOf('cal:') !== 0) {
+      var p = String(k).split('-');
+      if (p.length === 2 && CAT[p[0]] && CAT[p[0]].items[p[1]]) foto.nombres[k] = CAT[p[0]].items[p[1]].n;
+    }
+  });
+  Object.keys(qtyCombo).forEach(function(k) { if ((qtyCombo[k] || 0) > 0) foto.qtyCombo[k] = qtyCombo[k]; });
+  Object.keys(qtyPromo).forEach(function(k) { if ((qtyPromo[k] || 0) > 0) foto.qtyPromo[k] = qtyPromo[k]; });
+  return foto;
+}
+function _paGuardar(pedidoId, telefono, ts, descuento) {
+  try {
+    var foto = _paFotoCarrito();
+    if (!Object.keys(foto.qty).length && !Object.keys(foto.qtyCombo).length && !Object.keys(foto.qtyPromo).length) return;
+    localStorage.setItem(LS_PEDIDO_ABIERTO, JSON.stringify({
+      pedidoId: pedidoId, telefono: String(telefono || ''), ts: ts || Date.now(),
+      descuento: Number(descuento) || 0, foto: foto
+    }));
+  } catch(e) {}
+}
+// Suma la foto guardada al carrito actual. Devuelve lo aplicado para
+// poder deshacerlo exacto si el backend rechaza la edición.
+function _paFusionarEnCarrito(rec) {
+  var aplicado = [];
+  var foto = (rec && rec.foto) || {};
+  Object.keys(foto.qty || {}).forEach(function(k) {
+    var q = foto.qty[k] || 0;
+    if (q <= 0) return;
+    var key = k;
+    if (typeof k === 'string' && k.indexOf('cal:') !== 0 && foto.nombres && foto.nombres[k]) {
+      var p = k.split('-');
+      var itAct = (p.length === 2 && CAT[p[0]]) ? CAT[p[0]].items[p[1]] : null;
+      if (!itAct || itAct.n !== foto.nombres[k]) {
+        var pos = _catBuscarPorNombre(foto.nombres[k]);
+        if (!pos) return;                       // el producto ya no está en el CAT: no se inventa
+        key = pos.si + '-' + pos.ii;
+      }
+    }
+    qty[key] = (qty[key] || 0) + q;
+    aplicado.push({ t: 'p', k: key, q: q });
+  });
+  Object.keys(foto.qtyCombo || {}).forEach(function(k) {
+    var q = foto.qtyCombo[k] || 0;
+    if (q <= 0) return;
+    qtyCombo[k] = (qtyCombo[k] || 0) + q;
+    aplicado.push({ t: 'c', k: k, q: q });
+  });
+  Object.keys(foto.qtyPromo || {}).forEach(function(k) {
+    var q = foto.qtyPromo[k] || 0;
+    if (q <= 0) return;
+    qtyPromo[k] = (qtyPromo[k] || 0) + q;
+    aplicado.push({ t: 'r', k: k, q: q });
+  });
+  return aplicado;
+}
+function _paDeshacerFusion(aplicado) {
+  (aplicado || []).forEach(function(a) {
+    var obj = a.t === 'c' ? qtyCombo : (a.t === 'r' ? qtyPromo : qty);
+    var nq = (obj[a.k] || 0) - a.q;
+    if (nq > 0) obj[a.k] = nq; else delete obj[a.k];
+  });
+}
+// GET + timeout al Apps Script. Mismo armado manual de la query que
+// saveOrderToSheets (encodeURIComponent: espacios como %20, nunca '+').
+async function _paFetchJson(params, timeoutMs) {
+  var kv = [];
+  Object.keys(params).forEach(function(k) {
+    if (params[k] === undefined || params[k] === null) return;
+    kv.push(encodeURIComponent(k) + '=' + encodeURIComponent(params[k]));
+  });
+  var ctl = new AbortController();
+  var tmr = setTimeout(function() { ctl.abort(); }, timeoutMs || 12000);
+  try {
+    var r = await fetch(SHEETS_ENDPOINT + '?' + kv.join('&'), { method: 'GET', signal: ctl.signal });
+    clearTimeout(tmr);
+    if (!r.ok) return { status: 'error', code: 'HTTP_' + r.status };
+    return await r.json();
+  } catch(e) {
+    clearTimeout(tmr);
+    return { status: 'error', code: (e && e.name === 'AbortError') ? 'TIMEOUT' : 'RED' };
+  }
+}
+// ¿El pedido anterior todavía admite que le sumen productos?
+// Fuente: pedidos_zona vía accion=pedidoEstadoActual (GAS v25.118.0, sin
+// Sheet). Ante cualquier duda (sin respuesta, estado raro, factura) → NO.
+async function _paEditable(pedidoId) {
+  var d = await _paFetchJson({ accion: 'pedidoEstadoActual', pedido_id: pedidoId }, 10000);
+  if (!d || d.status !== 'ok') return { ok: false, motivo: (d && d.code) || 'sin_respuesta' };
+  var estado = String(d.estado || '').toLowerCase();
+  if (estado !== 'pendiente' && estado !== 'confirmado') return { ok: false, motivo: 'estado_' + (estado || 'desconocido') };
+  if (d.facturado || d.factura_nro) return { ok: false, motivo: 'facturado' };
+  if (String(d.presupuesto_estado || '').toLowerCase() === 'facturado') return { ok: false, motivo: 'facturado' };
+  return { ok: true, estado: estado, presupuesto: d.presupuesto_nro || null };
+}
+function _paPintarBannerModal() {
+  var el = document.getElementById('ci-pedido-abierto');
+  if (!el) return;
+  var r = _paVigente();
+  if (!r) { el.style.display = 'none'; el.innerHTML = ''; return; }
+  el.innerHTML =
+    '<div class="ci-pa-t">🧾 Tenés un pedido abierto: <b>' + _escHtml(r.pedidoId) + '</b> (' + _paHoraTxt(r.ts) + ')</div>' +
+    '<div class="ci-pa-s">Lo que confirmes ahora <b>se suma a ese mismo pedido</b>. Podés hacerlo hasta las ' + _paHoraTxt(_paVence(r)) + '.</div>' +
+    '<button type="button" class="ci-pa-btn" onclick="_paBorrar();_paPintarBannerModal();">Prefiero hacer un pedido aparte</button>';
+  el.style.display = 'block';
+}
+function _paPintarExito(pedidoId, fusionado) {
+  var el = document.getElementById('pedido-ok-abierto');
+  if (!el) return;
+  var r = _paVigente();
+  if (!r || r.pedidoId !== pedidoId) { el.style.display = 'none'; el.innerHTML = ''; return; }
+  el.innerHTML = '¿Te olvidaste algo? Hasta las <b>' + _paHoraTxt(_paVence(r)) + '</b> podés volver al catálogo y agregar productos: ' +
+    'se suman a <b>este mismo pedido</b>, sin generar otro.';
+  el.style.display = 'block';
+}
+
 async function saveOrderToSheets(payload) {
   try {
     // GET con parámetros en URL — evita CORS preflight 100%
@@ -15390,6 +15590,29 @@ async function confirmarYEnviarWA() { // v3.26.0: async para esperar el ACK del 
 
   // Cerrar modal
   cerrarModal('modal-cliente-id');
+
+  // ── v3.60.0 · PEDIDO ABIERTO: ¿se suma al pedido anterior? ────────
+  // Decidido ANTES de T(): si aplica, la foto del carrito anterior se suma
+  // a qty/qtyCombo/qtyPromo y todo lo de abajo (totales, líneas, detalle
+  // estructurado) sale ya fusionado. _paAplicado permite deshacerlo exacto
+  // si el backend rechaza la edición.
+  let _paRec = null, _paAplicado = null;
+  try {
+    const _paCand = _paVigente();
+    if (_paCand && _paCand.telefono && _paCand.telefono === telefono) {
+      const _paChk = await _paEditable(_paCand.pedidoId);
+      if (_paChk.ok) {
+        _paAplicado = _paFusionarEnCarrito(_paCand);
+        _paRec = _paCand;
+        console.log('[pedido abierto] se suma a ' + _paCand.pedidoId + ' (' + _paChk.estado + (_paChk.presupuesto ? ', presup ' + _paChk.presupuesto : '') + ')');
+      } else {
+        _paBorrar();
+        console.log('[pedido abierto] ' + _paCand.pedidoId + ' ya no admite cambios (' + _paChk.motivo + '): sale pedido aparte');
+      }
+    } else if (_paCand) {
+      console.log('[pedido abierto] otro teléfono (' + _paCand.telefono + ' vs ' + telefono + '): sale pedido aparte');
+    }
+  } catch(e) { _paRec = null; _paAplicado = null; }
 
   // ── Construir detalle del pedido ────────────────────────────
   const sep = '━━━━━━━━━━━━━━━';
@@ -15652,7 +15875,8 @@ async function confirmarYEnviarWA() { // v3.26.0: async para esperar el ACK del 
   const _yy = arDate.getFullYear();
   const _hh = pad(arDate.getHours());
   const _min = pad(arDate.getMinutes());
-  const pedidoId = 'TCK-'+_yy+_mm+_dd+'-'+_hh+_min+'-'+_vNombre+'-'+_rand;
+  // v3.60.0: en la fusión se conserva el id del pedido abierto
+  const pedidoId = _paRec ? _paRec.pedidoId : ('TCK-'+_yy+_mm+_dd+'-'+_hh+_min+'-'+_vNombre+'-'+_rand);
 
   // ════════════════════════════════════════════════════════════════
   // 🆕 v3.8.0 — Construir DETALLE ESTRUCTURADO (JSON)
@@ -15937,7 +16161,33 @@ async function confirmarYEnviarWA() { // v3.26.0: async para esperar el ACK del 
   // 1 reintento). Antes era fire-and-forget con mode:'no-cors': la pantalla
   // de éxito salía aunque el pedido nunca llegara al Sheet. _sheetOk alimenta
   // el aviso de la pantalla de éxito y la columna sheet_ack del backup.
-  const _sheetOk = await saveOrderToSheets(payload);
+  // v3.60.0 — fusión: misma acción que usa Ventas para editar (editarPedido),
+  // con el MISMO pedidoId. El total va SIN cupón: el .gs (v25.137.0) lee el
+  // cupón original en pedidos_cliente y lo reaplica. Si el .gs rechaza, se
+  // deshace la fusión y se vuelve a entrar como pedido aparte.
+  let _sheetOk = false, _paFusionado = false;
+  if (_paRec) {
+    const _paRes = await _paFetchJson({
+      accion: 'editarPedido', pedidoId: pedidoId, editadoPor: 'Catálogo (cliente)',
+      total: String(subtotal), itemsTotales: String(itemsTotales),
+      resumenPedido: payload.resumenPedido, detallePedido: payload.detallePedido,
+      estado: 'Pendiente', detalle_estructurado: payload.detalle_estructurado
+    }, 20000);
+    if (_paRes && (_paRes.status === 'ok' || _paRes.code === 'ITEMS_NO_SINCRONIZADOS')) {
+      _sheetOk = true; _paFusionado = true;
+      console.log('[pedido abierto] fusionado en ' + pedidoId + (_paRes.code ? ' (' + _paRes.code + ')' : ''));
+    } else {
+      console.warn('[pedido abierto] editarPedido rechazado (' + ((_paRes && _paRes.code) || '?') + '): sale pedido aparte');
+      _paDeshacerFusion(_paAplicado);
+      _paBorrar();
+      _enviandoPedido = false;
+      return confirmarYEnviarWA();   // los inputs del modal siguen cargados: reentra como alta normal
+    }
+  } else {
+    _sheetOk = await saveOrderToSheets(payload);
+  }
+  // Total a mostrar: en la fusión, subtotal menos el cupón original (lo aplica el .gs)
+  const _tMostrar = _paFusionado ? Math.max(0, subtotal - (Number(_paRec.descuento) || 0)) : t;
   guardarUltimoPedido();  // Guardar para "Repetir pedido"
 
   // ── v2.7.6 · Meta Pixel — Purchase ───────────────────────────
@@ -15976,7 +16226,7 @@ async function confirmarYEnviarWA() { // v3.26.0: async para esperar el ACK del 
       origen_marketing: (utmLeer() || {}).origen_marketing || null
     };
     if (_sheetOk) {
-      fbqSafe('Purchase', _pxCompra);
+      if (!_paFusionado) fbqSafe('Purchase', _pxCompra);   // v3.60.0: la fusión no es una compra nueva
     } else {
       _colaEncolar(payload, _pxCompra);
     }
@@ -15997,7 +16247,7 @@ async function confirmarYEnviarWA() { // v3.26.0: async para esperar el ACK del 
   // - transaction_id: pedidoId único (deduplicación)
   // - try/catch defensivo: nunca bloquea el envío del pedido.
   try {
-    if (typeof gtag === 'function') {
+    if (typeof gtag === 'function' && !_paFusionado) {   // v3.60.0: mismo transaction_id, no se repite
       gtag('event', 'conversion', {
         'send_to': 'AW-16651738476/uO-hCKWT3qgcEOy6lYQ-',
         'value': t,
@@ -16008,12 +16258,23 @@ async function confirmarYEnviarWA() { // v3.26.0: async para esperar el ACK del 
   } catch(e) { /* no bloquear el envío */ }
 
   // v2: Descontar stock de combos en Supabase (fire-and-forget)
-  combosConsumirStock().catch(e => console.error('[combos] Error al consumir stock:', e));
+  // v3.60.0: en la fusión solo se descuentan los combos NUEVOS (los de la foto
+  // ya se descontaron en el primer checkout). combosConsumirStock lee qtyCombo
+  // de forma sincrónica al arrancar, así que se resta, se llama y se restaura.
+  if (_paFusionado && _paAplicado) {
+    const _paCombosPrev = _paAplicado.filter(a => a.t === 'c');
+    _paCombosPrev.forEach(a => { const nq = (qtyCombo[a.k] || 0) - a.q; if (nq > 0) qtyCombo[a.k] = nq; else delete qtyCombo[a.k]; });
+    const _paPromCombos = combosConsumirStock();
+    _paCombosPrev.forEach(a => { qtyCombo[a.k] = (qtyCombo[a.k] || 0) + a.q; });
+    _paPromCombos.catch(e => console.error('[combos] Error al consumir stock:', e));
+  } else {
+    combosConsumirStock().catch(e => console.error('[combos] Error al consumir stock:', e));
+  }
 
   // v3.52.0: promosConsumirStock() eliminado — el navegador ya no escribe productos_promo.
 
   // v2.6.3: Marcar cupón como usado si se aplicó (fire-and-forget)
-  if (descuento > 0) {
+  if (descuento > 0 && !_paFusionado) {   // v3.60.0: el cupón ya se marcó en el primer checkout
     cuponMarcarUsado().catch(e => console.error('[cupon] Error al marcar como usado:', e));
   }
 
@@ -16044,7 +16305,7 @@ async function confirmarYEnviarWA() { // v3.26.0: async para esperar el ACK del 
         vendedorWA: vActivo ? vActivo.wa : '',
         productosCount: productosCount,
         itemsTotales: itemsTotales,
-        total: t,
+        total: _tMostrar,
         subtotal: subtotal,
         descuento: descuento || 0,
         cuponAplicado: descuento > 0 ? 'CUPON-1RA-COMPRA-10PCT' : '',
@@ -16069,7 +16330,7 @@ async function confirmarYEnviarWA() { // v3.26.0: async para esperar el ACK del 
       (direccion ? '<div class="pod-row"><span class="pod-label">Dirección</span><span class="pod-val">' + direccion + '</span></div>' : '') +
       '<div class="pod-row"><span class="pod-label">Vendedor</span><span class="pod-val">' + (vActivo ? vActivo.nombre : '') + '</span></div>' +
       '<div class="pod-row"><span class="pod-label">Productos</span><span class="pod-val">' + productosCount + ' (' + itemsTotales + ' uds.)</span></div>' +
-      '<div class="pod-row pod-total"><span class="pod-label">Total</span><span class="pod-val">' + fmt(t) + '</span></div>';
+      '<div class="pod-row pod-total"><span class="pod-label">Total</span><span class="pod-val">' + fmt(_tMostrar) + '</span></div>';
 
   // Mensaje personalizado por vendedor
   // v4.13.0 B4.1: el pedido se confirma EN LA WEB. Ya no mandamos al cliente a WA.
@@ -16211,6 +16472,22 @@ async function confirmarYEnviarWA() { // v3.26.0: async para esperar el ACK del 
   try {
     const numEl = document.getElementById('pod-numero');
     if (numEl) numEl.textContent = pedidoId;
+  } catch(e){}
+  // v3.60.0 — pedido abierto: guardar la foto del carrito (solo si el
+  // servidor confirmó) y avisar hasta qué hora se puede seguir sumando.
+  try {
+    if (_sheetOk) {
+      _paGuardar(pedidoId, telefono, _paFusionado ? _paRec.ts : Date.now(), _paFusionado ? _paRec.descuento : (descuento || 0));
+    } else {
+      _paBorrar();
+    }
+    const _paTit = document.querySelector('#pedido-ok .pedido-ok-titulo');
+    if (_paTit) _paTit.textContent = _paFusionado ? '¡Pedido actualizado!' : '¡Pedido enviado!';
+    if (_paFusionado) {
+      const _paSub = document.getElementById('pedido-ok-sub');
+      if (_paSub) _paSub.textContent = 'Sumamos los productos nuevos a tu pedido. ' + (vActivo ? vActivo.nombre : 'Tu vendedor') + ' recibe el pedido completo en un solo presupuesto.';
+    }
+    _paPintarExito(pedidoId, _paFusionado);
   } catch(e){}
   // v4.14.0 B4.3: el botón "Ver todos mis pedidos" se muestra si hay 2+
   // pedidos en localStorage (no solo para cliente registrado). Si es el
@@ -18184,6 +18461,8 @@ document.addEventListener('visibilitychange', function() {
       <strong>Tu vendedor: </strong><span id="wa-preview-vendedor">tu vendedor</span><br>
       Complet&aacute; tus datos para que podamos confirmar el pedido y avisarte cu&aacute;ndo llega.
     </div>
+    <!-- v3.60.0: pedido abierto — a qué pedido se va a sumar -->
+    <div class="ci-pa" id="ci-pedido-abierto" style="display:none"></div>
     <div class="tck-field">
       <label class="tck-label">Nombre o raz&oacute;n social <span style="font-weight:400;font-size:11px;color:var(--text3);text-transform:none;">(quien realiza el pedido)</span> <span style="color:var(--red2)">*</span></label>
       <input class="tck-input" id="ci-nombre" type="text" placeholder="Ej: Juan García o Rotisería El Rancho" autocomplete="name">
@@ -18257,6 +18536,8 @@ document.addEventListener('visibilitychange', function() {
       <div class="pod-numero-label">Tu número de pedido</div>
       <div class="pod-numero" id="pod-numero">#—</div>
     </div>
+    <!-- v3.60.0: pedido abierto — hasta qué hora se puede seguir sumando -->
+    <div class="pod-abierto" id="pedido-ok-abierto" style="display:none"></div>
 
     <div class="pedido-ok-card" id="pedido-ok-detalle"></div>
     <button class="pod-productos-toggle" id="pod-toggle" onclick="toggleProductosOk()">
@@ -20871,6 +21152,7 @@ function cliVolverPortal() {
 
 // ── PRE-RELLENO MODAL DE PEDIDO ───────────────────────────────
 function cliPreRellenarModal() {
+  try { _paPintarBannerModal(); } catch(e) {}   // v3.60.0: "se suma a tu pedido abierto"
   if (!_cliActivo) return;
   const campos = {
     'ci-nombre':    _cliActivo.nombre,
