@@ -2,6 +2,18 @@
 <html lang="es">
 <head>
 <!-- ═══════════════════════════════════════════════════════════════════════
+     TCK CATÁLOGO — v3.60.2 — 16/09/2026
+     v3.60.2: PORTADAS NUEVAS DE CATEGORÍA (9 banners de marca).
+       Imágenes: img/categorias/{pollos,milanesas,unionganadera,tapamania,
+       huevos,rebozados,papas,premium,pastas}.jpg — 1200x524, JPG ~85-130 KB
+       (los PNG originales pesaban ~2 MB cada uno). Cerdo, verduras y combos
+       sin cambios.
+       CSS: el área de foto del tile pasa de 134px fijos a la proporción del
+       banner (2.29:1) para no recortar textos/logos; 2 columnas en desktop;
+       Tapa Manía deja el object-fit:contain + fondo amarillo.
+       Ojo: el loader prueba .jpg -> .webp -> .png. tapamania.png queda
+       muerto (gana el .jpg) — se puede borrar del repo.
+     ─────────────────────────────────────────────────────────────────────
      TCK CATÁLOGO — v3.60.1 — 16/09/2026
      v3.60.1: ALTA de los tres Premium en caja de 5 Kg (pedido de Chan).
        Fresnova pasó Medallón de Pollo, Formitas y Medallón JyQ Premium de
@@ -9491,12 +9503,27 @@ body.v4-mode.v4-vista-home .v4-home{display:block}
 .v4-cat-card[data-v4-grupo="verduras"]  .v4-cat-overlay{background:#1E8449}
 .v4-cat-card[data-v4-grupo="pastas"]    .v4-cat-overlay{background:#1A5276}
 .v4-cat-card[data-v4-grupo="tapamania"] .v4-cat-overlay{background:#C0392B}
-.v4-cat-card[data-v4-grupo="tapamania"] .v4-cat-img-real{object-fit:contain;background:#F4C81E;}
+/* v3.60.2: quitado object-fit:contain + fondo amarillo de tapamania (portada nueva = banner completo, va en cover como las demás) */
 .v4-cat-card[data-v4-grupo="combos"]    .v4-cat-overlay{background:#C0392B}
 
 /* v3.12.2 - Categorias ocultas del home (sin stock / reubicadas). Reversible: borrar este bloque. */
 .v4-cat-card[data-v4-grupo="verduras"],
 .v4-cat-card[data-v4-grupo="combos"]{display:none !important}
+
+/* v3.60.2 (16/9): PORTADAS NUEVAS — banners 1200x524 (proporción 2.29:1).
+   Antes la foto medía 134px fijos: en celulares grandes (414-430px) recortaba
+   arriba y abajo ("UNION" de UG, "Más variedad..." de Papas, aro del logo de
+   El Shaddai). Ahora el área de foto toma la proporción del banner y la barra
+   de 44px queda abajo como siempre. padding-top % (no aspect-ratio) para que
+   ande también en Android viejos. Reversible: borrar este bloque. */
+.v4-cat-card{height:auto;padding-bottom:44px}
+.v4-cat-card::before{content:'';display:block;padding-top:43.67%}
+.v4-cat-img-real,
+.v4-cat-img-fallback{height:calc(100% - 44px)}
+/* Desktop: 2 columnas para que los tiles no queden de 400px de alto */
+@media (min-width:780px){
+  .v4-cat-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+}
 
 /* Nombre: centrado vertical dentro de la franja de 44px de la barra */
 .v4-cat-name{
@@ -24750,7 +24777,7 @@ function confirmarCiudadNoAtendida() {
    TCK_UPD_LOCAL aca Y el archivo version.json del repo.
    ============================================================ */
 (function(){
-  var TCK_UPD_LOCAL = '3.60.1';        /* <-- bump en cada deploy */
+  var TCK_UPD_LOCAL = '3.60.2';        /* <-- bump en cada deploy */
   var TCK_UPD_INTERVALO = 10 * 60 * 1000;   /* chequeo de fondo: 10 min */
   var _updUltChequeo = 0;
 
