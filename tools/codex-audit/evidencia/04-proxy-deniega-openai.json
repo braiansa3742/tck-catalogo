@@ -1,0 +1,124 @@
+{
+  "recentRelayFailures": [
+    {
+      "ts": "2026-09-22T03:06:17.887Z",
+      "kind": "connect_rejected",
+      "detail": "gateway answered 403 to CONNECT (policy denial or upstream failure)",
+      "host": "api.openai.com:443"
+    },
+    {
+      "ts": "2026-09-22T03:06:18.542Z",
+      "kind": "connect_rejected",
+      "detail": "gateway answered 403 to CONNECT (policy denial or upstream failure)",
+      "host": "api.openai.com:443"
+    },
+    {
+      "ts": "2026-09-22T03:06:19.569Z",
+      "kind": "connect_rejected",
+      "detail": "gateway answered 403 to CONNECT (policy denial or upstream failure)",
+      "host": "api.openai.com:443"
+    },
+    {
+      "ts": "2026-09-22T03:06:21.354Z",
+      "kind": "connect_rejected",
+      "detail": "gateway answered 403 to CONNECT (policy denial or upstream failure)",
+      "host": "api.openai.com:443"
+    },
+    {
+      "ts": "2026-09-22T03:06:31.628Z",
+      "kind": "connect_rejected",
+      "detail": "gateway answered 403 to CONNECT (policy denial or upstream failure)",
+      "host": "api.openai.com:443"
+    },
+    {
+      "ts": "2026-09-22T03:06:32.078Z",
+      "kind": "connect_rejected",
+      "detail": "gateway answered 403 to CONNECT (policy denial or upstream failure)",
+      "host": "api.openai.com:443"
+    },
+    {
+      "ts": "2026-09-22T03:06:32.669Z",
+      "kind": "connect_rejected",
+      "detail": "gateway answered 403 to CONNECT (policy denial or upstream failure)",
+      "host": "api.openai.com:443"
+    },
+    {
+      "ts": "2026-09-22T03:06:33.678Z",
+      "kind": "connect_rejected",
+      "detail": "gateway answered 403 to CONNECT (policy denial or upstream failure)",
+      "host": "api.openai.com:443"
+    },
+    {
+      "ts": "2026-09-22T03:06:35.415Z",
+      "kind": "connect_rejected",
+      "detail": "gateway answered 403 to CONNECT (policy denial or upstream failure)",
+      "host": "api.openai.com:443"
+    },
+    {
+      "ts": "2026-09-22T03:06:55.658Z",
+      "kind": "connect_rejected",
+      "detail": "gateway answered 403 to CONNECT (policy denial or upstream failure)",
+      "host": "api.openai.com:443"
+    },
+    {
+      "ts": "2026-09-22T03:06:56.075Z",
+      "kind": "connect_rejected",
+      "detail": "gateway answered 403 to CONNECT (policy denial or upstream failure)",
+      "host": "api.openai.com:443"
+    },
+    {
+      "ts": "2026-09-22T03:06:56.736Z",
+      "kind": "connect_rejected",
+      "detail": "gateway answered 403 to CONNECT (policy denial or upstream failure)",
+      "host": "api.openai.com:443"
+    },
+    {
+      "ts": "2026-09-22T03:06:57.738Z",
+      "kind": "connect_rejected",
+      "detail": "gateway answered 403 to CONNECT (policy denial or upstream failure)",
+      "host": "api.openai.com:443"
+    },
+    {
+      "ts": "2026-09-22T03:06:59.684Z",
+      "kind": "connect_rejected",
+      "detail": "gateway answered 403 to CONNECT (policy denial or upstream failure)",
+      "host": "api.openai.com:443"
+    },
+    {
+      "ts": "2026-09-22T03:07:00.373Z",
+      "kind": "connect_rejected",
+      "detail": "gateway answered 403 to CONNECT (policy denial or upstream failure)",
+      "host": "ab.chatgpt.com:443"
+    },
+    {
+      "ts": "2026-09-22T03:07:39.921Z",
+      "kind": "connect_rejected",
+      "detail": "gateway answered 403 to CONNECT (policy denial or upstream failure)",
+      "host": "api.openai.com:443"
+    },
+    {
+      "ts": "2026-09-22T03:07:40.319Z",
+      "kind": "connect_rejected",
+      "detail": "gateway answered 403 to CONNECT (policy denial or upstream failure)",
+      "host": "api.openai.com:443"
+    },
+    {
+      "ts": "2026-09-22T03:07:40.960Z",
+      "kind": "connect_rejected",
+      "detail": "gateway answered 403 to CONNECT (policy denial or upstream failure)",
+      "host": "api.openai.com:443"
+    },
+    {
+      "ts": "2026-09-22T03:07:42.020Z",
+      "kind": "connect_rejected",
+      "detail": "gateway answered 403 to CONNECT (policy denial or upstream failure)",
+      "host": "api.openai.com:443"
+    },
+    {
+      "ts": "2026-09-22T03:07:43.962Z",
+      "kind": "connect_rejected",
+      "detail": "gateway answered 403 to CONNECT (policy denial or upstream failure)",
+      "host": "api.openai.com:443"
+    }
+  ]
+}

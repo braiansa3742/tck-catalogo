@@ -1,0 +1,32 @@
+Reading additional input from stdin...
+OpenAI Codex v0.155.1
+--------
+workdir: /home/user/tck-catalogo/tools/codex-audit/smoke
+model: gpt-6-astra
+provider: openai
+approval: never
+sandbox: read-only
+reasoning effort: none
+reasoning summaries: none
+session id: 01a0c713-d2ba-7c30-8d46-b82291276010
+--------
+user
+Revisa precio.js y reporta bugs. No edites archivos.
+warning: Codex could not find bubblewrap on PATH. Install bubblewrap with your OS package manager. See the sandbox prerequisites: https://developers.openai.com/codex/concepts/sandboxing#prerequisites. Codex will use the bundled bubblewrap in the meantime.
+2026-09-22T03:06:00.512532Z ERROR codex_api::endpoint::responses_websocket: failed to connect to websocket: URL error: Proxy connection failed: HTTP CONNECT failed with status 403, url: wss://api.openai.com/v1/responses
+2026-09-22T03:06:00.747381Z ERROR codex_api::endpoint::responses_websocket: failed to connect to websocket: URL error: Proxy connection failed: HTTP CONNECT failed with status 403, url: wss://api.openai.com/v1/responses
+2026-09-22T03:06:01.189606Z ERROR codex_api::endpoint::responses_websocket: failed to connect to websocket: URL error: Proxy connection failed: HTTP CONNECT failed with status 403, url: wss://api.openai.com/v1/responses
+ERROR: Reconnecting... 2/5
+2026-09-22T03:06:01.873502Z ERROR codex_api::endpoint::responses_websocket: failed to connect to websocket: URL error: Proxy connection failed: HTTP CONNECT failed with status 403, url: wss://api.openai.com/v1/responses
+ERROR: Reconnecting... 3/5
+2026-09-22T03:06:02.698607Z ERROR codex_api::endpoint::responses_websocket: failed to connect to websocket: URL error: Proxy connection failed: HTTP CONNECT failed with status 403, url: wss://api.openai.com/v1/responses
+ERROR: Reconnecting... 4/5
+2026-09-22T03:06:04.439982Z ERROR codex_api::endpoint::responses_websocket: failed to connect to websocket: URL error: Proxy connection failed: HTTP CONNECT failed with status 403, url: wss://api.openai.com/v1/responses
+ERROR: Reconnecting... 5/5
+2026-09-22T03:06:07.881061Z ERROR codex_api::endpoint::responses_websocket: failed to connect to websocket: URL error: Proxy connection failed: HTTP CONNECT failed with status 403, url: wss://api.openai.com/v1/responses
+warning: Falling back from WebSockets to HTTPS transport. stream disconnected before completion: URL error: Proxy connection failed: HTTP CONNECT failed with status 403
+ERROR: Reconnecting... waiting for network
+ERROR: Reconnecting... waiting for network
+ERROR: Reconnecting... waiting for network
+ERROR: Reconnecting... waiting for network
+ERROR: Reconnecting... waiting for network

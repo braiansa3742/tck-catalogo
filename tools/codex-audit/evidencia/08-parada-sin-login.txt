@@ -1,0 +1,2 @@
+Codex: codex-cli 0.155.1
+ERROR: Codex no tiene sesion iniciada. Ejecuta 'codex login' (login con ChatGPT en el navegador).

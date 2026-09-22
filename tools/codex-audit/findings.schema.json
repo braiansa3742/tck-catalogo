@@ -1,0 +1,65 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["revision_auditada", "veredicto", "resumen", "hallazgos", "sugerencias_opcionales", "pruebas", "bloqueos"],
+  "properties": {
+    "revision_auditada": {
+      "type": "string",
+      "description": "SHA exacto que se auditó, copiado del bundle."
+    },
+    "veredicto": {
+      "type": "string",
+      "enum": ["aprobado", "cambios_requeridos", "bloqueado"]
+    },
+    "resumen": { "type": "string" },
+    "hallazgos": {
+      "type": "array",
+      "description": "Solo defectos que bloquean la aceptacion. Si no hay, array vacio.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "severidad", "archivo", "ubicacion", "descripcion", "impacto", "evidencia", "correccion_sugerida"],
+        "properties": {
+          "id": { "type": "string" },
+          "severidad": { "type": "string", "enum": ["critico", "alto", "medio"] },
+          "archivo": { "type": "string" },
+          "ubicacion": { "type": "string", "description": "Linea o rango, ej. L12-L18" },
+          "descripcion": { "type": "string" },
+          "impacto": { "type": "string", "description": "Que se rompe y para quien" },
+          "evidencia": { "type": "string", "description": "Cita de codigo, salida de prueba o caso concreto que lo demuestra" },
+          "correccion_sugerida": { "type": "string" }
+        }
+      }
+    },
+    "sugerencias_opcionales": {
+      "type": "array",
+      "description": "Mejoras no bloqueantes. Nunca mezclar con hallazgos.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["archivo", "ubicacion", "sugerencia", "motivo"],
+        "properties": {
+          "archivo": { "type": "string" },
+          "ubicacion": { "type": "string" },
+          "sugerencia": { "type": "string" },
+          "motivo": { "type": "string" }
+        }
+      }
+    },
+    "pruebas": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["evaluacion", "comentarios", "faltantes"],
+      "properties": {
+        "evaluacion": { "type": "string", "enum": ["suficientes", "insuficientes", "no_evaluable"] },
+        "comentarios": { "type": "string" },
+        "faltantes": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "bloqueos": {
+      "type": "array",
+      "description": "Contexto o acceso que falto para auditar bien. Vacio si no falto nada.",
+      "items": { "type": "string" }
+    }
+  }
+}
