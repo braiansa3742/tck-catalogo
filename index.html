@@ -2,6 +2,26 @@
 <html lang="es">
 <head>
 <!-- ═══════════════════════════════════════════════════════════════════════
+     TCK CATÁLOGO — v3.61.0 — 22/09/2026
+     v3.61.0: ADAPTACIÓN DE ESCRITORIO (solo CSS, celular intacto).
+       En PC el catálogo quedaba en una columna de ~459 px con 2 tarjetas
+       por fila, fotos de 93 px y nombres cortados ("Rebozados Premium",
+       "Pastas Congeladas", "Lujo Pampeano"...).
+       CAUSA: el @media(min-width:960px) de v3.x convierte <body> en flex.
+       .app pasa a ser flex item y, sin width ni flex declarados, toma
+       flex-basis:auto + flex-grow:0 → se encoge a fit-content. Su
+       max-width:980px nunca llegaba a aplicarse.
+       FIX: bloque nuevo al final del CSS con ancho explícito
+       min(1180px, 100vw-48px) y escalones 1→2→3 columnas en categorías
+       (700px / 1120px) y 4 columnas de producto en PC. Se anclan al
+       contenedor la hoja inferior y el menú lateral, que eran fixed
+       respecto del viewport. Ojo: el menú usa translateX(-100%) para
+       esconderse, que solo funciona con left:0 — al correr el left hubo
+       que corregir también el estado cerrado.
+       Nada por debajo de 700px: verificado píxel a píxel contra 3.60.2
+       a 360/390/430.
+       Reversible: borrar el bloque "v3.61.0 — ADAPTACIÓN DE ESCRITORIO".
+     ─────────────────────────────────────────────────────────────────────
      TCK CATÁLOGO — v3.60.2 — 16/09/2026
      v3.60.2: PORTADAS NUEVAS DE CATEGORÍA (9 banners de marca).
        Imágenes: img/categorias/{pollos,milanesas,unionganadera,tapamania,
@@ -11265,6 +11285,126 @@ body.v4-mode .v4-menu-item .v4-menu-item-count{
   align-items:center;
   justify-content:center;
   font-size:22px;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════
+   v3.61.0 (22/09) — ADAPTACIÓN DE ESCRITORIO
+   ──────────────────────────────────────────────────────────────────────
+   Problema: en PC el catálogo quedaba en una columna de ~459 px, con dos
+   tarjetas por fila, fotos de 93 px y nombres cortados ("Rebozados
+   Premium", "Pastas Congeladas", "Lujo Pampeano"...).
+
+   Causa: el bloque @media(min-width:960px) de más arriba convierte <body>
+   en flex container. .app pasa a ser flex item y, al no tener width ni
+   flex declarados, toma flex-basis:auto + flex-grow:0 → se encoge a
+   fit-content. Su max-width:980px nunca llegaba a aplicarse.
+
+   Solución: ancho explícito al contenedor + escalones de columnas para
+   categorías y productos + anclar al contenedor los elementos fixed.
+   NO se toca el celular: todo vive dentro de media queries ≥700px.
+
+   Reversible: borrar este bloque entero y vuelve el estado anterior.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* ── 1. Ancho del contenedor ────────────────────────────────────────────
+   1180 px es el máximo útil: a 3 columnas deja tarjetas de ~375 px, o sea
+   fotos de ~164 px, casi idénticas a las del celular de 390 px (366×160).
+   Más ancho que eso agranda las fotos por encima de su tamaño de diseño.
+   El calc(100vw - 48px) mantiene el margen del marco redondeado y evita
+   scroll horizontal aun con barra de scroll vertical presente (48 > 15). */
+@media (min-width:960px){
+  .app{
+    width:min(1180px, calc(100vw - 48px));
+    max-width:none;
+    flex:0 0 auto;
+  }
+}
+
+/* ── 2. Categorías: 1 col (celular) → 2 (tablet) → 3 (PC) ───────────────
+   Supersede al @media(min-width:780px) de v3.60.2, que queda intacto para
+   que borrar este bloque restaure el comportamiento exacto de antes.
+
+   700 px: a 2 columnas la tarjeta mide ~333 px y la foto ~146 px. Por
+   debajo de ese ancho la foto quedaría más chica que en un celular común,
+   así que ahí sigue 1 columna.
+   1120 px: recién ahí el contenedor da (1072-24-28)/3 = 340 px por
+   tarjeta. Con el escalón más abajo las fotos se achicaban. */
+@media (min-width:700px){
+  .v4-cat-list{
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:12px;
+  }
+}
+@media (min-width:1120px){
+  .v4-cat-list{
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    gap:14px;
+    padding:14px 14px 10px;
+  }
+}
+
+/* ── 3. Nombres completos de categoría ──────────────────────────────────
+   La barra reserva 50 px a la derecha para la flecha. Con tarjetas de
+   340-375 px "REBOZADOS PREMIUM" entra cómodo; bajamos un poco el
+   letter-spacing para dar margen al nombre más largo en el escalón de
+   1120 px, donde la tarjeta es más angosta. */
+@media (min-width:700px){
+  .v4-cat-name{right:46px}
+  .v4-cat-name-text{letter-spacing:.4px}
+}
+
+/* ── 4. Productos: 4 columnas en PC ─────────────────────────────────────
+   El grid ya escala 2→3→4, pero su último escalón es a 780 px y quedaba
+   topeado por el contenedor angosto. Con 1180 px, 3 columnas dan tarjetas
+   de ~380 px (demasiado anchas para una foto de 180 px); 4 dan ~283 px.
+   Lleva !important porque el override de v4 (body.v4-mode) también lo usa. */
+@media (min-width:1120px){
+  .sec-grid,
+  body.v4-mode .body .sec-grid{
+    grid-template-columns:repeat(4,1fr) !important;
+  }
+}
+
+/* ── 5. Elementos fixed anclados al contenedor ──────────────────────────
+   Son position:fixed respecto del viewport, así que al centrar .app en
+   una pantalla ancha quedaban descolgados: la hoja inferior ocupaba los
+   1920 px y el menú lateral salía del borde izquierdo de la pantalla, no
+   del de la app.
+
+   Ojo: ambos usan transform para su animación de entrada
+   (.v4-sheet translateY, .v4-menu translateX), así que se corrigen por
+   left/right/margin y NO por transform. */
+@media (min-width:960px){
+  .v4-sheet{
+    left:0; right:0;
+    margin-inline:auto;
+    width:min(560px, calc(100vw - 48px));
+    border-radius:18px 18px 0 0;
+  }
+  /* borde izquierdo de .app = 50% - (ancho de .app / 2).
+     Al correr el left hay que corregir también el estado cerrado: el
+     translateX(-100%) original solo esconde el panel si left es 0, porque
+     el -100% es relativo al ancho del panel (340px), no al desplazamiento.
+     Con left:93px asomaban 93px de menú en reposo. */
+  .v4-menu{
+    left:calc(50% - min(590px, 50vw - 24px));
+    transform:translateX(calc(-100% - 50vw));
+  }
+  .v4-menu.on{transform:translateX(0)}
+}
+
+/* ── 6. Aire proporcional en header, buscador y aviso de registro ───────
+   Solo padding/margin lateral dentro del contenedor ya ensanchado. No se
+   tocan tamaños de fuente ni alturas, para no alterar las pantallas
+   internas (portada, portal de cliente, checkout). */
+@media (min-width:960px){
+  .hdr-body{padding:11px 20px 9px}
+  .catnav{padding:6px 20px 12px}
+  .search-wrap{padding:10px 16px 0}
+  .banner-registro{margin:12px 16px 0}
+  .v4-home-title{padding-left:20px;padding-right:20px}
 }
 
 </style>
@@ -24777,7 +24917,7 @@ function confirmarCiudadNoAtendida() {
    TCK_UPD_LOCAL aca Y el archivo version.json del repo.
    ============================================================ */
 (function(){
-  var TCK_UPD_LOCAL = '3.60.2';        /* <-- bump en cada deploy */
+  var TCK_UPD_LOCAL = '3.61.0';        /* <-- bump en cada deploy */
   var TCK_UPD_INTERVALO = 10 * 60 * 1000;   /* chequeo de fondo: 10 min */
   var _updUltChequeo = 0;
 
